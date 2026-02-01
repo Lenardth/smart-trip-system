@@ -1,12 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 
-/*
-|--------------------------------------------------------------------------
-| Public (Guest) Pages
-|--------------------------------------------------------------------------
-*/
 
 Route::get('/', function () {
     return view('public.landing');
@@ -24,11 +20,7 @@ Route::get('/community', function () {
     return view('community');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Pages
-|--------------------------------------------------------------------------
-*/
+
 
 Route::middleware(['auth'])->group(function () {
 
@@ -40,12 +32,16 @@ Route::middleware(['auth'])->group(function () {
         return view('plan-trip');
     });
 
+
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Breeze Auth Routes (LOGIN / REGISTER / LOGOUT)
-|--------------------------------------------------------------------------
-*/
 
 require __DIR__.'/auth.php';

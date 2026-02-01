@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code FIRST
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup PHP (MATCH LARAVEL ECOSYSTEM)
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -23,29 +23,29 @@ jobs:
           extensions: mbstring, pdo, pdo_sqlite
           coverage: none
 
-      # 3️⃣ Copy environment file
+
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-      # 4️⃣ Install dependencies (THIS WILL NOW WORK)
+
       - name: Install dependencies
         run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
 
-      # 5️⃣ Generate app key
+
       - name: Generate key
         run: php artisan key:generate
 
-      # 6️⃣ Set permissions
+
       - name: Directory permissions
         run: chmod -R 775 storage bootstrap/cache
 
-      # 7️⃣ Create SQLite database
+
       - name: Create database
         run: |
           mkdir -p database
           touch database/database.sqlite
 
-      # 8️⃣ Run tests
+
       - name: Run tests
         env:
           DB_CONNECTION: sqlite
