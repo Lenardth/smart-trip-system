@@ -23,7 +23,6 @@ jobs:
           extensions: mbstring, pdo, pdo_sqlite
           coverage: none
 
-      # 3️⃣ Setup Node (THIS WAS MISSING)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
