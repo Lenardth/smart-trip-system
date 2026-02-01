@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
+      
       - name: Checkout repository
         uses: actions/checkout@v4
 
-
+     
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -23,28 +23,40 @@ jobs:
           extensions: mbstring, pdo, pdo_sqlite
           coverage: none
 
+      # 3️⃣ Setup Node (THIS WAS MISSING)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
+     
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-
-      - name: Install dependencies
+     
+      - name: Install Composer dependencies
         run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
 
+      - name: Install Node dependencies
+        run: npm install
 
+   
+      - name: Build Vite assets
+        run: npm run build
+
+      
       - name: Generate key
         run: php artisan key:generate
 
-
+     
       - name: Directory permissions
         run: chmod -R 775 storage bootstrap/cache
-
 
       - name: Create database
         run: |
           mkdir -p database
           touch database/database.sqlite
-
 
       - name: Run tests
         env:
