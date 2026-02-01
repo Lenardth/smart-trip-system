@@ -1,0 +1,99 @@
+/* Auth Pages Styling */
+
+.auth-page {
+    background: linear-gradient(135deg, #3b1f2b 0%, #4d2a3a 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-card {
+    background: #fff8f2;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(59, 31, 43, 0.35);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    border-top: 4px solid #c9a96e;
+}
+
+.auth-title {
+    color: #3b1f2b;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: normal;
+    font-family: 'Georgia', serif;
+    letter-spacing: 1px;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #d4c4b0;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px;
+    background: #fff8f2;
+    color: #3b1f2b;
+    font-family: 'Georgia', serif;
+    box-sizing: border-box;
+}
+
+.auth-input:focus {
+    border-color: #c9a96e;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.2);
+}
+
+.auth-btn {
+    background: #c9a96e;
+    color: #3b1f2b;
+    border: none;
+    padding: 15px;
+    width: 100%;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    font-family: 'Georgia', serif;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(59, 31, 43, 0.15);
+}
+
+.auth-btn:hover {
+    background: #b8955a;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 31, 43, 0.25);
+}
+
+.auth-link {
+    color: #c9a96e;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    font-family: 'Georgia', serif;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.auth-link:hover {
+    color: #3b1f2b;
+    text-decoration: underline;
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.auth-logo img {
+    width: 80px;
+    height: auto;
+    filter: brightness(0) invert(1);
+}
