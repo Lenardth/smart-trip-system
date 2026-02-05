@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Booking extends Model
 {
@@ -12,12 +13,11 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'flight_id',
-        'passenger_count',
+        'booking_reference',
+        'seats_booked',
         'total_price',
         'status',
-        'booking_reference',
         'passenger_details',
-        'special_requests',
     ];
 
     protected $casts = [
@@ -25,26 +25,57 @@ class Booking extends Model
         'passenger_details' => 'array',
     ];
 
-    // Relationships
+    /**
+     * Boot method - generate booking reference
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($booking) {
+            if (!$booking->booking_reference) {
+                $booking->booking_reference = 'SB-' . strtoupper(Str::random(8));
+            }
+        });
+    }
+
+    /**
+     * Get the user who made the booking
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the flight for this booking
+     */
     public function flight()
     {
         return $this->belongsTo(Flight::class);
     }
 
-    // Generate booking reference
-    public static function generateReference()
-    {
-        return 'BK' . strtoupper(uniqid());
-    }
-
-    // Check if booking is confirmed
+    /**
+     * Check if booking is confirmed
+     */
     public function isConfirmed()
     {
         return $this->status === 'confirmed';
+    }
+
+    /**
+     * Scope for confirmed bookings
+     */
+    public function scopeConfirmed($query)
+    {
+        return $query->where('status', 'confirmed');
+    }
+
+    /**
+     * Scope for user's bookings
+     */
+    public function scopeByUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 }

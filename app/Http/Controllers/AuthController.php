@@ -10,9 +10,6 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    /**
-     * Show the login form
-     */
     public function showLogin()
     {
         if (Auth::check()) {
@@ -21,9 +18,6 @@ class AuthController extends Controller
         return view('login');
     }
 
-    /**
-     * Handle login attempt
-     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -36,6 +30,15 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
             
+            Auth::user()->update([
+                'last_login_at' => now(),
+                'last_login_ip' => $request->ip(),
+            ]);
+            
+            if (!$remember) {
+                config(['session.lifetime' => 30]);
+            }
+            
             return redirect()->intended('dashboard')->with('success', 'Welcome back, ' . Auth::user()->name . '!');
         }
 
@@ -44,9 +47,6 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    /**
-     * Show the registration form
-     */
     public function showRegister()
     {
         if (Auth::check()) {
@@ -55,39 +55,47 @@ class AuthController extends Controller
         return view('register');
     }
 
-    /**
-     * Handle registration
-     */
     public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::min(8)],
+            'user_type' => ['required', 'in:user,agency'],
+            'agency_name' => ['nullable', 'required_if:user_type,agency', 'string', 'max:255'],
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'user_type' => $validated['user_type'],
+            'agency_name' => $validated['agency_name'] ?? null,
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
         ]);
 
-        // Auto-login after registration
         Auth::login($user);
+        $request->session()->regenerate();
 
         return redirect()->route('dashboard')->with('success', 'Welcome to Smart Booking, ' . $user->name . '!');
     }
 
-    /**
-     * Handle logout
-     */
     public function logout(Request $request)
     {
         Auth::logout();
-        
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
         return redirect()->route('login')->with('success', 'You have been logged out successfully.');
+    }
+    
+    public function checkActivity(Request $request)
+    {
+        if (Auth::check()) {
+            session(['last_activity' => time()]);
+            return response()->json(['active' => true]);
+        }
+        return response()->json(['active' => false], 401);
     }
 }
