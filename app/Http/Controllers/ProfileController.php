@@ -5,106 +5,111 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
     /**
-     * Show profile edit form
+     * Display the user's profile form.
      */
-    public function edit()
+    public function edit(Request $request)
     {
-        return view('profile.edit');
+        return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
     }
 
     /**
-     * Update profile information
+     * Update the user's profile information.
      */
     public function update(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
-        $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'bio' => 'nullable|string|max:500',
-        ];
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ]);
 
-        if ($user->isAgency()) {
-            $rules['agency_name'] = 'required|string|max:255';
+        $user->fill($validated);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $validated = $request->validate($rules);
+        $user->save();
 
-        $user->update($validated);
-
-        return back()->with('success', 'Profile updated successfully!');
+        return redirect()->route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
-     * Upload profile picture
+     * Delete the user's account.
+     */
+    public function destroy(Request $request)
+    {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+
+    /**
+     * Update the user's password.
+     * FIXED: Now redirects to /profile (route('profile.edit'))
+     */
+    public function updatePassword(Request $request)
+    {
+        $validated = $request->validateWithBag('updatePassword', [
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->route('profile.edit')->with('status', 'password-updated');
+    }
+
+    /**
+     * Upload profile picture.
      */
     public function uploadProfilePicture(Request $request)
     {
         $request->validate([
-            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile_picture' => ['required', 'image', 'max:2048'],
         ]);
 
-        $user = Auth::user();
+        $user = $request->user();
 
-        // Delete old profile picture if exists
-        if ($user->profile_picture) {
-            Storage::disk('public')->delete($user->profile_picture);
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+            $user->profile_picture = $path;
+            $user->save();
         }
 
-        // Store new profile picture
-        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
-
-        $user->update(['profile_picture' => $path]);
-
-        return back()->with('success', 'Profile picture updated successfully!');
+        return back()->with('status', 'profile-picture-updated');
     }
 
     /**
-     * Delete profile picture
+     * Delete profile picture.
      */
-    public function deleteProfilePicture()
+    public function deleteProfilePicture(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
+        $user->profile_picture = null;
+        $user->save();
 
-        if ($user->profile_picture) {
-            Storage::disk('public')->delete($user->profile_picture);
-            $user->update(['profile_picture' => null]);
-
-            return back()->with('success', 'Profile picture removed successfully!');
-        }
-
-        return back()->with('error', 'No profile picture to delete.');
-    }
-
-    /**
-     * Update password
-     */
-    public function updatePassword(Request $request)
-    {
-        $request->validate([
-            'current_password' => 'required',
-            'password' => ['required', 'confirmed', Password::min(8)],
-        ]);
-
-        $user = Auth::user();
-
-        // Check current password
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
-        }
-
-        // Update password
-        $user->update([
-            'password' => Hash::make($request->password),
-        ]);
-
-        return back()->with('success', 'Password updated successfully!');
+        return back()->with('status', 'profile-picture-deleted');
     }
 }

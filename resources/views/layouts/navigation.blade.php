@@ -17,7 +17,7 @@
                     <x-nav-link :href="route('plan-trip')" :active="request()->routeIs('plan-trip')">
                         {{ __('Plan Trip') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('flights')" :active="request()->routeIs('flights')">
+                    <x-nav-link :href="route('flights.index')" :active="request()->routeIs('flights')">
                         {{ __('Flights') }}
                     </x-nav-link>
                     <x-nav-link :href="route('discover')" :active="request()->routeIs('discover')">
@@ -99,7 +99,7 @@
             <x-responsive-nav-link :href="route('plan-trip')" :active="request()->routeIs('plan-trip')">
                 {{ __('Plan Trip') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('flights')" :active="request()->routeIs('flights')">
+            <x-responsive-nav-link :href="route('flights.index')" :active="request()->routeIs('flights')">
                 {{ __('Flights') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('discover')" :active="request()->routeIs('discover')">

@@ -3,21 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    /**
+     * Show the login form.
+     */
     public function showLogin()
     {
-        if (Auth::check()) {
-            return redirect()->route('dashboard');
-        }
-        return view('login');
+        return view('auth.login');
     }
 
+    /**
+     * Handle login request.
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -25,21 +34,16 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $remember = $request->boolean('remember');
-
-        if (Auth::attempt($credentials, $remember)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            
-            Auth::user()->update([
-                'last_login_at' => now(),
-                'last_login_ip' => $request->ip(),
-            ]);
-            
-            if (!$remember) {
-                config(['session.lifetime' => 30]);
-            }
-            
-            return redirect()->intended('dashboard')->with('success', 'Welcome back, ' . Auth::user()->name . '!');
+
+            // Update last login information
+            $user = Auth::user();
+            $user->last_login_at = now();
+            $user->last_login_ip = $request->ip();
+            $user->save();
+
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
@@ -47,55 +51,204 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
+    /**
+     * Show the registration form.
+     */
     public function showRegister()
     {
-        if (Auth::check()) {
-            return redirect()->route('dashboard');
-        }
-        return view('register');
+        return view('auth.register');
     }
 
+    /**
+     * Handle registration request.
+     */
     public function register(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::min(8)],
-            'user_type' => ['required', 'in:user,agency'],
-            'agency_name' => ['nullable', 'required_if:user_type,agency', 'string', 'max:255'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'user_type' => ['nullable', 'in:user,agency'],
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'user_type' => $validated['user_type'],
-            'agency_name' => $validated['agency_name'] ?? null,
-            'last_login_at' => now(),
-            'last_login_ip' => $request->ip(),
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'user_type' => $request->user_type ?? 'user',
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        event(new Registered($user));
 
-        return redirect()->route('dashboard')->with('success', 'Welcome to Smart Booking, ' . $user->name . '!');
+        // Log the user in after registration
+        Auth::login($user);
+
+        return redirect(route('dashboard', absolute: false));
     }
 
+    /**
+     * Handle logout request.
+     */
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-        return redirect()->route('login')->with('success', 'You have been logged out successfully.');
+
+        return redirect('/');
     }
-    
+
+    /**
+     * Check user activity (for session timeout).
+     */
     public function checkActivity(Request $request)
     {
-        if (Auth::check()) {
-            session(['last_activity' => time()]);
-            return response()->json(['active' => true]);
+        return response()->json([
+            'active' => Auth::check(),
+        ]);
+    }
+
+    // ============================================
+    // EMAIL VERIFICATION METHODS
+    // ============================================
+
+    /**
+     * Display the email verification prompt.
+     */
+    public function showVerifyEmail(Request $request)
+    {
+        return $request->user()->hasVerifiedEmail()
+            ? redirect()->intended(route('dashboard'))
+            : view('auth.verify-email');
+    }
+
+    /**
+     * Mark the authenticated user's email address as verified.
+     * FIXED: Properly validate the signature
+     */
+    public function verifyEmail(EmailVerificationRequest $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->intended(route('dashboard') . '?verified=1');
         }
-        return response()->json(['active' => false], 401);
+
+        if ($request->user()->markEmailAsVerified()) {
+            event(new Verified($request->user()));
+        }
+
+        return redirect()->intended(route('dashboard') . '?verified=1');
+    }
+
+    /**
+     * Send a new email verification notification.
+     */
+    public function resendVerification(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->intended(route('dashboard'));
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('status', 'verification-link-sent');
+    }
+
+    // ============================================
+    // PASSWORD CONFIRMATION METHODS
+    // ============================================
+
+    /**
+     * Display the password confirmation screen.
+     */
+    public function showConfirmPassword()
+    {
+        return view('auth.confirm-password');
+    }
+
+    /**
+     * Confirm the user's password.
+     */
+    public function confirmPassword(Request $request)
+    {
+        if (!Hash::check($request->password, $request->user()->password)) {
+            return back()->withErrors([
+                'password' => __('The provided password does not match our records.'),
+            ]);
+        }
+
+        $request->session()->put('auth.password_confirmed_at', time());
+
+        return redirect()->intended(route('dashboard'));
+    }
+
+    // ============================================
+    // PASSWORD RESET METHODS
+    // ============================================
+
+    /**
+     * Display the password reset link request view.
+     */
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Handle an incoming password reset link request.
+     */
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status == Password::RESET_LINK_SENT
+            ? back()->with('status', __($status))
+            : back()->withInput($request->only('email'))
+                ->withErrors(['email' => __($status)]);
+    }
+
+    /**
+     * Display the password reset view.
+     */
+    public function showResetPassword(Request $request)
+    {
+        return view('auth.reset-password', [
+            'request' => $request,
+        ]);
+    }
+
+    /**
+     * Handle an incoming new password request.
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user) use ($request) {
+                $user->forceFill([
+                    'password' => Hash::make($request->password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status == Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', __($status))
+            : back()->withInput($request->only('email'))
+                ->withErrors(['email' => __($status)]);
     }
 }
