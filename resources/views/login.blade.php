@@ -92,7 +92,7 @@
                 <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking">
             </div>
             <h1 class="auth-title">Welcome Back</h1>
-
+            
             @if (session('success'))
                 <div class="success-message">
                     {{ session('success') }}
@@ -109,16 +109,16 @@
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
-
+                
                 <div class="input-group">
                     <label for="email">Email Address</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        class="auth-input @error('email') is-invalid @enderror"
-                        value="{{ old('email') }}"
-                        required
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="auth-input @error('email') is-invalid @enderror" 
+                        value="{{ old('email') }}" 
+                        required 
                         autofocus
                         placeholder="your@email.com"
                     >
@@ -129,11 +129,11 @@
 
                 <div class="input-group">
                     <label for="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        class="auth-input @error('password') is-invalid @enderror"
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="auth-input @error('password') is-invalid @enderror" 
                         required
                         placeholder="Enter your password"
                     >

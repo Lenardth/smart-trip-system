@@ -17,6 +17,12 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('user_type', ['user', 'agency'])->default('user');
+            $table->string('profile_picture')->nullable();
+            $table->string('bio')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('location')->nullable();
+            $table->json('preferences')->nullable(); // For storing user preferences
             $table->rememberToken();
             $table->timestamps();
         });

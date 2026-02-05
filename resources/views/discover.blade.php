@@ -88,16 +88,19 @@
     <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
     <span class="logo-text">Smart Booking</span>
 </header>
-<nav><div class="nav-container">
-    <a href="/"><i class="fas fa-home"></i> Home</a>
-    <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    <a href="/plan-trip"><i class="fas fa-route"></i> Plan Trip</a>
-    <a href="/discover" class="active"><i class="fas fa-compass"></i> Discover</a>
-    <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
-    <a href="/community"><i class="fas fa-users"></i> Community</a>
-    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
-    <a href="/register"><i class="fas fa-user-plus"></i> Register</a>
-</div></nav>
+<nav>
+    <div class="nav-container">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/plan-trip"><i class="fas fa-route"></i> Plan Trip</a>
+        <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a> <!-- Flight Booking Added -->
+        <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
+        <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
+        <a href="/community"><i class="fas fa-users"></i> Community</a>
+        <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+    </div>
+</nav>
+
 
 <section class="page-hero">
     <div>
@@ -129,7 +132,7 @@
         <div class="region-pill active"><i class="fas fa-globe-americas"></i> Worldwide</div>
         <div class="region-pill"><i class="fas fa-globe-asia"></i> Asia</div>
         <div class="region-pill"><i class="fas fa-globe-europe"></i> Europe</div>
-        <div class="region-pill"><i class="fas fa-globe-americas"></i> Americas</div>
+        <div class="region-pill"><i class="fas fa-globe-americas"></i> America</div>
         <div class="region-pill"><i class="fas fa-globe-africa"></i> Africa</div>
         <div class="region-pill"><i class="fas fa-globe-asia"></i> Oceania</div>
     </div>
