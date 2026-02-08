@@ -13,6 +13,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'flight_id',
+        'trip_id',
         'booking_reference',
         'seats_booked',
         'total_price',
@@ -53,6 +54,14 @@ class Booking extends Model
     public function flight()
     {
         return $this->belongsTo(Flight::class);
+    }
+
+    /**
+     * Get the trip this booking belongs to (optional)
+     */
+    public function trip()
+    {
+        return $this->belongsTo(Trip::class);
     }
 
     /**
