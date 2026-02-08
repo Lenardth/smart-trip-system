@@ -373,10 +373,12 @@
             background: var(--deep);
         }
 
+        /* User Profile Styles - UPDATED */
         .user-profile {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
+            width: 100%;
         }
 
         .user-avatar {
@@ -389,6 +391,7 @@
             border: 2px solid var(--gold);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
         .user-avatar:hover {
@@ -414,20 +417,92 @@
             font-size: 20px;
         }
 
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
         .user-info h4 {
             font-size: 15px;
             font-weight: 600;
             color: var(--text-light);
-            margin-bottom: 3px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .user-info p {
-            font-size: 12px;
-            color: var(--text-sub);
+        .user-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .user-type-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-type-badge.agency {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(156, 39, 176, 0.1));
+            color: var(--purple);
+            border: 1px solid rgba(156, 39, 176, 0.3);
+        }
+
+        .user-type-badge.traveler {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
+            color: var(--info);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .verified-badge {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+            color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Logout Button - FIXED */
+        .logout-btn {
+            margin-left: auto;
             background: rgba(255, 255, 255, 0.1);
-            padding: 3px 8px;
-            border-radius: 10px;
-            display: inline-block;
+            border: 1px solid var(--gold);
+            color: var(--text-light);
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+        }
+
+        .logout-btn:hover {
+            background: rgba(201, 169, 110, 0.3);
+            border-color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn i {
+            font-size: 16px;
         }
 
         /* ── Main Content ── */
@@ -1532,6 +1607,28 @@
             .iphone-gallery {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
+
+            /* Responsive user profile */
+            .user-info h4 {
+                font-size: 14px;
+            }
+
+            .user-type-badge,
+            .verified-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            .user-avatar {
+                width: 45px;
+                height: 45px;
+            }
+
+            .logout-btn {
+                width: 38px;
+                height: 38px;
+                padding: 8px;
+            }
         }
 
         @media (max-width: 576px) {
@@ -1725,9 +1822,10 @@
             </a>
         </div>
 
+        <!-- FIXED SIDEBAR FOOTER -->
         <div class="sidebar-footer">
-            <div class="nav-profile-pic">
-                <div class="user-avatar">
+            <div class="user-profile">
+                <div class="user-avatar" onclick="openProfileModal()">
                     @if(auth()->user()->avatar)
                         <img src="{{ auth()->user()->profile_picture_url }}" alt="Profile picture">
                     @else
@@ -1736,23 +1834,30 @@
                         </div>
                     @endif
                 </div>
+
                 <div class="user-info">
                     <h4>{{ auth()->user()->name }}</h4>
-                    <p>
+                    <div class="user-badges">
+                        <span class="user-type-badge {{ auth()->user()->user_type === 'agency' ? 'agency' : 'traveler' }}">
+                            <i class="fas {{ auth()->user()->user_type === 'agency' ? 'fa-building' : 'fa-user' }}"></i>
+                            {{ auth()->user()->user_type === 'agency' ? auth()->user()->agency_name : 'Traveler' }}
+                        </span>
                         @if(auth()->user()->user_type === 'agency')
-                            {{ auth()->user()->agency_name }}
-                        @else
-                            Traveler
+                            <span class="verified-badge" title="Verified Agency">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </span>
                         @endif
-                    </p>
+                    </div>
                 </div>
+
+                <!-- Logout Button - FIXED POSITION -->
+                <button class="logout-btn" onclick="logout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
-                <button class="btn" onclick="logout()"
-                    style="margin-left: auto; padding: 5px 10px; background: rgba(255,255,255,0.1); border: 1px solid var(--gold); color: var(--text-light); border-radius: 6px; transition: all 0.3s ease;">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
             </div>
         </div>
     </div>
@@ -3028,7 +3133,26 @@
         }
 
         function logout() {
-            document.getElementById('logout-form').submit();
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--gold)',
+                cancelButtonColor: 'var(--deep)',
+                confirmButtonText: 'Yes, Logout',
+                cancelButtonText: 'Cancel',
+                background: 'var(--card-bg)',
+                color: 'var(--deep)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('logout-form').submit();
+                }
+            });
+        }
+
+        function openProfileModal() {
+            document.getElementById('profileModal').classList.add('active');
         }
 
         function createNewTrip() {
@@ -3071,5 +3195,4 @@
         }
     </script>
 </body>
-
 </html>
