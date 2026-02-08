@@ -9,9 +9,6 @@ use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
     public function edit(Request $request)
     {
         return view('profile.edit', [
@@ -19,9 +16,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
     public function update(Request $request)
     {
         $user = $request->user();
@@ -42,31 +36,6 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('status', 'profile-updated');
     }
 
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request)
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
-        $user = $request->user();
-
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect('/');
-    }
-
-    /**
-     * Update the user's password.
-     * FIXED: Now redirects to /profile (route('profile.edit'))
-     */
     public function updatePassword(Request $request)
     {
         $validated = $request->validateWithBag('updatePassword', [
@@ -81,9 +50,6 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('status', 'password-updated');
     }
 
-    /**
-     * Upload profile picture.
-     */
     public function uploadProfilePicture(Request $request)
     {
         $request->validate([
@@ -101,9 +67,6 @@ class ProfileController extends Controller
         return back()->with('status', 'profile-picture-updated');
     }
 
-    /**
-     * Delete profile picture.
-     */
     public function deleteProfilePicture(Request $request)
     {
         $user = $request->user();
@@ -111,5 +74,23 @@ class ProfileController extends Controller
         $user->save();
 
         return back()->with('status', 'profile-picture-deleted');
+    }
+
+    public function destroy(Request $request)
+    {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
     }
 }

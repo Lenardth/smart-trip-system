@@ -2065,66 +2065,6 @@
     });
 </script>
 
-</body>
-</html>o during cherry blossom season. Best trip ever!"</p>
-                <div class="user-info">
-                    <div class="user-avatar">SJ</div>
-                    <div>
-                        <div class="user-name">Sarah Johnson</div>
-                        <div class="user-trip">Traveled to Japan, March 2024</div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <p>"As a solo traveler, safety was my concern. The app recommended destinations with great solo traveler infrastructure and connected me with local guides."</p>
-                <div class="user-info">
-                    <div class="user-avatar">MR</div>
-                    <div>
-                        <div class="user-name">Michael Roberts</div>
-                        <div class="user-trip">Solo Traveler, Multiple Trips</div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <p>"Planning a family vacation with different ages was challenging. The AI created an itinerary that kept everyone happy. The kids loved it!"</p>
-                <div class="user-info">
-                    <div class="user-avatar">AC</div>
-                    <div>
-                        <div class="user-name">Anna Chen</div>
-                        <div class="user-trip">Family Trip to Bali, 2024</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Newsletter -->
-<div class="newsletter">
-    <h2 class="section-title">Get Travel Inspiration</h2>
-    <p class="section-subtitle">Subscribe to receive weekly destination ideas, travel tips, and exclusive deals</p>
-    <div class="newsletter-input">
-        <input type="email" placeholder="Enter your email address">
-        <button onclick="subscribeNewsletter()">
-            <i class="fas fa-paper-plane"></i> Subscribe
-        </button>
-    </div>
-    <p class="privacy">We respect your privacy. Unsubscribe at any time.</p>
-</div>
-
-<!-- Footer -->
-<footer class="footer">
-    <div style="max-width: 1200px; margin: 0 auto;">
-        <p>© 2026 Smart Trip Planner | Laravel Web Application Project | Created By Lenard Tivanani Hlabangwana</p>
-        <div style="margin-top: 15px;">
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-laravel"></i></a>
-            <a href="#"><i class="fas fa-graduation-cap"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
-</footer>
 
 <script>
     // Enhanced Slideshow functionality with Diffusing Effect

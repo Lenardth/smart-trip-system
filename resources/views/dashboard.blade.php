@@ -1,32 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Dashboard — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         /* ── Color Tokens ── */
         :root {
-            --deep:     #3b1f2b;
+            --deep: #3b1f2b;
             --deep-alt: #4d2a3a;
-            --gold:     #c9a96e;
+            --gold: #c9a96e;
             --gold-hover: #b8955a;
-            --cream:    #f5f0eb;
-            --card-bg:  #fff8f2;
-            --border:   #e2d5c7;
+            --cream: #f5f0eb;
+            --card-bg: #fff8f2;
+            --border: #e2d5c7;
             --border-soft: #d4c4b0;
             --text-light: #f5e6d3;
             --text-muted: #6b5b4f;
-            --text-sub:  #d4c4b0;
-            --success:  #4caf50;
-            --danger:   #f44336;
-            --warning:  #ff9800;
-            --info:     #2196f3;
-            --purple:   #9c27b0;
+            --text-sub: #d4c4b0;
+            --success: #4caf50;
+            --danger: #f44336;
+            --warning: #ff9800;
+            --info: #2196f3;
+            --purple: #9c27b0;
             --sidebar-bg: #2a1721;
             --sidebar-hover: #3b1f2b;
             --iphone-bg: #000;
@@ -35,7 +36,11 @@
         }
 
         /* ── Base & Layout ── */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Inter', 'Georgia', serif;
@@ -56,25 +61,34 @@
             overflow-y: auto;
             transition: transform 0.3s ease;
             z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
         }
 
+        /* Enhanced Sidebar Header with Logo */
         .sidebar-header {
             padding: 25px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             gap: 15px;
+            background: linear-gradient(135deg, var(--deep), var(--deep-alt));
         }
-
-        .sidebar-logo {
-            height: 40px;
+        .logo {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
             filter: brightness(0) invert(1);
         }
 
-        .sidebar-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-light);
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-menu {
@@ -85,13 +99,15 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 15px 25px;
+            padding: 16px 25px;
             color: var(--text-sub);
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
             font-weight: 500;
             cursor: pointer;
+            border-left: 4px solid transparent;
+            margin: 5px 0;
         }
 
         .menu-item:hover,
@@ -99,30 +115,262 @@
             background: var(--sidebar-hover);
             color: var(--text-light);
             border-left: 4px solid var(--gold);
+            box-shadow: inset 5px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item:hover::before,
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--gold), transparent);
+            opacity: 0.5;
         }
 
         .menu-item i {
-            width: 20px;
+            width: 24px;
             text-align: center;
             font-size: 18px;
+            color: var(--gold);
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover i,
+        .menu-item.active i {
+            color: var(--text-light);
+            transform: scale(1.1);
         }
 
         .menu-badge {
             background: var(--gold);
             color: var(--deep);
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             margin-left: auto;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
 
+        .menu-item:hover .menu-badge {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        /* Enhanced Action Buttons */
+        .action-btn {
+            background: linear-gradient(135deg, var(--card-bg), white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(59, 31, 43, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            border-color: var(--gold);
+            color: var(--deep);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(201, 169, 110, 0.2);
+        }
+
+        .action-btn:hover::before {
+            opacity: 1;
+        }
+
+        .action-btn:hover i {
+            transform: scale(1.2);
+            animation: pulse 1s infinite;
+        }
+
+        .action-btn i {
+            font-size: 26px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn span {
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        /* Icon-specific colors */
+        .action-btn:nth-child(1) i {
+            color: var(--info);
+        }
+
+        /* Upload */
+        .action-btn:nth-child(2) i {
+            color: var(--purple);
+        }
+
+        /* Plan Trip */
+        .action-btn:nth-child(3) i {
+            color: #FF6B6B;
+        }
+
+        /* My Bookings - Red */
+        .action-btn:nth-child(4) i {
+            color: var(--success);
+        }
+
+        /* Explore - Green */
+        .action-btn:nth-child(5) i {
+            color: var(--gold);
+        }
+
+        /* Profile - Gold */
+        .action-btn:nth-child(6) i {
+            color: var(--warning);
+        }
+
+        /* Settings - Orange */
+
+        .action-btn:hover i {
+            color: var(--deep) !important;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Enhanced Trip Icons */
+        .trip-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--deep);
+            font-size: 20px;
+            box-shadow: 0 4px 8px rgba(201, 169, 110, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .trip-item:hover .trip-icon {
+            transform: rotate(5deg) scale(1.1);
+            box-shadow: 0 6px 12px rgba(201, 169, 110, 0.4);
+        }
+
+        /* Enhanced Stat Cards */
+        .stat-card {
+            background: linear-gradient(135deg, white, var(--card-bg));
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(59, 31, 43, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(59, 31, 43, 0.15);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            background: rgba(33, 150, 243, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: rotate(10deg) scale(1.1);
+        }
+
+        .stat-icon.photos {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
+            color: var(--info);
+        }
+
+        .stat-icon.trips {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(156, 39, 176, 0.1));
+            color: var(--purple);
+        }
+
+        .stat-icon.bookings {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+            color: var(--success);
+        }
+
+        .stat-icon.saved {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1));
+            color: var(--warning);
+        }
+
+        /* Keep existing styles for the rest */
         .sidebar-footer {
             padding: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             position: absolute;
             bottom: 0;
             width: 100%;
+            background: var(--deep);
         }
 
         .user-profile {
@@ -139,6 +387,13 @@
             position: relative;
             cursor: pointer;
             border: 2px solid var(--gold);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.05);
+            border-color: white;
         }
 
         .user-avatar img {
@@ -150,46 +405,53 @@
         .user-avatar .avatar-placeholder {
             width: 100%;
             height: 100%;
-            background: var(--gold);
+            background: linear-gradient(135deg, var(--gold), var(--deep-alt));
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--deep);
-            font-weight: 600;
-            font-size: 18px;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
         }
 
         .user-info h4 {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--text-light);
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .user-info p {
             font-size: 12px;
             color: var(--text-sub);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-block;
         }
 
         /* ── Main Content ── */
         .main-content {
             flex: 1;
             margin-left: 260px;
-            padding: 20px;
+            padding: 25px;
             transition: all 0.3s ease;
             max-width: calc(100% - 260px);
+            background: var(--cream);
+            min-height: 100vh;
         }
 
         /* ── Top Navigation ── */
         .top-nav {
-            background: white;
+            background: linear-gradient(135deg, white, var(--card-bg));
             padding: 20px 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(59,31,43,0.05);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(59, 31, 43, 0.08);
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid var(--border);
         }
 
         .nav-left {
@@ -199,15 +461,20 @@
         }
 
         .nav-left h1 {
-            font-size: 24px;
-            font-weight: 600;
+            font-size: 26px;
+            font-weight: 700;
             color: var(--deep);
             margin-bottom: 5px;
+            background: linear-gradient(135deg, var(--deep), var(--deep-alt));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .nav-left p {
             color: var(--text-muted);
             font-size: 14px;
+            font-weight: 500;
         }
 
         .nav-right {
@@ -217,13 +484,20 @@
         }
 
         .nav-profile-pic {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid var(--gold);
+            border: 3px solid var(--gold);
             cursor: pointer;
             flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(201, 169, 110, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .nav-profile-pic:hover {
+            transform: scale(1.05);
+            border-color: var(--deep);
         }
 
         .nav-profile-pic img {
@@ -240,8 +514,8 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: 600;
-            font-size: 16px;
+            font-weight: 700;
+            font-size: 18px;
         }
 
         .search-box {
@@ -249,105 +523,83 @@
         }
 
         .search-box input {
-            padding: 12px 20px 12px 45px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 14px;
-            width: 300px;
-            background: var(--card-bg);
+            padding: 14px 20px 14px 50px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            width: 320px;
+            background: white;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .search-box input:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 2px rgba(201,169,110,0.1);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+            transform: translateY(-2px);
         }
 
         .search-box i {
             position: absolute;
-            left: 15px;
+            left: 20px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            color: var(--gold);
+            font-size: 16px;
         }
 
         .notification-btn {
-            background: none;
-            border: none;
+            background: linear-gradient(135deg, white, var(--card-bg));
+            border: 2px solid var(--border);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
             font-size: 20px;
             color: var(--deep);
             cursor: pointer;
             position: relative;
-            padding: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-btn:hover {
+            border-color: var(--gold);
+            background: var(--gold);
+            color: var(--deep);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(201, 169, 110, 0.2);
         }
 
         .notification-badge {
             position: absolute;
-            top: 0;
-            right: 0;
+            top: 5px;
+            right: 5px;
             background: var(--danger);
             color: white;
-            font-size: 10px;
-            padding: 2px 5px;
+            font-size: 11px;
+            padding: 3px 7px;
             border-radius: 10px;
-            min-width: 15px;
+            min-width: 20px;
             text-align: center;
+            font-weight: 700;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         /* ── Stats Cards ── */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
 
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(59,31,43,0.05);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .stat-icon.photos {
-            background: rgba(33, 150, 243, 0.1);
-            color: var(--info);
-        }
-        .stat-icon.trips {
-            background: rgba(156, 39, 176, 0.1);
-            color: var(--purple);
-        }
-        .stat-icon.bookings {
-            background: rgba(76, 175, 80, 0.1);
-            color: var(--success);
-        }
-        .stat-icon.saved {
-            background: rgba(255, 152, 0, 0.1);
-            color: var(--warning);
-        }
-
         .stat-info h3 {
-            font-size: 28px;
-            font-weight: 600;
+            font-size: 32px;
+            font-weight: 700;
             color: var(--deep);
             margin-bottom: 5px;
         }
@@ -355,19 +607,23 @@
         .stat-info p {
             color: var(--text-muted);
             font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
 
         .stat-change {
-            font-size: 12px;
+            font-size: 13px;
             margin-top: 5px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            font-weight: 600;
         }
 
         .stat-change.positive {
             color: var(--success);
         }
+
         .stat-change.negative {
             color: var(--danger);
         }
@@ -380,45 +636,95 @@
         }
 
         .dashboard-section {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(59,31,43,0.05);
+            background: linear-gradient(135deg, white, var(--card-bg));
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(59, 31, 43, 0.08);
             overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         .section-header {
-            padding: 20px 25px;
+            padding: 22px 30px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 248, 242, 0.9));
         }
 
         .section-header h2 {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
             color: var(--deep);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .section-header .btn {
-            background: var(--gold);
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
             color: var(--deep);
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(201, 169, 110, 0.3);
         }
 
         .section-header .btn:hover {
-            background: var(--gold-hover);
-        }
-        .section-content {
-            padding: 25px;
+            background: linear-gradient(135deg, var(--gold-hover), var(--gold));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(201, 169, 110, 0.4);
         }
 
+        .section-header .btn i {
+            margin-right: 8px;
+        }
+
+        .section-content {
+            padding: 30px;
+        }
+
+        /* Enhanced Action Button Icons */
+        .action-btn .fa-upload {
+            color: var(--info) !important;
+        }
+
+        .action-btn .fa-plus-circle {
+            color: var(--purple) !important;
+        }
+
+        .action-btn .fa-ticket-alt {
+            color: #FF6B6B !important;
+        }
+
+        /* Red for bookings */
+        .action-btn .fa-globe {
+            color: var(--success) !important;
+        }
+
+        /* Green for explore */
+        .action-btn .fa-user-circle {
+            color: var(--gold) !important;
+        }
+
+        .action-btn .fa-cog {
+            color: var(--warning) !important;
+        }
+
+        .action-btn:hover .fa-upload,
+        .action-btn:hover .fa-plus-circle,
+        .action-btn:hover .fa-ticket-alt,
+        .action-btn:hover .fa-globe,
+        .action-btn:hover .fa-user-circle,
+        .action-btn:hover .fa-cog {
+            color: var(--deep) !important;
+        }
+
+        /* Keep the rest of your existing styles below... */
         /* ── iPhone Gallery ── */
         .iphone-gallery {
             display: grid;
@@ -495,7 +801,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .gallery-toolbar-left,
@@ -517,7 +823,7 @@
         }
 
         .gallery-toolbar-btn:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .gallery-title {
@@ -571,7 +877,7 @@
         .dynamic-island-dot {
             width: 6px;
             height: 6px;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
         }
 
@@ -581,7 +887,7 @@
             left: 0;
             right: 0;
             padding: 60px 20px 15px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, transparent 100%);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -590,7 +896,7 @@
         }
 
         .viewer-header-btn {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
             width: 44px;
@@ -606,7 +912,7 @@
         }
 
         .viewer-header-btn:hover {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.25);
             transform: scale(1.1);
         }
 
@@ -663,7 +969,7 @@
             left: 0;
             right: 0;
             padding: 30px 20px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, transparent 100%);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -678,7 +984,7 @@
         }
 
         .viewer-control-btn {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
             padding: 12px 20px;
@@ -693,7 +999,7 @@
         }
 
         .viewer-control-btn:hover {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.25);
             transform: translateY(-2px);
         }
 
@@ -721,7 +1027,7 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
             width: 56px;
@@ -738,7 +1044,7 @@
         }
 
         .viewer-nav-btn:hover {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.25);
             transform: translateY(-50%) scale(1.1);
         }
 
@@ -760,7 +1066,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             border-radius: 12px;
             backdrop-filter: blur(20px);
             opacity: 0;
@@ -772,7 +1078,7 @@
         }
 
         .video-play-btn {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
             width: 44px;
@@ -789,7 +1095,7 @@
         .video-progress {
             flex: 1;
             height: 4px;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
             overflow: hidden;
             position: relative;
@@ -824,7 +1130,7 @@
         }
 
         .zoom-btn {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
             width: 44px;
@@ -840,7 +1146,7 @@
         }
 
         .zoom-btn:hover {
-            background: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.25);
             transform: scale(1.1);
         }
 
@@ -849,7 +1155,7 @@
             position: absolute;
             top: 120px;
             right: 30px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 16px;
             border-radius: 12px;
@@ -901,96 +1207,68 @@
         .trip-item {
             display: flex;
             gap: 15px;
-            padding: 15px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            padding: 18px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
             transition: all 0.3s ease;
+            background: white;
+            cursor: pointer;
         }
 
         .trip-item:hover {
             border-color: var(--gold);
-            background: rgba(201,169,110,0.05);
-        }
-
-        .trip-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: var(--gold);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--deep);
-            font-size: 18px;
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.05), rgba(201, 169, 110, 0.1));
+            transform: translateX(5px);
+            box-shadow: 0 6px 12px rgba(201, 169, 110, 0.1);
         }
 
         .trip-info h4 {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             color: var(--deep);
             margin-bottom: 5px;
         }
 
         .trip-info p {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-muted);
             margin-bottom: 5px;
+            font-weight: 500;
         }
 
         .trip-status {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 4px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
             display: inline-block;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-confirmed {
-            background: rgba(76, 175, 80, 0.1);
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.1));
             color: var(--success);
+            border: 1px solid rgba(76, 175, 80, 0.3);
         }
+
         .status-pending {
-            background: rgba(255, 152, 0, 0.1);
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 152, 0, 0.1));
             color: var(--warning);
+            border: 1px solid rgba(255, 152, 0, 0.3);
         }
+
         .status-cancelled {
-            background: rgba(244, 67, 54, 0.1);
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(244, 67, 54, 0.1));
             color: var(--danger);
+            border: 1px solid rgba(244, 67, 54, 0.3);
         }
 
         /* ── Quick Actions ── */
         .actions-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .action-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .action-btn:hover {
-            background: var(--gold);
-            border-color: var(--gold);
-            color: var(--deep);
-            transform: translateY(-2px);
-        }
-
-        .action-btn i {
-            font-size: 24px;
-        }
-        .action-btn span {
-            font-size: 13px;
-            font-weight: 500;
+            gap: 18px;
         }
 
         /* ── Modals ── */
@@ -1001,7 +1279,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -1013,17 +1291,18 @@
 
         .modal-content {
             background: white;
-            border-radius: 12px;
+            border-radius: 15px;
             width: 90%;
             max-width: 1000px;
             max-height: 90vh;
             overflow: hidden;
             position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
-            padding: 20px 30px;
-            background: var(--deep);
+            padding: 22px 30px;
+            background: linear-gradient(135deg, var(--deep), var(--deep-alt));
             color: var(--text-light);
             display: flex;
             justify-content: space-between;
@@ -1031,22 +1310,29 @@
         }
 
         .modal-header h2 {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 22px;
+            font-weight: 700;
         }
 
         .close-modal {
-            background: none;
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: var(--text-light);
             font-size: 24px;
             cursor: pointer;
             padding: 0;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: rotate(90deg);
         }
 
         .modal-tabs {
@@ -1056,12 +1342,12 @@
         }
 
         .modal-tab {
-            padding: 15px 30px;
+            padding: 16px 30px;
             background: none;
             border: none;
             border-bottom: 3px solid transparent;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
             color: var(--text-muted);
             cursor: pointer;
             transition: all 0.3s ease;
@@ -1079,152 +1365,39 @@
             overflow-y: auto;
         }
 
-        /* Profile Picture Modal */
-        .profile-picture-modal .modal-content {
-            max-width: 500px;
-        }
-
-        .profile-picture-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .profile-picture-preview {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 4px solid var(--gold);
-        }
-
-        .profile-picture-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .profile-picture-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            width: 100%;
-        }
-
-        .profile-picture-option {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            overflow: hidden;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .profile-picture-option:hover,
-        .profile-picture-option.active {
-            border-color: var(--gold);
-            transform: scale(1.05);
-        }
-
-        .profile-picture-option img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .profile-picture-upload {
-            text-align: center;
-            padding: 20px;
-            border: 2px dashed var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .profile-picture-upload:hover {
-            border-color: var(--gold);
-            background: rgba(201,169,110,0.05);
-        }
-
-        /* Camera Interface */
-        .camera-interface {
-            display: none;
-        }
-        .camera-interface.active {
-            display: block;
-        }
-
-        .camera-preview {
-            width: 100%;
-            max-height: 400px;
-            object-fit: contain;
-            background: #000;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .camera-controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .camera-btn {
-            background: var(--info);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .camera-btn:hover {
-            opacity: 0.9;
-        }
-        .camera-btn.capture {
-            background: var(--success);
-        }
-        .camera-btn.retake {
-            background: var(--warning);
-        }
-
         /* Upload Interface */
         .upload-interface {
             display: none;
         }
+
         .upload-interface.active {
             display: block;
         }
 
         .upload-area {
-            border: 2px dashed var(--border);
-            border-radius: 8px;
-            padding: 40px 20px;
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            padding: 50px 20px;
             text-align: center;
             cursor: pointer;
             margin-bottom: 20px;
             transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--card-bg), white);
         }
 
         .upload-area:hover {
             border-color: var(--gold);
-            background: rgba(201,169,110,0.05);
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.05), rgba(201, 169, 110, 0.1));
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(201, 169, 110, 0.1);
         }
 
         .upload-icon {
-            font-size: 48px;
-            color: var(--deep);
-            margin-bottom: 15px;
+            font-size: 52px;
+            color: var(--gold);
+            margin-bottom: 20px;
         }
+
         .file-input {
             display: none;
         }
@@ -1232,104 +1405,132 @@
         /* Toast Notifications */
         .toast {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--deep);
+            bottom: 25px;
+            right: 25px;
+            background: linear-gradient(135deg, var(--deep), var(--deep-alt));
             color: var(--text-light);
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 18px 28px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
             z-index: 1001;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             transform: translateX(100%);
             opacity: 0;
             transition: all 0.3s ease;
+            font-weight: 600;
+            border-left: 4px solid var(--gold);
         }
 
         .toast.show {
             transform: translateX(0);
             opacity: 1;
         }
+
         .toast.success {
-            background: var(--success);
-        }
-        .toast.error {
-            background: var(--danger);
+            background: linear-gradient(135deg, var(--success), #43a047);
         }
 
-        /* ── Responsive Design ── */
+        .toast.error {
+            background: linear-gradient(135deg, var(--danger), #e53935);
+        }
+
+        /* Upload Progress */
+        .upload-progress {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .upload-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-hover));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        /* Media Storage */
+        .storage-info {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--card-bg), white);
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+
+        .storage-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--border);
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .storage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--deep-alt));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+
+        /* Responsive */
         @media (max-width: 1200px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
+
             .search-box input {
-                width: 200px;
+                width: 250px;
             }
         }
 
         @media (max-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
             }
+
             .sidebar.active {
                 transform: translateX(0);
             }
+
             .main-content {
                 margin-left: 0;
                 max-width: 100%;
                 padding: 15px;
             }
+
             .mobile-menu-toggle {
                 display: block;
                 background: none;
                 border: none;
-                font-size: 24px;
+                font-size: 26px;
                 color: var(--deep);
                 cursor: pointer;
+                padding: 10px;
             }
-            .nav-left h1 {
-                font-size: 20px;
-            }
-        }
 
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .nav-left h1 {
+                font-size: 22px;
             }
+
+            .search-box input {
+                width: 200px;
+            }
+
             .iphone-gallery {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-            .actions-grid {
-                grid-template-columns: 1fr;
-            }
-            .nav-right {
-                flex-wrap: wrap;
-            }
-            .search-box input {
-                width: 100%;
-            }
-            .viewer-footer {
-                flex-direction: column;
-                gap: 15px;
-            }
-            .viewer-info {
-                max-width: 100%;
-            }
-            .viewer-controls {
-                justify-content: center;
-            }
-            .viewer-nav-btn {
-                width: 44px;
-                height: 44px;
-                font-size: 18px;
-            }
-            .viewer-nav-btn.prev {
-                left: 15px;
-            }
-            .viewer-nav-btn.next {
-                right: 15px;
             }
         }
 
@@ -1337,78 +1538,34 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
+
             .top-nav {
                 flex-direction: column;
                 gap: 15px;
                 align-items: flex-start;
                 padding: 15px;
             }
+
             .nav-right {
                 width: 100%;
+                justify-content: space-between;
             }
-            .profile-picture-options {
-                grid-template-columns: repeat(2, 1fr);
+
+            .search-box {
+                width: 100%;
             }
+
+            .search-box input {
+                width: 100%;
+            }
+
             .iphone-gallery {
                 grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             }
-            .viewer-header-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-            .viewer-control-btn {
-                padding: 10px 16px;
-                font-size: 14px;
-            }
-            .zoom-controls {
-                right: 15px;
-                bottom: 100px;
-            }
-            .zoom-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-        }
 
-        /* Utility Classes */
-        .btn {
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: var(--gold);
-            color: var(--deep);
-        }
-        .btn-primary:hover {
-            background: var(--gold-hover);
-        }
-        .btn-secondary {
-            background: var(--card-bg);
-            color: var(--deep);
-            border: 1px solid var(--border);
-        }
-        .btn-secondary:hover {
-            background: var(--border);
-        }
-        .text-muted {
-            color: var(--text-muted);
-        }
-        .text-center {
-            text-align: center;
-        }
-        .mb-20 {
-            margin-bottom: 20px;
-        }
-        .mt-20 {
-            margin-top: 20px;
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Mobile Menu Toggle */
@@ -1421,7 +1578,7 @@
             cursor: pointer;
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 768px) {
             .mobile-menu-toggle {
                 display: block;
             }
@@ -1433,6 +1590,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1447,6 +1605,7 @@
             0% {
                 transform: rotate(0deg);
             }
+
             100% {
                 transform: rotate(360deg);
             }
@@ -1455,85 +1614,143 @@
         .fa-spin {
             animation: spin 1s linear infinite;
         }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        /* Trip Form */
+        .trip-form {
+            display: grid;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--deep);
+            font-size: 14px;
+        }
+
+        .form-control {
+            padding: 12px 18px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
     </style>
 </head>
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="{{ asset('img/travel-icon.png') }}" alt="Logo" class="sidebar-logo" onerror="this.style.display='none'">
-            <span class="sidebar-title">Smart Booking</span>
+            <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
+            <span class="logo-text">Smart Booking</span>
         </div>
 
         <div class="sidebar-menu">
             <a href="{{ route('dashboard') }}" class="menu-item active">
-                <i class="fas fa-tachometer-alt"></i>
+                <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="menu-item" onclick="openPhotoManager(); return false;">
-                <i class="fas fa-camera"></i>
-                <span>Photo Manager</span>
-                <span class="menu-badge" id="photoCount">0</span>
+            <a href="#" class="menu-item" onclick="openPhotoManager()">
+                <i class="fas fa-images"></i>
+                <span>Media</span>
+                <span class="menu-badge" id="totalMediaCount">0</span>
             </a>
-            @if(Auth::user()->isAgency())
-                <a href="{{ route('flights.my') }}" class="menu-item">
+            @if(auth()->user()->user_type === 'agency')
+                <a href="{{ route('agency.flights') }}" class="menu-item">
                     <i class="fas fa-plane"></i>
                     <span>My Flights</span>
-                    <span class="menu-badge" id="flightCount">{{ Auth::user()->flights()->count() }}</span>
                 </a>
-                <a href="{{ route('bookings.agency') }}" class="menu-item">
-                    <i class="fas fa-ticket-alt"></i>
+                <a href="{{ route('agency.bookings') }}" class="menu-item">
+                    <i class="fas fa-calendar-check"></i>
                     <span>Bookings</span>
                 </a>
             @else
-                <a href="{{ route('plan-trip') }}" class="menu-item">
-                    <i class="fas fa-route"></i>
-                    <span>Plan Trips</span>
-                </a>
+                @if (Route::has('trips.index'))
+                    <a href="{{ route('trips.index') }}" class="menu-item">
+                        <i class="fas fa-route"></i>
+                        <span>My Trips</span>
+                    </a>
+                @endif
                 <a href="{{ route('bookings.index') }}" class="menu-item">
-                    <i class="fas fa-suitcase"></i>
-                    <span>My Bookings</span>
-                    <span class="menu-badge" id="bookingCount">{{ Auth::user()->bookings()->count() }}</span>
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Bookings</span>
+                    @if(method_exists(auth()->user(), 'bookings') && auth()->user()->bookings)
+                        <span class="menu-badge">{{ auth()->user()->bookings()->count() }}</span>
+                    @endif
                 </a>
             @endif
-            <a href="{{ route('discover') }}" class="menu-item">
-                <i class="fas fa-compass"></i>
-                <span>Discover</span>
-            </a>
             <a href="{{ route('destinations') }}" class="menu-item">
-                <i class="fas fa-map-marked-alt"></i>
-                <span>Destinations</span>
-                <span class="menu-badge">12</span>
+                <i class="fas fa-globe"></i>
+                <span>Explore</span>
             </a>
             <a href="{{ route('profile.edit') }}" class="menu-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="{{ route('settings') }}" class="menu-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
-            </a>
-            <a href="{{ route('community') }}" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Community</span>
             </a>
         </div>
 
         <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="user-avatar" onclick="openProfilePictureModal()">
-                    <img id="sidebarProfilePicture" src="" alt="Profile Picture" onerror="this.style.display='none'">
-                    <div class="avatar-placeholder" id="sidebarAvatarPlaceholder">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                    </div>
+            <div class="nav-profile-pic">
+                <div class="user-avatar">
+                    @if(auth()->user()->avatar)
+                        <img src="{{ auth()->user()->profile_picture_url }}" alt="Profile picture">
+                    @else
+                        <div class="avatar-placeholder">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                        </div>
+                    @endif
                 </div>
                 <div class="user-info">
-                    <h4>{{ Auth::user()->name }}</h4>
+                    <h4>{{ auth()->user()->name }}</h4>
                     <p>
-                        @if(Auth::user()->isAgency())
-                            {{ Auth::user()->agency_name ?? 'Agency' }}
+                        @if(auth()->user()->user_type === 'agency')
+                            {{ auth()->user()->agency_name }}
                         @else
-                            Premium Member
+                            Traveler
                         @endif
                     </p>
                 </div>
-                <button class="btn btn-secondary" onclick="logout()" style="margin-left: auto; padding: 5px 10px; font-size: 12px;">
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+                <button class="btn" onclick="logout()"
+                    style="margin-left: auto; padding: 5px 10px; background: rgba(255,255,255,0.1); border: 1px solid var(--gold); color: var(--text-light); border-radius: 6px; transition: all 0.3s ease;">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
@@ -1545,36 +1762,34 @@
         <!-- Top Navigation -->
         <div class="top-nav">
             <div class="nav-left">
-                <div class="nav-profile-pic" onclick="openProfilePictureModal()">
-                    <img id="navProfilePicture" src="" alt="Profile Picture" onerror="this.style.display='none'">
-                    <div class="placeholder" id="navProfilePlaceholder">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </div>
-                </div>
-                <div>
-                    <h1>Welcome back, {{ Auth::user()->name }}! 👋</h1>
-                    <p id="welcomeMessage">
-                        @if(Auth::user()->isAgency())
-                            Manage your flights and bookings with ease
-                        @else
-                            Here's what's happening with your travel plans today
-                        @endif
-                    </p>
-                </div>
-            </div>
-            <div class="nav-right">
                 <button class="mobile-menu-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
+                <div class="nav-profile-pic" onclick="openProfileModal()">
+                    @if(auth()->user()->profile_picture)
+                        <img src="{{ auth()->user()->profile_picture_url }}" alt="Profile picture">
+                    @else
+                        <div class="avatar-placeholder">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                        </div>
+                    @endif
+
+                </div>
+                <div>
+                    <h1>Welcome back, {{ auth()->user()->name }}!</h1>
+                    <p>Here's what's happening with your travel plans</p>
+                </div>
+            </div>
+            <div class="nav-right">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search destinations, bookings, photos..." oninput="searchGallery(this.value)">
+                    <input type="text" placeholder="Search trips, photos..." id="globalSearch">
                 </div>
                 <button class="notification-btn">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">3</span>
                 </button>
-                <button class="btn btn-primary" onclick="openPhotoManager()">
+                <button class="btn" onclick="openUploadModal()">
                     <i class="fas fa-plus"></i> Add Media
                 </button>
             </div>
@@ -1589,61 +1804,52 @@
                 <div class="stat-info">
                     <h3 id="totalPhotos">0</h3>
                     <p>Travel Photos</p>
-                    <span class="stat-change positive">
+                    <div class="stat-change positive">
                         <i class="fas fa-arrow-up"></i>
-                        12% from last month
-                    </span>
+                        <span>+12 this week</span>
+                    </div>
                 </div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-icon trips">
-                    <i class="fas fa-suitcase"></i>
+                    <i class="fas fa-route"></i>
                 </div>
                 <div class="stat-info">
-                    <h3 id="tripCount">
-                        @if(Auth::user()->isAgency())
-                            {{ Auth::user()->flights()->count() }}
-                        @else
-                            {{ Auth::user()->bookings()->count() }}
-                        @endif
-                    </h3>
-                    <p id="tripLabel">
-                        @if(Auth::user()->isAgency())
-                            Active Flights
-                        @else
-                            Active Trips
-                        @endif
-                    </p>
-                    <span class="stat-change positive">
+                    <h3>{{ method_exists(auth()->user(), 'trips') && auth()->user()->trips ? auth()->user()->trips()->count() : 0 }}</h3>
+                    <p>Active Trips</p>
+                    <div class="stat-change positive">
                         <i class="fas fa-arrow-up"></i>
-                        1 new trip
-                    </span>
+                        <span>+2 this month</span>
+                    </div>
                 </div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-icon bookings">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>7</h3>
-                    <p>Total Bookings</p>
-                    <span class="stat-change negative">
-                        <i class="fas fa-arrow-down"></i>
-                        2 upcoming
-                    </span>
+                    <h3>{{ method_exists(auth()->user(), 'bookings') && auth()->user()->bookings ? auth()->user()->bookings()->count() : 0 }}</h3>
+                    <p>Bookings</p>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+3 upcoming</span>
+                    </div>
                 </div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-icon saved">
-                    <i class="fas fa-bookmark"></i>
+                    <i class="fas fa-heart"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>12</h3>
-                    <p>Saved Destinations</p>
-                    <span class="stat-change positive">
+                    <h3>{{ method_exists(auth()->user(), 'savedDestinations') && auth()->user()->savedDestinations ? auth()->user()->savedDestinations()->count() : 0 }}</h3>
+                    <p>Saved Places</p>
+                    <div class="stat-change positive">
                         <i class="fas fa-arrow-up"></i>
-                        3 new saves
-                    </span>
+                        <span>+5 new</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1652,16 +1858,16 @@
         <div class="dashboard-grid">
             <!-- Left Column -->
             <div class="left-column">
-                <!-- iPhone Style Gallery Section -->
+                <!-- Recent Media Gallery -->
                 <div class="dashboard-section mb-20">
                     <div class="section-header">
-                        <h2>Recent Media</h2>
+                        <h2><i class="fas fa-camera"></i> Recent Travel Media</h2>
                         <div>
-                            <button class="btn" onclick="openPhotoManager()">
-                                <i class="fas fa-th"></i> All Media
+                            <button class="btn" onclick="loadMoreMedia()">
+                                <i class="fas fa-sync"></i> Refresh
                             </button>
-                            <button class="btn btn-secondary" onclick="openCameraModal()" style="margin-left: 10px;">
-                                <i class="fas fa-camera"></i> Camera
+                            <button class="btn" onclick="openUploadModal()" style="margin-left: 10px;">
+                                <i class="fas fa-upload"></i> Upload
                             </button>
                         </div>
                     </div>
@@ -1671,26 +1877,22 @@
                                 <button class="gallery-toolbar-btn" onclick="selectAllMedia()" id="selectAllBtn">
                                     <i class="far fa-square"></i>
                                 </button>
-                                <span class="gallery-title">Photos & Videos</span>
+                                <span class="gallery-title" id="galleryTitle">Loading media...</span>
                             </div>
                             <div class="gallery-toolbar-right">
-                                <button class="gallery-toolbar-btn" onclick="deleteSelectedMedia()" id="deleteSelectedBtn" style="display: none;">
+                                <button class="gallery-toolbar-btn" onclick="deleteSelectedMedia()"
+                                    id="deleteSelectedBtn" style="display: none;">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                                <button class="gallery-toolbar-btn" onclick="shareSelectedMedia()" id="shareSelectedBtn" style="display: none;">
+                                <button class="gallery-toolbar-btn" onclick="shareSelectedMedia()" id="shareSelectedBtn"
+                                    style="display: none;">
                                     <i class="fas fa-share-alt"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="iphone-gallery" id="iphoneGallery">
-                            <!-- Media items will be loaded here -->
-                            <div class="text-center text-muted" style="grid-column: 1 / -1; padding: 40px; background: white;">
-                                <i class="fas fa-camera" style="font-size: 48px; margin-bottom: 20px; color: var(--deep);"></i>
-                                <p>No media yet. Start capturing your travel memories!</p>
-                                <button class="btn btn-primary mt-20" onclick="openPhotoManager()">
-                                    <i class="fas fa-camera"></i> Add Your First Photo
-                                </button>
-                            </div>
+                        <div class="iphone-gallery" id="mediaGallery">
+                            <!-- Media will be loaded here -->
+                            <div class="loading-spinner"></div>
                         </div>
                     </div>
                 </div>
@@ -1698,13 +1900,9 @@
                 <!-- Upcoming Trips -->
                 <div class="dashboard-section">
                     <div class="section-header">
-                        <h2>Upcoming Trips</h2>
-                        <button class="btn" onclick="planNewTrip()">
-                            @if(Auth::user()->isAgency())
-                                Add Flight
-                            @else
-                                Plan New Trip
-                            @endif
+                        <h2><i class="fas fa-plane"></i> Upcoming Trips</h2>
+                        <button class="btn" onclick="createNewTrip()">
+                            <i class="fas fa-plus"></i> New Trip
                         </button>
                     </div>
                     <div class="section-content">
@@ -1724,66 +1922,62 @@
                     </div>
                     <div class="section-content">
                         <div class="actions-grid">
-                            <div class="action-btn" onclick="openCameraModal()">
-                                <i class="fas fa-camera"></i>
-                                <span>Take Photo</span>
-                            </div>
                             <div class="action-btn" onclick="openUploadModal()">
                                 <i class="fas fa-upload"></i>
                                 <span>Upload Media</span>
                             </div>
-                            @if(Auth::user()->isAgency())
-                                <a href="{{ route('flights.create') }}" class="action-btn" style="text-decoration:none;color:inherit;">
+                            <div class="action-btn" onclick="createNewTrip()">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Plan Trip</span>
+                            </div>
+                            @if(auth()->user()->user_type === 'agency')
+                                <a href="{{ route('flights.create') }}" class="action-btn">
                                     <i class="fas fa-plane"></i>
                                     <span>Add Flight</span>
                                 </a>
-                                <a href="{{ route('bookings.agency') }}" class="action-btn" style="text-decoration:none;color:inherit;">
-                                    <i class="fas fa-list"></i>
-                                    <span>View Bookings</span>
-                                </a>
                             @else
-                                <div class="action-btn" onclick="planNewTrip()">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <span>Plan Trip</span>
-                                </div>
-                                <div class="action-btn" onclick="viewBookings()">
-                                    <i class="fas fa-receipt"></i>
-                                    <span>View Bookings</span>
-                                </div>
+                                <a href="{{ route('bookings.index') }}" class="action-btn">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <span>My Bookings</span>
+                                </a>
                             @endif
-                            <div class="action-btn" onclick="exploreDestinations()">
-                                <i class="fas fa-compass"></i>
+                            <a href="{{ route('destinations') }}" class="action-btn">
+                                <i class="fas fa-globe"></i>
                                 <span>Explore</span>
-                            </div>
-                            <div class="action-btn" onclick="openProfilePictureModal()">
+                            </a>
+                            <div class="action-btn" onclick="openProfileModal()">
                                 <i class="fas fa-user-circle"></i>
-                                <span>Profile Picture</span>
+                                <span>Profile</span>
+                            </div>
+                            <div class="action-btn" onclick="openSettings()">
+                                <i class="fas fa-cog"></i>
+                                <span>Settings</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Media Storage -->
+                <!-- Storage Info -->
                 <div class="dashboard-section">
                     <div class="section-header">
-                        <h2>Media Storage</h2>
+                        <h2>Storage</h2>
                     </div>
                     <div class="section-content">
                         <div class="storage-info">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <span class="text-muted">Used Space</span>
                                 <span id="usedSpace">0 MB / 500 MB</span>
                             </div>
-                            <div style="background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
-                                <div id="storageBar" style="background: var(--gold); height: 100%; width: 0%;"></div>
+                            <div class="storage-bar">
+                                <div class="storage-fill" id="storageFill"></div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                                <small class="text-muted">Photos: <span id="photoCountBadge">0</span></small>
-                                <small class="text-muted">Videos: <span id="videoCountBadge">0</span></small>
+                            <div
+                                style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px;">
+                                <span class="text-muted">Photos: <span id="photoCountBadge">0</span></span>
+                                <span class="text-muted">Videos: <span id="videoCountBadge">0</span></span>
                             </div>
-                            <p class="text-muted" style="font-size: 12px; margin-top: 10px;">
-                                <i class="fas fa-info-circle"></i>
-                                Upgrade to premium for unlimited storage
+                            <p class="text-muted" style="font-size: 12px; margin-top: 12px;">
+                                <i class="fas fa-info-circle"></i> Upgrade for unlimited storage
                             </p>
                         </div>
                     </div>
@@ -1792,10 +1986,9 @@
         </div>
     </div>
 
-    <!-- iPhone Viewer -->
-    <div class="iphone-viewer" id="iphoneViewer">
+    <!-- Media Viewer Modal -->
+    <div class="iphone-viewer" id="mediaViewer">
         <div class="iphone-container">
-            <!-- Dynamic Island -->
             <div class="dynamic-island">
                 <div class="dynamic-island-dot"></div>
                 <div class="dynamic-island-dot"></div>
@@ -1803,270 +1996,209 @@
             </div>
 
             <div class="viewer-header">
-                <button class="viewer-header-btn" onclick="closeIphoneViewer()">
+                <button class="viewer-header-btn" onclick="closeViewer()">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <div class="viewer-title" id="viewerTitle">Photo</div>
-                <button class="viewer-header-btn" onclick="toggleExifInfo()">
-                    <i class="fas fa-info-circle"></i>
+                <div class="viewer-title" id="viewerTitle">Media Viewer</div>
+                <button class="viewer-header-btn" onclick="toggleFavorite()" id="favoriteBtn">
+                    <i class="far fa-heart"></i>
                 </button>
             </div>
 
-            <div class="viewer-container" id="viewerContainer">
-                <button class="viewer-nav-btn prev" onclick="navigateMedia(-1)">
+            <div class="viewer-container">
+                <button class="viewer-nav-btn prev" onclick="prevMedia()">
                     <i class="fas fa-chevron-left"></i>
                 </button>
 
                 <div class="media-viewport" id="mediaViewport">
-                    <div id="mediaContainer">
-                        <!-- Media will be inserted here -->
+                    <img id="viewerImage" class="viewer-media" src="" alt="" style="display: none;">
+                    <video id="viewerVideo" class="viewer-media" controls style="display: none;"></video>
+                    <div class="loading-indicator" id="viewerLoading">
+                        <i class="fas fa-circle-notch fa-spin"></i>
                     </div>
                 </div>
 
-                <button class="viewer-nav-btn next" onclick="navigateMedia(1)">
+                <button class="viewer-nav-btn next" onclick="nextMedia()">
                     <i class="fas fa-chevron-right"></i>
                 </button>
 
-                <!-- Zoom Controls -->
-                <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()">
-                        <i class="fas fa-search-plus"></i>
-                    </button>
-                    <button class="zoom-btn" onclick="zoomOut()">
-                        <i class="fas fa-search-minus"></i>
-                    </button>
-                    <button class="zoom-btn" onclick="resetZoom()">
-                        <i class="fas fa-expand-alt"></i>
-                    </button>
-                </div>
-
-                <!-- EXIF Info Overlay -->
-                <div class="exif-overlay" id="exifOverlay">
-                    <div class="exif-title">Photo Information</div>
-                    <div class="exif-row">
-                        <span class="exif-label">Date:</span>
-                        <span id="exifDate">Unknown</span>
-                    </div>
-                    <div class="exif-row">
-                        <span class="exif-label">Size:</span>
-                        <span id="exifSize">Unknown</span>
-                    </div>
-                    <div class="exif-row">
-                        <span class="exif-label">Resolution:</span>
-                        <span id="exifResolution">1290 × 2796</span>
-                    </div>
-                    <div class="exif-row">
-                        <span class="exif-label">Location:</span>
-                        <span id="exifLocation">Unknown</span>
-                    </div>
-                    <div class="exif-row">
-                        <span class="exif-label">Camera:</span>
-                        <span id="exifCamera">iPhone 14 Pro Max</span>
-                    </div>
-                </div>
-
-                <!-- Loading Indicator -->
-                <div class="loading-indicator" id="loadingIndicator" style="display: none;">
-                    <i class="fas fa-circle-notch fa-spin"></i>
-                </div>
-
                 <!-- Video Controls -->
                 <div class="video-controls" id="videoControls" style="display: none;">
-                    <button class="video-play-btn" id="videoPlayBtn" onclick="toggleVideoPlay()">
-                        <i class="fas fa-play"></i>
+                    <button class="video-play-btn" onclick="togglePlay()">
+                        <i class="fas fa-play" id="playIcon"></i>
                     </button>
                     <div class="video-progress" onclick="seekVideo(event)">
-                        <div class="video-progress-bar" id="videoProgressBar"></div>
+                        <div class="video-progress-bar" id="videoProgress"></div>
                     </div>
-                    <div class="video-time">
-                        <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
-                    </div>
+                    <div class="video-time" id="videoTime">0:00 / 0:00</div>
                 </div>
             </div>
 
             <div class="viewer-footer">
                 <div class="viewer-info">
-                    <div class="viewer-info-title" id="viewerMediaTitle"></div>
+                    <div class="viewer-info-title" id="mediaTitle"></div>
                     <div class="viewer-info-meta">
-                        <span id="viewerMediaDate"></span>
-                        <span id="viewerMediaType"></span>
+                        <span id="mediaDate"></span>
+                        <span id="mediaLocation"></span>
                     </div>
                 </div>
                 <div class="viewer-controls">
-                    <button class="viewer-control-btn" onclick="downloadCurrentMedia()">
+                    <button class="viewer-control-btn" onclick="downloadMedia()">
                         <i class="fas fa-download"></i> Save
                     </button>
-                    <button class="viewer-control-btn" onclick="shareCurrentMedia()">
+                    <button class="viewer-control-btn" onclick="shareMedia()">
                         <i class="fas fa-share-alt"></i> Share
                     </button>
-                    <button class="viewer-control-btn" onclick="favoriteCurrentMedia()">
-                        <i class="far fa-heart"></i> Favorite
+                    <button class="viewer-control-btn" onclick="deleteMedia()">
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Photo Manager Modal -->
-    <div class="modal" id="photoManagerModal">
+    <!-- Upload Modal -->
+    <div class="modal" id="uploadModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Media Manager</h2>
-                <button class="close-modal" onclick="closePhotoManager()">&times;</button>
+                <h2>Upload Media</h2>
+                <button class="close-modal" onclick="closeUploadModal()">&times;</button>
             </div>
-
             <div class="modal-tabs">
-                <button class="modal-tab active" onclick="switchTab('camera')">
+                <button class="modal-tab active" onclick="switchTab('upload')">
+                    <i class="fas fa-upload"></i> Upload Files
+                </button>
+                <button class="modal-tab" onclick="switchTab('camera')">
                     <i class="fas fa-camera"></i> Camera
                 </button>
-                <button class="modal-tab" onclick="switchTab('upload')">
-                    <i class="fas fa-upload"></i> Upload
-                </button>
-                <button class="modal-tab" onclick="switchTab('manage')">
-                    <i class="fas fa-folder"></i> Manage
-                </button>
             </div>
-
             <div class="modal-body">
-                <!-- Camera Tab -->
-                <div class="camera-interface active" id="cameraTab">
-                    <div class="camera-container">
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px; justify-content: center;">
-                            <button class="btn btn-primary" onclick="startCamera('photo')">
-                                <i class="fas fa-camera"></i> Photo Mode
-                            </button>
-                            <button class="btn btn-secondary" onclick="startCamera('video')">
-                                <i class="fas fa-video"></i> Video Mode
-                            </button>
-                        </div>
-
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <small class="text-muted">Optimized for iPhone 14 Pro Max (1290 × 2796)</small>
-                        </div>
-
-                        <video id="cameraFeed" class="camera-preview" autoplay playsinline></video>
-                        <canvas id="cameraCanvas" style="display: none;"></canvas>
-
-                        <div id="capturedMediaContainer" style="display: none;">
-                            <img id="capturedImage" class="camera-preview" alt="Captured Image">
-                            <video id="capturedVideo" class="camera-preview" controls style="display: none;"></video>
-                        </div>
-
-                        <div class="camera-controls">
-                            <button class="camera-btn" id="startCameraBtn" onclick="startCamera('photo')">
-                                <i class="fas fa-play"></i> Start Camera
-                            </button>
-                            <button class="camera-btn capture" id="captureBtn" onclick="captureMedia()" style="display: none;">
-                                <i class="fas fa-camera"></i> Capture
-                            </button>
-                            <button class="camera-btn" id="recordBtn" onclick="toggleRecording()" style="display: none; background: var(--danger);">
-                                <i class="fas fa-circle"></i> Record
-                            </button>
-                            <button class="camera-btn retake" id="retakeBtn" onclick="retakeMedia()" style="display: none;">
-                                <i class="fas fa-redo"></i> Retake
-                            </button>
-                            <button class="camera-btn" id="saveMediaBtn" onclick="saveMedia()" style="display: none; background: var(--success);">
-                                <i class="fas fa-save"></i> Save Media
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Upload Tab -->
-                <div class="upload-interface" id="uploadTab">
-                    <div class="upload-area" onclick="document.getElementById('mediaInput').click()">
+                <div id="uploadTab" class="upload-interface active">
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()" id="dropArea">
                         <div class="upload-icon">
                             <i class="fas fa-cloud-upload-alt"></i>
                         </div>
-                        <h3>Click to browse or drag & drop media</h3>
-                        <p class="text-muted">Photos: JPG, PNG, GIF • Videos: MP4, MOV, WEBM • Max 100MB per file</p>
-                        <p class="text-muted" style="margin-top: 10px;">
-                            <i class="fas fa-mobile-alt"></i>
-                            Optimized for iPhone 14 Pro Max display (1290 × 2796)
-                        </p>
+                        <h3>Click to browse or drag & drop</h3>
+                        <p class="text-muted">Support: JPG, PNG, MP4, MOV • Max 100MB per file</p>
+                        <input type="file" id="fileInput" multiple style="display: none;" accept="image/*,video/*">
                     </div>
 
-                    <input type="file" id="mediaInput" class="file-input" accept="image/*,video/*" multiple onchange="handleMediaSelect(event)">
-
                     <div id="uploadPreview" style="display: none;">
-                        <h4>Selected Media</h4>
-                        <div id="uploadGrid" class="iphone-gallery" style="margin: 20px 0; gap: 5px;"></div>
-                        <button class="btn btn-primary" onclick="uploadSelectedMedia()" style="width: 100%;">
-                            <i class="fas fa-upload"></i> Upload All Media
-                        </button>
+                        <h4>Selected Files</h4>
+                        <div id="previewGrid" class="iphone-gallery" style="margin: 15px 0; gap: 5px;"></div>
+
+                        <div class="form-group">
+                            <label for="tripSelect">Assign to Trip (Optional)</label>
+                            <select id="tripSelect" class="form-control">
+                                <option value="">No trip selected</option>
+                                <!-- Trips will be loaded here -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mediaLocation">Location</label>
+                            <input type="text" id="mediaLocation" class="form-control"
+                                placeholder="Where was this taken?">
+                        </div>
+
+                        <div class="upload-progress">
+                            <div class="upload-progress-bar" id="uploadProgress"></div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn" onclick="clearSelection()">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                            <button class="btn" onclick="startUpload()" style="background: var(--gold);">
+                                <i class="fas fa-upload"></i> Upload
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Manage Tab -->
-                <div class="edit-interface" id="manageTab">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                        <div class="search-box" style="flex: 1; margin-right: 20px;">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search media..." oninput="searchAllMedia(this.value)">
+                <!-- Camera Tab -->
+                <div id="cameraTab" class="upload-interface">
+                    <div style="text-align: center;">
+                        <video id="cameraFeed" autoplay playsinline
+                            style="width: 100%; max-height: 400px; border-radius: 8px; background: #000;"></video>
+                        <canvas id="cameraCanvas" style="display: none;"></canvas>
+
+                        <div class="form-actions" style="margin-top: 20px;">
+                            <button class="btn" onclick="startCamera()" id="startCameraBtn">
+                                <i class="fas fa-play"></i> Start Camera
+                            </button>
+                            <button class="btn" onclick="capturePhoto()" id="captureBtn"
+                                style="display: none; background: var(--success);">
+                                <i class="fas fa-camera"></i> Capture
+                            </button>
+                            <button class="btn" onclick="stopCamera()" id="stopCameraBtn"
+                                style="display: none; background: var(--danger);">
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
                         </div>
-                        <button class="btn btn-secondary" onclick="exportMedia()">
-                            <i class="fas fa-download"></i> Export All
-                        </button>
-                    </div>
-
-                    <div id="manageMediaGrid" class="iphone-gallery">
-                        <!-- Media will be loaded here -->
-                    </div>
-
-                    <div id="noMediaMessage" class="text-center text-muted" style="padding: 40px; display: none;">
-                        <i class="fas fa-images" style="font-size: 48px; margin-bottom: 20px;"></i>
-                        <p>No media found. Start by taking or uploading some photos/videos!</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Profile Picture Modal -->
-    <div class="modal profile-picture-modal" id="profilePictureModal">
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Update Profile Picture</h2>
-                <button class="close-modal" onclick="closeProfilePictureModal()">&times;</button>
+                <h2>Profile Settings</h2>
+                <button class="close-modal" onclick="closeProfileModal()">&times;</button>
             </div>
-
             <div class="modal-body">
-                <div class="profile-picture-container">
-                    <div class="profile-picture-preview">
-                        <img id="profilePicturePreview" src="" alt="Preview" style="display: none;">
-                        <div class="avatar-placeholder" id="profilePicturePlaceholder">
-                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                <form id="profileForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <label>Profile Picture</label>
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div class="user-avatar" style="width: 100px; height: 100px;">
+                                @if(auth()->user()->avatar)
+                                    <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="Profile" id="profilePreview">
+                                @else
+                                    <div class="avatar-placeholder" id="profilePlaceholder">
+                                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                                    </div>
+                                @endif
+                            </div>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                            <button type="button" class="btn" onclick="document.getElementById('avatarInput').click()">
+                                <i class="fas fa-camera"></i> Change Photo
+                            </button>
                         </div>
                     </div>
 
-                    <div class="profile-picture-options">
-                        <div class="profile-picture-option" onclick="selectProfilePicture('avatar1')">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ Auth::user()->name }}&backgroundColor=ffdfbf" alt="Avatar 1">
-                        </div>
-                        <div class="profile-picture-option" onclick="selectProfilePicture('avatar2')">
-                            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed={{ Auth::user()->name }}&backgroundColor=ffdfbf" alt="Avatar 2">
-                        </div>
-                        <div class="profile-picture-option" onclick="selectProfilePicture('avatar3')">
-                            <img src="https://api.dicebear.com/7.x/thumbs/svg?seed={{ Auth::user()->name }}&backgroundColor=ffdfbf" alt="Avatar 3">
-                        </div>
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" class="form-control" value="{{ auth()->user()->name }}">
                     </div>
 
-                    <div class="profile-picture-upload" onclick="document.getElementById('profilePictureUpload').click()">
-                        <i class="fas fa-cloud-upload-alt" style="font-size: 48px; margin-bottom: 15px; color: var(--deep);"></i>
-                        <h3>Upload Custom Photo</h3>
-                        <p class="text-muted">JPG, PNG, or GIF • Max 5MB</p>
-                        <input type="file" id="profilePictureUpload" class="file-input" accept="image/*" onchange="handleProfilePictureUpload(event)" style="display: none;">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-control" value="{{ auth()->user()->email }}">
                     </div>
 
-                    <div class="camera-controls">
-                        <button class="camera-btn" onclick="takeProfilePicture()">
-                            <i class="fas fa-camera"></i> Take Photo
+                    @if(auth()->user()->user_type === 'agency')
+                        <div class="form-group">
+                            <label for="agency_name">Agency Name</label>
+                            <input type="text" id="agency_name" class="form-control"
+                                value="{{ auth()->user()->agency_name }}">
+                        </div>
+                    @endif
+
+                    <div class="form-actions">
+                        <button type="button" class="btn" onclick="closeProfileModal()">
+                            Cancel
                         </button>
-                        <button class="camera-btn" onclick="saveProfilePicture()" style="background: var(--success);">
-                            <i class="fas fa-save"></i> Save Profile Picture
+                        <button type="button" class="btn" onclick="updateProfile()" style="background: var(--gold);">
+                            <i class="fas fa-save"></i> Save Changes
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -2076,182 +2208,217 @@
 
     <script>
         // Global variables
-        let currentStream = null;
-        let capturedMedia = null;
-        let selectedFiles = [];
-        let userMedia = JSON.parse(localStorage.getItem('smartBookingMedia_{{ Auth::id() }}')) || [];
+        let mediaItems = [];
         let currentMediaIndex = 0;
-        let currentViewingMedia = null;
-        let userProfilePicture = localStorage.getItem('smartBookingProfilePicture_{{ Auth::id() }}');
-        let selectedProfilePicture = null;
         let selectedMedia = new Set();
-        let isRecording = false;
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let cameraMode = 'photo';
-        let currentVideo = null;
-        let zoomLevel = 1;
-        let isZoomed = false;
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
-        let translateX = 0;
-        let translateY = 0;
-        let scale = 1;
+        let uploadFiles = [];
+        let currentTripId = null;
+        let cameraStream = null;
+        let isUploading = false;
 
         // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            updateProfilePictureDisplay();
+        document.addEventListener('DOMContentLoaded', function () {
+            loadStats();
+            loadMedia();
+            loadTrips();
             loadUpcomingTrips();
-            updateStats();
-            updateIphoneGallery();
-            updateStorageInfo();
-            setupDragAndDrop();
+            setupEventListeners();
         });
 
-        function updateProfilePictureDisplay() {
-            const sidebarImg = document.getElementById('sidebarProfilePicture');
-            const sidebarPlaceholder = document.getElementById('sidebarAvatarPlaceholder');
-            const navImg = document.getElementById('navProfilePicture');
-            const navPlaceholder = document.getElementById('navProfilePlaceholder');
-            const previewImg = document.getElementById('profilePicturePreview');
-            const previewPlaceholder = document.getElementById('profilePicturePlaceholder');
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/dashboard/stats');
+                const data = await response.json();
 
-            if (userProfilePicture) {
-                [sidebarImg, navImg, previewImg].forEach(img => {
-                    img.src = userProfilePicture;
-                    img.style.display = 'block';
-                });
-                [sidebarPlaceholder, navPlaceholder, previewPlaceholder].forEach(placeholder => {
-                    placeholder.style.display = 'none';
-                });
-            } else {
-                [sidebarImg, navImg, previewImg].forEach(img => {
-                    img.style.display = 'none';
-                });
-                sidebarPlaceholder.style.display = 'flex';
-                sidebarPlaceholder.textContent = '{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}';
-                navPlaceholder.style.display = 'flex';
-                navPlaceholder.textContent = '{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}';
-                previewPlaceholder.style.display = 'flex';
-                previewPlaceholder.textContent = '{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}';
+                document.getElementById('totalPhotos').textContent = data.total_photos || 0;
+                document.getElementById('totalMediaCount').textContent = data.total_media || 0;
+                document.getElementById('photoCountBadge').textContent = data.photos || 0;
+                document.getElementById('videoCountBadge').textContent = data.videos || 0;
+
+                // Update storage info
+                const usedMB = data.used_storage || 0;
+                const totalMB = 500;
+                const percent = (usedMB / totalMB) * 100;
+
+                document.getElementById('usedSpace').textContent = `${usedMB} MB / ${totalMB} MB`;
+                document.getElementById('storageFill').style.width = `${percent}%`;
+
+            } catch (error) {
+                console.error('Error loading stats:', error);
             }
         }
 
-        function saveProfilePictureToStorage() {
-            if (selectedProfilePicture) {
-                localStorage.setItem('smartBookingProfilePicture_{{ Auth::id() }}', selectedProfilePicture);
-                userProfilePicture = selectedProfilePicture;
-                updateProfilePictureDisplay();
-                showToast('Profile picture updated!', 'success');
-            }
-        }
+        // Load media from server
+        async function loadMedia() {
+            const gallery = document.getElementById('mediaGallery');
+            gallery.innerHTML = '<div class="loading-spinner"></div>';
 
-        function saveMediaToStorage() {
-            localStorage.setItem('smartBookingMedia_{{ Auth::id() }}', JSON.stringify(userMedia));
-            updateMediaCount();
-            updateStats();
-            updateIphoneGallery();
-            updateStorageInfo();
-        }
-
-        function updateMediaCount() {
-            const photos = userMedia.filter(m => m.type === 'photo').length;
-            const videos = userMedia.filter(m => m.type === 'video').length;
-            const total = photos + videos;
-
-            document.getElementById('photoCount').textContent = total;
-            document.getElementById('totalPhotos').textContent = total;
-            document.getElementById('photoCountBadge').textContent = photos;
-            document.getElementById('videoCountBadge').textContent = videos;
-        }
-
-        function updateStorageInfo() {
-            const totalPhotos = userMedia.filter(m => m.type === 'photo').length;
-            const totalVideos = userMedia.filter(m => m.type === 'video').length;
-            const estimatedSize = (totalPhotos * 2) + (totalVideos * 10);
-            const maxSize = 500;
-
-            document.getElementById('usedSpace').textContent = `${estimatedSize} MB / ${maxSize} MB`;
-            document.getElementById('storageBar').style.width = `${(estimatedSize / maxSize) * 100}%`;
-        }
-
-        function updateIphoneGallery() {
-            const gallery = document.getElementById('iphoneGallery');
-            if (userMedia.length === 0) {
-                gallery.innerHTML = `
-                    <div class="text-center text-muted" style="grid-column: 1 / -1; padding: 40px; background: white;">
-                        <i class="fas fa-camera" style="font-size: 48px; margin-bottom: 20px; color: var(--deep);"></i>
-                        <p>No media yet. Start capturing your travel memories!</p>
-                        <button class="btn btn-primary mt-20" onclick="openPhotoManager()">
-                            <i class="fas fa-camera"></i> Add Your First Photo
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            gallery.innerHTML = '';
-            const recentMedia = [...userMedia].reverse().slice(0, 24);
-
-            recentMedia.forEach((media, index) => {
-                const item = document.createElement('div');
-                item.className = 'gallery-item' + (selectedMedia.has(media.id) ? ' selected' : '');
-                item.onclick = (e) => {
-                    if (e.shiftKey || e.metaKey || e.ctrlKey) {
-                        toggleMediaSelection(media.id);
-                    } else {
-                        viewMedia(media.id);
+            try {
+                const response = await fetch('/api/media', {
+                    headers: {
+                        'Accept': 'application/json'
                     }
-                };
+                });
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                const data = await response.json();
+
+                // ✅ FIX: backend may return array OR { media: [] }
+                mediaItems = Array.isArray(data) ? data : (data.media || []);
+
+                if (mediaItems.length === 0) {
+                    gallery.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: white;">
+                    <i class="fas fa-camera" style="font-size: 48px; margin-bottom: 15px;"></i>
+                    <p style="color: var(--text-muted);">No media yet.</p>
+                </div>
+            `;
+                } else {
+                    renderMediaGallery();
+                }
+
+                document.getElementById('galleryTitle').textContent =
+                    `${mediaItems.length} items`;
+
+            } catch (error) {
+                console.error('Error loading media:', error);
+                gallery.innerHTML = `
+            <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: red;">
+                Failed to load media
+            </div>
+        `;
+            }
+        }
+
+
+
+        // Render media gallery
+        function renderMediaGallery() {
+            const gallery = document.getElementById('mediaGallery');
+            gallery.innerHTML = '';
+
+            mediaItems.forEach((media, index) => {
+                const isSelected = selectedMedia.has(media.id);
+                const item = document.createElement('div');
+                item.className = `gallery-item ${isSelected ? 'selected' : ''}`;
+                item.dataset.id = media.id;
+                item.dataset.index = index;
 
                 item.innerHTML = `
-                    ${media.type === 'photo'
-                        ? `<img src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;">`
-                        : `<video src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;"></video>`
+                    ${media.type === 'image'
+                        ? `<img src="${media.thumbnail || media.url}" alt="${media.title}" loading="lazy">`
+                        : `<video src="${media.url}" poster="${media.thumbnail}" alt="${media.title}" loading="lazy"></video>`
                     }
                     <div class="media-badge ${media.type === 'video' ? 'video-badge' : ''}">
                         <i class="fas fa-${media.type === 'video' ? 'video' : 'image'}"></i>
-                        ${media.type === 'video' ? media.duration || '' : ''}
+                        ${media.duration || ''}
                     </div>
                     <div class="selected-indicator">
                         <i class="fas fa-check"></i>
                     </div>
                 `;
 
+                item.addEventListener('click', (e) => {
+                    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                        toggleMediaSelection(media.id);
+                    } else {
+                        viewMedia(index);
+                    }
+                });
+
                 gallery.appendChild(item);
             });
         }
 
-        function updateStats() {
-            const total = userMedia.length;
-            document.getElementById('totalPhotos').textContent = total;
+        // Load trips for dropdown
+        async function loadTrips() {
+            try {
+                const response = await fetch('/api/trips', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                const trips = await response.json();
+                const select = document.getElementById('tripSelect');
+
+                select.innerHTML = '<option value="">No trip selected</option>';
+
+                trips.forEach(trip => {
+                    const option = document.createElement('option');
+                    option.value = trip.id;
+                    option.textContent = trip.name;
+                    select.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error loading trips:', error);
+            }
         }
 
-        function loadUpcomingTrips() {
-            const trips = [
-                { id: 1, destination: 'Paris, France', date: 'Jun 15-22, 2024', status: 'confirmed', icon: 'fas fa-eiffel-tower' },
-                { id: 2, destination: 'Bali, Indonesia', date: 'Aug 3-10, 2024', status: 'pending', icon: 'fas fa-umbrella-beach' },
-                { id: 3, destination: 'Tokyo, Japan', date: 'Nov 20-27, 2024', status: 'confirmed', icon: 'fas fa-torii-gate' }
-            ];
+        // Load upcoming trips
+        async function loadUpcomingTrips() {
             const container = document.getElementById('upcomingTrips');
-            container.innerHTML = '';
-            trips.forEach(trip => {
-                const item = document.createElement('div');
-                item.className = 'trip-item';
-                item.innerHTML = `
-                    <div class="trip-icon"><i class="${trip.icon}"></i></div>
-                    <div class="trip-info">
-                        <h4>${trip.destination}</h4>
-                        <p>${trip.date}</p>
-                        <span class="trip-status status-${trip.status}">${trip.status}</span>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
+
+            try {
+                const response = await fetch('/api/trips/upcoming', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                const trips = await response.json();
+
+                if (trips.length === 0) {
+                    container.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                    <i class="fas fa-plane"></i>
+                    <p>No upcoming trips</p>
+                </div>
+            `;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                trips.forEach(trip => {
+                    const item = document.createElement('div');
+                    item.className = 'trip-item';
+                    item.innerHTML = `
+                <div class="trip-icon">
+                    <i class="fas fa-plane"></i>
+                </div>
+                <div class="trip-info">
+                    <h4>${trip.destination}</h4>
+                    <p>${trip.start_date} - ${trip.end_date}</p>
+                    <span class="trip-status status-${trip.status}">
+                        ${trip.status}
+                    </span>
+                </div>
+            `;
+                    item.onclick = () => viewTrip(trip.id);
+                    container.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error('Error loading upcoming trips:', error);
+                container.innerHTML = `<p style="color:red">Failed to load trips</p>`;
+            }
         }
 
-        // iPhone Gallery Functions
+        // Media selection
         function toggleMediaSelection(mediaId) {
             if (selectedMedia.has(mediaId)) {
                 selectedMedia.delete(mediaId);
@@ -2259,945 +2426,598 @@
                 selectedMedia.add(mediaId);
             }
 
-            updateIphoneGallery();
+            renderMediaGallery();
             updateSelectionToolbar();
         }
 
         function selectAllMedia() {
-            if (selectedMedia.size === userMedia.length) {
+            const allSelected = selectedMedia.size === mediaItems.length;
+
+            if (allSelected) {
                 selectedMedia.clear();
             } else {
-                userMedia.forEach(media => selectedMedia.add(media.id));
+                mediaItems.forEach(media => selectedMedia.add(media.id));
             }
 
-            updateIphoneGallery();
+            renderMediaGallery();
             updateSelectionToolbar();
         }
 
         function updateSelectionToolbar() {
             const deleteBtn = document.getElementById('deleteSelectedBtn');
             const shareBtn = document.getElementById('shareSelectedBtn');
-            const selectAllBtn = document.getElementById('selectAllBtn');
+            const selectBtn = document.getElementById('selectAllBtn');
 
             if (selectedMedia.size > 0) {
                 deleteBtn.style.display = 'block';
                 shareBtn.style.display = 'block';
-                selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i>';
+                selectBtn.innerHTML = '<i class="fas fa-check-square"></i>';
             } else {
                 deleteBtn.style.display = 'none';
                 shareBtn.style.display = 'none';
-                selectAllBtn.innerHTML = '<i class="far fa-square"></i>';
+                selectBtn.innerHTML = '<i class="far fa-square"></i>';
             }
         }
 
-        function deleteSelectedMedia() {
+        // Delete selected media
+        async function deleteSelectedMedia() {
             if (selectedMedia.size === 0) return;
 
-            if (confirm(`Delete ${selectedMedia.size} selected item${selectedMedia.size > 1 ? 's' : ''}?`)) {
-                userMedia = userMedia.filter(media => !selectedMedia.has(media.id));
-                selectedMedia.clear();
-                saveMediaToStorage();
-                showToast(`Deleted ${selectedMedia.size} item${selectedMedia.size > 1 ? 's' : ''}`, 'success');
-                updateSelectionToolbar();
+            const confirmed = await Swal.fire({
+                title: 'Delete Media?',
+                text: `Are you sure you want to delete ${selectedMedia.size} item${selectedMedia.size > 1 ? 's' : ''}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Delete'
+            });
+
+            if (!confirmed.isConfirmed) return;
+
+            try {
+                const response = await fetch('/api/media/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ ids: Array.from(selectedMedia) })
+                });
+
+                if (response.ok) {
+                    showToast(`Deleted ${selectedMedia.size} item${selectedMedia.size > 1 ? 's' : ''}`, 'success');
+                    selectedMedia.clear();
+                    await loadMedia();
+                    await loadStats();
+                } else {
+                    throw new Error('Delete failed');
+                }
+            } catch (error) {
+                showToast('Failed to delete media', 'error');
             }
         }
 
-        function shareSelectedMedia() {
+        // Share selected media
+        async function shareSelectedMedia() {
             if (selectedMedia.size === 0) return;
 
-            const selectedItems = userMedia.filter(media => selectedMedia.has(media.id));
-            const urls = selectedItems.map(item => item.data);
+            const selectedItems = mediaItems.filter(media => selectedMedia.has(media.id));
 
             if (navigator.share) {
-                navigator.share({
-                    title: 'My Travel Memories',
-                    text: `Check out my ${selectedItems.length} travel ${selectedItems.length > 1 ? 'photos/videos' : 'photo/video'}!`,
-                    url: window.location.href
-                }).catch(console.error);
+                try {
+                    await navigator.share({
+                        title: 'My Travel Photos',
+                        text: `Check out my ${selectedItems.length} travel photo${selectedItems.length > 1 ? 's' : ''}!`,
+                        url: window.location.href
+                    });
+                } catch (error) {
+                    console.log('Share cancelled');
+                }
             } else {
-                navigator.clipboard.writeText(urls[0]);
+                // Fallback: copy first media URL to clipboard
+                const firstMedia = selectedItems[0];
+                await navigator.clipboard.writeText(firstMedia.url);
                 showToast('Media URL copied to clipboard', 'success');
             }
         }
 
-        // iPhone Viewer Functions
-        function viewMedia(mediaId) {
-            const mediaIndex = userMedia.findIndex(m => m.id === mediaId);
-            if (mediaIndex === -1) return;
+        // Media viewer functions
+        function viewMedia(index) {
+            currentMediaIndex = index;
+            const media = mediaItems[index];
 
-            currentMediaIndex = mediaIndex;
-            currentViewingMedia = userMedia[mediaIndex];
-            openIphoneViewer();
-        }
+            if (!media) return;
 
-        function openIphoneViewer() {
-            if (!currentViewingMedia) return;
-
-            const viewer = document.getElementById('iphoneViewer');
-            const mediaContainer = document.getElementById('mediaContainer');
-            const title = document.getElementById('viewerMediaTitle');
-            const date = document.getElementById('viewerMediaDate');
-            const type = document.getElementById('viewerMediaType');
+            const viewer = document.getElementById('mediaViewer');
+            const image = document.getElementById('viewerImage');
+            const video = document.getElementById('viewerVideo');
+            const loading = document.getElementById('viewerLoading');
             const videoControls = document.getElementById('videoControls');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+            const favoriteBtn = document.getElementById('favoriteBtn');
 
-            loadingIndicator.style.display = 'block';
-            mediaContainer.innerHTML = '';
+            // Reset
+            image.style.display = 'none';
+            video.style.display = 'none';
+            loading.style.display = 'flex';
+            videoControls.style.display = 'none';
 
-            resetZoom();
-            zoomLevel = 1;
-            isZoomed = false;
-            translateX = 0;
-            translateY = 0;
+            // Set media info
+            document.getElementById('viewerTitle').textContent = media.title || 'Media';
+            document.getElementById('mediaTitle').textContent = media.title || 'Untitled';
+            document.getElementById('mediaDate').textContent = new Date(media.created_at).toLocaleDateString();
+            document.getElementById('mediaLocation').textContent = media.location || 'Unknown location';
 
-            let mediaElement;
-            if (currentViewingMedia.type === 'photo') {
-                mediaElement = document.createElement('img');
-                mediaElement.src = currentViewingMedia.data;
-                mediaElement.alt = currentViewingMedia.title;
-                mediaElement.className = 'viewer-media zoomable';
-                mediaElement.onload = () => {
-                    loadingIndicator.style.display = 'none';
-                    updateExifInfo();
+            // Update favorite button
+            favoriteBtn.innerHTML = media.is_favorite
+                ? '<i class="fas fa-heart" style="color: #ff4757;"></i>'
+                : '<i class="far fa-heart"></i>';
+
+            // Load media
+            if (media.type === 'image') {
+                image.src = media.url;
+                image.onload = () => {
+                    loading.style.display = 'none';
+                    image.style.display = 'block';
                 };
-                videoControls.style.display = 'none';
-            } else {
-                mediaElement = document.createElement('video');
-                mediaElement.src = currentViewingMedia.data;
-                mediaElement.controls = false;
-                mediaElement.className = 'viewer-media';
-                mediaElement.addEventListener('loadedmetadata', function() {
-                    document.getElementById('duration').textContent = formatTime(mediaElement.duration);
-                    loadingIndicator.style.display = 'none';
-                    updateExifInfo();
-                });
-                mediaElement.addEventListener('timeupdate', updateVideoProgress);
-                videoControls.style.display = 'flex';
-                currentVideo = mediaElement;
+            } else if (media.type === 'video') {
+                video.src = media.url;
+                video.onloadedmetadata = () => {
+                    loading.style.display = 'none';
+                    video.style.display = 'block';
+                    videoControls.style.display = 'flex';
+                };
             }
-
-            mediaContainer.appendChild(mediaElement);
-
-            title.textContent = currentViewingMedia.title;
-
-            const mediaDate = new Date(currentViewingMedia.date);
-            date.textContent = mediaDate.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            type.textContent = currentViewingMedia.type === 'photo' ? 'PHOTO' : 'VIDEO';
-
-            setupZoomAndDrag(mediaElement);
 
             viewer.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
-        function closeIphoneViewer() {
-            document.getElementById('iphoneViewer').classList.remove('active');
+        function closeViewer() {
+            const viewer = document.getElementById('mediaViewer');
+            const video = document.getElementById('viewerVideo');
+
+            viewer.classList.remove('active');
             document.body.style.overflow = 'auto';
 
-            if (currentVideo) {
-                currentVideo.pause();
-                currentVideo = null;
-            }
-
-            resetZoom();
-        }
-
-        function setupZoomAndDrag(mediaElement) {
-            const mediaViewport = document.getElementById('mediaViewport');
-
-            mediaElement.addEventListener('dblclick', function(e) {
-                if (!isZoomed) {
-                    zoomIn();
-                } else {
-                    resetZoom();
-                }
-            });
-
-            mediaViewport.addEventListener('wheel', function(e) {
-                e.preventDefault();
-                if (e.deltaY < 0) {
-                    zoomIn();
-                } else {
-                    zoomOut();
-                }
-            }, { passive: false });
-
-            mediaViewport.addEventListener('touchstart', function(e) {
-                if (e.touches.length === 1 && isZoomed) {
-                    isDragging = true;
-                    startX = e.touches[0].clientX - translateX;
-                    startY = e.touches[0].clientY - translateY;
-                }
-            });
-
-            mediaViewport.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                if (e.touches.length === 1 && isDragging && isZoomed) {
-                    translateX = e.touches[0].clientX - startX;
-                    translateY = e.touches[0].clientY - startY;
-                    updateMediaTransform();
-                }
-            }, { passive: false });
-
-            mediaViewport.addEventListener('touchend', function() {
-                isDragging = false;
-            });
-
-            mediaViewport.addEventListener('mousedown', function(e) {
-                if (isZoomed) {
-                    isDragging = true;
-                    startX = e.clientX - translateX;
-                    startY = e.clientY - translateY;
-                    mediaElement.style.cursor = 'grabbing';
-                }
-            });
-
-            document.addEventListener('mousemove', function(e) {
-                if (isDragging && isZoomed) {
-                    translateX = e.clientX - startX;
-                    translateY = e.clientY - startY;
-                    updateMediaTransform();
-                }
-            });
-
-            document.addEventListener('mouseup', function() {
-                isDragging = false;
-                if (mediaElement) {
-                    mediaElement.style.cursor = isZoomed ? 'grab' : 'zoom-in';
-                }
-            });
-        }
-
-        function zoomIn() {
-            if (zoomLevel >= 3) return;
-
-            const mediaElement = document.querySelector('.viewer-media');
-            if (!mediaElement) return;
-
-            zoomLevel = Math.min(zoomLevel * 1.5, 3);
-            isZoomed = true;
-            mediaElement.classList.remove('zoomable');
-            mediaElement.classList.add('zoomed');
-            mediaElement.style.cursor = 'grab';
-
-            updateMediaTransform();
-        }
-
-        function zoomOut() {
-            if (zoomLevel <= 1) return;
-
-            const mediaElement = document.querySelector('.viewer-media');
-            if (!mediaElement) return;
-
-            zoomLevel = Math.max(zoomLevel / 1.5, 1);
-            if (zoomLevel === 1) {
-                isZoomed = false;
-                mediaElement.classList.add('zoomable');
-                mediaElement.classList.remove('zoomed');
-                mediaElement.style.cursor = 'zoom-in';
-                translateX = 0;
-                translateY = 0;
-            }
-
-            updateMediaTransform();
-        }
-
-        function resetZoom() {
-            zoomLevel = 1;
-            isZoomed = false;
-            translateX = 0;
-            translateY = 0;
-
-            const mediaElement = document.querySelector('.viewer-media');
-            if (mediaElement) {
-                mediaElement.classList.add('zoomable');
-                mediaElement.classList.remove('zoomed');
-                mediaElement.style.cursor = 'zoom-in';
-                updateMediaTransform();
+            if (video) {
+                video.pause();
             }
         }
 
-        function updateMediaTransform() {
-            const mediaElement = document.querySelector('.viewer-media');
-            if (mediaElement) {
-                mediaElement.style.transform = `translate(${translateX}px, ${translateY}px) scale(${zoomLevel})`;
+        function prevMedia() {
+            if (currentMediaIndex > 0) {
+                currentMediaIndex--;
+                viewMedia(currentMediaIndex);
             }
         }
 
-        function navigateMedia(direction) {
-            const newIndex = currentMediaIndex + direction;
-            if (newIndex >= 0 && newIndex < userMedia.length) {
-                currentMediaIndex = newIndex;
-                currentViewingMedia = userMedia[newIndex];
-                openIphoneViewer();
+        function nextMedia() {
+            if (currentMediaIndex < mediaItems.length - 1) {
+                currentMediaIndex++;
+                viewMedia(currentMediaIndex);
             }
         }
 
-        function updateExifInfo() {
-            if (!currentViewingMedia) return;
+        async function toggleFavorite() {
+            const media = mediaItems[currentMediaIndex];
+            if (!media) return;
 
-            const exifDate = document.getElementById('exifDate');
-            const exifSize = document.getElementById('exifSize');
-            const exifLocation = document.getElementById('exifLocation');
+            try {
+                const response = await fetch(`/api/media/${media.id}/favorite`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
 
-            const mediaDate = new Date(currentViewingMedia.date);
-            exifDate.textContent = mediaDate.toLocaleDateString();
+                if (response.ok) {
+                    media.is_favorite = !media.is_favorite;
+                    const favoriteBtn = document.getElementById('favoriteBtn');
+                    favoriteBtn.innerHTML = media.is_favorite
+                        ? '<i class="fas fa-heart" style="color: #ff4757;"></i>'
+                        : '<i class="far fa-heart"></i>';
 
-            const estimatedSize = currentViewingMedia.type === 'photo' ? '~2.5 MB' : '~15 MB';
-            exifSize.textContent = estimatedSize;
-
-            exifLocation.textContent = currentViewingMedia.location || 'Unknown Location';
+                    showToast(media.is_favorite ? 'Added to favorites' : 'Removed from favorites', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to update favorite', 'error');
+            }
         }
 
-        function toggleExifInfo() {
-            document.getElementById('exifOverlay').classList.toggle('active');
-        }
+        function togglePlay() {
+            const video = document.getElementById('viewerVideo');
+            const playIcon = document.getElementById('playIcon');
 
-        function downloadCurrentMedia() {
-            if (!currentViewingMedia) return;
-            const link = document.createElement('a');
-            link.href = currentViewingMedia.data;
-            link.download = `${currentViewingMedia.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${currentViewingMedia.type === 'photo' ? 'jpg' : 'mp4'}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('Download started!', 'success');
-        }
-
-        function shareCurrentMedia() {
-            if (!currentViewingMedia) return;
-
-            if (navigator.share) {
-                navigator.share({
-                    title: currentViewingMedia.title,
-                    text: currentViewingMedia.description,
-                    url: currentViewingMedia.data
-                }).catch(console.error);
+            if (video.paused) {
+                video.play();
+                playIcon.className = 'fas fa-pause';
             } else {
-                navigator.clipboard.writeText(currentViewingMedia.data);
-                showToast('Media URL copied to clipboard!', 'success');
+                video.pause();
+                playIcon.className = 'fas fa-play';
             }
-        }
-
-        function favoriteCurrentMedia() {
-            if (!currentViewingMedia) return;
-
-            currentViewingMedia.favorite = !currentViewingMedia.favorite;
-
-            const mediaIndex = userMedia.findIndex(m => m.id === currentViewingMedia.id);
-            if (mediaIndex !== -1) {
-                userMedia[mediaIndex] = currentViewingMedia;
-                saveMediaToStorage();
-            }
-
-            const btn = event.currentTarget;
-            const icon = btn.querySelector('i');
-
-            if (currentViewingMedia.favorite) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                showToast('Added to favorites!', 'success');
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                showToast('Removed from favorites', 'info');
-            }
-        }
-
-        // Video Controls
-        function toggleVideoPlay() {
-            if (!currentVideo) return;
-
-            const playBtn = document.getElementById('videoPlayBtn');
-            if (currentVideo.paused) {
-                currentVideo.play();
-                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
-            } else {
-                currentVideo.pause();
-                playBtn.innerHTML = '<i class="fas fa-play"></i>';
-            }
-        }
-
-        function updateVideoProgress() {
-            if (!currentVideo) return;
-
-            const progress = document.getElementById('videoProgressBar');
-            const currentTime = document.getElementById('currentTime');
-            const duration = document.getElementById('duration');
-
-            const percent = (currentVideo.currentTime / currentVideo.duration) * 100;
-            progress.style.width = percent + '%';
-
-            currentTime.textContent = formatTime(currentVideo.currentTime);
-            duration.textContent = formatTime(currentVideo.duration);
         }
 
         function seekVideo(event) {
-            if (!currentVideo) return;
-
-            const progressBar = event.currentTarget;
-            const rect = progressBar.getBoundingClientRect();
+            const video = document.getElementById('viewerVideo');
+            const progress = document.getElementById('videoProgress');
+            const rect = event.currentTarget.getBoundingClientRect();
             const percent = (event.clientX - rect.left) / rect.width;
-            currentVideo.currentTime = percent * currentVideo.duration;
+
+            video.currentTime = percent * video.duration;
+            progress.style.width = `${percent * 100}%`;
         }
 
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        // Upload functions
+        function openUploadModal() {
+            document.getElementById('uploadModal').classList.add('active');
         }
 
-        // Profile Picture Functions
-        function openProfilePictureModal() {
-            selectedProfilePicture = userProfilePicture;
-            updateProfilePicturePreview();
-            document.getElementById('profilePictureModal').classList.add('active');
-        }
-
-        function closeProfilePictureModal() {
-            document.getElementById('profilePictureModal').classList.remove('active');
-        }
-
-        function selectProfilePicture(type) {
-            let avatarUrl = '';
-            switch(type) {
-                case 'avatar1':
-                    avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed={{ Auth::user()->name }}&backgroundColor=ffdfbf`;
-                    break;
-                case 'avatar2':
-                    avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed={{ Auth::user()->name }}&backgroundColor=ffdfbf`;
-                    break;
-                case 'avatar3':
-                    avatarUrl = `https://api.dicebear.com/7.x/thumbs/svg?seed={{ Auth::user()->name }}&backgroundColor=ffdfbf`;
-                    break;
-            }
-            selectedProfilePicture = avatarUrl;
-            updateProfilePicturePreview();
-        }
-
-        function updateProfilePicturePreview() {
-            const previewImg = document.getElementById('profilePicturePreview');
-            const previewPlaceholder = document.getElementById('profilePicturePlaceholder');
-
-            if (selectedProfilePicture) {
-                previewImg.src = selectedProfilePicture;
-                previewImg.style.display = 'block';
-                previewPlaceholder.style.display = 'none';
-            } else {
-                previewImg.style.display = 'none';
-                previewPlaceholder.style.display = 'flex';
-                previewPlaceholder.textContent = '{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}';
-            }
-        }
-
-        function handleProfilePictureUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('File size must be less than 5MB', 'error');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedProfilePicture = e.target.result;
-                updateProfilePicturePreview();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function takeProfilePicture() {
-            closeProfilePictureModal();
-            setTimeout(() => {
-                openCameraModal();
-                showToast('After taking photo, you can set it as profile picture', 'info');
-            }, 300);
-        }
-
-        function saveProfilePicture() {
-            if (!selectedProfilePicture) {
-                showToast('Please select or upload a profile picture', 'error');
-                return;
-            }
-            saveProfilePictureToStorage();
-            closeProfilePictureModal();
-        }
-
-        // Media Manager Functions
-        function openPhotoManager() {
-            document.getElementById('photoManagerModal').classList.add('active');
-            switchTab('camera');
-        }
-
-        function closePhotoManager() {
-            document.getElementById('photoManagerModal').classList.remove('active');
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            clearSelection();
             stopCamera();
         }
 
         function switchTab(tabName) {
-            document.querySelectorAll('.modal-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.camera-interface, .upload-interface, .edit-interface').forEach(tab => tab.classList.remove('active'));
+            // Update tabs
+            document.querySelectorAll('.modal-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.upload-interface').forEach(tab => {
+                tab.classList.remove('active');
+            });
 
-            const tabButtons = document.querySelectorAll('.modal-tab');
-            const tabIndex = Array.from(tabButtons).findIndex(btn => btn.textContent.toLowerCase().includes(tabName));
-            if (tabIndex !== -1) {
-                tabButtons[tabIndex].classList.add('active');
-            }
-
+            // Activate selected tab
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
             document.getElementById(tabName + 'Tab').classList.add('active');
 
-            if (tabName === 'manage') {
-                loadManageMedia();
-            } else if (tabName === 'camera') {
-                stopCamera();
-            }
-        }
-
-        // Camera Functions
-        function startCamera(mode = 'photo') {
-            cameraMode = mode;
-
-            const constraints = {
-                video: {
-                    facingMode: 'environment'
-                },
-                audio: mode === 'video'
-            };
-
-            navigator.mediaDevices.getUserMedia(constraints)
-            .then(stream => {
-                currentStream = stream;
-                const video = document.getElementById('cameraFeed');
-                video.srcObject = stream;
-
-                document.getElementById('startCameraBtn').style.display = 'none';
-                document.getElementById('captureBtn').style.display = mode === 'photo' ? 'block' : 'none';
-                document.getElementById('recordBtn').style.display = mode === 'video' ? 'block' : 'none';
-
-                if (mode === 'video') {
-                    mediaRecorder = new MediaRecorder(stream);
-                    recordedChunks = [];
-
-                    mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
-                            recordedChunks.push(event.data);
-                        }
-                    };
-
-                    mediaRecorder.onstop = () => {
-                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                        capturedMedia = URL.createObjectURL(blob);
-
-                        const capturedVideo = document.getElementById('capturedVideo');
-                        capturedVideo.src = capturedMedia;
-                        capturedVideo.style.display = 'block';
-                        document.getElementById('cameraFeed').style.display = 'none';
-
-                        document.getElementById('recordBtn').style.display = 'none';
-                        document.getElementById('retakeBtn').style.display = 'block';
-                        document.getElementById('saveMediaBtn').style.display = 'block';
-                    };
-                }
-            })
-            .catch(err => {
-                console.error('Camera error:', err);
-                showToast('Camera access denied or not available', 'error');
-            });
-        }
-
-        function stopCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-                currentStream = null;
-            }
-
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-        }
-
-        function captureMedia() {
-            if (cameraMode === 'photo') {
-                const video = document.getElementById('cameraFeed');
-                const canvas = document.getElementById('cameraCanvas');
-                const capturedImg = document.getElementById('capturedImage');
-                const capturedContainer = document.getElementById('capturedMediaContainer');
-
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0);
-
-                capturedMedia = canvas.toDataURL('image/jpeg');
-                capturedImg.src = capturedMedia;
-                capturedContainer.style.display = 'block';
-                document.getElementById('cameraFeed').style.display = 'none';
-
-                document.getElementById('captureBtn').style.display = 'none';
-                document.getElementById('retakeBtn').style.display = 'block';
-                document.getElementById('saveMediaBtn').style.display = 'block';
-
-                stopCamera();
-            }
-        }
-
-        function toggleRecording() {
-            if (!mediaRecorder) return;
-
-            if (!isRecording) {
-                recordedChunks = [];
-                mediaRecorder.start();
-                isRecording = true;
-                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-stop"></i> Stop';
-                document.getElementById('recordBtn').style.background = 'var(--warning)';
+            if (tabName === 'camera') {
+                startCamera();
             } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-circle"></i> Record';
-                document.getElementById('recordBtn').style.background = 'var(--danger)';
                 stopCamera();
             }
         }
 
-        function retakeMedia() {
-            const video = document.getElementById('cameraFeed');
-            const capturedContainer = document.getElementById('capturedMediaContainer');
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
 
-            capturedContainer.style.display = 'none';
-            video.style.display = 'block';
-
-            document.getElementById('captureBtn').style.display = cameraMode === 'photo' ? 'block' : 'none';
-            document.getElementById('recordBtn').style.display = cameraMode === 'video' ? 'block' : 'none';
-            document.getElementById('retakeBtn').style.display = 'none';
-            document.getElementById('saveMediaBtn').style.display = 'none';
-
-            startCamera(cameraMode);
+        function handleFileSelect(event) {
+            uploadFiles = Array.from(event.target.files);
+            displayPreview();
         }
 
-        function saveMedia() {
-            if (!capturedMedia) return;
+        function displayPreview() {
+            const previewGrid = document.getElementById('previewGrid');
+            const uploadPreview = document.getElementById('uploadPreview');
 
-            const mediaData = {
-                id: Date.now().toString(),
-                title: `${cameraMode === 'photo' ? 'Travel Photo' : 'Travel Video'} ${userMedia.length + 1}`,
-                description: `Captured on ${new Date().toLocaleDateString()}`,
-                data: capturedMedia,
-                type: cameraMode,
-                date: new Date().toISOString(),
-                location: 'Unknown Location',
-                favorite: false
-            };
-
-            userMedia.push(mediaData);
-            saveMediaToStorage();
-
-            showToast(`${cameraMode === 'photo' ? 'Photo' : 'Video'} saved successfully!`, 'success');
-            switchTab('manage');
-
-            capturedMedia = null;
-            document.getElementById('capturedMediaContainer').style.display = 'none';
-            document.getElementById('cameraFeed').style.display = 'block';
-            document.getElementById('startCameraBtn').style.display = 'block';
-            document.getElementById('captureBtn').style.display = 'none';
-            document.getElementById('recordBtn').style.display = 'none';
-            document.getElementById('retakeBtn').style.display = 'none';
-            document.getElementById('saveMediaBtn').style.display = 'none';
-        }
-
-        // Upload Functions
-        function handleMediaSelect(event) {
-            selectedFiles = Array.from(event.target.files);
-            displayUploadPreview();
-        }
-
-        function displayUploadPreview() {
-            const container = document.getElementById('uploadGrid');
-            const preview = document.getElementById('uploadPreview');
-
-            if (selectedFiles.length === 0) {
-                preview.style.display = 'none';
+            if (uploadFiles.length === 0) {
+                uploadPreview.style.display = 'none';
                 return;
             }
 
-            container.innerHTML = '';
-            selectedFiles.forEach((file, index) => {
+            previewGrid.innerHTML = '';
+            uploadFiles.forEach((file, index) => {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
+                    const isVideo = file.type.startsWith('video/');
                     const item = document.createElement('div');
                     item.className = 'gallery-item';
 
-                    const isVideo = file.type.startsWith('video/');
-                    const fileSize = (file.size / 1024 / 1024).toFixed(2);
-
                     item.innerHTML = `
                         ${isVideo
-                            ? `<video src="${e.target.result}" alt="${file.name}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;"></video>`
-                            : `<img src="${e.target.result}" alt="${file.name}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;">`
+                            ? `<video src="${e.target.result}" alt="${file.name}" loading="lazy"></video>`
+                            : `<img src="${e.target.result}" alt="${file.name}" loading="lazy">`
                         }
                         <div class="media-badge ${isVideo ? 'video-badge' : ''}">
                             <i class="fas fa-${isVideo ? 'video' : 'image'}"></i>
-                            ${fileSize} MB
+                            ${(file.size / 1024 / 1024).toFixed(1)} MB
                         </div>
                     `;
-                    container.appendChild(item);
+
+                    previewGrid.appendChild(item);
                 };
                 reader.readAsDataURL(file);
             });
 
-            preview.style.display = 'block';
+            uploadPreview.style.display = 'block';
         }
 
-        function uploadSelectedMedia() {
-            if (selectedFiles.length === 0) {
-                showToast('No files selected', 'error');
-                return;
+        // Drag and drop
+        const dropArea = document.getElementById('dropArea');
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = 'var(--gold)';
+            dropArea.style.background = 'rgba(201,169,110,0.05)';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.borderColor = '';
+            dropArea.style.background = '';
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '';
+            dropArea.style.background = '';
+
+            const files = Array.from(e.dataTransfer.files).filter(file =>
+                file.type.startsWith('image/') || file.type.startsWith('video/')
+            );
+
+            if (files.length > 0) {
+                uploadFiles = files;
+                displayPreview();
+                showToast(`${files.length} file${files.length > 1 ? 's' : ''} ready for upload`, 'success');
+            }
+        });
+
+        async function startUpload() {
+            if (isUploading || uploadFiles.length === 0) return;
+
+            isUploading = true;
+            const progressBar = document.getElementById('uploadProgress');
+            const formData = new FormData();
+
+            uploadFiles.forEach(file => {
+                formData.append('media[]', file);
+            });
+
+            const tripId = document.getElementById('tripSelect').value;
+            const location = document.getElementById('mediaLocation').value;
+
+            if (tripId) formData.append('trip_id', tripId);
+            if (location) formData.append('location', location);
+
+            try {
+                const response = await fetch('/api/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                showToast('Upload successful!', 'success');
+                closeUploadModal();
+                await loadMedia();
+                await loadStats();
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Upload failed', 'error');
+            } finally {
+                isUploading = false;
+                progressBar.style.width = '0%';
+            }
+        }
+
+        function clearSelection() {
+            uploadFiles = [];
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadPreview').style.display = 'none';
+            document.getElementById('tripSelect').value = '';
+            document.getElementById('mediaLocation').value = '';
+        }
+
+        // Camera functions
+        async function startCamera() {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                });
+
+                const video = document.getElementById('cameraFeed');
+                video.srcObject = cameraStream;
+
+                document.getElementById('startCameraBtn').style.display = 'none';
+                document.getElementById('captureBtn').style.display = 'block';
+                document.getElementById('stopCameraBtn').style.display = 'block';
+
+            } catch (error) {
+                showToast('Camera access denied or not available', 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
             }
 
-            selectedFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const isVideo = file.type.startsWith('video/');
-                    const mediaData = {
-                        id: (Date.now() + index).toString(),
-                        title: file.name.replace(/\.[^/.]+$/, ""),
-                        description: 'Uploaded on ' + new Date().toLocaleDateString(),
-                        data: e.target.result,
-                        type: isVideo ? 'video' : 'photo',
-                        date: new Date().toISOString(),
-                        location: 'Unknown Location',
-                        favorite: false,
-                        filename: file.name,
-                        size: file.size
+            const video = document.getElementById('cameraFeed');
+            video.srcObject = null;
+
+            document.getElementById('startCameraBtn').style.display = 'block';
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('stopCameraBtn').style.display = 'none';
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraFeed');
+            const canvas = document.getElementById('cameraCanvas');
+            const context = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                uploadFiles = [file];
+
+                // Switch to upload tab
+                switchTab('upload');
+                displayPreview();
+
+                showToast('Photo captured! Ready to upload.', 'success');
+            }, 'image/jpeg', 0.9);
+        }
+
+        // Profile functions
+        function openProfileModal() {
+            document.getElementById('profileModal').classList.add('active');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('active');
+        }
+
+        async function updateProfile() {
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('email', document.getElementById('email').value);
+
+            if (document.getElementById('agency_name')) {
+                formData.append('agency_name', document.getElementById('agency_name').value);
+            }
+
+            const avatarInput = document.getElementById('avatarInput');
+            if (avatarInput.files.length > 0) {
+                formData.append('avatar', avatarInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('/api/profile/update', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showToast('Profile updated successfully!', 'success');
+                    closeProfileModal();
+                    location.reload(); // Refresh to show updated profile
+                } else {
+                    throw new Error('Update failed');
+                }
+            } catch (error) {
+                showToast('Failed to update profile', 'error');
+            }
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            // Global search
+            const searchInput = document.getElementById('globalSearch');
+            let searchTimeout;
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    filterMedia(searchInput.value);
+                }, 300);
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeUploadModal();
+                    closeProfileModal();
+                    if (document.getElementById('mediaViewer').classList.contains('active')) {
+                        closeViewer();
+                    }
+                }
+
+                if (e.key === 'ArrowLeft' && document.getElementById('mediaViewer').classList.contains('active')) {
+                    prevMedia();
+                }
+
+                if (e.key === 'ArrowRight' && document.getElementById('mediaViewer').classList.contains('active')) {
+                    nextMedia();
+                }
+            });
+
+            // Profile picture preview
+            document.getElementById('avatarInput').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = document.getElementById('profilePreview');
+                        const placeholder = document.getElementById('profilePlaceholder');
+
+                        if (preview) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                            if (placeholder) placeholder.style.display = 'none';
+                        }
                     };
-
-                    userMedia.push(mediaData);
-
-                    if (index === selectedFiles.length - 1) {
-                        saveMediaToStorage();
-                        showToast(`${selectedFiles.length} files uploaded successfully!`, 'success');
-                        switchTab('manage');
-                        selectedFiles = [];
-                        document.getElementById('uploadPreview').style.display = 'none';
-                        document.getElementById('mediaInput').value = '';
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // Manage Tab Functions
-        function loadManageMedia() {
-            const grid = document.getElementById('manageMediaGrid');
-            const noMedia = document.getElementById('noMediaMessage');
-
-            if (userMedia.length === 0) {
-                grid.style.display = 'none';
-                noMedia.style.display = 'block';
-                return;
-            }
-
-            grid.style.display = 'grid';
-            noMedia.style.display = 'none';
-            grid.innerHTML = '';
-
-            [...userMedia].reverse().forEach(media => {
-                const item = document.createElement('div');
-                item.className = 'gallery-item';
-                item.onclick = () => viewMedia(media.id);
-
-                item.innerHTML = `
-                    ${media.type === 'photo'
-                        ? `<img src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;">`
-                        : `<video src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;"></video>`
-                    }
-                    <div class="media-badge ${media.type === 'video' ? 'video-badge' : ''}">
-                        <i class="fas fa-${media.type === 'video' ? 'video' : 'image'}"></i>
-                        ${media.type === 'video' ? media.duration || '' : ''}
-                        ${media.favorite ? ' <i class="fas fa-heart" style="color: #ff4757;"></i>' : ''}
-                    </div>
-                `;
-                grid.appendChild(item);
-            });
-        }
-
-        function searchAllMedia(query) {
-            const filtered = userMedia.filter(media =>
-                media.title.toLowerCase().includes(query.toLowerCase()) ||
-                media.description.toLowerCase().includes(query.toLowerCase()) ||
-                (media.location && media.location.toLowerCase().includes(query.toLowerCase()))
-            );
-
-            const grid = document.getElementById('manageMediaGrid');
-            const noMedia = document.getElementById('noMediaMessage');
-
-            if (filtered.length === 0) {
-                grid.style.display = 'none';
-                noMedia.style.display = 'block';
-                noMedia.innerHTML = `
-                    <i class="fas fa-search" style="font-size: 48px; margin-bottom: 20px;"></i>
-                    <p>No media found for "${query}"</p>
-                `;
-                return;
-            }
-
-            grid.style.display = 'grid';
-            noMedia.style.display = 'none';
-            grid.innerHTML = '';
-
-            filtered.reverse().forEach(media => {
-                const item = document.createElement('div');
-                item.className = 'gallery-item';
-                item.onclick = () => viewMedia(media.id);
-
-                item.innerHTML = `
-                    ${media.type === 'photo'
-                        ? `<img src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;">`
-                        : `<video src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;"></video>`
-                    }
-                    <div class="media-badge ${media.type === 'video' ? 'video-badge' : ''}">
-                        <i class="fas fa-${media.type === 'video' ? 'video' : 'image'}"></i>
-                        ${media.type === 'video' ? media.duration || '' : ''}
-                    </div>
-                `;
-                grid.appendChild(item);
-            });
-        }
-
-        function searchGallery(query) {
-            const filtered = userMedia.filter(media =>
-                media.title.toLowerCase().includes(query.toLowerCase()) ||
-                media.description.toLowerCase().includes(query.toLowerCase())
-            );
-
-            const gallery = document.getElementById('iphoneGallery');
-
-            if (filtered.length === 0) {
-                gallery.innerHTML = `
-                    <div class="text-center text-muted" style="grid-column: 1 / -1; padding: 40px; background: white;">
-                        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 20px; color: var(--deep);"></i>
-                        <p>No media found for "${query}"</p>
-                    </div>
-                `;
-                return;
-            }
-
-            gallery.innerHTML = '';
-            const recentFiltered = filtered.slice(0, 24);
-
-            recentFiltered.forEach((media, index) => {
-                const item = document.createElement('div');
-                item.className = 'gallery-item';
-
-                item.innerHTML = `
-                    ${media.type === 'photo'
-                        ? `<img src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;">`
-                        : `<video src="${media.data}" alt="${media.title}" loading="lazy" style="aspect-ratio: 3/4; object-fit: cover;"></video>`
-                    }
-                    <div class="media-badge ${media.type === 'video' ? 'video-badge' : ''}">
-                        <i class="fas fa-${media.type === 'video' ? 'video' : 'image'}"></i>
-                        ${media.type === 'video' ? media.duration || '' : ''}
-                    </div>
-                `;
-
-                item.onclick = () => viewMedia(media.id);
-                gallery.appendChild(item);
-            });
-        }
-
-        function exportMedia() {
-            const exportData = {
-                version: '2.0',
-                exportDate: new Date().toISOString(),
-                mediaCount: userMedia.length,
-                photos: userMedia.filter(m => m.type === 'photo').length,
-                videos: userMedia.filter(m => m.type === 'video').length,
-                media: userMedia
-            };
-
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const link = document.createElement('a');
-            link.setAttribute('href', dataUri);
-            link.setAttribute('download', `smartbooking_media_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast(`Exported ${userMedia.length} media items`, 'success');
-        }
-
-        // Helper Functions
-        function setupDragAndDrop() {
-            const uploadArea = document.querySelector('.upload-area');
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = 'var(--gold)';
-                uploadArea.style.background = 'rgba(201,169,110,0.05)';
-            });
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.borderColor = '';
-                uploadArea.style.background = '';
-            });
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = '';
-                uploadArea.style.background = '';
-                const files = Array.from(e.dataTransfer.files).filter(file =>
-                    file.type.startsWith('image/') || file.type.startsWith('video/')
-                );
-                if (files.length > 0) {
-                    selectedFiles = files;
-                    displayUploadPreview();
-                    showToast(`${files.length} files ready for upload`, 'success');
+                    reader.readAsDataURL(file);
                 }
             });
         }
 
-        function openCameraModal() {
-            openPhotoManager();
-            switchTab('camera');
+        // Filter media by search
+        function filterMedia(query) {
+            if (!query.trim()) {
+                renderMediaGallery();
+                return;
+            }
+
+            const filtered = mediaItems.filter(media =>
+                (media.title && media.title.toLowerCase().includes(query.toLowerCase())) ||
+                (media.description && media.description.toLowerCase().includes(query.toLowerCase())) ||
+                (media.location && media.location.toLowerCase().includes(query.toLowerCase()))
+            );
+
+            const gallery = document.getElementById('mediaGallery');
+            gallery.innerHTML = '';
+
+            if (filtered.length === 0) {
+                gallery.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: white;">
+                        <i class="fas fa-search" style="font-size: 48px; color: var(--deep); margin-bottom: 15px;"></i>
+                        <p style="color: var(--text-muted);">No results for "${query}"</p>
+                    </div>
+                `;
+            } else {
+                filtered.forEach((media, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.dataset.id = media.id;
+
+                    item.innerHTML = `
+                        ${media.type === 'image'
+                            ? `<img src="${media.thumbnail || media.url}" alt="${media.title}" loading="lazy">`
+                            : `<video src="${media.url}" poster="${media.thumbnail}" alt="${media.title}" loading="lazy"></video>`
+                        }
+                        <div class="media-badge ${media.type === 'video' ? 'video-badge' : ''}">
+                            <i class="fas fa-${media.type === 'video' ? 'video' : 'image'}"></i>
+                            ${media.duration || ''}
+                        </div>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        const originalIndex = mediaItems.findIndex(m => m.id === media.id);
+                        if (originalIndex !== -1) {
+                            viewMedia(originalIndex);
+                        }
+                    });
+
+                    gallery.appendChild(item);
+                });
+            }
         }
 
-        function openUploadModal() {
-            openPhotoManager();
-            switchTab('upload');
-        }
-
-        function planNewTrip() {
-            @if(Auth::user()->isAgency())
-                window.location.href = '{{ route("flights.create") }}';
-            @else
-                window.location.href = '{{ route("plan-trip") }}';
-            @endif
-        }
-
-        function viewBookings() {
-            @if(Auth::user()->isAgency())
-                window.location.href = '{{ route("bookings.agency") }}';
-            @else
-                window.location.href = '{{ route("bookings.index") }}';
-            @endif
-        }
-
-        function exploreDestinations() {
-            window.location.href = '{{ route("discover") }}';
-        }
-
-        function logout() {
-            document.getElementById('logout-form').submit();
-        }
-
+        // Helper functions
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = 'toast ' + type + ' show';
+
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
@@ -3207,34 +3027,49 @@
             document.getElementById('sidebar').classList.toggle('active');
         }
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closePhotoManager();
-                closeProfilePictureModal();
-                if (document.getElementById('iphoneViewer').classList.contains('active')) {
-                    closeIphoneViewer();
-                }
-            }
-        });
+        function logout() {
+            document.getElementById('logout-form').submit();
+        }
 
-        // Click outside modals to close
-        document.addEventListener('click', (e) => {
-            const photoModal = document.getElementById('photoManagerModal');
-            const profileModal = document.getElementById('profilePictureModal');
+        function createNewTrip() {
+            window.location.href = '/trips/create';
+        }
 
-            if (e.target === photoModal) {
-                closePhotoManager();
+        function viewTrip(tripId) {
+            window.location.href = `/trips/${tripId}`;
+        }
+
+        function loadMoreMedia() {
+            loadMedia();
+            showToast('Media refreshed', 'success');
+        }
+
+        function openSettings() {
+            window.location.href = '/settings';
+        }
+
+        // Initialize video progress updates
+        setInterval(() => {
+            const video = document.getElementById('viewerVideo');
+            const progress = document.getElementById('videoProgress');
+            const time = document.getElementById('videoTime');
+
+            if (video && !video.paused) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progress.style.width = `${percent}%`;
+
+                const current = formatTime(video.currentTime);
+                const total = formatTime(video.duration);
+                time.textContent = `${current} / ${total}`;
             }
-            if (e.target === profileModal) {
-                closeProfilePictureModal();
-            }
-        });
+        }, 100);
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
     </script>
-
-    <!-- Logout Form -->
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
-        @csrf
-    </form>
 </body>
+
 </html>

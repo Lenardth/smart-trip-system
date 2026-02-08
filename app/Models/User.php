@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Booking;
+use App\Models\Trip;
+use App\Models\Destination;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,6 +30,11 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'profile_picture_url',
+        'display_name',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -36,19 +44,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function isAgency(): bool
+    public function trips()
     {
-        return $this->user_type === 'agency';
-    }
-
-    public function isUser(): bool
-    {
-        return $this->user_type === 'user';
-    }
-
-    public function flights()
-    {
-        return $this->hasMany(Flight::class, 'agency_id');
+        return $this->hasMany(Trip::class);
     }
 
     public function bookings()
@@ -56,27 +54,23 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
-    public function memories()
+    public function savedDestinations()
     {
-        return $this->hasMany(Memory::class);
-    }
-
-    public function preferences()
-    {
-        return $this->hasMany(UserPreference::class);
+        return $this->belongsToMany(
+            Destination::class,
+            'saved_destinations'
+        )->withTimestamps();
     }
 
     public function getProfilePictureUrlAttribute()
     {
-        return $this->profile_picture 
+        return $this->profile_picture
             ? asset('storage/' . $this->profile_picture)
             : asset('img/default-avatar.png');
     }
 
     public function getDisplayNameAttribute()
     {
-        return $this->isAgency() && $this->agency_name 
-            ? $this->agency_name 
-            : $this->name;
+        return $this->agency_name ?: $this->name;
     }
 }
