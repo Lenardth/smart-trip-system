@@ -19,9 +19,11 @@ class Flight extends Model
         'arrival_time',
         'price',
         'seats_available',
+        'total_seats',
         'class',
         'description',
         'is_active',
+        'aircraft_type',
     ];
 
     protected $casts = [
@@ -29,13 +31,28 @@ class Flight extends Model
         'arrival_time' => 'datetime',
         'price' => 'decimal:2',
         'seats_available' => 'integer',
+        'total_seats' => 'integer',
         'is_active' => 'boolean',
     ];
 
-    // Relationships
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeByAgency($query, $agencyId)
+    {
+        return $query->where('user_id', $agencyId);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function agency()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function bookings()
@@ -43,15 +60,22 @@ class Flight extends Model
         return $this->hasMany(Booking::class);
     }
 
-    // Helper methods
     public function isAvailable()
     {
         return $this->is_active && $this->seats_available > 0;
     }
 
+    public function hasAvailableSeats($seats = 1)
+    {
+        return $this->seats_available >= $seats;
+    }
+
     public function formatDuration()
     {
-        $diff = $this->departure_time->diff($this->arrival_time);
-        return $diff->format('%hh %im');
+        if ($this->departure_time && $this->arrival_time) {
+            $diff = $this->departure_time->diff($this->arrival_time);
+            return $diff->format('%hh %im');
+        }
+        return 'N/A';
     }
 }

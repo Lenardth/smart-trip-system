@@ -10,19 +10,15 @@ use Illuminate\Support\Facades\DB;
 
 class FlightController extends Controller
 {
-    /**
-     * Display available flights
-     */
     public function index(Request $request)
     {
-        $query = Flight::with('agency')->active();
+        $query = Flight::query();
 
-        // Search filters
         if ($request->filled('from')) {
-            $query->where('from_city', 'like', '%' . $request->from . '%');
+            $query->where('departure_city', 'like', '%' . $request->from . '%');
         }
         if ($request->filled('to')) {
-            $query->where('to_city', 'like', '%' . $request->to . '%');
+            $query->where('arrival_city', 'like', '%' . $request->to . '%');
         }
         if ($request->filled('date')) {
             $query->whereDate('departure_time', $request->date);
@@ -32,35 +28,24 @@ class FlightController extends Controller
         }
 
         $flights = $query->orderBy('departure_time')->paginate(12);
-
-        return view('flights.index', compact('flights'));
+        return view('flights', compact('flights'));
     }
 
-    /**
-     * Show flight details
-     */
     public function show(Flight $flight)
     {
-        $flight->load('agency', 'bookings');
+        $flight->load('user', 'bookings');
         return view('flights.show', compact('flight'));
     }
 
-    /**
-     * Show create flight form (agencies only)
-     */
     public function create()
     {
         if (!Auth::user()->isAgency()) {
             return redirect()->route('flights.index')
                 ->with('error', 'Only travel agencies can create flights.');
         }
-
         return view('flights.create');
     }
 
-    /**
-     * Store new flight (agencies only)
-     */
     public function store(Request $request)
     {
         if (!Auth::user()->isAgency()) {
@@ -71,8 +56,8 @@ class FlightController extends Controller
         $validated = $request->validate([
             'flight_number' => 'required|unique:flights|max:20',
             'airline' => 'required|max:100',
-            'from_city' => 'required|max:100',
-            'to_city' => 'required|max:100',
+            'departure_city' => 'required|max:100',
+            'arrival_city' => 'required|max:100',
             'departure_time' => 'required|date|after:now',
             'arrival_time' => 'required|date|after:departure_time',
             'price' => 'required|numeric|min:0',
@@ -81,9 +66,9 @@ class FlightController extends Controller
             'class' => 'required|in:economy,business,first',
         ]);
 
-        $validated['agency_id'] = Auth::id();
-        $validated['available_seats'] = $validated['total_seats'];
-        $validated['status'] = 'active';
+        $validated['user_id'] = Auth::id();
+        $validated['seats_available'] = $validated['total_seats'];
+        $validated['is_active'] = true;
 
         $flight = Flight::create($validated);
 
@@ -91,16 +76,13 @@ class FlightController extends Controller
             ->with('success', 'Flight created successfully! Flight Number: ' . $flight->flight_number);
     }
 
-    /**
-     * Show my flights (agency dashboard)
-     */
     public function myFlights()
     {
         if (!Auth::user()->isAgency()) {
             return redirect()->route('dashboard');
         }
 
-        $flights = Flight::byAgency(Auth::id())
+        $flights = Flight::where('user_id', Auth::id())
             ->with('bookings')
             ->orderBy('departure_time', 'desc')
             ->paginate(10);
@@ -108,9 +90,6 @@ class FlightController extends Controller
         return view('flights.my-flights', compact('flights'));
     }
 
-    /**
-     * Book a flight
-     */
     public function book(Request $request, Flight $flight)
     {
         if (Auth::user()->isAgency()) {
@@ -121,13 +100,12 @@ class FlightController extends Controller
             'seats' => 'required|integer|min:1|max:9',
         ]);
 
-        if (!$flight->hasAvailableSeats($validated['seats'])) {
+        if ($flight->seats_available < $validated['seats']) {
             return back()->with('error', 'Not enough seats available.');
         }
 
         DB::beginTransaction();
         try {
-            // Create booking
             $booking = Booking::create([
                 'user_id' => Auth::id(),
                 'flight_id' => $flight->id,
@@ -136,13 +114,12 @@ class FlightController extends Controller
                 'status' => 'confirmed',
             ]);
 
-            // Update available seats
-            $flight->decrement('available_seats', $validated['seats']);
+            $flight->decrement('seats_available', $validated['seats']);
 
             DB::commit();
 
             return redirect()->route('bookings.show', $booking)
-                ->with('success', 'Flight booked successfully! Booking Reference: ' . $booking->booking_reference);
+                ->with('success', 'Flight booked successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -150,17 +127,13 @@ class FlightController extends Controller
         }
     }
 
-    /**
-     * Cancel flight (agency only)
-     */
     public function cancel(Flight $flight)
     {
-        if ($flight->agency_id !== Auth::id()) {
+        if ($flight->user_id !== Auth::id()) {
             return back()->with('error', 'Unauthorized.');
         }
 
-        $flight->update(['status' => 'cancelled']);
-
+        $flight->update(['is_active' => false]);
         return back()->with('success', 'Flight cancelled successfully.');
     }
 }

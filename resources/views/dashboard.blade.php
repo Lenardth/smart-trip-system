@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Real-Time Chat Libraries (Pusher + Laravel Echo) -->
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
+
     <style>
         /* ── Color Tokens ── */
         :root {
@@ -43,7 +47,7 @@
         }
 
         body {
-            font-family: 'Inter', 'Georgia', serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--cream);
             color: #2c2c2c;
             display: flex;
@@ -73,13 +77,13 @@
             gap: 15px;
             background: linear-gradient(135deg, var(--deep), var(--deep-alt));
         }
+
         .logo {
-            width: 120px;
-            height: 120px;
+            width: 50px;
+            height: 50px;
             object-fit: contain;
             filter: brightness(0) invert(1);
         }
-
 
         .logo-text {
             font-size: 22px;
@@ -161,209 +165,7 @@
             transform: translateY(-2px);
         }
 
-        /* Enhanced Action Buttons */
-        .action-btn {
-            background: linear-gradient(135deg, var(--card-bg), white);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 2px 8px rgba(59, 31, 43, 0.08);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--gold), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .action-btn:hover {
-            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
-            border-color: var(--gold);
-            color: var(--deep);
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 8px 20px rgba(201, 169, 110, 0.2);
-        }
-
-        .action-btn:hover::before {
-            opacity: 1;
-        }
-
-        .action-btn:hover i {
-            transform: scale(1.2);
-            animation: pulse 1s infinite;
-        }
-
-        .action-btn i {
-            font-size: 26px;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn span {
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        /* Icon-specific colors */
-        .action-btn:nth-child(1) i {
-            color: var(--info);
-        }
-
-        /* Upload */
-        .action-btn:nth-child(2) i {
-            color: var(--purple);
-        }
-
-        /* Plan Trip */
-        .action-btn:nth-child(3) i {
-            color: #FF6B6B;
-        }
-
-        /* My Bookings - Red */
-        .action-btn:nth-child(4) i {
-            color: var(--success);
-        }
-
-        /* Explore - Green */
-        .action-btn:nth-child(5) i {
-            color: var(--gold);
-        }
-
-        /* Profile - Gold */
-        .action-btn:nth-child(6) i {
-            color: var(--warning);
-        }
-
-        /* Settings - Orange */
-
-        .action-btn:hover i {
-            color: var(--deep) !important;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.1);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        /* Enhanced Trip Icons */
-        .trip-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--deep);
-            font-size: 20px;
-            box-shadow: 0 4px 8px rgba(201, 169, 110, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .trip-item:hover .trip-icon {
-            transform: rotate(5deg) scale(1.1);
-            box-shadow: 0 6px 12px rgba(201, 169, 110, 0.4);
-        }
-
-        /* Enhanced Stat Cards */
-        .stat-card {
-            background: linear-gradient(135deg, white, var(--card-bg));
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(59, 31, 43, 0.08);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--gold), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 25px rgba(59, 31, 43, 0.15);
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-
-        .stat-icon {
-            width: 65px;
-            height: 65px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            background: rgba(33, 150, 243, 0.15);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover .stat-icon {
-            transform: rotate(10deg) scale(1.1);
-        }
-
-        .stat-icon.photos {
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
-            color: var(--info);
-        }
-
-        .stat-icon.trips {
-            background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(156, 39, 176, 0.1));
-            color: var(--purple);
-        }
-
-        .stat-icon.bookings {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
-            color: var(--success);
-        }
-
-        .stat-icon.saved {
-            background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1));
-            color: var(--warning);
-        }
-
-        /* Keep existing styles for the rest */
+        /* Sidebar Footer */
         .sidebar-footer {
             padding: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -373,7 +175,7 @@
             background: var(--deep);
         }
 
-        /* User Profile Styles - UPDATED */
+        /* User Profile Styles */
         .user-profile {
             display: flex;
             align-items: center;
@@ -476,7 +278,7 @@
             gap: 4px;
         }
 
-        /* Logout Button - FIXED */
+        /* Logout Button */
         .logout-btn {
             margin-left: auto;
             background: rgba(255, 255, 255, 0.1);
@@ -531,8 +333,8 @@
 
         .nav-left {
             display: flex;
-            align-items: center;
-            gap: 20px;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .nav-left h1 {
@@ -556,41 +358,6 @@
             display: flex;
             align-items: center;
             gap: 20px;
-        }
-
-        .nav-profile-pic {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid var(--gold);
-            cursor: pointer;
-            flex-shrink: 0;
-            box-shadow: 0 4px 8px rgba(201, 169, 110, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .nav-profile-pic:hover {
-            transform: scale(1.05);
-            border-color: var(--deep);
-        }
-
-        .nav-profile-pic img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .nav-profile-pic .placeholder {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--gold), var(--deep-alt));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 18px;
         }
 
         .search-box {
@@ -662,6 +429,314 @@
             font-weight: 700;
             border: 2px solid white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* ── Notification Dropdown ── */
+        .notification-dropdown {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            width: 400px;
+            max-height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(59, 31, 43, 0.2);
+            border: 1px solid var(--border);
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.active {
+            display: flex;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--card-bg), white);
+        }
+
+        .notification-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--deep);
+            margin: 0;
+        }
+
+        .mark-all-read {
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mark-all-read:hover {
+            color: var(--deep);
+            text-decoration: underline;
+        }
+
+        .compose-message-btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(201, 169, 110, 0.3);
+        }
+
+        .compose-message-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(201, 169, 110, 0.5);
+        }
+
+        .notification-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: white;
+        }
+
+        .notification-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .notification-tab:hover {
+            background: rgba(201, 169, 110, 0.05);
+            color: var(--deep);
+        }
+
+        .notification-tab.active {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+            background: rgba(201, 169, 110, 0.1);
+        }
+
+        .notification-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 450px;
+        }
+
+        .notification-item {
+            padding: 18px 25px;
+            border-bottom: 1px solid rgba(226, 213, 199, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            gap: 15px;
+            position: relative;
+        }
+
+        .notification-item:hover {
+            background: rgba(201, 169, 110, 0.05);
+        }
+
+        .notification-item.unread {
+            background: rgba(201, 169, 110, 0.08);
+            border-left: 4px solid var(--gold);
+        }
+
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.2);
+        }
+
+        .notification-icon-wrapper {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item:hover .notification-icon-wrapper {
+            transform: scale(1.1);
+        }
+
+        .notification-icon-wrapper.chat {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
+            color: var(--info);
+        }
+
+        .notification-icon-wrapper.booking {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+            color: var(--success);
+        }
+
+        .notification-icon-wrapper.trip {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(156, 39, 176, 0.1));
+            color: var(--purple);
+        }
+
+        .notification-icon-wrapper.photo {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1));
+            color: var(--warning);
+        }
+
+        .notification-icon-wrapper.system {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(244, 67, 54, 0.1));
+            color: var(--danger);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--deep);
+            margin: 0 0 5px 0;
+        }
+
+        .notification-content p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: var(--text-sub);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notification-footer {
+            padding: 15px 25px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            background: linear-gradient(135deg, white, var(--card-bg));
+        }
+
+        .view-all-notifications {
+            color: var(--gold);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .view-all-notifications:hover {
+            color: var(--deep);
+            text-decoration: underline;
+        }
+
+        .empty-notifications {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-notifications i {
+            font-size: 48px;
+            color: var(--border-soft);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-notifications h4 {
+            font-size: 16px;
+            color: var(--deep);
+            margin-bottom: 5px;
+        }
+
+        .empty-notifications p {
+            font-size: 13px;
+        }
+
+        .nav-profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--gold);
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(201, 169, 110, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .nav-profile-pic:hover {
+            transform: scale(1.05);
+            border-color: var(--deep);
+        }
+
+        .nav-profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .nav-profile-pic .placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--gold), var(--deep-alt));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
         }
 
         /* ── Stats Cards ── */
@@ -670,6 +745,79 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, white, var(--card-bg));
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(59, 31, 43, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(59, 31, 43, 0.15);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            background: rgba(33, 150, 243, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: rotate(10deg) scale(1.1);
+        }
+
+        .stat-icon.photos {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
+            color: var(--info);
+        }
+
+        .stat-icon.trips {
+            background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(156, 39, 176, 0.1));
+            color: var(--purple);
+        }
+
+        .stat-icon.bookings {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+            color: var(--success);
+        }
+
+        .stat-icon.saved {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1));
+            color: var(--warning);
         }
 
         .stat-info h3 {
@@ -693,6 +841,7 @@
             align-items: center;
             gap: 6px;
             font-weight: 600;
+            color: var(--text-muted);
         }
 
         .stat-change.positive {
@@ -701,6 +850,114 @@
 
         .stat-change.negative {
             color: var(--danger);
+        }
+
+        /* ── Quick Actions Grid ── */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, var(--card-bg), white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(59, 31, 43, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            border-color: var(--gold);
+            color: var(--deep);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(201, 169, 110, 0.2);
+        }
+
+        .action-btn:hover::before {
+            opacity: 1;
+        }
+
+        .action-btn:hover i {
+            transform: scale(1.2);
+            animation: pulse 1s infinite;
+        }
+
+        .action-btn i {
+            font-size: 26px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn span {
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        /* Icon-specific colors */
+        .action-btn:nth-child(1) i {
+            color: var(--info);
+        }
+
+        .action-btn:nth-child(2) i {
+            color: var(--purple);
+        }
+
+        .action-btn:nth-child(3) i {
+            color: #FF6B6B;
+        }
+
+        .action-btn:nth-child(4) i {
+            color: var(--success);
+        }
+
+        .action-btn:nth-child(5) i {
+            color: var(--gold);
+        }
+
+        .action-btn:nth-child(6) i {
+            color: var(--warning);
+        }
+
+        .action-btn:hover i {
+            color: var(--deep) !important;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         /* ── Dashboard Sections ── */
@@ -763,60 +1020,110 @@
             padding: 30px;
         }
 
-        /* Enhanced Action Button Icons */
-        .action-btn .fa-upload {
-            color: var(--info) !important;
+        /* ── Empty State ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
         }
 
-        .action-btn .fa-plus-circle {
-            color: var(--purple) !important;
+        .empty-state i {
+            font-size: 60px;
+            color: var(--border-soft);
+            margin-bottom: 20px;
+            opacity: 0.5;
         }
 
-        .action-btn .fa-ticket-alt {
-            color: #FF6B6B !important;
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--deep);
         }
 
-        /* Red for bookings */
-        .action-btn .fa-globe {
-            color: var(--success) !important;
+        .empty-state p {
+            font-size: 14px;
+            margin-bottom: 25px;
         }
 
-        /* Green for explore */
-        .action-btn .fa-user-circle {
-            color: var(--gold) !important;
+        .empty-state .btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            color: var(--deep);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(201, 169, 110, 0.3);
         }
 
-        .action-btn .fa-cog {
-            color: var(--warning) !important;
+        .empty-state .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(201, 169, 110, 0.4);
         }
 
-        .action-btn:hover .fa-upload,
-        .action-btn:hover .fa-plus-circle,
-        .action-btn:hover .fa-ticket-alt,
-        .action-btn:hover .fa-globe,
-        .action-btn:hover .fa-user-circle,
-        .action-btn:hover .fa-cog {
-            color: var(--deep) !important;
+        /* ── iPhone-Style Photo Gallery ── */
+        .gallery-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--iphone-bg);
+            z-index: 2000;
+            overflow: hidden;
         }
 
-        /* Keep the rest of your existing styles below... */
-        /* ── iPhone Gallery ── */
-        .iphone-gallery {
+        .gallery-modal.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gallery-header {
+            background: var(--iphone-header);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gallery-header h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .gallery-close {
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-weight: 600;
+        }
+
+        .gallery-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 2px;
-            background: var(--iphone-bg);
-            padding: 2px;
-            border-radius: 12px;
-            overflow: hidden;
+            gap: 4px;
         }
 
         .gallery-item {
+            aspect-ratio: 1;
             position: relative;
             cursor: pointer;
-            aspect-ratio: 3/4;
             overflow: hidden;
-            background: var(--iphone-bg);
+            background: #1c1c1e;
         }
 
         .gallery-item img,
@@ -832,742 +1139,148 @@
             transform: scale(1.05);
         }
 
-        .media-badge {
+        .gallery-item .video-badge {
             position: absolute;
             top: 8px;
             right: 8px;
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 2px 6px;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 11px;
             display: flex;
             align-items: center;
-            gap: 3px;
-        }
-
-        .video-badge {
-            background: rgba(219, 68, 55, 0.9);
-        }
-
-        .selected-indicator {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--info);
-            border: 2px solid white;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: white;
-        }
-
-        .gallery-item.selected .selected-indicator {
-            display: flex;
+            gap: 4px;
         }
 
         .gallery-toolbar {
             background: var(--iphone-toolbar);
-            padding: 15px;
+            padding: 15px 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: space-around;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .gallery-toolbar-left,
-        .gallery-toolbar-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .gallery-toolbar-btn {
+        .gallery-toolbar button {
             background: none;
             border: none;
-            color: white;
-            font-size: 16px;
+            color: var(--gold);
+            font-size: 24px;
             cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            padding: 10px 20px;
         }
 
-        .gallery-toolbar-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .gallery-toolbar button:hover {
+            transform: scale(1.2);
+            filter: brightness(1.3);
         }
 
-        .gallery-title {
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        /* ── iPhone Viewer ── */
-        .iphone-viewer {
+        /* ── Media Viewer ── */
+        .media-viewer {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background: var(--iphone-bg);
-            z-index: 2000;
-            display: none;
-            overflow: hidden;
+            z-index: 2001;
         }
 
-        .iphone-viewer.active {
-            display: block;
-        }
-
-        .iphone-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            background: var(--iphone-bg);
-            overflow: hidden;
-        }
-
-        .dynamic-island {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 126px;
-            height: 37px;
-            background: black;
-            border-radius: 37px;
-            z-index: 1001;
+        .media-viewer.active {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 0 15px;
-        }
-
-        .dynamic-island-dot {
-            width: 6px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
+            flex-direction: column;
         }
 
         .viewer-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 60px 20px 15px;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
+            background: var(--iphone-header);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(20px);
         }
 
-        .viewer-header-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: white;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
+        .viewer-actions {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            gap: 20px;
+        }
+
+        .viewer-actions button {
+            background: none;
+            border: none;
+            color: var(--gold);
             font-size: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
         }
 
-        .viewer-header-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.1);
+        .viewer-actions button:hover {
+            transform: scale(1.2);
         }
 
-        .viewer-title {
-            color: white;
-            font-size: 17px;
-            font-weight: 600;
-            opacity: 0.9;
-        }
-
-        .viewer-container {
-            width: 100%;
-            height: 100%;
+        .viewer-content {
+            flex: 1;
             display: flex;
-            justify-content: center;
             align-items: center;
-            position: relative;
+            justify-content: center;
             overflow: hidden;
         }
 
-        .media-viewport {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .viewer-media {
+        .viewer-content img,
+        .viewer-content video {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            transition: transform 0.2s ease;
-            user-select: none;
         }
 
-        .viewer-media.zoomable {
-            cursor: zoom-in;
-        }
-
-        .viewer-media.zoomed {
-            cursor: grab;
-        }
-
-        .viewer-media.zoomed:active {
-            cursor: grabbing;
-        }
-
-        .viewer-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 30px 20px;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(20px);
-        }
-
-        .viewer-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .viewer-control-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 22px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .viewer-control-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-        }
-
-        .viewer-info {
-            color: white;
-            max-width: 50%;
-        }
-
-        .viewer-info-title {
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            opacity: 0.95;
-        }
-
-        .viewer-info-meta {
-            font-size: 13px;
-            opacity: 0.7;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .viewer-nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: white;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 500;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .viewer-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .viewer-nav-btn.prev {
-            left: 30px;
-        }
-
-        .viewer-nav-btn.next {
-            right: 30px;
-        }
-
-        /* Video Controls */
-        .video-controls {
-            position: absolute;
-            bottom: 120px;
-            left: 20px;
-            right: 20px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 12px;
-            backdrop-filter: blur(20px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .viewer-container:hover .video-controls {
-            opacity: 1;
-        }
-
-        .video-play-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-
-        .video-progress {
-            flex: 1;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .video-progress-bar {
-            height: 100%;
-            background: var(--info);
-            width: 0%;
-            transition: width 0.1s linear;
-            position: relative;
-        }
-
-        .video-time {
-            color: white;
-            font-size: 13px;
-            min-width: 70px;
-            text-align: center;
-            opacity: 0.8;
-        }
-
-        /* Zoom Controls */
-        .zoom-controls {
-            position: absolute;
-            right: 30px;
-            bottom: 120px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 500;
-        }
-
-        .zoom-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: white;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .zoom-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.1);
-        }
-
-        /* EXIF Info */
-        .exif-overlay {
-            position: absolute;
-            top: 120px;
-            right: 30px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 16px;
-            border-radius: 12px;
-            backdrop-filter: blur(20px);
-            font-size: 13px;
-            line-height: 1.5;
-            max-width: 300px;
-            display: none;
-            z-index: 500;
-        }
-
-        .exif-overlay.active {
-            display: block;
-        }
-
-        .exif-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .exif-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 4px;
-            opacity: 0.8;
-        }
-
-        /* Loading */
-        .loading-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 48px;
-            z-index: 100;
-        }
-
-        /* ── Upcoming Trips ── */
-        .trips-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .trip-item {
-            display: flex;
-            gap: 15px;
-            padding: 18px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            background: white;
-            cursor: pointer;
-        }
-
-        .trip-item:hover {
-            border-color: var(--gold);
-            background: linear-gradient(135deg, rgba(201, 169, 110, 0.05), rgba(201, 169, 110, 0.1));
-            transform: translateX(5px);
-            box-shadow: 0 6px 12px rgba(201, 169, 110, 0.1);
-        }
-
-        .trip-info h4 {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--deep);
-            margin-bottom: 5px;
-        }
-
-        .trip-info p {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .trip-status {
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            display: inline-block;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-confirmed {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.1));
-            color: var(--success);
-            border: 1px solid rgba(76, 175, 80, 0.3);
-        }
-
-        .status-pending {
-            background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 152, 0, 0.1));
-            color: var(--warning);
-            border: 1px solid rgba(255, 152, 0, 0.3);
-        }
-
-        .status-cancelled {
-            background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(244, 67, 54, 0.1));
-            color: var(--danger);
-            border: 1px solid rgba(244, 67, 54, 0.3);
-        }
-
-        /* ── Quick Actions ── */
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-        }
-
-        /* ── Modals ── */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 1000px;
-            max-height: 90vh;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            padding: 22px 30px;
-            background: linear-gradient(135deg, var(--deep), var(--deep-alt));
-            color: var(--text-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .close-modal {
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: var(--text-light);
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .close-modal:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: rotate(90deg);
-        }
-
-        .modal-tabs {
-            display: flex;
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .modal-tab {
-            padding: 16px 30px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-tab.active {
-            color: var(--deep);
-            border-bottom-color: var(--gold);
-            background: white;
-        }
-
-        .modal-body {
-            padding: 30px;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-
-        /* Upload Interface */
-        .upload-interface {
-            display: none;
-        }
-
-        .upload-interface.active {
-            display: block;
-        }
-
+        /* ── File Upload Area ── */
         .upload-area {
             border: 3px dashed var(--border);
-            border-radius: 12px;
-            padding: 50px 20px;
+            border-radius: 15px;
+            padding: 60px 40px;
             text-align: center;
             cursor: pointer;
-            margin-bottom: 20px;
             transition: all 0.3s ease;
-            background: linear-gradient(135deg, var(--card-bg), white);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 248, 242, 0.5));
         }
 
         .upload-area:hover {
             border-color: var(--gold);
-            background: linear-gradient(135deg, rgba(201, 169, 110, 0.05), rgba(201, 169, 110, 0.1));
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(201, 169, 110, 0.1);
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.1), rgba(201, 169, 110, 0.05));
+            transform: scale(1.02);
         }
 
-        .upload-icon {
-            font-size: 52px;
+        .upload-area.dragover {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.2), rgba(201, 169, 110, 0.1));
+        }
+
+        .upload-area i {
+            font-size: 60px;
             color: var(--gold);
             margin-bottom: 20px;
         }
 
-        .file-input {
+        .upload-area h3 {
+            font-size: 20px;
+            color: var(--deep);
+            margin-bottom: 10px;
+        }
+
+        .upload-area p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        input[type="file"] {
             display: none;
         }
 
-        /* Toast Notifications */
-        .toast {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: linear-gradient(135deg, var(--deep), var(--deep-alt));
-            color: var(--text-light);
-            padding: 18px 28px;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            z-index: 1001;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transform: translateX(100%);
-            opacity: 0;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            border-left: 4px solid var(--gold);
-        }
-
-        .toast.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            background: linear-gradient(135deg, var(--success), #43a047);
-        }
-
-        .toast.error {
-            background: linear-gradient(135deg, var(--danger), #e53935);
-        }
-
-        /* Upload Progress */
-        .upload-progress {
-            width: 100%;
-            height: 6px;
-            background: var(--border);
-            border-radius: 3px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-
-        .upload-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--gold), var(--gold-hover));
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 3px;
-        }
-
-        /* Media Storage */
-        .storage-info {
-            padding: 20px;
-            background: linear-gradient(135deg, var(--card-bg), white);
-            border-radius: 12px;
-            border: 2px solid var(--border);
-        }
-
-        .storage-bar {
-            width: 100%;
-            height: 10px;
-            background: var(--border);
-            border-radius: 5px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-
-        .storage-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--gold), var(--deep-alt));
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 5px;
-        }
-
-        /* Responsive */
+        /* ── Responsive ── */
         @media (max-width: 1200px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .search-box input {
-                width: 250px;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -1583,185 +1296,61 @@
             .main-content {
                 margin-left: 0;
                 max-width: 100%;
-                padding: 15px;
             }
 
-            .mobile-menu-toggle {
-                display: block;
-                background: none;
-                border: none;
-                font-size: 26px;
-                color: var(--deep);
-                cursor: pointer;
-                padding: 10px;
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
 
-            .nav-left h1 {
-                font-size: 22px;
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .search-box input {
-                width: 200px;
-            }
-
-            .iphone-gallery {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-
-            /* Responsive user profile */
-            .user-info h4 {
-                font-size: 14px;
-            }
-
-            .user-type-badge,
-            .verified-badge {
-                font-size: 10px;
-                padding: 3px 8px;
-            }
-
-            .user-avatar {
-                width: 45px;
-                height: 45px;
-            }
-
-            .logout-btn {
-                width: 38px;
-                height: 38px;
-                padding: 8px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
+                width: 100%;
             }
 
             .top-nav {
                 flex-direction: column;
                 gap: 15px;
-                align-items: flex-start;
-                padding: 15px;
             }
 
             .nav-right {
                 width: 100%;
                 justify-content: space-between;
             }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .search-box input {
-                width: 100%;
-            }
-
-            .iphone-gallery {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            }
-
-            .actions-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Mobile Menu Toggle */
-        .mobile-menu-toggle {
+        .mobile-toggle {
             display: none;
-            background: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            border-radius: 50%;
             border: none;
-            font-size: 24px;
             color: var(--deep);
+            font-size: 24px;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(201, 169, 110, 0.4);
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(201, 169, 110, 0.5);
         }
 
         @media (max-width: 768px) {
-            .mobile-menu-toggle {
-                display: block;
+            .mobile-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .fa-spin {
-            animation: spin 1s linear infinite;
-        }
-
-        /* Loading Spinner */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top-color: var(--gold);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        /* Trip Form */
-        .trip-form {
-            display: grid;
-            gap: 18px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: var(--deep);
-            font-size: 14px;
-        }
-
-        .form-control {
-            padding: 12px 18px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 25px;
         }
     </style>
 </head>
@@ -1770,94 +1359,90 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-            <span class="logo-text">Smart Booking</span>
+            <!-- Use actual logo image matching homepage -->
+            <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo" id="appLogo">
+            <div class="logo-text">Smart Booking</div>
         </div>
 
-        <div class="sidebar-menu">
-            <a href="{{ route('dashboard') }}" class="menu-item active">
+        <nav class="sidebar-menu">
+            <a href="/" class="menu-item">
                 <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/dashboard" class="menu-item active">
+                <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="menu-item" onclick="openPhotoManager()">
+            <a href="#" class="menu-item" onclick="openGallery(); return false;">
                 <i class="fas fa-images"></i>
-                <span>Media</span>
-                <span class="menu-badge" id="totalMediaCount">0</span>
+                <span>My Photos</span>
+                <span class="menu-badge" id="photosCount">0</span>
             </a>
-            @if(auth()->user()->user_type === 'agency')
-                <a href="{{ route('agency.flights') }}" class="menu-item">
-                    <i class="fas fa-plane"></i>
-                    <span>My Flights</span>
-                </a>
-                <a href="{{ route('agency.bookings') }}" class="menu-item">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>Bookings</span>
-                </a>
-            @else
-                @if (Route::has('trips.index'))
-                    <a href="{{ route('trips.index') }}" class="menu-item">
-                        <i class="fas fa-route"></i>
-                        <span>My Trips</span>
-                    </a>
-                @endif
-                <a href="{{ route('bookings.index') }}" class="menu-item">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span>Bookings</span>
-                    @if(method_exists(auth()->user(), 'bookings') && auth()->user()->bookings)
-                        <span class="menu-badge">{{ auth()->user()->bookings()->count() }}</span>
-                    @endif
-                </a>
-            @endif
-            <a href="{{ route('destinations') }}" class="menu-item">
-                <i class="fas fa-globe"></i>
-                <span>Explore</span>
+            <a href="/plan-trip" class="menu-item">
+                <i class="fas fa-route"></i>
+                <span>Plan Trip</span>
             </a>
-            <a href="{{ route('profile.edit') }}" class="menu-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
+            <a href="/flights" class="menu-item">
+                <i class="fas fa-plane"></i>
+                <span>Book Flights</span>
             </a>
-            <a href="{{ route('settings') }}" class="menu-item">
+            <a href="/bookings" class="menu-item">
+                <i class="fas fa-ticket-alt"></i>
+                <span>My Bookings</span>
+                <span class="menu-badge" id="bookingsCount">0</span>
+            </a>
+            <a href="/discover" class="menu-item">
+                <i class="fas fa-compass"></i>
+                <span>Discover</span>
+            </a>
+            <a href="/destinations" class="menu-item">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Destinations</span>
+            </a>
+            <a href="/community" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-heart"></i>
+                <span>Saved</span>
+                <span class="menu-badge" id="savedCount">0</span>
+            </a>
+            <a href="#" class="menu-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </a>
-        </div>
+        </nav>
 
-        <!-- FIXED SIDEBAR FOOTER -->
         <div class="sidebar-footer">
             <div class="user-profile">
-                <div class="user-avatar" onclick="openProfileModal()">
-                    @if(auth()->user()->avatar)
-                        <img src="{{ auth()->user()->profile_picture_url }}" alt="Profile picture">
+                <div class="user-avatar" onclick="viewProfile()">
+                    <!-- Real user avatar -->
+                    @if(Auth::check() && Auth::user()->avatar)
+                    <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" id="userAvatarImg">
                     @else
-                        <div class="avatar-placeholder">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                        </div>
+                    <div class="avatar-placeholder" id="userInitials">
+                        {{ Auth::check() ? strtoupper(substr(Auth::user()->name, 0, 1) . (strpos(Auth::user()->name, ' ') !== false ? substr(Auth::user()->name, strpos(Auth::user()->name, ' ') + 1, 1) : '')) : 'U' }}
+                    </div>
                     @endif
                 </div>
-
                 <div class="user-info">
-                    <h4>{{ auth()->user()->name }}</h4>
+                    <h4 id="userName">{{ Auth::user()->name ?? 'User' }}</h4>
                     <div class="user-badges">
-                        <span class="user-type-badge {{ auth()->user()->user_type === 'agency' ? 'agency' : 'traveler' }}">
-                            <i class="fas {{ auth()->user()->user_type === 'agency' ? 'fa-building' : 'fa-user' }}"></i>
-                            {{ auth()->user()->user_type === 'agency' ? auth()->user()->agency_name : 'Traveler' }}
+                        <span class="user-type-badge {{ Auth::user()->type ?? 'traveler' }}" id="userTypeBadge">
+                            <i class="fas fa-user"></i>
+                            <span id="userTypeText">{{ ucfirst(Auth::user()->type ?? 'Traveler') }}</span>
                         </span>
-                        @if(auth()->user()->user_type === 'agency')
-                            <span class="verified-badge" title="Verified Agency">
-                                <i class="fas fa-check-circle"></i> Verified
-                            </span>
+                        @if(Auth::check() && Auth::user()->verified)
+                        <span class="verified-badge">
+                            <i class="fas fa-check-circle"></i> Verified
+                        </span>
                         @endif
                     </div>
                 </div>
-
-                <!-- Logout Button - FIXED POSITION -->
-                <button class="logout-btn" onclick="logout()" title="Logout">
+                <button class="logout-btn" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
-
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
             </div>
         </div>
     </div>
@@ -1867,1332 +1452,1513 @@
         <!-- Top Navigation -->
         <div class="top-nav">
             <div class="nav-left">
-                <button class="mobile-menu-toggle" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="nav-profile-pic" onclick="openProfileModal()">
-                    @if(auth()->user()->profile_picture)
-                        <img src="{{ auth()->user()->profile_picture_url }}" alt="Profile picture">
-                    @else
-                        <div class="avatar-placeholder">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                        </div>
-                    @endif
-
-                </div>
-                <div>
-                    <h1>Welcome back, {{ auth()->user()->name }}!</h1>
-                    <p>Here's what's happening with your travel plans</p>
-                </div>
+                <h1 id="welcomeMessage">Welcome Back!</h1>
+                <p>Here's what's happening with your trips today</p>
             </div>
             <div class="nav-right">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search trips, photos..." id="globalSearch">
+                    <input type="text" placeholder="Search destinations, hotels, flights...">
                 </div>
-                <button class="notification-btn">
+                <button class="notification-btn" onclick="toggleNotifications()">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
+                    <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
                 </button>
-                <button class="btn" onclick="openUploadModal()">
-                    <i class="fas fa-plus"></i> Add Media
-                </button>
+
+                <!-- Notification Dropdown -->
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3><i class="fas fa-bell"></i> Notifications</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="compose-message-btn" onclick="openComposeMessage()" title="Send a message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button class="mark-all-read" onclick="markAllRead()">Mark all as read</button>
+                        </div>
+                    </div>
+
+                    <div class="notification-tabs">
+                        <div class="notification-tab active" data-tab="all" onclick="switchNotificationTab('all')">
+                            <i class="fas fa-th-large"></i> All
+                        </div>
+                        <div class="notification-tab" data-tab="chat" onclick="switchNotificationTab('chat')">
+                            <i class="fas fa-comments"></i> Chat
+                        </div>
+                        <div class="notification-tab" data-tab="activity" onclick="switchNotificationTab('activity')">
+                            <i class="fas fa-bell"></i> Activity
+                        </div>
+                    </div>
+
+                    <div class="notification-list" id="notificationList">
+                        <!-- Notifications will be loaded here -->
+                    </div>
+
+                    <div class="notification-footer">
+                        <a href="/notifications" class="view-all-notifications">View All Notifications</a>
+                    </div>
+                </div>
+
+                <div class="nav-profile-pic" onclick="viewProfile()">
+                    @if(Auth::check() && Auth::user()->avatar)
+                    <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}">
+                    @else
+                    <div class="placeholder" id="navUserInitials">
+                        {{ Auth::check() ? strtoupper(substr(Auth::user()->name, 0, 1) . (strpos(Auth::user()->name, ' ') !== false ? substr(Auth::user()->name, strpos(Auth::user()->name, ' ') + 1, 1) : '')) : 'U' }}
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
 
-        <!-- Stats Cards -->
+        <!-- Stats Grid -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" onclick="openGallery()">
                 <div class="stat-icon photos">
                     <i class="fas fa-images"></i>
                 </div>
                 <div class="stat-info">
-                    <h3 id="totalPhotos">0</h3>
-                    <p>Travel Photos</p>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+12 this week</span>
+                    <h3 id="statPhotosCount">0</h3>
+                    <p>Total Photos</p>
+                    <div class="stat-change">
+                        <span>Upload to get started</span>
                     </div>
                 </div>
             </div>
-
             <div class="stat-card">
                 <div class="stat-icon trips">
                     <i class="fas fa-route"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>{{ method_exists(auth()->user(), 'trips') && auth()->user()->trips ? auth()->user()->trips()->count() : 0 }}</h3>
-                    <p>Active Trips</p>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+2 this month</span>
+                    <h3 id="statTripsCount">0</h3>
+                    <p>Planned Trips</p>
+                    <div class="stat-change">
+                        <span>No trips yet</span>
                     </div>
                 </div>
             </div>
-
             <div class="stat-card">
                 <div class="stat-icon bookings">
-                    <i class="fas fa-calendar-check"></i>
+                    <i class="fas fa-ticket-alt"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>{{ method_exists(auth()->user(), 'bookings') && auth()->user()->bookings ? auth()->user()->bookings()->count() : 0 }}</h3>
-                    <p>Bookings</p>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+3 upcoming</span>
+                    <h3 id="statBookingsCount">0</h3>
+                    <p>Active Bookings</p>
+                    <div class="stat-change">
+                        <span>No bookings yet</span>
                     </div>
                 </div>
             </div>
-
             <div class="stat-card">
                 <div class="stat-icon saved">
                     <i class="fas fa-heart"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>{{ method_exists(auth()->user(), 'savedDestinations') && auth()->user()->savedDestinations ? auth()->user()->savedDestinations()->count() : 0 }}</h3>
+                    <h3 id="statSavedCount">0</h3>
                     <p>Saved Places</p>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+5 new</span>
+                    <div class="stat-change">
+                        <span>Save your favorites</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-grid">
+            <div class="action-btn" onclick="uploadPhotos()">
+                <i class="fas fa-upload"></i>
+                <span>Upload Photos</span>
+            </div>
+            <div class="action-btn" onclick="window.location.href='/plan-trip'">
+                <i class="fas fa-plus-circle"></i>
+                <span>Plan Trip</span>
+            </div>
+            <div class="action-btn" onclick="window.location.href='/flights'">
+                <i class="fas fa-plane"></i>
+                <span>Book Flights</span>
+            </div>
+            <div class="action-btn" onclick="window.location.href='/bookings'">
+                <i class="fas fa-ticket-alt"></i>
+                <span>My Bookings</span>
+            </div>
+            <div class="action-btn" onclick="window.location.href='/discover'">
+                <i class="fas fa-compass"></i>
+                <span>Discover</span>
+            </div>
+            <div class="action-btn" onclick="openSettings()">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
             </div>
         </div>
 
         <!-- Dashboard Grid -->
         <div class="dashboard-grid">
-            <!-- Left Column -->
-            <div class="left-column">
-                <!-- Recent Media Gallery -->
-                <div class="dashboard-section mb-20">
-                    <div class="section-header">
-                        <h2><i class="fas fa-camera"></i> Recent Travel Media</h2>
-                        <div>
-                            <button class="btn" onclick="loadMoreMedia()">
-                                <i class="fas fa-sync"></i> Refresh
-                            </button>
-                            <button class="btn" onclick="openUploadModal()" style="margin-left: 10px;">
-                                <i class="fas fa-upload"></i> Upload
-                            </button>
-                        </div>
-                    </div>
-                    <div class="section-content" style="padding: 0;">
-                        <div class="gallery-toolbar">
-                            <div class="gallery-toolbar-left">
-                                <button class="gallery-toolbar-btn" onclick="selectAllMedia()" id="selectAllBtn">
-                                    <i class="far fa-square"></i>
-                                </button>
-                                <span class="gallery-title" id="galleryTitle">Loading media...</span>
-                            </div>
-                            <div class="gallery-toolbar-right">
-                                <button class="gallery-toolbar-btn" onclick="deleteSelectedMedia()"
-                                    id="deleteSelectedBtn" style="display: none;">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <button class="gallery-toolbar-btn" onclick="shareSelectedMedia()" id="shareSelectedBtn"
-                                    style="display: none;">
-                                    <i class="fas fa-share-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="iphone-gallery" id="mediaGallery">
-                            <!-- Media will be loaded here -->
-                            <div class="loading-spinner"></div>
-                        </div>
-                    </div>
+            <!-- Upcoming Trips -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-route"></i>
+                        Upcoming Trips
+                    </h2>
+                    <button class="btn" onclick="window.location.href='/plan-trip'">
+                        <i class="fas fa-plus"></i>
+                        New Trip
+                    </button>
                 </div>
-
-                <!-- Upcoming Trips -->
-                <div class="dashboard-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-plane"></i> Upcoming Trips</h2>
-                        <button class="btn" onclick="createNewTrip()">
-                            <i class="fas fa-plus"></i> New Trip
+                <div class="section-content">
+                    <div class="empty-state">
+                        <i class="fas fa-route"></i>
+                        <h3>No Trips Planned Yet</h3>
+                        <p>Start planning your next adventure!</p>
+                        <button class="btn" onclick="window.location.href='/plan-trip'">
+                            <i class="fas fa-plus"></i> Create Your First Trip
                         </button>
                     </div>
-                    <div class="section-content">
-                        <div class="trips-list" id="upcomingTrips">
-                            <!-- Trips will be loaded here -->
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Right Column -->
-            <div class="right-column">
-                <!-- Quick Actions -->
-                <div class="dashboard-section mb-20">
-                    <div class="section-header">
-                        <h2>Quick Actions</h2>
-                    </div>
-                    <div class="section-content">
-                        <div class="actions-grid">
-                            <div class="action-btn" onclick="openUploadModal()">
-                                <i class="fas fa-upload"></i>
-                                <span>Upload Media</span>
-                            </div>
-                            <div class="action-btn" onclick="createNewTrip()">
-                                <i class="fas fa-plus-circle"></i>
-                                <span>Plan Trip</span>
-                            </div>
-                            @if(auth()->user()->user_type === 'agency')
-                                <a href="{{ route('flights.create') }}" class="action-btn">
-                                    <i class="fas fa-plane"></i>
-                                    <span>Add Flight</span>
-                                </a>
-                            @else
-                                <a href="{{ route('bookings.index') }}" class="action-btn">
-                                    <i class="fas fa-ticket-alt"></i>
-                                    <span>My Bookings</span>
-                                </a>
-                            @endif
-                            <a href="{{ route('destinations') }}" class="action-btn">
-                                <i class="fas fa-globe"></i>
-                                <span>Explore</span>
-                            </a>
-                            <div class="action-btn" onclick="openProfileModal()">
-                                <i class="fas fa-user-circle"></i>
-                                <span>Profile</span>
-                            </div>
-                            <div class="action-btn" onclick="openSettings()">
-                                <i class="fas fa-cog"></i>
-                                <span>Settings</span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Recent Activity -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-clock"></i>
+                        Recent Activity
+                    </h2>
                 </div>
-
-                <!-- Storage Info -->
-                <div class="dashboard-section">
-                    <div class="section-header">
-                        <h2>Storage</h2>
-                    </div>
-                    <div class="section-content">
-                        <div class="storage-info">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span class="text-muted">Used Space</span>
-                                <span id="usedSpace">0 MB / 500 MB</span>
-                            </div>
-                            <div class="storage-bar">
-                                <div class="storage-fill" id="storageFill"></div>
-                            </div>
-                            <div
-                                style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px;">
-                                <span class="text-muted">Photos: <span id="photoCountBadge">0</span></span>
-                                <span class="text-muted">Videos: <span id="videoCountBadge">0</span></span>
-                            </div>
-                            <p class="text-muted" style="font-size: 12px; margin-top: 12px;">
-                                <i class="fas fa-info-circle"></i> Upgrade for unlimited storage
-                            </p>
-                        </div>
+                <div class="section-content">
+                    <div class="empty-state">
+                        <i class="fas fa-clock"></i>
+                        <h3>No Activity Yet</h3>
+                        <p>Your recent actions will appear here</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Media Viewer Modal -->
-    <div class="iphone-viewer" id="mediaViewer">
-        <div class="iphone-container">
-            <div class="dynamic-island">
-                <div class="dynamic-island-dot"></div>
-                <div class="dynamic-island-dot"></div>
-                <div class="dynamic-island-dot"></div>
+    <!-- iPhone-Style Gallery Modal -->
+    <div class="gallery-modal" id="galleryModal">
+        <div class="gallery-header">
+            <h3><i class="fas fa-images"></i> My Photos & Videos</h3>
+            <button class="gallery-close" onclick="closeGallery()">Done</button>
+        </div>
+        <div class="gallery-content" id="galleryContent">
+            <div class="upload-area" onclick="triggerFileInput()" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Upload Photos & Videos</h3>
+                <p>Drag and drop files here or click to browse</p>
+                <input type="file" id="mediaInput" multiple accept="image/*,video/*" onchange="handleFileSelect(event)">
             </div>
-
-            <div class="viewer-header">
-                <button class="viewer-header-btn" onclick="closeViewer()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="viewer-title" id="viewerTitle">Media Viewer</div>
-                <button class="viewer-header-btn" onclick="toggleFavorite()" id="favoriteBtn">
-                    <i class="far fa-heart"></i>
-                </button>
-            </div>
-
-            <div class="viewer-container">
-                <button class="viewer-nav-btn prev" onclick="prevMedia()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-
-                <div class="media-viewport" id="mediaViewport">
-                    <img id="viewerImage" class="viewer-media" src="" alt="" style="display: none;">
-                    <video id="viewerVideo" class="viewer-media" controls style="display: none;"></video>
-                    <div class="loading-indicator" id="viewerLoading">
-                        <i class="fas fa-circle-notch fa-spin"></i>
-                    </div>
-                </div>
-
-                <button class="viewer-nav-btn next" onclick="nextMedia()">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-
-                <!-- Video Controls -->
-                <div class="video-controls" id="videoControls" style="display: none;">
-                    <button class="video-play-btn" onclick="togglePlay()">
-                        <i class="fas fa-play" id="playIcon"></i>
-                    </button>
-                    <div class="video-progress" onclick="seekVideo(event)">
-                        <div class="video-progress-bar" id="videoProgress"></div>
-                    </div>
-                    <div class="video-time" id="videoTime">0:00 / 0:00</div>
-                </div>
-            </div>
-
-            <div class="viewer-footer">
-                <div class="viewer-info">
-                    <div class="viewer-info-title" id="mediaTitle"></div>
-                    <div class="viewer-info-meta">
-                        <span id="mediaDate"></span>
-                        <span id="mediaLocation"></span>
-                    </div>
-                </div>
-                <div class="viewer-controls">
-                    <button class="viewer-control-btn" onclick="downloadMedia()">
-                        <i class="fas fa-download"></i> Save
-                    </button>
-                    <button class="viewer-control-btn" onclick="shareMedia()">
-                        <i class="fas fa-share-alt"></i> Share
-                    </button>
-                    <button class="viewer-control-btn" onclick="deleteMedia()">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-            </div>
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+        <div class="gallery-toolbar">
+            <button onclick="triggerFileInput()"><i class="fas fa-plus"></i></button>
+            <button onclick="selectAll()"><i class="fas fa-check-double"></i></button>
+            <button onclick="deleteSelected()"><i class="fas fa-trash"></i></button>
+            <button onclick="shareSelected()"><i class="fas fa-share"></i></button>
         </div>
     </div>
 
-    <!-- Upload Modal -->
-    <div class="modal" id="uploadModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Upload Media</h2>
-                <button class="close-modal" onclick="closeUploadModal()">&times;</button>
-            </div>
-            <div class="modal-tabs">
-                <button class="modal-tab active" onclick="switchTab('upload')">
-                    <i class="fas fa-upload"></i> Upload Files
-                </button>
-                <button class="modal-tab" onclick="switchTab('camera')">
-                    <i class="fas fa-camera"></i> Camera
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Upload Tab -->
-                <div id="uploadTab" class="upload-interface active">
-                    <div class="upload-area" onclick="document.getElementById('fileInput').click()" id="dropArea">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <h3>Click to browse or drag & drop</h3>
-                        <p class="text-muted">Support: JPG, PNG, MP4, MOV • Max 100MB per file</p>
-                        <input type="file" id="fileInput" multiple style="display: none;" accept="image/*,video/*">
-                    </div>
-
-                    <div id="uploadPreview" style="display: none;">
-                        <h4>Selected Files</h4>
-                        <div id="previewGrid" class="iphone-gallery" style="margin: 15px 0; gap: 5px;"></div>
-
-                        <div class="form-group">
-                            <label for="tripSelect">Assign to Trip (Optional)</label>
-                            <select id="tripSelect" class="form-control">
-                                <option value="">No trip selected</option>
-                                <!-- Trips will be loaded here -->
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="mediaLocation">Location</label>
-                            <input type="text" id="mediaLocation" class="form-control"
-                                placeholder="Where was this taken?">
-                        </div>
-
-                        <div class="upload-progress">
-                            <div class="upload-progress-bar" id="uploadProgress"></div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button class="btn" onclick="clearSelection()">
-                                <i class="fas fa-times"></i> Clear
-                            </button>
-                            <button class="btn" onclick="startUpload()" style="background: var(--gold);">
-                                <i class="fas fa-upload"></i> Upload
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Camera Tab -->
-                <div id="cameraTab" class="upload-interface">
-                    <div style="text-align: center;">
-                        <video id="cameraFeed" autoplay playsinline
-                            style="width: 100%; max-height: 400px; border-radius: 8px; background: #000;"></video>
-                        <canvas id="cameraCanvas" style="display: none;"></canvas>
-
-                        <div class="form-actions" style="margin-top: 20px;">
-                            <button class="btn" onclick="startCamera()" id="startCameraBtn">
-                                <i class="fas fa-play"></i> Start Camera
-                            </button>
-                            <button class="btn" onclick="capturePhoto()" id="captureBtn"
-                                style="display: none; background: var(--success);">
-                                <i class="fas fa-camera"></i> Capture
-                            </button>
-                            <button class="btn" onclick="stopCamera()" id="stopCameraBtn"
-                                style="display: none; background: var(--danger);">
-                                <i class="fas fa-stop"></i> Stop
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <!-- Media Viewer -->
+    <div class="media-viewer" id="mediaViewer">
+        <div class="viewer-header">
+            <button class="gallery-close" onclick="closeViewer()"><i class="fas fa-arrow-left"></i> Back</button>
+            <div class="viewer-actions">
+                <button onclick="editMedia()"><i class="fas fa-edit"></i></button>
+                <button onclick="downloadMedia()"><i class="fas fa-download"></i></button>
+                <button onclick="shareMedia()"><i class="fas fa-share"></i></button>
+                <button onclick="deleteMedia()"><i class="fas fa-trash"></i></button>
             </div>
         </div>
+        <div class="viewer-content" id="viewerContent"></div>
     </div>
 
-    <!-- Profile Modal -->
-    <div class="modal" id="profileModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Profile Settings</h2>
-                <button class="close-modal" onclick="closeProfileModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="profileForm" enctype="multipart/form-data">
-                    @csrf
-                    <div class="form-group">
-                        <label>Profile Picture</label>
-                        <div style="display: flex; align-items: center; gap: 20px;">
-                            <div class="user-avatar" style="width: 100px; height: 100px;">
-                                @if(auth()->user()->avatar)
-                                    <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="Profile" id="profilePreview">
-                                @else
-                                    <div class="avatar-placeholder" id="profilePlaceholder">
-                                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                                    </div>
-                                @endif
-                            </div>
-                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-                            <button type="button" class="btn" onclick="document.getElementById('avatarInput').click()">
-                                <i class="fas fa-camera"></i> Change Photo
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="name">Full Name</label>
-                        <input type="text" id="name" class="form-control" value="{{ auth()->user()->name }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" class="form-control" value="{{ auth()->user()->email }}">
-                    </div>
-
-                    @if(auth()->user()->user_type === 'agency')
-                        <div class="form-group">
-                            <label for="agency_name">Agency Name</label>
-                            <input type="text" id="agency_name" class="form-control"
-                                value="{{ auth()->user()->agency_name }}">
-                        </div>
-                    @endif
-
-                    <div class="form-actions">
-                        <button type="button" class="btn" onclick="closeProfileModal()">
-                            Cancel
-                        </button>
-                        <button type="button" class="btn" onclick="updateProfile()" style="background: var(--gold);">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="toast" id="toast"></div>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <script>
-        // Global variables
-        let mediaItems = [];
-        let currentMediaIndex = 0;
-        let selectedMedia = new Set();
-        let uploadFiles = [];
-        let currentTripId = null;
-        let cameraStream = null;
-        let isUploading = false;
+        // User data from backend (this would typically come from your server)
+        const userData = {
+            name: "{{ Auth::user()->name ?? 'User' }}",
+            firstName: "{{ Auth::user()->first_name ?? (Auth::user() ? explode(' ', Auth::user()->name)[0] : 'User') }}",
+            avatar: "{{ Auth::user()->avatar ?? '' }}",
+            type: "{{ Auth::user()->type ?? 'traveler' }}",
+            verified: {{ Auth::user()->verified ?? 'false' }},
+            id: "{{ Auth::user()->id ?? '' }}"
+        };
 
-        // Initialize dashboard
+        // Initialize user interface
+        function initializeUserData() {
+            // Set welcome message
+            const welcomeMsg = document.getElementById('welcomeMessage');
+            welcomeMsg.textContent = `Welcome Back, ${userData.firstName}!`;
+
+            // Set profile pictures
+            if (userData.avatar && userData.avatar !== '') {
+                // Use actual user avatar
+                const avatarImages = document.querySelectorAll('.user-avatar img, .nav-profile-pic img');
+                avatarImages.forEach(img => {
+                    if (img) {
+                        img.src = userData.avatar;
+                        img.style.display = 'block';
+                    }
+                });
+
+                // Hide placeholders
+                document.querySelectorAll('.avatar-placeholder, .placeholder').forEach(el => {
+                    el.style.display = 'none';
+                });
+            } else {
+                // Use initials if no avatar
+                const initials = userData.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                const initialsElements = document.querySelectorAll('.avatar-placeholder, .placeholder');
+                initialsElements.forEach(el => {
+                    el.textContent = initials;
+                    el.style.display = 'flex';
+                });
+
+                // Hide avatar images
+                document.querySelectorAll('.user-avatar img, .nav-profile-pic img').forEach(img => {
+                    if (img) img.style.display = 'none';
+                });
+            }
+
+            // Update user name
+            document.getElementById('userName').textContent = userData.name;
+
+            // Update user type badge
+            const userTypeBadge = document.getElementById('userTypeBadge');
+            if (userTypeBadge) {
+                userTypeBadge.className = `user-type-badge ${userData.type}`;
+                const userTypeText = document.getElementById('userTypeText');
+                if (userTypeText) {
+                    userTypeText.textContent = userData.type.charAt(0).toUpperCase() + userData.type.slice(1);
+                }
+            }
+
+            // Load real user statistics
+            loadUserStatistics();
+        }
+
+        // Load real statistics from backend
+        function loadUserStatistics() {
+            // In a real application, this would fetch from your API
+            fetch('/api/user/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    updateCounts(data);
+                })
+                .catch(error => {
+                    console.log('Using default counts');
+                    // Use default counts if API fails
+                });
+        }
+
+        // Update counts from real data
+        function updateCounts(data = null) {
+            const photoCount = data?.photos || mediaLibrary.length;
+            const tripsCount = data?.trips || 0;
+            const bookingsCount = data?.bookings || 0;
+            const savedCount = data?.saved || 0;
+            const notificationCount = data?.notifications || 0;
+
+            // Update all count displays
+            const photosCountEl = document.getElementById('photosCount');
+            const statPhotosCountEl = document.getElementById('statPhotosCount');
+            const bookingsCountEl = document.getElementById('bookingsCount');
+            const statBookingsCountEl = document.getElementById('statBookingsCount');
+            const savedCountEl = document.getElementById('savedCount');
+            const statSavedCountEl = document.getElementById('statSavedCount');
+            const statTripsCountEl = document.getElementById('statTripsCount');
+            const notificationCountEl = document.getElementById('notificationCount');
+
+            if (photosCountEl) photosCountEl.textContent = photoCount;
+            if (statPhotosCountEl) statPhotosCountEl.textContent = photoCount;
+            if (bookingsCountEl) bookingsCountEl.textContent = bookingsCount;
+            if (statBookingsCountEl) statBookingsCountEl.textContent = bookingsCount;
+            if (savedCountEl) savedCountEl.textContent = savedCount;
+            if (statSavedCountEl) statSavedCountEl.textContent = savedCount;
+            if (statTripsCountEl) statTripsCountEl.textContent = tripsCount;
+            if (notificationCountEl) {
+                notificationCountEl.textContent = notificationCount;
+                notificationCountEl.style.display = notificationCount > 0 ? 'block' : 'none';
+            }
+        }
+
+        // Media storage
+        let mediaLibrary = [];
+        let selectedMedia = new Set();
+        let currentMediaIndex = 0;
+
+        // Notification system
+        let notifications = [];
+        let currentTab = 'all';
+        let unreadCount = 0;
+        let pusherChannel = null;
+        let chatPollingInterval = null;
+
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function () {
-            loadStats();
-            loadMedia();
-            loadTrips();
-            loadUpcomingTrips();
-            setupEventListeners();
+            initializeUserData();
+            loadMediaFromStorage();
+            loadNotifications();
+            initializeRealTimeChat();
+
+            // Poll for new notifications every 5 seconds (fallback if WebSocket fails)
+            setInterval(loadNotifications, 5000);
         });
 
-        // Load statistics
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/dashboard/stats');
-                const data = await response.json();
+        // Real-Time Chat with Pusher/WebSocket
+        function initializeRealTimeChat() {
+            // Try to initialize Pusher if available
+            if (typeof Pusher !== 'undefined') {
+                try {
+                    const pusher = new Pusher('{{ config("broadcasting.connections.pusher.key") }}', {
+                        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}',
+                        encrypted: true
+                    });
 
-                document.getElementById('totalPhotos').textContent = data.total_photos || 0;
-                document.getElementById('totalMediaCount').textContent = data.total_media || 0;
-                document.getElementById('photoCountBadge').textContent = data.photos || 0;
-                document.getElementById('videoCountBadge').textContent = data.videos || 0;
+                    // Subscribe to user's private channel
+                    pusherChannel = pusher.subscribe('private-user.{{ Auth::id() }}');
 
-                // Update storage info
-                const usedMB = data.used_storage || 0;
-                const totalMB = 500;
-                const percent = (usedMB / totalMB) * 100;
+                    // Listen for new chat messages
+                    pusherChannel.bind('new-chat-message', function(data) {
+                        handleRealTimeChatMessage(data);
+                    });
 
-                document.getElementById('usedSpace').textContent = `${usedMB} MB / ${totalMB} MB`;
-                document.getElementById('storageFill').style.width = `${percent}%`;
+                    // Listen for notification updates
+                    pusherChannel.bind('notification', function(data) {
+                        handleRealTimeNotification(data);
+                    });
 
-            } catch (error) {
-                console.error('Error loading stats:', error);
+                    console.log('✅ Real-time chat initialized with Pusher');
+                } catch (error) {
+                    console.log('Pusher not available, using polling fallback');
+                    startChatPolling();
+                }
+            } else {
+                console.log('Pusher library not loaded, using polling fallback');
+                startChatPolling();
             }
         }
 
-        // Load media from server
-        async function loadMedia() {
-            const gallery = document.getElementById('mediaGallery');
-            gallery.innerHTML = '<div class="loading-spinner"></div>';
+        // Fallback: Fast polling for real-time feel
+        function startChatPolling() {
+            // Poll every 2 seconds for chat messages
+            chatPollingInterval = setInterval(() => {
+                loadNotifications(true); // silent mode
+            }, 2000);
+        }
 
-            try {
-                const response = await fetch('/api/media', {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(await response.text());
+        // Handle real-time chat message
+        function handleRealTimeChatMessage(data) {
+            const newNotification = {
+                id: data.message_id || Date.now(),
+                type: 'chat',
+                title: `New chat from ${data.sender_name}`,
+                message: data.content,
+                time: 'Just now',
+                read: false,
+                user: {
+                    name: data.sender_name,
+                    avatar: data.sender_avatar,
+                    initials: data.sender_initials
                 }
+            };
 
-                const data = await response.json();
+            // Add to notifications array
+            notifications.unshift(newNotification);
+            unreadCount++;
 
-                // ✅ FIX: backend may return array OR { media: [] }
-                mediaItems = Array.isArray(data) ? data : (data.media || []);
+            // Update UI
+            updateNotificationBadge();
+            renderNotifications();
 
-                if (mediaItems.length === 0) {
-                    gallery.innerHTML = `
-                <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: white;">
-                    <i class="fas fa-camera" style="font-size: 48px; margin-bottom: 15px;"></i>
-                    <p style="color: var(--text-muted);">No media yet.</p>
+            // Play notification sound
+            playNotificationSound();
+
+            // Show toast notification
+            showChatToast(data.sender_name, data.content);
+        }
+
+        // Handle real-time notification
+        function handleRealTimeNotification(data) {
+            notifications.unshift(data);
+            if (!data.read) unreadCount++;
+            updateNotificationBadge();
+            renderNotifications();
+        }
+
+        // Show toast notification for new chat
+        function showChatToast(sender, message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: white;
+                border: 2px solid var(--gold);
+                border-radius: 12px;
+                padding: 15px 20px;
+                box-shadow: 0 8px 24px rgba(59, 31, 43, 0.2);
+                z-index: 10000;
+                min-width: 300px;
+                max-width: 400px;
+                animation: slideInRight 0.4s ease;
+                cursor: pointer;
+            `;
+
+            const preview = message.length > 60 ? message.substring(0, 60) + '...' : message;
+
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--gold), var(--deep)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">
+                        ${sender.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; color: var(--deep); margin-bottom: 3px;">
+                            <i class="fas fa-comments" style="color: var(--gold);"></i>
+                            ${sender}
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-muted);">
+                            ${preview}
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             `;
-                } else {
-                    renderMediaGallery();
-                }
 
-                document.getElementById('galleryTitle').textContent =
-                    `${mediaItems.length} items`;
+            toast.onclick = function() {
+                window.location.href = '/chat';
+                this.remove();
+            };
 
-            } catch (error) {
-                console.error('Error loading media:', error);
-                gallery.innerHTML = `
-            <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: red;">
-                Failed to load media
-            </div>
-        `;
+            document.body.appendChild(toast);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.4s ease';
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        }
+
+        // Play notification sound
+        function playNotificationSound() {
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDGH0fPTgjMGHm7A7+OZUA0PVqzn77BdGgc+ltryxnYpBSh+zPLaizsIGGS57OihUxELTKXh8bllHAU2kNXzzn0vBSh6yfDajDwIFmq+7eibUg4OVKzl8LRfGgc8ldjywngqBCh9y/HajjwIFmm97OmgURALTqPi8bllHAU3kdXzzoAuBSh6yfDajjsJFWq97OmgUg0PVanl8LVfGgc8ldryw3kpBCd9y/DajjsJFWq+7OmfUhAMTqPh8bhnHgU3kdXzzn4vBCh6yfDajjsJFWq+7OidUREMTqPh8bhmHQU3kdXzzn4vBCd7yfDajjsJFmq97OmdUREMTqTg8bhmHQU3kdTzz34uBSd7yfDajjsJFmq97OmdUREMT6Th8bhpHgU2kNTzzoAuBSd7yfDbjTsIFmq97OicUhAMT6Tg8bppHgU2kNTzz4AuBSZ7yfDbkToJFWq97Omc');
+                audio.volume = 0.3;
+                audio.play().catch(() => {}); // Ignore if autoplay blocked
+            } catch (e) {
+                console.log('Could not play notification sound');
             }
         }
 
+        // Add CSS animation for toast
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
-
-        // Render media gallery
-        function renderMediaGallery() {
-            const gallery = document.getElementById('mediaGallery');
-            gallery.innerHTML = '';
-
-            mediaItems.forEach((media, index) => {
-                const isSelected = selectedMedia.has(media.id);
-                const item = document.createElement('div');
-                item.className = `gallery-item ${isSelected ? 'selected' : ''}`;
-                item.dataset.id = media.id;
-                item.dataset.index = index;
-
-                item.innerHTML = `
-                    ${media.type === 'image'
-                        ? `<img src="${media.thumbnail || media.url}" alt="${media.title}" loading="lazy">`
-                        : `<video src="${media.url}" poster="${media.thumbnail}" alt="${media.title}" loading="lazy"></video>`
+        // Notification Functions
+        function loadNotifications(silent = false) {
+            // Load from API
+            fetch('/api/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    notifications = data.notifications || getSampleNotifications();
+                    unreadCount = notifications.filter(n => !n.read).length;
+                    updateNotificationBadge();
+                    renderNotifications();
+                })
+                .catch(error => {
+                    if (!silent) {
+                        console.log('Using sample notifications');
                     }
-                    <div class="media-badge ${media.type === 'video' ? 'video-badge' : ''}">
-                        <i class="fas fa-${media.type === 'video' ? 'video' : 'image'}"></i>
-                        ${media.duration || ''}
-                    </div>
-                    <div class="selected-indicator">
-                        <i class="fas fa-check"></i>
+                    notifications = getSampleNotifications();
+                    unreadCount = notifications.filter(n => !n.read).length;
+                    updateNotificationBadge();
+                    renderNotifications();
+                });
+        }
+
+        function getSampleNotifications() {
+            return [
+                {
+                    id: 1,
+                    type: 'chat',
+                    title: 'New chat from Sarah Johnson',
+                    message: 'Hey! I saw you\'re planning a trip to Bali. I have some great recommendations!',
+                    time: '5 minutes ago',
+                    read: false,
+                    user: {
+                        name: 'Sarah Johnson',
+                        avatar: null,
+                        initials: 'SJ'
+                    }
+                },
+                {
+                    id: 2,
+                    type: 'booking',
+                    title: 'Booking Confirmed',
+                    message: 'Your flight to Tokyo has been confirmed. Check-in opens 24 hours before departure.',
+                    time: '2 hours ago',
+                    read: false
+                },
+                {
+                    id: 3,
+                    type: 'chat',
+                    title: 'Michael Roberts sent you a chat',
+                    message: 'Thanks for the travel tips! The restaurant you recommended was amazing.',
+                    time: '5 hours ago',
+                    read: true,
+                    user: {
+                        name: 'Michael Roberts',
+                        avatar: null,
+                        initials: 'MR'
+                    }
+                },
+                {
+                    id: 4,
+                    type: 'trip',
+                    title: 'Trip Reminder',
+                    message: 'Your trip to Paris starts in 5 days. Don\'t forget to pack!',
+                    time: '1 day ago',
+                    read: false
+                },
+                {
+                    id: 5,
+                    type: 'photo',
+                    title: 'Photos Uploaded',
+                    message: 'Successfully uploaded 24 photos to your Bali album.',
+                    time: '2 days ago',
+                    read: true
+                },
+                {
+                    id: 6,
+                    type: 'chat',
+                    title: 'Anna Chen mentioned you',
+                    message: 'Anna Chen mentioned you in a chat: "You should check out this place!"',
+                    time: '2 days ago',
+                    read: true,
+                    user: {
+                        name: 'Anna Chen',
+                        avatar: null,
+                        initials: 'AC'
+                    }
+                },
+                {
+                    id: 7,
+                    type: 'booking',
+                    title: 'Price Drop Alert',
+                    message: 'Good news! The hotel you saved in Santorini dropped by 25%.',
+                    time: '3 days ago',
+                    read: true
+                },
+                {
+                    id: 8,
+                    type: 'system',
+                    title: 'Account Verified',
+                    message: 'Congratulations! Your account has been successfully verified.',
+                    time: '1 week ago',
+                    read: true
+                }
+            ];
+        }
+
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('active');
+
+            // Mark as read when opened
+            if (dropdown.classList.contains('active')) {
+                setTimeout(() => {
+                    markVisibleAsRead();
+                }, 1000);
+            }
+        }
+
+        function switchNotificationTab(tab) {
+            currentTab = tab;
+
+            // Update tab styling
+            document.querySelectorAll('.notification-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+            // Render filtered notifications
+            renderNotifications();
+        }
+
+        function renderNotifications() {
+            const listEl = document.getElementById('notificationList');
+            let filteredNotifications = notifications;
+
+            // Filter by tab
+            if (currentTab === 'chat') {
+                filteredNotifications = notifications.filter(n => n.type === 'chat');
+            } else if (currentTab === 'activity') {
+                filteredNotifications = notifications.filter(n => n.type !== 'chat');
+            }
+
+            if (filteredNotifications.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-notifications">
+                        <i class="fas fa-bell-slash"></i>
+                        <h4>No notifications</h4>
+                        <p>You're all caught up!</p>
                     </div>
                 `;
+                return;
+            }
 
-                item.addEventListener('click', (e) => {
-                    if (e.shiftKey || e.ctrlKey || e.metaKey) {
-                        toggleMediaSelection(media.id);
-                    } else {
-                        viewMedia(index);
-                    }
-                });
+            listEl.innerHTML = filteredNotifications.map(notif => {
+                const iconClass = getNotificationIcon(notif.type);
+                const userAvatar = notif.user ?
+                    (notif.user.avatar ?
+                        `<img src="${notif.user.avatar}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">` :
+                        `<div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--deep)); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">${notif.user.initials}</div>`
+                    ) :
+                    `<i class="${iconClass}"></i>`;
 
-                gallery.appendChild(item);
+                return `
+                    <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="handleNotificationClick(${notif.id})">
+                        <div class="notification-icon-wrapper ${notif.type}">
+                            ${userAvatar}
+                        </div>
+                        <div class="notification-content">
+                            <h4>${notif.title}</h4>
+                            <p>${notif.message}</p>
+                            <div class="notification-time">
+                                <i class="fas fa-clock"></i>
+                                ${notif.time}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                'chat': 'fas fa-comments',
+                'booking': 'fas fa-ticket-alt',
+                'trip': 'fas fa-route',
+                'photo': 'fas fa-images',
+                'system': 'fas fa-info-circle'
+            };
+            return icons[type] || 'fas fa-bell';
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationCount');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function markAllRead() {
+            notifications = notifications.map(n => ({...n, read: true}));
+            unreadCount = 0;
+            updateNotificationBadge();
+            renderNotifications();
+
+            // Send to backend
+            fetch('/api/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            }).catch(console.error);
+
+            Swal.fire({
+                title: 'All notifications marked as read',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
             });
         }
 
-        // Load trips for dropdown
-        async function loadTrips() {
-            try {
-                const response = await fetch('/api/trips', {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
+        function markVisibleAsRead() {
+            const unreadNotifs = notifications.filter(n => !n.read);
+            if (unreadNotifs.length === 0) return;
 
-                if (!response.ok) {
-                    throw new Error(await response.text());
-                }
+            const unreadIds = unreadNotifs.map(n => n.id);
 
-                const trips = await response.json();
-                const select = document.getElementById('tripSelect');
+            notifications = notifications.map(n =>
+                unreadIds.includes(n.id) ? {...n, read: true} : n
+            );
 
-                select.innerHTML = '<option value="">No trip selected</option>';
+            unreadCount = notifications.filter(n => !n.read).length;
+            updateNotificationBadge();
+            renderNotifications();
 
-                trips.forEach(trip => {
-                    const option = document.createElement('option');
-                    option.value = trip.id;
-                    option.textContent = trip.name;
-                    select.appendChild(option);
-                });
+            // Send to backend
+            fetch('/api/notifications/mark-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ ids: unreadIds })
+            }).catch(console.error);
+        }
 
-            } catch (error) {
-                console.error('Error loading trips:', error);
+        function handleNotificationClick(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (!notification) return;
+
+            // Mark as read
+            notifications = notifications.map(n =>
+                n.id === notificationId ? {...n, read: true} : n
+            );
+            unreadCount = notifications.filter(n => !n.read).length;
+            updateNotificationBadge();
+            renderNotifications();
+
+            // Navigate based on type
+            if (notification.type === 'chat') {
+                window.location.href = '/chat';
+            } else if (notification.type === 'booking') {
+                window.location.href = '/bookings';
+            } else if (notification.type === 'trip') {
+                window.location.href = '/plan-trip';
+            } else if (notification.type === 'photo') {
+                openGallery();
+                toggleNotifications();
             }
         }
 
-        // Load upcoming trips
-        async function loadUpcomingTrips() {
-            const container = document.getElementById('upcomingTrips');
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('notificationDropdown');
+            const button = document.querySelector('.notification-btn');
 
-            try {
-                const response = await fetch('/api/trips/upcoming', {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(await response.text());
-                }
-
-                const trips = await response.json();
-
-                if (trips.length === 0) {
-                    container.innerHTML = `
-                <div style="text-align: center; padding: 20px; color: var(--text-muted);">
-                    <i class="fas fa-plane"></i>
-                    <p>No upcoming trips</p>
-                </div>
-            `;
-                    return;
-                }
-
-                container.innerHTML = '';
-
-                trips.forEach(trip => {
-                    const item = document.createElement('div');
-                    item.className = 'trip-item';
-                    item.innerHTML = `
-                <div class="trip-icon">
-                    <i class="fas fa-plane"></i>
-                </div>
-                <div class="trip-info">
-                    <h4>${trip.destination}</h4>
-                    <p>${trip.start_date} - ${trip.end_date}</p>
-                    <span class="trip-status status-${trip.status}">
-                        ${trip.status}
-                    </span>
-                </div>
-            `;
-                    item.onclick = () => viewTrip(trip.id);
-                    container.appendChild(item);
-                });
-
-            } catch (error) {
-                console.error('Error loading upcoming trips:', error);
-                container.innerHTML = `<p style="color:red">Failed to load trips</p>`;
+            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('active');
             }
-        }
+        });
 
-        // Media selection
-        function toggleMediaSelection(mediaId) {
-            if (selectedMedia.has(mediaId)) {
-                selectedMedia.delete(mediaId);
-            } else {
-                selectedMedia.add(mediaId);
-            }
-
-            renderMediaGallery();
-            updateSelectionToolbar();
-        }
-
-        function selectAllMedia() {
-            const allSelected = selectedMedia.size === mediaItems.length;
-
-            if (allSelected) {
-                selectedMedia.clear();
-            } else {
-                mediaItems.forEach(media => selectedMedia.add(media.id));
-            }
-
-            renderMediaGallery();
-            updateSelectionToolbar();
-        }
-
-        function updateSelectionToolbar() {
-            const deleteBtn = document.getElementById('deleteSelectedBtn');
-            const shareBtn = document.getElementById('shareSelectedBtn');
-            const selectBtn = document.getElementById('selectAllBtn');
-
-            if (selectedMedia.size > 0) {
-                deleteBtn.style.display = 'block';
-                shareBtn.style.display = 'block';
-                selectBtn.innerHTML = '<i class="fas fa-check-square"></i>';
-            } else {
-                deleteBtn.style.display = 'none';
-                shareBtn.style.display = 'none';
-                selectBtn.innerHTML = '<i class="far fa-square"></i>';
-            }
-        }
-
-        // Delete selected media
-        async function deleteSelectedMedia() {
-            if (selectedMedia.size === 0) return;
-
-            const confirmed = await Swal.fire({
-                title: 'Delete Media?',
-                text: `Are you sure you want to delete ${selectedMedia.size} item${selectedMedia.size > 1 ? 's' : ''}?`,
-                icon: 'warning',
+        // Compose Chat Functions
+        function openComposeMessage() {
+            Swal.fire({
+                title: '<i class="fas fa-comments"></i> Send API Chat Message',
+                html: `
+                    <div style="text-align: left; padding: 10px 20px;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--deep);">
+                                <i class="fas fa-user"></i> To:
+                            </label>
+                            <input type="text" id="userSearch" placeholder="Search users..."
+                                style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px;"
+                                oninput="searchUsers(this.value)">
+                            <div id="userSearchResults" style="max-height: 150px; overflow-y: auto; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; display: none;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <div id="selectedUser" style="display: none; padding: 12px; background: rgba(201, 169, 110, 0.1); border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div id="selectedUserAvatar"></div>
+                                    <div>
+                                        <div id="selectedUserName" style="font-weight: 600; color: var(--deep);"></div>
+                                        <div id="selectedUserType" style="font-size: 12px; color: var(--text-muted);"></div>
+                                    </div>
+                                    <button onclick="clearSelectedUser()" style="margin-left: auto; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 18px;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--deep);">
+                                <i class="fas fa-comments"></i> Chat Message:
+                            </label>
+                            <textarea id="messageContent" placeholder="Type your chat message here..."
+                                style="width: 100%; min-height: 120px; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; font-family: 'Georgia', serif; resize: vertical;"
+                                maxlength="1000"></textarea>
+                            <div style="text-align: right; font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                                <span id="charCount">0</span>/1000 characters
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedUserId" value="">
+                    </div>
+                `,
+                width: 600,
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Delete'
+                confirmButtonColor: '#c9a96e',
+                cancelButtonColor: '#f44336',
+                confirmButtonText: '<i class="fas fa-paper-plane"></i> Send Chat',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                didOpen: () => {
+                    // Add character counter
+                    const textarea = document.getElementById('messageContent');
+                    textarea.addEventListener('input', function() {
+                        document.getElementById('charCount').textContent = this.value.length;
+                    });
+                },
+                preConfirm: () => {
+                    const userId = document.getElementById('selectedUserId').value;
+                    const message = document.getElementById('messageContent').value.trim();
+
+                    if (!userId) {
+                        Swal.showValidationMessage('Please select a user to chat with');
+                        return false;
+                    }
+
+                    if (!message) {
+                        Swal.showValidationMessage('Please enter a chat message');
+                        return false;
+                    }
+
+                    if (message.length > 1000) {
+                        Swal.showValidationMessage('Message is too long (max 1000 characters)');
+                        return false;
+                    }
+
+                    return sendMessage(userId, message);
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    Swal.fire({
+                        title: 'Chat Message Sent!',
+                        text: 'Your message has been delivered in real-time.',
+                        icon: 'success',
+                        confirmButtonColor: '#c9a96e',
+                        timer: 2000
+                    });
+
+                    // Refresh notifications
+                    loadNotifications();
+                }
             });
+        }
 
-            if (!confirmed.isConfirmed) return;
+        let searchTimeout;
+        let availableUsers = [];
 
+        function searchUsers(query) {
+            clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                document.getElementById('userSearchResults').style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                // Fetch users from API
+                fetch(`/api/users/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        availableUsers = data.users || getSampleUsers().filter(u =>
+                            u.name.toLowerCase().includes(query.toLowerCase())
+                        );
+                        displaySearchResults(availableUsers);
+                    })
+                    .catch(error => {
+                        console.log('Using sample users');
+                        availableUsers = getSampleUsers().filter(u =>
+                            u.name.toLowerCase().includes(query.toLowerCase())
+                        );
+                        displaySearchResults(availableUsers);
+                    });
+            }, 300);
+        }
+
+        function getSampleUsers() {
+            return [
+                { id: 2, name: 'Sarah Johnson', type: 'traveler', avatar: null, verified: true },
+                { id: 3, name: 'Michael Roberts', type: 'traveler', avatar: null, verified: false },
+                { id: 4, name: 'Anna Chen', type: 'agency', avatar: null, verified: true },
+                { id: 5, name: 'David Martinez', type: 'traveler', avatar: null, verified: true },
+                { id: 6, name: 'Emily Wilson', type: 'agency', avatar: null, verified: true },
+                { id: 7, name: 'James Brown', type: 'traveler', avatar: null, verified: false },
+                { id: 8, name: 'Lisa Anderson', type: 'traveler', avatar: null, verified: true },
+                { id: 9, name: 'Tom Smith', type: 'agency', avatar: null, verified: true }
+            ];
+        }
+
+        function displaySearchResults(users) {
+            const resultsDiv = document.getElementById('userSearchResults');
+
+            if (users.length === 0) {
+                resultsDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-muted);">No users found</div>';
+                resultsDiv.style.display = 'block';
+                return;
+            }
+
+            resultsDiv.innerHTML = users.map(user => {
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                const avatarHtml = user.avatar ?
+                    `<img src="${user.avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">` :
+                    `<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--deep)); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">${initials}</div>`;
+
+                const badge = user.type === 'agency' ?
+                    '<span style="background: rgba(156, 39, 176, 0.1); color: var(--purple); padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;"><i class="fas fa-building"></i> Agency</span>' :
+                    '';
+
+                const verifiedBadge = user.verified ?
+                    '<i class="fas fa-check-circle" style="color: var(--success); font-size: 12px; margin-left: 5px;"></i>' : '';
+
+                return `
+                    <div onclick="selectUser(${user.id})" style="padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); transition: all 0.3s ease; display: flex; align-items: center; gap: 12px;">
+                        ${avatarHtml}
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--deep); font-size: 14px;">
+                                ${user.name}
+                                ${verifiedBadge}
+                                ${badge}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            resultsDiv.style.display = 'block';
+
+            // Add hover effect
+            resultsDiv.querySelectorAll('div[onclick^="selectUser"]').forEach(el => {
+                el.addEventListener('mouseenter', function() {
+                    this.style.background = 'rgba(201, 169, 110, 0.1)';
+                });
+                el.addEventListener('mouseleave', function() {
+                    this.style.background = 'transparent';
+                });
+            });
+        }
+
+        function selectUser(userId) {
+            const user = availableUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            const avatarHtml = user.avatar ?
+                `<img src="${user.avatar}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">` :
+                `<div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--deep)); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">${initials}</div>`;
+
+            document.getElementById('selectedUserId').value = userId;
+            document.getElementById('selectedUser').style.display = 'block';
+            document.getElementById('selectedUserAvatar').innerHTML = avatarHtml;
+            document.getElementById('selectedUserName').textContent = user.name;
+            document.getElementById('selectedUserType').textContent = user.type === 'agency' ? 'Travel Agency' : 'Traveler';
+            document.getElementById('userSearch').value = '';
+            document.getElementById('userSearchResults').style.display = 'none';
+
+            // Focus on message textarea
+            document.getElementById('messageContent').focus();
+        }
+
+        function clearSelectedUser() {
+            document.getElementById('selectedUserId').value = '';
+            document.getElementById('selectedUser').style.display = 'none';
+            document.getElementById('userSearch').focus();
+        }
+
+        async function sendMessage(userId, message) {
             try {
-                const response = await fetch('/api/media/delete', {
-                    method: 'DELETE',
+                const response = await fetch('/api/chat/send', {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ ids: Array.from(selectedMedia) })
-                });
-
-                if (response.ok) {
-                    showToast(`Deleted ${selectedMedia.size} item${selectedMedia.size > 1 ? 's' : ''}`, 'success');
-                    selectedMedia.clear();
-                    await loadMedia();
-                    await loadStats();
-                } else {
-                    throw new Error('Delete failed');
-                }
-            } catch (error) {
-                showToast('Failed to delete media', 'error');
-            }
-        }
-
-        // Share selected media
-        async function shareSelectedMedia() {
-            if (selectedMedia.size === 0) return;
-
-            const selectedItems = mediaItems.filter(media => selectedMedia.has(media.id));
-
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'My Travel Photos',
-                        text: `Check out my ${selectedItems.length} travel photo${selectedItems.length > 1 ? 's' : ''}!`,
-                        url: window.location.href
-                    });
-                } catch (error) {
-                    console.log('Share cancelled');
-                }
-            } else {
-                // Fallback: copy first media URL to clipboard
-                const firstMedia = selectedItems[0];
-                await navigator.clipboard.writeText(firstMedia.url);
-                showToast('Media URL copied to clipboard', 'success');
-            }
-        }
-
-        // Media viewer functions
-        function viewMedia(index) {
-            currentMediaIndex = index;
-            const media = mediaItems[index];
-
-            if (!media) return;
-
-            const viewer = document.getElementById('mediaViewer');
-            const image = document.getElementById('viewerImage');
-            const video = document.getElementById('viewerVideo');
-            const loading = document.getElementById('viewerLoading');
-            const videoControls = document.getElementById('videoControls');
-            const favoriteBtn = document.getElementById('favoriteBtn');
-
-            // Reset
-            image.style.display = 'none';
-            video.style.display = 'none';
-            loading.style.display = 'flex';
-            videoControls.style.display = 'none';
-
-            // Set media info
-            document.getElementById('viewerTitle').textContent = media.title || 'Media';
-            document.getElementById('mediaTitle').textContent = media.title || 'Untitled';
-            document.getElementById('mediaDate').textContent = new Date(media.created_at).toLocaleDateString();
-            document.getElementById('mediaLocation').textContent = media.location || 'Unknown location';
-
-            // Update favorite button
-            favoriteBtn.innerHTML = media.is_favorite
-                ? '<i class="fas fa-heart" style="color: #ff4757;"></i>'
-                : '<i class="far fa-heart"></i>';
-
-            // Load media
-            if (media.type === 'image') {
-                image.src = media.url;
-                image.onload = () => {
-                    loading.style.display = 'none';
-                    image.style.display = 'block';
-                };
-            } else if (media.type === 'video') {
-                video.src = media.url;
-                video.onloadedmetadata = () => {
-                    loading.style.display = 'none';
-                    video.style.display = 'block';
-                    videoControls.style.display = 'flex';
-                };
-            }
-
-            viewer.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeViewer() {
-            const viewer = document.getElementById('mediaViewer');
-            const video = document.getElementById('viewerVideo');
-
-            viewer.classList.remove('active');
-            document.body.style.overflow = 'auto';
-
-            if (video) {
-                video.pause();
-            }
-        }
-
-        function prevMedia() {
-            if (currentMediaIndex > 0) {
-                currentMediaIndex--;
-                viewMedia(currentMediaIndex);
-            }
-        }
-
-        function nextMedia() {
-            if (currentMediaIndex < mediaItems.length - 1) {
-                currentMediaIndex++;
-                viewMedia(currentMediaIndex);
-            }
-        }
-
-        async function toggleFavorite() {
-            const media = mediaItems[currentMediaIndex];
-            if (!media) return;
-
-            try {
-                const response = await fetch(`/api/media/${media.id}/favorite`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                });
-
-                if (response.ok) {
-                    media.is_favorite = !media.is_favorite;
-                    const favoriteBtn = document.getElementById('favoriteBtn');
-                    favoriteBtn.innerHTML = media.is_favorite
-                        ? '<i class="fas fa-heart" style="color: #ff4757;"></i>'
-                        : '<i class="far fa-heart"></i>';
-
-                    showToast(media.is_favorite ? 'Added to favorites' : 'Removed from favorites', 'success');
-                }
-            } catch (error) {
-                showToast('Failed to update favorite', 'error');
-            }
-        }
-
-        function togglePlay() {
-            const video = document.getElementById('viewerVideo');
-            const playIcon = document.getElementById('playIcon');
-
-            if (video.paused) {
-                video.play();
-                playIcon.className = 'fas fa-pause';
-            } else {
-                video.pause();
-                playIcon.className = 'fas fa-play';
-            }
-        }
-
-        function seekVideo(event) {
-            const video = document.getElementById('viewerVideo');
-            const progress = document.getElementById('videoProgress');
-            const rect = event.currentTarget.getBoundingClientRect();
-            const percent = (event.clientX - rect.left) / rect.width;
-
-            video.currentTime = percent * video.duration;
-            progress.style.width = `${percent * 100}%`;
-        }
-
-        // Upload functions
-        function openUploadModal() {
-            document.getElementById('uploadModal').classList.add('active');
-        }
-
-        function closeUploadModal() {
-            document.getElementById('uploadModal').classList.remove('active');
-            clearSelection();
-            stopCamera();
-        }
-
-        function switchTab(tabName) {
-            // Update tabs
-            document.querySelectorAll('.modal-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.upload-interface').forEach(tab => {
-                tab.classList.remove('active');
-            });
-
-            // Activate selected tab
-            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.add('active');
-
-            if (tabName === 'camera') {
-                startCamera();
-            } else {
-                stopCamera();
-            }
-        }
-
-        // File upload handling
-        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-
-        function handleFileSelect(event) {
-            uploadFiles = Array.from(event.target.files);
-            displayPreview();
-        }
-
-        function displayPreview() {
-            const previewGrid = document.getElementById('previewGrid');
-            const uploadPreview = document.getElementById('uploadPreview');
-
-            if (uploadFiles.length === 0) {
-                uploadPreview.style.display = 'none';
-                return;
-            }
-
-            previewGrid.innerHTML = '';
-            uploadFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const isVideo = file.type.startsWith('video/');
-                    const item = document.createElement('div');
-                    item.className = 'gallery-item';
-
-                    item.innerHTML = `
-                        ${isVideo
-                            ? `<video src="${e.target.result}" alt="${file.name}" loading="lazy"></video>`
-                            : `<img src="${e.target.result}" alt="${file.name}" loading="lazy">`
-                        }
-                        <div class="media-badge ${isVideo ? 'video-badge' : ''}">
-                            <i class="fas fa-${isVideo ? 'video' : 'image'}"></i>
-                            ${(file.size / 1024 / 1024).toFixed(1)} MB
-                        </div>
-                    `;
-
-                    previewGrid.appendChild(item);
-                };
-                reader.readAsDataURL(file);
-            });
-
-            uploadPreview.style.display = 'block';
-        }
-
-        // Drag and drop
-        const dropArea = document.getElementById('dropArea');
-
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.style.borderColor = 'var(--gold)';
-            dropArea.style.background = 'rgba(201,169,110,0.05)';
-        });
-
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.style.borderColor = '';
-            dropArea.style.background = '';
-        });
-
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.style.borderColor = '';
-            dropArea.style.background = '';
-
-            const files = Array.from(e.dataTransfer.files).filter(file =>
-                file.type.startsWith('image/') || file.type.startsWith('video/')
-            );
-
-            if (files.length > 0) {
-                uploadFiles = files;
-                displayPreview();
-                showToast(`${files.length} file${files.length > 1 ? 's' : ''} ready for upload`, 'success');
-            }
-        });
-
-        async function startUpload() {
-            if (isUploading || uploadFiles.length === 0) return;
-
-            isUploading = true;
-            const progressBar = document.getElementById('uploadProgress');
-            const formData = new FormData();
-
-            uploadFiles.forEach(file => {
-                formData.append('media[]', file);
-            });
-
-            const tripId = document.getElementById('tripSelect').value;
-            const location = document.getElementById('mediaLocation').value;
-
-            if (tripId) formData.append('trip_id', tripId);
-            if (location) formData.append('location', location);
-
-            try {
-                const response = await fetch('/api/media/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: formData
+                    body: JSON.stringify({
+                        receiver_id: userId,
+                        content: message
+                    })
                 });
 
                 if (!response.ok) {
-                    throw new Error(await response.text());
+                    throw new Error('Failed to send chat message');
                 }
 
-                showToast('Upload successful!', 'success');
-                closeUploadModal();
-                await loadMedia();
-                await loadStats();
+                const data = await response.json();
 
-            } catch (error) {
-                console.error('Upload error:', error);
-                showToast('Upload failed', 'error');
-            } finally {
-                isUploading = false;
-                progressBar.style.width = '0%';
-            }
-        }
-
-        function clearSelection() {
-            uploadFiles = [];
-            document.getElementById('fileInput').value = '';
-            document.getElementById('uploadPreview').style.display = 'none';
-            document.getElementById('tripSelect').value = '';
-            document.getElementById('mediaLocation').value = '';
-        }
-
-        // Camera functions
-        async function startCamera() {
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    }
-                });
-
-                const video = document.getElementById('cameraFeed');
-                video.srcObject = cameraStream;
-
-                document.getElementById('startCameraBtn').style.display = 'none';
-                document.getElementById('captureBtn').style.display = 'block';
-                document.getElementById('stopCameraBtn').style.display = 'block';
-
-            } catch (error) {
-                showToast('Camera access denied or not available', 'error');
-            }
-        }
-
-        function stopCamera() {
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-
-            const video = document.getElementById('cameraFeed');
-            video.srcObject = null;
-
-            document.getElementById('startCameraBtn').style.display = 'block';
-            document.getElementById('captureBtn').style.display = 'none';
-            document.getElementById('stopCameraBtn').style.display = 'none';
-        }
-
-        function capturePhoto() {
-            const video = document.getElementById('cameraFeed');
-            const canvas = document.getElementById('cameraCanvas');
-            const context = canvas.getContext('2d');
-
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                uploadFiles = [file];
-
-                // Switch to upload tab
-                switchTab('upload');
-                displayPreview();
-
-                showToast('Photo captured! Ready to upload.', 'success');
-            }, 'image/jpeg', 0.9);
-        }
-
-        // Profile functions
-        function openProfileModal() {
-            document.getElementById('profileModal').classList.add('active');
-        }
-
-        function closeProfileModal() {
-            document.getElementById('profileModal').classList.remove('active');
-        }
-
-        async function updateProfile() {
-            const formData = new FormData();
-            formData.append('name', document.getElementById('name').value);
-            formData.append('email', document.getElementById('email').value);
-
-            if (document.getElementById('agency_name')) {
-                formData.append('agency_name', document.getElementById('agency_name').value);
-            }
-
-            const avatarInput = document.getElementById('avatarInput');
-            if (avatarInput.files.length > 0) {
-                formData.append('avatar', avatarInput.files[0]);
-            }
-
-            try {
-                const response = await fetch('/api/profile/update', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: formData
-                });
-
-                if (response.ok) {
-                    showToast('Profile updated successfully!', 'success');
-                    closeProfileModal();
-                    location.reload(); // Refresh to show updated profile
-                } else {
-                    throw new Error('Update failed');
-                }
-            } catch (error) {
-                showToast('Failed to update profile', 'error');
-            }
-        }
-
-        // Event listeners
-        function setupEventListeners() {
-            // Global search
-            const searchInput = document.getElementById('globalSearch');
-            let searchTimeout;
-
-            searchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    filterMedia(searchInput.value);
-                }, 300);
-            });
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closeUploadModal();
-                    closeProfileModal();
-                    if (document.getElementById('mediaViewer').classList.contains('active')) {
-                        closeViewer();
-                    }
-                }
-
-                if (e.key === 'ArrowLeft' && document.getElementById('mediaViewer').classList.contains('active')) {
-                    prevMedia();
-                }
-
-                if (e.key === 'ArrowRight' && document.getElementById('mediaViewer').classList.contains('active')) {
-                    nextMedia();
-                }
-            });
-
-            // Profile picture preview
-            document.getElementById('avatarInput').addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const preview = document.getElementById('profilePreview');
-                        const placeholder = document.getElementById('profilePlaceholder');
-
-                        if (preview) {
-                            preview.src = e.target.result;
-                            preview.style.display = 'block';
-                            if (placeholder) placeholder.style.display = 'none';
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-
-        // Filter media by search
-        function filterMedia(query) {
-            if (!query.trim()) {
-                renderMediaGallery();
-                return;
-            }
-
-            const filtered = mediaItems.filter(media =>
-                (media.title && media.title.toLowerCase().includes(query.toLowerCase())) ||
-                (media.description && media.description.toLowerCase().includes(query.toLowerCase())) ||
-                (media.location && media.location.toLowerCase().includes(query.toLowerCase()))
-            );
-
-            const gallery = document.getElementById('mediaGallery');
-            gallery.innerHTML = '';
-
-            if (filtered.length === 0) {
-                gallery.innerHTML = `
-                    <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: white;">
-                        <i class="fas fa-search" style="font-size: 48px; color: var(--deep); margin-bottom: 15px;"></i>
-                        <p style="color: var(--text-muted);">No results for "${query}"</p>
-                    </div>
+                // Show success toast
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 24px rgba(201, 169, 110, 0.4);
+                    z-index: 10000;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    animation: slideInUp 0.4s ease;
                 `;
-            } else {
-                filtered.forEach((media, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'gallery-item';
-                    item.dataset.id = media.id;
+                toast.innerHTML = `
+                    <i class="fas fa-check-circle" style="font-size: 20px;"></i>
+                    Chat message sent in real-time!
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'slideOutDown 0.4s ease';
+                    setTimeout(() => toast.remove(), 400);
+                }, 3000);
 
-                    item.innerHTML = `
-                        ${media.type === 'image'
-                            ? `<img src="${media.thumbnail || media.url}" alt="${media.title}" loading="lazy">`
-                            : `<video src="${media.url}" poster="${media.thumbnail}" alt="${media.title}" loading="lazy"></video>`
-                        }
-                        <div class="media-badge ${media.type === 'video' ? 'video-badge' : ''}">
-                            <i class="fas fa-${media.type === 'video' ? 'video' : 'image'}"></i>
-                            ${media.duration || ''}
-                        </div>
-                    `;
-
-                    item.addEventListener('click', () => {
-                        const originalIndex = mediaItems.findIndex(m => m.id === media.id);
-                        if (originalIndex !== -1) {
-                            viewMedia(originalIndex);
-                        }
-                    });
-
-                    gallery.appendChild(item);
-                });
+                return data;
+            } catch (error) {
+                console.error('Error sending chat message:', error);
+                Swal.showValidationMessage('Failed to send chat. Please try again.');
+                return false;
             }
         }
 
-        // Helper functions
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = 'toast ' + type + ' show';
+        // Add slide animations
+        const slideStyle = document.createElement('style');
+        slideStyle.textContent = `
+            @keyframes slideInUp {
+                from {
+                    transform: translateY(100px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOutDown {
+                from {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateY(100px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(slideStyle);
 
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
+        // Toggle sidebar for mobile
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
         }
 
-        function logout() {
+        // Gallery functions
+        function openGallery() {
+            document.getElementById('galleryModal').classList.add('active');
+            renderGallery();
+        }
+
+        function closeGallery() {
+            document.getElementById('galleryModal').classList.remove('active');
+        }
+
+        function triggerFileInput() {
+            document.getElementById('mediaInput').click();
+        }
+
+        // File handling
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const mediaItem = {
+                        id: Date.now() + Math.random(),
+                        type: file.type.startsWith('image/') ? 'image' : 'video',
+                        src: e.target.result,
+                        name: file.name,
+                        date: new Date().toISOString()
+                    };
+                    mediaLibrary.push(mediaItem);
+                    saveMediaToStorage();
+                    renderGallery();
+                    updateMediaCounts();
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = '';
+        }
+
+        // Drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => {
+                uploadArea.classList.remove('dragover');
+            });
+        });
+
+        uploadArea.addEventListener('drop', function (e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('mediaInput').files = files;
+            handleFileSelect({ target: { files: files } });
+        });
+
+        // Render gallery
+        function renderGallery() {
+            const galleryGrid = document.getElementById('galleryGrid');
+            if (mediaLibrary.length === 0) {
+                galleryGrid.innerHTML = '';
+                return;
+            }
+
+            galleryGrid.innerHTML = mediaLibrary.map((item, index) => `
+                <div class="gallery-item" onclick="viewMedia(${index})">
+                    ${item.type === 'image' ?
+                    `<img src="${item.src}" alt="${item.name}">` :
+                    `<video src="${item.src}"></video>
+                        <div class="video-badge">
+                            <i class="fas fa-play"></i>
+                            Video
+                        </div>`
+                }
+                </div>
+            `).join('');
+        }
+
+        // View media
+        function viewMedia(index) {
+            currentMediaIndex = index;
+            const item = mediaLibrary[index];
+            const viewerContent = document.getElementById('viewerContent');
+
+            if (item.type === 'image') {
+                viewerContent.innerHTML = `<img src="${item.src}" alt="${item.name}">`;
+            } else {
+                viewerContent.innerHTML = `<video src="${item.src}" controls autoplay></video>`;
+            }
+
+            document.getElementById('mediaViewer').classList.add('active');
+        }
+
+        function closeViewer() {
+            document.getElementById('mediaViewer').classList.remove('active');
+            const viewerContent = document.getElementById('viewerContent');
+            viewerContent.innerHTML = '';
+        }
+
+        // Media actions
+        function editMedia() {
             Swal.fire({
-                title: 'Logout?',
-                text: 'Are you sure you want to logout?',
-                icon: 'question',
+                title: 'Edit Media',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>Editing Features:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>Crop & Rotate</li>
+                            <li>Filters & Adjustments</li>
+                            <li>Add Text & Stickers</li>
+                            <li>Drawing Tools</li>
+                        </ul>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonColor: '#c9a96e',
+                confirmButtonText: 'Open Editor'
+            });
+        }
+
+        function downloadMedia() {
+            const item = mediaLibrary[currentMediaIndex];
+            const link = document.createElement('a');
+            link.href = item.src;
+            link.download = item.name;
+            link.click();
+            Swal.fire({
+                title: 'Downloaded!',
+                text: 'Media has been saved to your device',
+                icon: 'success',
+                confirmButtonColor: '#c9a96e',
+                timer: 2000
+            });
+        }
+
+        function shareMedia() {
+            Swal.fire({
+                title: 'Share Media',
+                text: 'Choose how you want to share this media',
+                icon: 'info',
                 showCancelButton: true,
-                confirmButtonColor: 'var(--gold)',
-                cancelButtonColor: 'var(--deep)',
-                confirmButtonText: 'Yes, Logout',
-                cancelButtonText: 'Cancel',
-                background: 'var(--card-bg)',
-                color: 'var(--deep)'
+                confirmButtonColor: '#c9a96e',
+                confirmButtonText: 'Copy Link'
+            });
+        }
+
+        function deleteMedia() {
+            Swal.fire({
+                title: 'Delete Media?',
+                text: 'This action cannot be undone',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f44336',
+                cancelButtonColor: '#6b5b4f',
+                confirmButtonText: 'Yes, delete it'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    document.getElementById('logout-form').submit();
+                    mediaLibrary.splice(currentMediaIndex, 1);
+                    saveMediaToStorage();
+                    updateMediaCounts();
+                    closeViewer();
+                    renderGallery();
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'Media has been removed',
+                        icon: 'success',
+                        confirmButtonColor: '#c9a96e',
+                        timer: 2000
+                    });
                 }
             });
         }
 
-        function openProfileModal() {
-            document.getElementById('profileModal').classList.add('active');
+        function selectAll() {
+            selectedMedia = new Set(mediaLibrary.map((_, i) => i));
+            Swal.fire({
+                title: 'All Selected',
+                text: `${mediaLibrary.length} items selected`,
+                icon: 'success',
+                confirmButtonColor: '#c9a96e',
+                timer: 1500
+            });
         }
 
-        function createNewTrip() {
-            window.location.href = '/trips/create';
+        function deleteSelected() {
+            if (selectedMedia.size === 0) {
+                Swal.fire({
+                    title: 'No Selection',
+                    text: 'Please select items first',
+                    icon: 'warning',
+                    confirmButtonColor: '#c9a96e'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: `Delete ${selectedMedia.size} items?`,
+                text: 'This action cannot be undone',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f44336',
+                cancelButtonColor: '#6b5b4f',
+                confirmButtonText: 'Yes, delete them'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mediaLibrary = mediaLibrary.filter((_, i) => !selectedMedia.has(i));
+                    selectedMedia.clear();
+                    saveMediaToStorage();
+                    updateMediaCounts();
+                    renderGallery();
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'Selected items have been removed',
+                        icon: 'success',
+                        confirmButtonColor: '#c9a96e',
+                        timer: 2000
+                    });
+                }
+            });
         }
 
-        function viewTrip(tripId) {
-            window.location.href = `/trips/${tripId}`;
+        function shareSelected() {
+            Swal.fire({
+                title: 'Share Selected',
+                text: `Share ${selectedMedia.size} selected items`,
+                icon: 'info',
+                confirmButtonColor: '#c9a96e'
+            });
         }
 
-        function loadMoreMedia() {
-            loadMedia();
-            showToast('Media refreshed', 'success');
+        // Storage functions
+        function saveMediaToStorage() {
+            localStorage.setItem('smartBookingMedia', JSON.stringify(mediaLibrary));
+        }
+
+        function loadMediaFromStorage() {
+            const stored = localStorage.getItem('smartBookingMedia');
+            if (stored) {
+                mediaLibrary = JSON.parse(stored);
+                updateMediaCounts();
+            }
+        }
+
+        // Update counts
+        function updateMediaCounts() {
+            const photoCount = mediaLibrary.length;
+
+            // Update display counts
+            const counts = {
+                photos: photoCount,
+                trips: 0,
+                bookings: 0,
+                saved: 0,
+                notifications: photoCount > 0 ? 1 : 0
+            };
+
+            updateCounts(counts);
+        }
+
+        // Action functions
+        function uploadPhotos() {
+            openGallery();
+        }
+
+        function viewProfile() {
+            Swal.fire({
+                title: 'Your Profile',
+                html: `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        ${userData.avatar ?
+                            `<img src="${userData.avatar}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold);">` :
+                            `<div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--deep)); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold;">${userData.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}</div>`
+                        }
+                    </div>
+                    <div style="text-align: left; padding: 0 20px;">
+                        <p style="margin: 10px 0;"><strong>Name:</strong> ${userData.name}</p>
+                        <p style="margin: 10px 0;"><strong>User Type:</strong> ${userData.type.charAt(0).toUpperCase() + userData.type.slice(1)}</p>
+                        <p style="margin: 10px 0;"><strong>Verified:</strong> ${userData.verified ? '✅ Yes' : '❌ No'}</p>
+                        <p style="margin: 10px 0;"><strong>User ID:</strong> ${userData.id || 'N/A'}</p>
+                    </div>
+                `,
+                confirmButtonColor: '#c9a96e',
+                confirmButtonText: 'Edit Profile',
+                showCancelButton: true,
+                cancelButtonText: 'Close'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/profile/edit';
+                }
+            });
         }
 
         function openSettings() {
-            window.location.href = '/settings';
+            Swal.fire({
+                title: 'Settings',
+                html: `
+                    <div style="text-align: left; padding: 0 20px;">
+                        <h4 style="margin-top: 20px;">Account Settings</h4>
+                        <p>• Update profile information</p>
+                        <p>• Change password</p>
+                        <p>• Privacy settings</p>
+                        <h4 style="margin-top: 20px;">Notification Preferences</h4>
+                        <p>• Email notifications</p>
+                        <p>• Push notifications</p>
+                        <h4 style="margin-top: 20px;">Travel Preferences</h4>
+                        <p>• Default budget range</p>
+                        <p>• Preferred destinations</p>
+                    </div>
+                `,
+                confirmButtonColor: '#c9a96e',
+                confirmButtonText: 'Go to Settings',
+                showCancelButton: true,
+                cancelButtonText: 'Close'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/settings';
+                }
+            });
         }
 
-        // Initialize video progress updates
-        setInterval(() => {
-            const video = document.getElementById('viewerVideo');
-            const progress = document.getElementById('videoProgress');
-            const time = document.getElementById('videoTime');
+        function logout() {
+            Swal.fire({
+                title: 'Logout',
+                text: 'Are you sure you want to logout?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#c9a96e',
+                cancelButtonColor: '#f44336',
+                confirmButtonText: 'Yes, logout'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Create a form and submit it with POST method
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/logout';
 
-            if (video && !video.paused) {
-                const percent = (video.currentTime / video.duration) * 100;
-                progress.style.width = `${percent}%`;
+                    // Add CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    if (csrfToken) {
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = csrfToken.getAttribute('content');
+                        form.appendChild(csrfInput);
+                    }
 
-                const current = formatTime(video.currentTime);
-                const total = formatTime(video.duration);
-                time.textContent = `${current} / ${total}`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        // Add active state to menu items
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                // Only prevent default and toggle active for items without real hrefs
+                if (this.getAttribute('href') === '#') {
+                    e.preventDefault();
+                }
+                // Don't change active state if this item handles its own navigation
+                if (!this.onclick || this.getAttribute('href') === '#') {
+                    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function (event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                }
             }
-        }, 100);
-
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
+        });
     </script>
 </body>
+
 </html>
