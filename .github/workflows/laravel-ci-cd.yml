@@ -1,0 +1,289 @@
+name: Laravel CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+
+env:
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '18'
+  DB_CONNECTION: sqlite
+  DB_DATABASE: database/database.sqlite
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, gd, zip, redis, sqlite3
+          coverage: xdebug
+          tools: composer
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            ~/.npm
+            vendor
+            node_modules
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install PHP dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Install Node dependencies
+        run: npm ci --prefer-offline
+
+      - name: Create SQLite database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+          chmod 755 database/database.sqlite
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run database migrations
+        run: php artisan migrate:fresh --seed --force
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+      - name: Run PHPUnit tests
+        run: php artisan test --coverage-clover=coverage.xml
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          SESSION_DRIVER: database
+          CACHE_STORE: database
+          QUEUE_CONNECTION: database
+
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer, phpstan, php-cs-fixer
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install PHP dependencies
+        run: composer install --no-progress --prefer-dist --no-dev --optimize-autoloader
+
+      - name: PHP Syntax Check
+        run: find . -type f -name "*.php" -exec php -l {} \;
+
+      - name: Check code style with Laravel Pint
+        run: |
+          composer require --dev laravel/pint
+          vendor/bin/pint --test
+
+      - name: Run PHPStan (Static Analysis)
+        run: |
+          composer require --dev nunomaduro/larastan
+          vendor/bin/phpstan analyse --memory-limit=2G
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            vendor
+            node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/composer.lock', '**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --no-dev
+
+      - name: Run Composer Audit
+        run: composer audit
+
+      - name: Check for security vulnerabilities
+        run: |
+          composer require --dev enlightn/security-checker --no-interaction
+          vendor/bin/security-checker security:check
+
+      - name: Check for exposed credentials
+        run: |
+          if grep -r "password\|secret\|key\|token" --include="*.php" --include="*.env*" . | grep -v ".env.example" | grep -v "//" | grep -v "#"; then
+            echo "Potential credentials found in code!"
+            exit 1
+          fi
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [tests, lint, security]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install PHP dependencies (production)
+        run: composer install --no-progress --prefer-dist --no-dev --optimize-autoloader
+
+      - name: Install Node dependencies
+        run: npm ci --only=production
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Optimize application
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan event:cache
+
+      - name: Create build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: laravel-build
+          path: |
+            .
+            !.git
+            !node_modules
+            !vendor/bin
+          retention-days: 7
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    environment: production
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: laravel-build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='storage' \
+            --exclude='.env' \
+            ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_PATH }}
+
+      - name: Run deployment commands
+        run: |
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_HOST }} "
+            cd ${{ secrets.DEPLOY_PATH }}
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            sudo systemctl restart php8.4-fpm
+            sudo systemctl restart nginx
+          "
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -f ${{ secrets.APP_URL }}/health || exit 1
+
+      - name: Send deployment notification
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"✅ Deployment successful!\nCommit: ${{ github.sha }}\nURL: ${{ secrets.APP_URL }}"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  health-check:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    steps:
+      - name: Check application health
+        run: |
+          echo "Checking application endpoints..."
+          curl -f ${{ secrets.APP_URL }} || echo "Homepage check failed"
+          curl -f ${{ secrets.APP_URL }}/health || echo "Health endpoint failed"
+          curl -f ${{ secrets.APP_URL }}/api/health || echo "API health endpoint failed"
