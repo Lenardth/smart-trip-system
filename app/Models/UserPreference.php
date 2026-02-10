@@ -15,13 +15,11 @@ class UserPreference extends Model
         'preference_value',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Get preference value with default
     public static function getValue($userId, $key, $default = null)
     {
         $pref = self::where('user_id', $userId)
@@ -31,7 +29,6 @@ class UserPreference extends Model
         return $pref ? $pref->preference_value : $default;
     }
 
-    // Set preference value
     public static function setValue($userId, $key, $value)
     {
         return self::updateOrCreate(

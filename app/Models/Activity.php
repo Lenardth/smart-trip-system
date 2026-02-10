@@ -18,12 +18,12 @@ class Activity extends Model
         'duration',
         'category',
         'image_url',
-        'is_highlight'
+        'is_highlight',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
-        'is_highlight' => 'boolean'
+        'is_highlight' => 'boolean',
     ];
 
     public function destination(): BelongsTo

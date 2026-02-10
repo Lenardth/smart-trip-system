@@ -25,7 +25,6 @@ class Memory extends Model
         'is_public' => 'boolean',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -36,28 +35,25 @@ class Memory extends Model
         return $this->hasMany(MemoryFrame::class);
     }
 
-    // Get file URL
     public function getFileUrlAttribute()
     {
         return asset('storage/' . $this->file_path);
     }
 
-    // Get thumbnail URL
     public function getThumbnailUrlAttribute()
     {
         if ($this->thumbnail_path) {
             return asset('storage/' . $this->thumbnail_path);
         }
+
         return $this->file_url;
     }
 
-    // Check if memory is a video
     public function isVideo()
     {
         return $this->type === 'video';
     }
 
-    // Check if memory is a photo
     public function isPhoto()
     {
         return $this->type === 'photo';

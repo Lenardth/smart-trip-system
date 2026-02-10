@@ -26,19 +26,16 @@ class AgencyProfile extends Model
         'rating' => 'decimal:2',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Get social links as array
     public function getSocialLinksAttribute($value)
     {
         return json_decode($value, true) ?? [];
     }
 
-    // Calculate average rating
     public function updateRating($newRating)
     {
         $total = $this->rating * $this->total_reviews + $newRating;

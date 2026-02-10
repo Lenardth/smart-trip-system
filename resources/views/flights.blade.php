@@ -808,11 +808,11 @@
 
 <!-- Main Container -->
 <div class="flights-container">
-    
+
     <!-- Search Card -->
     <div class="search-card">
         <h2><i class="fas fa-search"></i> Search Flights</h2>
-        
+
         <!-- Trip Type Tabs -->
         <div class="trip-type-tabs">
             <div class="trip-type-tab active" data-type="round-trip">
@@ -934,7 +934,7 @@
 
 <!-- Footer -->
 <footer class="footer">
-    <p>&copy; 2024 Smart Booking. All rights reserved.</p>
+    <p>&copy; 2026 Smart Booking. All rights reserved.</p>
     <div>
         <a href="/privacy">Privacy Policy</a>
         <a href="/terms">Terms of Service</a>
@@ -953,11 +953,11 @@
         tab.addEventListener('click', function() {
             document.querySelectorAll('.trip-type-tab').forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-            
+
             const type = this.dataset.type;
             const returnDateGroup = document.getElementById('returnDateGroup');
             const returnDateInput = document.getElementById('return_date');
-            
+
             if (type === 'one-way') {
                 returnDateGroup.style.display = 'none';
                 returnDateInput.removeAttribute('required');
@@ -991,10 +991,10 @@
     // Flight search form submission
     document.getElementById('flightSearchForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
         const searchBtn = document.querySelector('.search-btn');
         searchBtn.classList.add('loading');
-        
+
         const formData = {
             from: document.getElementById('from').value,
             to: document.getElementById('to').value,
@@ -1015,9 +1015,9 @@
             });
 
             const data = await response.json();
-            
+
             searchBtn.classList.remove('loading');
-            
+
             if (data.success) {
                 displayFlights(data.flights || generateMockFlights(formData));
             } else {
@@ -1031,7 +1031,7 @@
         } catch (error) {
             searchBtn.classList.remove('loading');
             console.error('Search error:', error);
-            
+
             // Show mock results for demo
             displayFlights(generateMockFlights(formData));
         }
@@ -1055,7 +1055,7 @@
             const departureHour = 6 + Math.floor(Math.random() * 12);
             const duration = 3 + Math.floor(Math.random() * 8);
             const stops = Math.random() > 0.6 ? 0 : 1;
-            
+
             flights.push({
                 id: `FL${1000 + i}`,
                 airline: airline.name,
@@ -1084,7 +1084,7 @@
         const resultsSection = document.getElementById('resultsSection');
         const flightResults = document.getElementById('flightResults');
         const resultsCount = document.getElementById('resultsCount');
-        
+
         resultsSection.classList.add('active');
         resultsCount.textContent = flights.length;
 
@@ -1179,7 +1179,7 @@
                     <p><strong>Total Price:</strong> $${price}</p>
                     <hr style="margin: 20px 0;">
                     <p style="color: #6b5b4f; font-size: 14px;">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle"></i>
                         You will be redirected to complete passenger details and payment.
                     </p>
                 </div>

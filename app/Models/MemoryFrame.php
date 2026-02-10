@@ -20,7 +20,6 @@ class MemoryFrame extends Model
         'frame_settings' => 'array',
     ];
 
-    // Relationships
     public function memory()
     {
         return $this->belongsTo(Memory::class);
@@ -31,7 +30,6 @@ class MemoryFrame extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Get frame configuration
     public function getFrameConfig()
     {
         $frames = [

@@ -59,10 +59,18 @@ class Destination extends Model
 
     public function getBadgeAttribute(): ?string
     {
-        if ($this->popularity_score >= 95) return 'Top Rated';
-        if ($this->is_featured) return 'Popular';
-        if (in_array('romantic', $this->tags ?? [])) return 'Romantic';
-        if (in_array('eco', $this->tags ?? [])) return 'Eco';
+        if ($this->popularity_score >= 95) {
+            return 'Top Rated';
+        }
+        if ($this->is_featured) {
+            return 'Popular';
+        }
+        if (in_array('romantic', $this->tags ?? [])) {
+            return 'Romantic';
+        }
+        if (in_array('eco', $this->tags ?? [])) {
+            return 'Eco';
+        }
 
         return null;
     }

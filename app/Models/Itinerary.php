@@ -9,11 +9,6 @@ class Itinerary extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
         'itinerary_id',
@@ -28,11 +23,6 @@ class Itinerary extends Model
         'generated_at',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'departure_date' => 'date',
         'return_date' => 'date',
@@ -41,25 +31,16 @@ class Itinerary extends Model
         'budget' => 'integer',
     ];
 
-    /**
-     * Get the user that owns the itinerary.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the duration of the trip in days.
-     */
     public function getDurationAttribute()
     {
         return $this->departure_date->diffInDays($this->return_date);
     }
 
-    /**
-     * Get the formatted destination name.
-     */
     public function getFormattedDestinationAttribute()
     {
         $destinations = [
