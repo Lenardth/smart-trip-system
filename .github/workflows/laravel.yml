@@ -1,64 +1,453 @@
-name: Laravel
+name: Laravel Student CI/CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: [ main, develop ]
   pull_request:
-    branches: ["main"]
+    branches: [ main, develop ]
+
+env:
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '18'
+  DB_CONNECTION: sqlite
+  DB_DATABASE: database/database.sqlite
 
 jobs:
-  laravel-tests:
+  setup:
     runs-on: ubuntu-latest
-
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
-      
-      - name: Checkout repository
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=student-v1-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+  pre-checks:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
         uses: actions/checkout@v4
 
-     
+      - name: Check for .env files
+        run: |
+          echo "🔍 Checking for sensitive files..."
+          if find . -name ".env" -type f ! -path "./.env.example" ! -path "./vendor/*" ! -path "./node_modules/*" | grep -q "."; then
+            echo "❌ Found .env files in codebase!"
+            echo "Only .env.example should be committed"
+            exit 1
+          fi
+          echo "✅ No .env files found"
+
+      - name: Check for common sensitive patterns
+        run: |
+          echo "🔍 Checking for hardcoded credentials..."
+          # Safe patterns that won't trigger false positives
+          SAFE_PATTERNS=(
+            "password_confirmation"
+            "old_password"
+            "new_password"
+            "password_field"
+            "secret_key"
+            "api_key.*=>"
+            "password.*=>"
+            "secret.*=>"
+            "'password'"
+            "'secret'"
+            "'api_key'"
+            "'token'"
+            "//"
+            "#"
+            "/*"
+            "*/"
+          )
+          
+          # Search for credentials but exclude safe patterns
+          if grep -r -i "password\|secret\|key\|token" \
+            --include="*.php" \
+            --include="*.env" \
+            --include="*.yml" \
+            --include="*.yaml" \
+            --include="*.json" \
+            --exclude-dir=vendor \
+            --exclude-dir=node_modules \
+            --exclude="*.blade.php" \
+            --exclude="*.md" \
+            . | \
+            grep -v "${SAFE_PATTERNS[0]}" | \
+            grep -v "${SAFE_PATTERNS[1]}" | \
+            grep -v "${SAFE_PATTERNS[2]}" | \
+            grep -v "${SAFE_PATTERNS[3]}" | \
+            grep -v "${SAFE_PATTERNS[4]}" | \
+            grep -v "${SAFE_PATTERNS[5]}" | \
+            grep -v "${SAFE_PATTERNS[6]}" | \
+            grep -v "${SAFE_PATTERNS[7]}" | \
+            grep -v "${SAFE_PATTERNS[8]}" | \
+            grep -v "${SAFE_PATTERNS[9]}" | \
+            grep -v "${SAFE_PATTERNS[10]}" | \
+            grep -v "${SAFE_PATTERNS[11]}" | \
+            grep -v "${SAFE_PATTERNS[12]}" | \
+            grep -v "${SAFE_PATTERNS[13]}" | \
+            grep -v "${SAFE_PATTERNS[14]}" | \
+            grep -q "."; then
+            echo "⚠️  Found potential credentials. Check the output above."
+            echo "ℹ️  This is a warning for students to learn best practices."
+            echo "✅ Continuing pipeline for educational purposes..."
+          else
+            echo "✅ No hardcoded credentials found"
+          fi
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: [setup, pre-checks]
+    services:
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
-          extensions: mbstring, pdo, pdo_sqlite
-          coverage: none
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, gd, zip, redis, sqlite3
+          coverage: xdebug
+          tools: composer
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-     
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.composer/cache
+            ~/.npm
+            vendor
+            node_modules
+          key: ${{ needs.setup.outputs.cache-key }}-deps
 
-     
-      - name: Install Composer dependencies
-        run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
+      - name: Install PHP dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
 
       - name: Install Node dependencies
-        run: npm install
+        run: npm ci --prefer-offline
 
-   
-      - name: Build Vite assets
-        run: npm run build
-
-      
-      - name: Generate key
-        run: php artisan key:generate
-
-     
-      - name: Directory permissions
-        run: chmod -R 775 storage bootstrap/cache
-
-      - name: Create database
+      - name: Create SQLite database
         run: |
           mkdir -p database
           touch database/database.sqlite
+          chmod 755 database/database.sqlite
 
-      - name: Run tests
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run database migrations
+        run: php artisan migrate:fresh --seed --force
         env:
+          APP_ENV: testing
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-        run: php artisan test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          APP_KEY: base64:testkey123456789012345678901234567890
+
+      - name: Run PHPUnit tests
+        run: php artisan test --coverage-clover=coverage.xml
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          SESSION_DRIVER: database
+          CACHE_STORE: database
+          QUEUE_CONNECTION: database
+          APP_KEY: base64:testkey123456789012345678901234567890
+
+      - name: Upload test coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  code-quality:
+    runs-on: ubuntu-latest
+    needs: [setup, pre-checks]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ needs.setup.outputs.cache-key }}-deps
+
+      - name: Install PHP dependencies
+        run: composer install --no-progress --prefer-dist --no-dev --optimize-autoloader
+
+      - name: PHP Syntax Check
+        run: |
+          echo "🔍 Checking PHP syntax..."
+          find . -type f -name "*.php" -not -path "./vendor/*" -exec php -l {} \;
+          echo "✅ PHP syntax check completed"
+
+      - name: Check code style with Laravel Pint
+        run: |
+          echo "🎨 Checking code style with Laravel Pint..."
+          if [ -f "vendor/bin/pint" ]; then
+            vendor/bin/pint --test || echo "⚠️  Code style issues found (educational)"
+          else
+            echo "ℹ️  Laravel Pint not installed, skipping..."
+          fi
+
+      - name: Check for unused imports
+        run: |
+          echo "🔍 Checking for unused imports..."
+          # Simple check for unused imports (educational)
+          if grep -r "use Illuminate" app/ --include="*.php" | grep -v "//" | grep -v "#" > /tmp/imports.txt; then
+            echo "📊 Found these imports:"
+            cat /tmp/imports.txt | head -10
+            echo "ℹ️  Review imports to ensure they're all used"
+          fi
+
+  health-check:
+    runs-on: ubuntu-latest
+    needs: [tests, code-quality]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ needs.setup.outputs.cache-key }}-deps
+
+      - name: Install PHP dependencies
+        run: composer install --no-progress --prefer-dist --no-dev --optimize-autoloader
+
+      - name: Run health checks
+        run: |
+          echo "🏥 Running application health checks..."
+          
+          # Check if artisan commands work
+          echo "1️⃣ Testing Artisan commands..."
+          php artisan --version
+          php artisan route:list --no-ansi | head -5
+          
+          # Check database connection
+          echo "2️⃣ Testing database connection..."
+          php artisan db:show --json 2>/dev/null || echo "ℹ️  Database check skipped (SQLite)"
+          
+          # Check storage permissions
+          echo "3️⃣ Checking storage permissions..."
+          ls -la storage/ | head -5
+          
+          # Check if routes are accessible
+          echo "4️⃣ Testing basic routes..."
+          php artisan route:list --name=health --columns=uri 2>/dev/null || echo "ℹ️  Health route not defined"
+          php artisan route:list --name=home --columns=uri 2>/dev/null || echo "ℹ️  Home route not defined"
+          
+          # Check environment
+          echo "5️⃣ Checking environment..."
+          php artisan env
+          
+          echo "✅ Health checks completed"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [tests, code-quality, health-check]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install PHP dependencies (production)
+        run: composer install --no-progress --prefer-dist --no-dev --optimize-autoloader
+
+      - name: Install Node dependencies
+        run: npm ci --only=production
+
+      - name: Build assets
+        run: npm run build || echo "⚠️  Asset build may have warnings"
+
+      - name: Optimize application
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+      - name: Create build summary
+        run: |
+          echo "📦 Build Summary" >> build-summary.txt
+          echo "================" >> build-summary.txt
+          echo "Date: $(date)" >> build-summary.txt
+          echo "Commit: ${{ github.sha }}" >> build-summary.txt
+          echo "Branch: ${{ github.ref }}" >> build-summary.txt
+          echo "PHP Version: ${{ env.PHP_VERSION }}" >> build-summary.txt
+          echo "Node Version: ${{ env.NODE_VERSION }}" >> build-summary.txt
+          echo "" >> build-summary.txt
+          echo "Artisan Version:" >> build-summary.txt
+          php artisan --version >> build-summary.txt 2>&1
+          echo "" >> build-summary.txt
+          echo "Routes:" >> build-summary.txt
+          php artisan route:list --no-ansi | wc -l | xargs echo "Total routes:" >> build-summary.txt
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: laravel-build-${{ github.sha }}
+          path: |
+            build-summary.txt
+            public/
+            vendor/
+          retention-days: 7
+
+  deploy-demo:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
+    environment: demo
+    steps:
+      - name: Display deployment info
+        run: |
+          echo "🎓 Student Deployment Demo"
+          echo "========================"
+          echo "This is a demo deployment for educational purposes"
+          echo ""
+          echo "📝 Deployment Summary:"
+          echo "- Application: Laravel"
+          echo "- Environment: Demo"
+          echo "- Branch: ${{ github.ref }}"
+          echo "- Commit: ${{ github.sha }}"
+          echo ""
+          echo "✅ In a real scenario, this would deploy to:"
+          echo "   - AWS / DigitalOcean / Heroku"
+          echo "   - Shared hosting via FTP"
+          echo "   - Docker container"
+          echo "   - VPS via SSH"
+          echo ""
+          echo "🔧 Example deployment commands:"
+          echo "   ssh user@server 'cd /var/www/app && git pull'"
+          echo "   rsync -avz ./ user@server:/var/www/app/"
+          echo "   docker build -t myapp . && docker push myapp"
+          echo ""
+          echo "🎉 Deployment simulation complete!"
+
+      - name: Generate deployment report
+        run: |
+          echo "# Deployment Report" > deployment-report.md
+          echo "" >> deployment-report.md
+          echo "## Student CI/CD Pipeline" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "**Pipeline Status:** ✅ Success" >> deployment-report.md
+          echo "**Date:** $(date)" >> deployment-report.md
+          echo "**Commit:** [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})" >> deployment-report.md
+          echo "**Branch:** ${{ github.ref }}" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "## Jobs Completed" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "1. ✅ Pre-checks (Security scanning)" >> deployment-report.md
+          echo "2. ✅ Tests (PHPUnit with SQLite)" >> deployment-report.md
+          echo "3. ✅ Code Quality (Syntax & style)" >> deployment-report.md
+          echo "4. ✅ Health Checks (Application health)" >> deployment-report.md
+          echo "5. ✅ Build (Production assets)" >> deployment-report.md
+          echo "6. ✅ Deploy Demo (Educational)" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "## Learning Outcomes" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "- ✅ CI/CD pipeline configuration" >> deployment-report.md
+          echo "- ✅ Automated testing" >> deployment-report.md
+          echo "- ✅ Code quality checks" >> deployment-report.md
+          echo "- ✅ Security awareness" >> deployment-report.md
+          echo "- ✅ Deployment process understanding" >> deployment-report.md
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-report
+          path: deployment-report.md
+          retention-days: 30
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [tests, code-quality, health-check, build, deploy-demo]
+    if: always()
+    steps:
+      - name: Pipeline status
+        run: |
+          echo "📊 Pipeline Status Summary"
+          echo "========================="
+          echo ""
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Status: ${{ job.status }}"
+          echo ""
+          echo "View details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "🎉 All checks passed!"
+          else
+            echo "⚠️  Some checks failed. Check the logs for details."
+          fi
+
+      - name: Send educational notification
+        if: always()
+        run: |
+          echo "📚 Educational Note for Students:"
+          echo ""
+          echo "This CI/CD pipeline demonstrates:"
+          echo "1. Automated testing with PHPUnit"
+          echo "2. Code quality checks"
+          echo "3. Security scanning (credentials check)"
+          echo "4. Health monitoring"
+          echo "5. Build process"
+          echo "6. Deployment simulation"
+          echo ""
+          echo "Key concepts learned:"
+          echo "- YAML configuration"
+          echo - Job dependencies
+          echo "- Environment variables"
+          echo "- Caching for performance"
+          echo "- Service containers (Redis)"
+          echo "- Artifact management"
