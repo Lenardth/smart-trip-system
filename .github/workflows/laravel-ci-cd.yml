@@ -68,32 +68,31 @@ jobs:
 
       - name: Create .env file
         run: |
-          cat > .env << EOF
-          APP_NAME=Laravel
-          APP_ENV=testing
-          APP_KEY=
-          APP_DEBUG=true
-          APP_URL=http://localhost
+          touch .env
+          echo "APP_NAME=Laravel" > .env
+          echo "APP_ENV=testing" >> .env
+          echo "APP_KEY=" >> .env
+          echo "APP_DEBUG=true" >> .env
+          echo "APP_URL=http://localhost" >> .env
+          echo "LOG_CHANNEL=stack" >> .env
+          echo "LOG_LEVEL=debug" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=${{ github.workspace }}/database/database.sqlite" >> .env
+          echo "BROADCAST_DRIVER=log" >> .env
+          echo "CACHE_STORE=array" >> .env
+          echo "FILESYSTEM_DISK=local" >> .env
+          echo "QUEUE_CONNECTION=sync" >> .env
+          echo "SESSION_DRIVER=array" >> .env
+          echo "REDIS_HOST=127.0.0.1" >> .env
+          echo "REDIS_PORT=6379" >> .env
+          echo "MAIL_MAILER=log" >> .env
+          echo "MAIL_FROM_ADDRESS=test@example.com" >> .env
+          echo "MAIL_FROM_NAME=Laravel" >> .env
 
-          LOG_CHANNEL=stack
-          LOG_LEVEL=debug
-
-          DB_CONNECTION=sqlite
-          DB_DATABASE=${{ github.workspace }}/database/database.sqlite
-
-          BROADCAST_DRIVER=log
-          CACHE_STORE=array
-          FILESYSTEM_DISK=local
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
-
-          REDIS_HOST=127.0.0.1
-          REDIS_PORT=6379
-
-          MAIL_MAILER=log
-          MAIL_FROM_ADDRESS=test@example.com
-          MAIL_FROM_NAME=Laravel
-          EOF
+      - name: Verify .env file exists
+        run: |
+          ls -la .env
+          cat .env
 
       - name: Generate application key
         run: php artisan key:generate
