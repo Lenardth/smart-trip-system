@@ -15,6 +15,7 @@ env:
 jobs:
   tests:
     runs-on: ubuntu-latest
+
     services:
       redis:
         image: redis:alpine
@@ -27,23 +28,27 @@ jobs:
           --health-retries 5
 
     steps:
+      # 1️⃣ Checkout Repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, gd, zip, redis, sqlite3
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, sqlite3, gd, zip, redis
           coverage: xdebug
           tools: composer
 
+      # 3️⃣ Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      # 4️⃣ Cache Composer + NPM
       - name: Get Composer cache directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
@@ -60,21 +65,29 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-php-
 
+      # 5️⃣ Install Dependencies
       - name: Install PHP dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
       - name: Install Node dependencies
         run: npm ci --prefer-offline
 
+      # 6️⃣ Create Environment File
+      - name: Copy .env
+        run: cp .env.example .env
+
+      # 7️⃣ Generate App Key
+      - name: Generate application key
+        run: php artisan key:generate
+
+      # 8️⃣ Create SQLite Database
       - name: Create SQLite database
         run: |
           mkdir -p database
           touch database/database.sqlite
-          chmod 755 database/database.sqlite
+          chmod 777 database/database.sqlite
 
-      - name: Generate application key
-        run: php artisan key:generate
-
+      # 9️⃣ Run Migrations
       - name: Run database migrations
         run: php artisan migrate:fresh --seed --force
         env:
@@ -84,6 +97,7 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
 
+      # 🔟 Run Tests
       - name: Run PHPUnit tests
         run: php artisan test --coverage-clover=coverage.xml
         env:
@@ -96,6 +110,7 @@ jobs:
           CACHE_STORE: database
           QUEUE_CONNECTION: database
 
+      # 1️⃣1️⃣ Upload Coverage
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
