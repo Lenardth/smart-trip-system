@@ -9,8 +9,6 @@ on:
 env:
   PHP_VERSION: '8.4'
   NODE_VERSION: '18'
-  DB_CONNECTION: sqlite
-  DB_DATABASE: database/database.sqlite
 
 jobs:
   tests:
@@ -28,7 +26,7 @@ jobs:
           --health-retries 5
 
     steps:
-      # 1️⃣ Checkout Repository
+      # 1️⃣ Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -46,72 +44,53 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
-      # 4️⃣ Cache Composer + NPM
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ steps.composer-cache.outputs.dir }}
-            ~/.npm
-            vendor
-            node_modules
-          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
-
-      # 5️⃣ Install Dependencies
+      # 4️⃣ Install Dependencies
       - name: Install PHP dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
       - name: Install Node dependencies
         run: npm ci --prefer-offline
 
-      # 6️⃣ Create Environment File
-      - name: Copy .env
-        run: cp .env.example .env
-
-      # 7️⃣ Generate App Key
-      - name: Generate application key
-        run: php artisan key:generate
-
-      # 8️⃣ Create SQLite Database
+      # 5️⃣ Create SQLite Database
       - name: Create SQLite database
         run: |
           mkdir -p database
           touch database/database.sqlite
           chmod 777 database/database.sqlite
 
-      # 9️⃣ Run Migrations
+      # 6️⃣ Create .env Manually (NO .env.example needed)
+      - name: Create .env file
+        run: |
+          echo "APP_NAME=Laravel" >> .env
+          echo "APP_ENV=testing" >> .env
+          echo "APP_KEY=" >> .env
+          echo "APP_DEBUG=true" >> .env
+          echo "APP_URL=http://localhost" >> .env
+          echo "LOG_CHANNEL=stack" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=database/database.sqlite" >> .env
+          echo "CACHE_STORE=database" >> .env
+          echo "SESSION_DRIVER=database" >> .env
+          echo "QUEUE_CONNECTION=database" >> .env
+          echo "REDIS_HOST=127.0.0.1" >> .env
+          echo "REDIS_PORT=6379" >> .env
+
+      # 7️⃣ Generate App Key
+      - name: Generate application key
+        run: php artisan key:generate
+
+      # 8️⃣ Run Migrations
       - name: Run database migrations
         run: php artisan migrate:fresh --seed --force
-        env:
-          APP_ENV: testing
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
 
-      # 🔟 Run Tests
+      # 9️⃣ Run Tests
       - name: Run PHPUnit tests
         run: php artisan test --coverage-clover=coverage.xml
-        env:
-          APP_ENV: testing
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          SESSION_DRIVER: database
-          CACHE_STORE: database
-          QUEUE_CONNECTION: database
 
-      # 1️⃣1️⃣ Upload Coverage
-      - name: Upload test coverage to Codecov
+      # 🔟 Upload Coverage
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
