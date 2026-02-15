@@ -1,4 +1,4 @@
-\name: Laravel CI/CD Pipeline
+name: Laravel CI/CD Pipeline
 
 on:
   push:
@@ -100,15 +100,9 @@ jobs:
           ENVFILE
             echo "Created new .env file"
           fi
-          echo "Verifying .env file:"
-          ls -lh .env
-          echo "Contents:"
-          cat .env
-          echo "File exists check:"
-          test -f .env && echo "SUCCESS: .env exists" || echo "FAILED: .env missing"
 
       - name: Generate application key
-        run: php artisan key:generate --show
+        run: php artisan key:generate
 
       - name: Set directory permissions
         run: chmod -R 777 storage bootstrap/cache
