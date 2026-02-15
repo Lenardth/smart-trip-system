@@ -54,23 +54,32 @@ jobs:
           mkdir -p database
           touch database/database.sqlite
 
-      - name: Create .env file
+      - name: Prepare .env file
         run: |
-          cp .env.example .env 2>/dev/null || cat > .env << 'EOF'
-          APP_NAME=Laravel
-          APP_ENV=testing
-          APP_KEY=
-          APP_DEBUG=true
-          APP_URL=http://localhost
-          DB_CONNECTION=sqlite
-          DB_DATABASE=${{ github.workspace }}/database/database.sqlite
-          CACHE_STORE=array
-          SESSION_DRIVER=array
-          QUEUE_CONNECTION=sync
-          REDIS_HOST=127.0.0.1
-          REDIS_PORT=6379
-          MAIL_MAILER=log
-          EOF
+          test -f .env.example && cp .env.example .env && echo ".env copied from example" && exit 0
+          touch .env
+          test -f .env && echo ".env file created successfully" || exit 1
+
+      - name: Populate .env file
+        run: |
+          echo "APP_NAME=Laravel" > .env
+          echo "APP_ENV=testing" >> .env
+          echo "APP_KEY=" >> .env
+          echo "APP_DEBUG=true" >> .env
+          echo "APP_URL=http://localhost" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=${GITHUB_WORKSPACE}/database/database.sqlite" >> .env
+          echo "CACHE_STORE=array" >> .env
+          echo "SESSION_DRIVER=array" >> .env
+          echo "QUEUE_CONNECTION=sync" >> .env
+
+      - name: Verify .env file
+        run: |
+          echo "=== Checking .env file ==="
+          ls -lah .env
+          echo "=== File contents ==="
+          cat .env
+          echo "=== End of .env ==="
 
       - name: Generate application key
         run: php artisan key:generate
