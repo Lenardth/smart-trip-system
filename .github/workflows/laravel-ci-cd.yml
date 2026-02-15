@@ -66,43 +66,50 @@ jobs:
           touch database/database.sqlite
           chmod 777 database/database.sqlite
 
-      - name: Copy or Create .env file
+      - name: Create .env file (Method 1 - Copy from example)
         run: |
           if [ -f .env.example ]; then
-            cp .env.example .env
-            echo "Copied .env.example to .env"
-          else
-            cat <<'ENVFILE' > .env
-          APP_NAME=Laravel
-          APP_ENV=testing
-          APP_KEY=
-          APP_DEBUG=true
-          APP_URL=http://localhost
+            cp -v .env.example .env
+            echo "✓ Copied .env.example to .env"
+          fi
+        continue-on-error: true
 
-          LOG_CHANNEL=stack
-          LOG_LEVEL=debug
-
-          DB_CONNECTION=sqlite
-          DB_DATABASE=${{ github.workspace }}/database/database.sqlite
-
-          BROADCAST_DRIVER=log
-          CACHE_STORE=array
-          FILESYSTEM_DISK=local
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
-
-          REDIS_HOST=127.0.0.1
-          REDIS_PORT=6379
-
-          MAIL_MAILER=log
-          MAIL_FROM_ADDRESS=test@example.com
-          MAIL_FROM_NAME=Laravel
-          ENVFILE
-            echo "Created new .env file"
+      - name: Create .env file (Method 2 - Direct write)
+        if: ${{ !cancelled() }}
+        run: |
+          if [ ! -f .env ]; then
+            echo "APP_NAME=Laravel" > .env
+            echo "APP_ENV=testing" >> .env
+            echo "APP_KEY=" >> .env
+            echo "APP_DEBUG=true" >> .env
+            echo "APP_URL=http://localhost" >> .env
+            echo "LOG_CHANNEL=stack" >> .env
+            echo "LOG_LEVEL=debug" >> .env
+            echo "DB_CONNECTION=sqlite" >> .env
+            echo "DB_DATABASE=${{ github.workspace }}/database/database.sqlite" >> .env
+            echo "BROADCAST_DRIVER=log" >> .env
+            echo "CACHE_STORE=array" >> .env
+            echo "FILESYSTEM_DISK=local" >> .env
+            echo "QUEUE_CONNECTION=sync" >> .env
+            echo "SESSION_DRIVER=array" >> .env
+            echo "REDIS_HOST=127.0.0.1" >> .env
+            echo "REDIS_PORT=6379" >> .env
+            echo "MAIL_MAILER=log" >> .env
+            echo "MAIL_FROM_ADDRESS=test@example.com" >> .env
+            echo "MAIL_FROM_NAME=Laravel" >> .env
+            echo "✓ Created .env file from scratch"
           fi
 
+      - name: Verify .env exists
+        run: |
+          pwd
+          ls -lah .env || echo "ERROR: .env file NOT found!"
+          echo "=== .env contents ==="
+          cat .env || echo "ERROR: Cannot read .env!"
+          echo "====================="
+
       - name: Generate application key
-        run: php artisan key:generate
+        run: php artisan key:generate -v
 
       - name: Set directory permissions
         run: chmod -R 777 storage bootstrap/cache
