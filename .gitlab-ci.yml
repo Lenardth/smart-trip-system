@@ -17,16 +17,15 @@ cache:
     - vendor/
     - node_modules/
 
-before_script:
-  - php -v
-  - node -v
-  - cp .env.example .env || true
-  - mkdir -p database
-  - touch database/database.sqlite
-
 laravel_test:
   image: edbizarro/gitlab-ci-pipeline-php:8.4
   stage: test
+  before_script:
+    - php -v
+    - node -v
+    - cp .env.example .env || true
+    - mkdir -p database
+    - touch database/database.sqlite
   script:
     - composer install --no-interaction --prefer-dist --optimize-autoloader
     - npm ci --prefer-offline
@@ -40,6 +39,8 @@ laravel_test:
 build_assets:
   image: node:18
   stage: build
+  before_script:
+    - node -v
   script:
     - npm ci --prefer-offline
     - npm run build
