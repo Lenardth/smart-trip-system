@@ -7,6 +7,7 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class FlightController extends Controller
 {
@@ -28,7 +29,35 @@ class FlightController extends Controller
         }
 
         $flights = $query->orderBy('departure_time')->paginate(12);
-        return view('flights', compact('flights'));
+
+        return view('flights.index', compact('flights'));
+    }
+
+    public function search(Request $request)
+    {
+        $request->validate([
+            'from'           => 'required|string',
+            'to'             => 'required|string',
+            'departure_date' => 'required|date',
+            'return_date'    => 'nullable|date|after:departure_date',
+            'passengers'     => 'required|integer|min:1',
+            'class'          => 'required|in:economy,business,first',
+        ]);
+
+        $flights = Flight::where('departure_city', 'like', '%' . $request->from . '%')
+            ->where('arrival_city', 'like', '%' . $request->to . '%')
+            ->whereDate('departure_time', $request->departure_date)
+            ->where('class', $request->class)
+            ->where('seats_available', '>=', $request->passengers)
+            ->where('is_active', true)
+            ->orderBy('departure_time')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'flights' => $flights,
+            'count'   => $flights->count(),
+        ]);
     }
 
     public function show(Flight $flight)
@@ -54,21 +83,21 @@ class FlightController extends Controller
         }
 
         $validated = $request->validate([
-            'flight_number' => 'required|unique:flights|max:20',
-            'airline' => 'required|max:100',
+            'flight_number'  => 'required|unique:flights|max:20',
+            'airline'        => 'required|max:100',
             'departure_city' => 'required|max:100',
-            'arrival_city' => 'required|max:100',
+            'arrival_city'   => 'required|max:100',
             'departure_time' => 'required|date|after:now',
-            'arrival_time' => 'required|date|after:departure_time',
-            'price' => 'required|numeric|min:0',
-            'total_seats' => 'required|integer|min:1',
-            'aircraft_type' => 'nullable|max:50',
-            'class' => 'required|in:economy,business,first',
+            'arrival_time'   => 'required|date|after:departure_time',
+            'price'          => 'required|numeric|min:0',
+            'total_seats'    => 'required|integer|min:1',
+            'aircraft_type'  => 'nullable|max:50',
+            'class'          => 'required|in:economy,business,first',
         ]);
 
-        $validated['user_id'] = Auth::id();
+        $validated['user_id']         = Auth::id();
         $validated['seats_available'] = $validated['total_seats'];
-        $validated['is_active'] = true;
+        $validated['is_active']       = true;
 
         $flight = Flight::create($validated);
 
@@ -107,11 +136,12 @@ class FlightController extends Controller
         DB::beginTransaction();
         try {
             $booking = Booking::create([
-                'user_id' => Auth::id(),
-                'flight_id' => $flight->id,
-                'seats_booked' => $validated['seats'],
-                'total_price' => $flight->price * $validated['seats'],
-                'status' => 'confirmed',
+                'user_id'           => Auth::id(),
+                'flight_id'         => $flight->id,
+                'passenger_count'   => $validated['seats'],
+                'total_price'       => $flight->price * $validated['seats'],
+                'status'            => 'confirmed',
+                'booking_reference' => strtoupper(Str::random(8)),
             ]);
 
             $flight->decrement('seats_available', $validated['seats']);

@@ -8,12 +8,9 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    /**
-     * Display user's bookings
-     */
     public function index()
     {
-        $bookings = Booking::with(['flight', 'flight.agency'])
+        $bookings = Booking::with(['flight', 'flight.user'])
             ->byUser(Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -21,25 +18,20 @@ class BookingController extends Controller
         return view('bookings.index', compact('bookings'));
     }
 
-    /**
-     * Show booking details
-     */
     public function show(Booking $booking)
     {
-        // Check authorization
-        if ($booking->user_id !== Auth::id() && 
-            $booking->flight->agency_id !== Auth::id()) {
+        if (
+            $booking->user_id !== Auth::id() &&
+            $booking->flight->user_id !== Auth::id()
+        ) {
             abort(403);
         }
 
-        $booking->load(['flight', 'flight.agency', 'user']);
+        $booking->load(['flight', 'flight.user', 'user']);
 
         return view('bookings.show', compact('booking'));
     }
 
-    /**
-     * Cancel booking
-     */
     public function cancel(Booking $booking)
     {
         if ($booking->user_id !== Auth::id()) {
@@ -50,18 +42,13 @@ class BookingController extends Controller
             return back()->with('error', 'Booking already cancelled.');
         }
 
-        // Return seats to flight
-        $booking->flight->increment('available_seats', $booking->seats_booked);
+        $booking->flight->increment('seats_available', $booking->passenger_count);
 
-        // Update booking status
         $booking->update(['status' => 'cancelled']);
 
         return back()->with('success', 'Booking cancelled successfully. Seats have been returned to the flight.');
     }
 
-    /**
-     * Show agency's received bookings
-     */
     public function agencyBookings()
     {
         if (!Auth::user()->isAgency()) {
@@ -69,8 +56,8 @@ class BookingController extends Controller
         }
 
         $bookings = Booking::with(['user', 'flight'])
-            ->whereHas('flight', function($query) {
-                $query->where('agency_id', Auth::id());
+            ->whereHas('flight', function ($query) {
+                $query->where('user_id', Auth::id());
             })
             ->orderBy('created_at', 'desc')
             ->paginate(15);

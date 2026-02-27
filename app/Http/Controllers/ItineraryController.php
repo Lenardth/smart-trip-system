@@ -9,9 +9,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ItineraryController extends Controller
 {
-    /**
-     * Display a listing of user's itineraries.
-     */
     public function index()
     {
         $itineraries = Itinerary::where('user_id', Auth::id())
@@ -21,170 +18,142 @@ class ItineraryController extends Controller
         return view('itineraries.index', compact('itineraries'));
     }
 
-    /**
-     * Store a newly created itinerary.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'mood' => 'required|string',
-            'destination' => 'required|string',
-            'companion' => 'required|string',
-            'travelers' => 'required|integer|min:1|max:20',
+            'mood'          => 'required|string',
+            'destination'   => 'required|string',
+            'companion'     => 'required|string',
+            'travelers'     => 'required|integer|min:1|max:20',
             'departureDate' => 'required|date',
-            'returnDate' => 'required|date|after:departureDate',
-            'budget' => 'required|integer|min:500',
-            'requirements' => 'nullable|string',
-            'itineraryId' => 'required|string',
-            'generatedAt' => 'required|date',
+            'returnDate'    => 'required|date|after:departureDate',
+            'budget'        => 'required|integer|min:500',
+            'requirements'  => 'nullable|string',
+            'itineraryId'   => 'required|string',
+            'generatedAt'   => 'required|date',
         ]);
 
         $itinerary = Itinerary::create([
-            'user_id' => Auth::id(),
-            'itinerary_id' => $validated['itineraryId'],
-            'mood' => $validated['mood'],
-            'destination' => $validated['destination'],
-            'companion' => $validated['companion'],
-            'travelers' => $validated['travelers'],
+            'user_id'        => Auth::id(),
+            'itinerary_id'   => $validated['itineraryId'],
+            'mood'           => $validated['mood'],
+            'destination'    => $validated['destination'],
+            'companion'      => $validated['companion'],
+            'travelers'      => $validated['travelers'],
             'departure_date' => $validated['departureDate'],
-            'return_date' => $validated['returnDate'],
-            'budget' => $validated['budget'],
-            'requirements' => $validated['requirements'] ?? null,
-            'generated_at' => $validated['generatedAt'],
+            'return_date'    => $validated['returnDate'],
+            'budget'         => $validated['budget'],
+            'requirements'   => $validated['requirements'] ?? null,
+            'generated_at'   => $validated['generatedAt'],
         ]);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Itinerary saved successfully!',
-            'itinerary' => $itinerary
+            'success'   => true,
+            'message'   => 'Itinerary saved successfully!',
+            'itinerary' => $itinerary,
         ]);
     }
 
-    /**
-     * Display the specified itinerary.
-     */
     public function show($id)
     {
-        $itinerary = Itinerary::where('user_id', Auth::id())
-            ->findOrFail($id);
+        $itinerary = Itinerary::where('user_id', Auth::id())->findOrFail($id);
 
         return view('itineraries.show', compact('itinerary'));
     }
 
-    /**
-     * Remove the specified itinerary.
-     */
     public function destroy($id)
     {
-        $itinerary = Itinerary::where('user_id', Auth::id())
-            ->findOrFail($id);
+        $itinerary = Itinerary::where('user_id', Auth::id())->findOrFail($id);
 
         $itinerary->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Itinerary deleted successfully!'
+            'message' => 'Itinerary deleted successfully!',
         ]);
     }
 
-    /**
-     * Export itinerary as PDF.
-     */
     public function export(Request $request)
     {
         $validated = $request->validate([
-            'mood' => 'required|string',
-            'destination' => 'required|string',
-            'companion' => 'required|string',
-            'travelers' => 'required|integer',
+            'mood'          => 'required|string',
+            'destination'   => 'required|string',
+            'companion'     => 'required|string',
+            'travelers'     => 'required|integer',
             'departureDate' => 'required|date',
-            'returnDate' => 'required|date',
-            'budget' => 'required|integer',
-            'requirements' => 'nullable|string',
+            'returnDate'    => 'required|date',
+            'budget'        => 'required|integer',
+            'requirements'  => 'nullable|string',
         ]);
 
-        // Calculate duration
-        $depDate = new \DateTime($validated['departureDate']);
-        $retDate = new \DateTime($validated['returnDate']);
+        $depDate  = new \DateTime($validated['departureDate']);
+        $retDate  = new \DateTime($validated['returnDate']);
         $duration = $depDate->diff($retDate)->days;
 
-        // Prepare data for PDF
         $data = [
-            'mood' => ucfirst($validated['mood']),
-            'destination' => $this->getDestinationName($validated['destination']),
-            'companion' => ucfirst($validated['companion']),
-            'travelers' => $validated['travelers'],
+            'mood'          => ucfirst($validated['mood']),
+            'destination'   => $this->getDestinationName($validated['destination']),
+            'companion'     => ucfirst($validated['companion']),
+            'travelers'     => $validated['travelers'],
             'departureDate' => $depDate->format('F j, Y'),
-            'returnDate' => $retDate->format('F j, Y'),
-            'duration' => $duration,
-            'budget' => number_format($validated['budget']),
-            'requirements' => $validated['requirements'] ?? 'None',
-            'user' => Auth::user(),
-            'generatedAt' => now()->format('F j, Y g:i A'),
+            'returnDate'    => $retDate->format('F j, Y'),
+            'duration'      => $duration,
+            'budget'        => number_format($validated['budget']),
+            'requirements'  => $validated['requirements'] ?? 'None',
+            'user'          => Auth::user(),
+            'generatedAt'   => now()->format('F j, Y g:i A'),
         ];
 
-        // Generate itinerary based on destination and mood
         $data['itinerary'] = $this->generateItinerary($validated['destination'], $validated['mood'], $validated['budget']);
 
-        // Generate PDF using a view
         $pdf = Pdf::loadView('pdf.itinerary', $data);
 
-        // Download the PDF
         return $pdf->download('SmartBooking_Itinerary_' . date('Ymd_His') . '.pdf');
     }
 
-    /**
-     * Get full destination name from code.
-     */
     private function getDestinationName($code)
     {
         $destinations = [
-            'bali' => 'Bali, Indonesia',
-            'kyoto' => 'Kyoto, Japan',
-            'swiss' => 'Swiss Alps, Switzerland',
+            'bali'      => 'Bali, Indonesia',
+            'kyoto'     => 'Kyoto, Japan',
+            'swiss'     => 'Swiss Alps, Switzerland',
             'santorini' => 'Santorini, Greece',
-            'paris' => 'Paris, France',
-            'lisbon' => 'Lisbon, Portugal',
-            'bangkok' => 'Bangkok, Thailand',
-            'amalfi' => 'Amalfi Coast, Italy',
-            'nz' => 'New Zealand',
-            'morocco' => 'Morocco',
+            'paris'     => 'Paris, France',
+            'lisbon'    => 'Lisbon, Portugal',
+            'bangkok'   => 'Bangkok, Thailand',
+            'amalfi'    => 'Amalfi Coast, Italy',
+            'nz'        => 'New Zealand',
+            'morocco'   => 'Morocco',
         ];
 
         return $destinations[$code] ?? ucfirst($code);
     }
 
-    /**
-     * Generate itinerary based on destination and mood.
-     */
     private function generateItinerary($destination, $mood, $budget)
     {
-        // This is a simplified version - you can expand this with more destinations
         $itineraries = [
             'bali' => [
-                ['day' => 1, 'title' => 'Arrival in Ubud', 'desc' => 'Arrive at Ngurah Rai Airport. Transfer to your villa in Ubud. Traditional Balinese welcome ceremony.'],
+                ['day' => 1, 'title' => 'Arrival in Ubud',        'desc' => 'Arrive at Ngurah Rai Airport. Transfer to your villa in Ubud. Traditional Balinese welcome ceremony.'],
                 ['day' => 2, 'title' => 'Rice Terraces & Temples', 'desc' => 'Morning at Tegallalang Rice Terraces. Visit Tirta Empul temple for purification.'],
-                ['day' => 3, 'title' => 'Adventure Day', 'desc' => 'White-water rafting on Ayung River. Evening Kecak dance performance.'],
-                ['day' => 4, 'title' => 'Cooking & Culture', 'desc' => 'Balinese cooking class. Explore Ubud art market and local crafts.'],
-                ['day' => 5, 'title' => 'Beach Time', 'desc' => 'Transfer to Seminyak. Relax at the beach, enjoy sunset cocktails.'],
-                ['day' => 6, 'title' => 'Island Exploration', 'desc' => 'Day trip to Nusa Penida for snorkeling and cliff views.'],
-                ['day' => 7, 'title' => 'Spa & Departure', 'desc' => 'Morning spa treatment. Last-minute shopping. Departure transfer.'],
+                ['day' => 3, 'title' => 'Adventure Day',           'desc' => 'White-water rafting on Ayung River. Evening Kecak dance performance.'],
+                ['day' => 4, 'title' => 'Cooking & Culture',       'desc' => 'Balinese cooking class. Explore Ubud art market and local crafts.'],
+                ['day' => 5, 'title' => 'Beach Time',              'desc' => 'Transfer to Seminyak. Relax at the beach, enjoy sunset cocktails.'],
+                ['day' => 6, 'title' => 'Island Exploration',      'desc' => 'Day trip to Nusa Penida for snorkeling and cliff views.'],
+                ['day' => 7, 'title' => 'Spa & Departure',         'desc' => 'Morning spa treatment. Last-minute shopping. Departure transfer.'],
             ],
             'paris' => [
-                ['day' => 1, 'title' => 'Arrival in Paris', 'desc' => 'Arrive at CDG. Check into hotel near Louvre. Evening Seine River walk.'],
-                ['day' => 2, 'title' => 'Eiffel Tower & Louvre', 'desc' => 'Morning at Eiffel Tower. Afternoon at Louvre Museum.'],
+                ['day' => 1, 'title' => 'Arrival in Paris',        'desc' => 'Arrive at CDG. Check into hotel near Louvre. Evening Seine River walk.'],
+                ['day' => 2, 'title' => 'Eiffel Tower & Louvre',   'desc' => 'Morning at Eiffel Tower. Afternoon at Louvre Museum.'],
                 ['day' => 3, 'title' => 'Notre-Dame & Montmartre', 'desc' => 'Visit Notre-Dame Cathedral. Explore Montmartre and Sacré-Cœur.'],
-                ['day' => 4, 'title' => 'Versailles Day Trip', 'desc' => 'Full-day trip to Palace of Versailles. Hall of Mirrors tour.'],
-                ['day' => 5, 'title' => 'Art & Fashion', 'desc' => 'Visit Musée d\'Orsay. Shopping in Le Marais district.'],
-                ['day' => 6, 'title' => 'Food Tour', 'desc' => 'French cooking class. Cheese and wine tasting in Latin Quarter.'],
-                ['day' => 7, 'title' => 'Au Revoir Paris', 'desc' => 'Morning at Luxembourg Gardens. Final croissants. Departure.'],
+                ['day' => 4, 'title' => 'Versailles Day Trip',     'desc' => 'Full-day trip to Palace of Versailles. Hall of Mirrors tour.'],
+                ['day' => 5, 'title' => 'Art & Fashion',           'desc' => 'Visit Musée d\'Orsay. Shopping in Le Marais district.'],
+                ['day' => 6, 'title' => 'Food Tour',               'desc' => 'French cooking class. Cheese and wine tasting in Latin Quarter.'],
+                ['day' => 7, 'title' => 'Au Revoir Paris',         'desc' => 'Morning at Luxembourg Gardens. Final croissants. Departure.'],
             ],
         ];
 
-        // Get base itinerary or use default
         $baseItinerary = $itineraries[$destination] ?? $itineraries['bali'];
 
-        // Adjust based on mood
         if ($mood === 'adventurous') {
             $baseItinerary[2]['desc'] .= ' Add volcano hiking.';
         } elseif ($mood === 'relaxed') {
@@ -193,7 +162,6 @@ class ItineraryController extends Controller
             $baseItinerary[3] = ['day' => 4, 'title' => 'Culinary Experience', 'desc' => 'Food market tour and cooking masterclass.'];
         }
 
-        // Adjust based on budget
         if ($budget > 5000) {
             foreach ($baseItinerary as &$day) {
                 $day['desc'] .= ' Luxury accommodations and private tours included.';
