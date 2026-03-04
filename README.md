@@ -190,7 +190,7 @@ tests/
 ## Running Locally
 
 ```bash
-git clone https://github.com/your-username/smart-trip-system.git
+git clone https://github.com/Lenardth/smart-trip-system.git
 cd smart-trip-system
 
 composer install
