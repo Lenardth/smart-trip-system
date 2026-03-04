@@ -4,18 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Itinerary — Smart Booking</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Georgia', serif;
+            font-family: 'Georgia', 'Times New Roman', serif;
             background: #fff;
             color: #2c2c2c;
             font-size: 13px;
             line-height: 1.6;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
         }
 
-        /* ── Cover header ── */
         .cover {
             background: #3b1f2b;
             color: #f5e6d3;
@@ -35,10 +40,8 @@
         .cover-right { text-align: right; font-size: 12px; color: #d4c4b0; }
         .cover-right .trip-id { font-size: 16px; color: #c9a96e; font-weight: bold; margin-bottom: 4px; }
 
-        /* ── Gold bar ── */
         .gold-bar { height: 4px; background: #c9a96e; }
 
-        /* ── Summary strip ── */
         .summary-strip {
             background: #fff8f2;
             border-bottom: 1px solid #e2d5c7;
@@ -50,7 +53,6 @@
         .sum-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #6b5b4f; margin-bottom: 4px; }
         .sum-item .value { font-size: 15px; color: #3b1f2b; font-weight: bold; }
 
-        /* ── Body ── */
         .body-wrap { padding: 36px 50px; }
 
         .section-heading {
@@ -64,11 +66,16 @@
             margin-top: 32px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         .section-heading:first-child { margin-top: 0; }
+        .section-heading i {
+            color: #c9a96e;
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
 
-        /* ── Day cards ── */
         .day-card {
             display: flex;
             gap: 20px;
@@ -88,11 +95,16 @@
             font-size: 16px;
             font-weight: bold;
             flex-shrink: 0;
+            line-height: 1;
+            text-align: center;
+            padding: 0;
         }
         .day-content h4 { color: #3b1f2b; font-size: 14px; margin-bottom: 4px; }
-        .day-content p { color: #6b5b4f; font-size: 12px; line-height: 1.6; }
+        .day-content p  { color: #6b5b4f; font-size: 12px; line-height: 1.6; }
         .day-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             background: rgba(201,169,110,0.2);
             color: #3b1f2b;
             padding: 3px 10px;
@@ -100,18 +112,39 @@
             font-size: 10px;
             margin-top: 6px;
         }
+        .day-badge i { color: #c9a96e; font-size: 10px; }
 
-        /* ── Info table ── */
         .info-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .info-table td { padding: 8px 12px; border-bottom: 1px solid #e2d5c7; }
         .info-table td:first-child { color: #6b5b4f; width: 40%; font-weight: bold; }
-        .info-table td:last-child { color: #2c2c2c; }
+        .info-table td:last-child  { color: #2c2c2c; }
 
-        /* ── Tips box ── */
-        .tips-box { background: #fff8f2; border: 1px solid #e2d5c7; border-left: 4px solid #c9a96e; border-radius: 4px; padding: 16px 20px; margin-top: 8px; }
-        .tips-box p { color: #6b5b4f; font-size: 12px; line-height: 1.7; margin-bottom: 4px; }
+        .tips-box {
+            background: #fff8f2;
+            border: 1px solid #e2d5c7;
+            border-left: 4px solid #c9a96e;
+            border-radius: 4px;
+            padding: 16px 20px;
+            margin-top: 8px;
+        }
+        .tips-box p {
+            color: #6b5b4f;
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .tips-box p i {
+            color: #c9a96e;
+            font-size: 12px;
+            margin-top: 3px;
+            flex-shrink: 0;
+            width: 14px;
+            text-align: center;
+        }
 
-        /* ── Footer ── */
         .pdf-footer {
             background: #3b1f2b;
             color: #d4c4b0;
@@ -124,35 +157,22 @@
         }
         .pdf-footer .brand { color: #c9a96e; font-weight: bold; font-size: 13px; }
 
-        /* ── Print rules ── */
         @media print {
             body { font-size: 11px; }
-            .cover { padding: 28px 36px; }
-            .summary-strip { padding: 16px 36px; }
-            .body-wrap { padding: 24px 36px; }
-            .pdf-footer { padding: 14px 36px; }
-            .no-print { display: none !important; }
-            .day-card { page-break-inside: avoid; }
+            .cover          { padding: 28px 36px; }
+            .summary-strip  { padding: 16px 36px; }
+            .body-wrap      { padding: 24px 36px; }
+            .pdf-footer     { padding: 14px 36px; }
+            .no-print       { display: none !important; }
+            .day-card       { page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
 
-<!-- Print / Download controls (hidden when printing) -->
-<div class="no-print" style="background:#f5f0eb;padding:12px 20px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #e2d5c7;">
-    <button onclick="window.print()" style="background:#3b1f2b;color:#c9a96e;border:none;padding:9px 22px;border-radius:4px;font-size:13px;font-weight:bold;cursor:pointer;font-family:'Georgia',serif;">
-        🖨 Print / Save as PDF
-    </button>
-    <button onclick="window.history.back()" style="background:transparent;color:#3b1f2b;border:1px solid #c9a96e;padding:9px 22px;border-radius:4px;font-size:13px;cursor:pointer;font-family:'Georgia',serif;">
-        ← Back to Planner
-    </button>
-    <span style="color:#6b5b4f;font-size:12px;">Use your browser's Print → Save as PDF to download.</span>
-</div>
-
-<!-- Cover -->
 <div class="cover">
     <div class="cover-left">
-        <h1>✈ Smart Booking</h1>
+        <h1> Smart Booking</h1>
         <p>Personalised Travel Itinerary</p>
         <p style="margin-top:14px;font-size:15px;color:#f5e6d3;">{{ $data['destination'] ?? 'Your Destination' }}</p>
     </div>
@@ -166,7 +186,6 @@
 </div>
 <div class="gold-bar"></div>
 
-<!-- Summary -->
 <div class="summary-strip">
     <div class="sum-item">
         <div class="label">Destination</div>
@@ -190,11 +209,9 @@
     </div>
 </div>
 
-<!-- Body -->
 <div class="body-wrap">
 
-    <!-- Trip overview -->
-    <h2 class="section-heading">📋 Trip Overview</h2>
+    <h2 class="section-heading"><i class="fas fa-clipboard-list"></i> Trip Overview</h2>
     <table class="info-table">
         <tr><td>Travel Style</td><td>{{ ucfirst($data['mood'] ?? 'Mixed') }}</td></tr>
         <tr><td>Travel Companions</td><td>{{ ucfirst($data['companion'] ?? 'Solo') }}</td></tr>
@@ -214,8 +231,7 @@
         @endif
     </table>
 
-    <!-- Day-by-day itinerary -->
-    <h2 class="section-heading">🗓 Day-by-Day Itinerary</h2>
+    <h2 class="section-heading"><i class="fas fa-calendar-days"></i> Day-by-Day Itinerary</h2>
 
     @php
         $itineraries = [
@@ -260,7 +276,6 @@
         $destination = strtolower($data['destination'] ?? 'bali');
         $days = $itineraries[$destination] ?? $itineraries['bali'];
 
-        // Mood adjustments
         $mood = strtolower($data['mood'] ?? 'adventurous');
         if ($mood === 'relaxed') {
             $days[2]['desc'] = 'Full-day spa retreat with traditional treatments. Afternoon yoga and meditation session.';
@@ -273,8 +288,16 @@
             $days[4]['desc'] = 'Traditional craft workshops and authentic local cultural performance.';
         }
 
-        // Budget notes
         $budget = (int) ($data['budget'] ?? 2500);
+
+        $moodBadges = [
+            'adventurous' => ['icon' => 'fa-mountain',  'label' => 'Adventure'],
+            'relaxed'     => ['icon' => 'fa-spa',        'label' => 'Relaxed'],
+            'foodie'      => ['icon' => 'fa-utensils',   'label' => 'Foodie'],
+            'cultural'    => ['icon' => 'fa-landmark',   'label' => 'Cultural'],
+            'romantic'    => ['icon' => 'fa-heart',      'label' => 'Romantic'],
+        ];
+        $badge = $moodBadges[$mood] ?? ['icon' => 'fa-star', 'label' => 'Mixed'];
     @endphp
 
     @foreach($days as $index => $day)
@@ -288,34 +311,26 @@
                     @endif
                 </p>
                 <span class="day-badge">
-                    @if($mood === 'adventurous') 🏔 Adventure
-                    @elseif($mood === 'relaxed') 🧘 Relaxed
-                    @elseif($mood === 'foodie') 🍽 Foodie
-                    @elseif($mood === 'cultural') 🏛 Cultural
-                    @elseif($mood === 'romantic') 💑 Romantic
-                    @else ⭐ Mixed
-                    @endif
+                    <i class="fas {{ $badge['icon'] }}"></i> {{ $badge['label'] }}
                 </span>
             </div>
         </div>
     @endforeach
 
-    <!-- Practical tips -->
-    <h2 class="section-heading">💡 Practical Tips</h2>
+    <h2 class="section-heading"><i class="fas fa-lightbulb"></i> Practical Tips</h2>
     <div class="tips-box">
-        <p>📋 <strong>Before you go:</strong> Check visa requirements, travel insurance, and vaccination recommendations for your destination.</p>
-        <p>💳 <strong>Money:</strong> Notify your bank of your travel dates. Carry a small amount of local currency for markets and taxis.</p>
-        <p>📱 <strong>Connectivity:</strong> Purchase a local SIM or international data plan on arrival. Download offline maps before you leave.</p>
-        <p>🌤 <strong>Weather:</strong> Pack layers — mornings and evenings can be cooler even in warm destinations. Check local forecasts before departure.</p>
+        <p><i class="fas fa-list-check"></i> <span><strong>Before you go:</strong> Check visa requirements, travel insurance, and vaccination recommendations for your destination.</span></p>
+        <p><i class="fas fa-credit-card"></i> <span><strong>Money:</strong> Notify your bank of your travel dates. Carry a small amount of local currency for markets and taxis.</span></p>
+        <p><i class="fas fa-mobile-screen"></i> <span><strong>Connectivity:</strong> Purchase a local SIM or international data plan on arrival. Download offline maps before you leave.</span></p>
+        <p><i class="fas fa-cloud-sun"></i> <span><strong>Weather:</strong> Pack layers — mornings and evenings can be cooler even in warm destinations. Check local forecasts before departure.</span></p>
         @if(!empty($data['requirements']))
-            <p>📝 <strong>Your notes:</strong> {{ $data['requirements'] }}</p>
+            <p><i class="fas fa-note-sticky"></i> <span><strong>Your notes:</strong> {{ $data['requirements'] }}</span></p>
         @endif
     </div>
 
-    <!-- Budget breakdown -->
-    <h2 class="section-heading">💰 Estimated Budget Breakdown</h2>
+    <h2 class="section-heading"><i class="fas fa-coins"></i> Estimated Budget Breakdown</h2>
     @php
-        $total = $budget;
+        $total         = $budget;
         $accommodation = round($total * 0.35);
         $flights       = round($total * 0.25);
         $food          = round($total * 0.20);
@@ -325,8 +340,8 @@
     <table class="info-table">
         <tr><td>Accommodation</td><td>${{ number_format($accommodation) }}</td></tr>
         <tr><td>Flights</td><td>${{ number_format($flights) }}</td></tr>
-        <tr><td>Food & Dining</td><td>${{ number_format($food) }}</td></tr>
-        <tr><td>Activities & Tours</td><td>${{ number_format($activities) }}</td></tr>
+        <tr><td>Food &amp; Dining</td><td>${{ number_format($food) }}</td></tr>
+        <tr><td>Activities &amp; Tours</td><td>${{ number_format($activities) }}</td></tr>
         <tr><td>Local Transport</td><td>${{ number_format($transport) }}</td></tr>
         <tr style="font-weight:bold;background:#fff8f2;">
             <td>Total Estimated</td>
@@ -336,7 +351,6 @@
 
 </div>
 
-<!-- Footer -->
 <div class="pdf-footer">
     <div>
         <div class="brand">Smart Booking</div>
@@ -349,7 +363,6 @@
 </div>
 
 <script>
-    // Auto-trigger print dialog only when accessed via direct export link
     const params = new URLSearchParams(window.location.search);
     if (params.has('auto_print')) {
         window.onload = () => setTimeout(() => window.print(), 500);
