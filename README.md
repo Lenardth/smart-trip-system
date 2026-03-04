@@ -194,7 +194,7 @@ git clone https://github.com/your-username/smart-trip-system.git
 cd smart-trip-system
 
 composer install
-npm install && npm run build
+
 
 cp .env.example .env
 php artisan key:generate
