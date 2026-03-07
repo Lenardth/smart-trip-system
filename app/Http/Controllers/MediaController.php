@@ -10,10 +10,6 @@ use Intervention\Image\Facades\Image;
 
 class MediaController extends Controller
 {
-    /**
-     * List all media for the logged-in user
-     * IMPORTANT: returns a PLAIN ARRAY for frontend forEach()
-     */
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -21,19 +17,16 @@ class MediaController extends Controller
         $media = Media::where('user_id', $user->id)
             ->with('trip')
             ->latest()
-            ->get(); // 👈 MUST be get(), not paginate()
+            ->get();
 
         return response()->json([
-            'media' => $media, // 👈 array
+            'media'        => $media,
             'total_photos' => Media::where('user_id', $user->id)->images()->count(),
             'total_videos' => Media::where('user_id', $user->id)->videos()->count(),
             'total_media'  => Media::where('user_id', $user->id)->count(),
         ]);
     }
 
-    /**
-     * Upload media files
-     */
     public function upload(Request $request)
     {
         $request->validate([
@@ -42,14 +35,13 @@ class MediaController extends Controller
             'location' => 'nullable|string|max:255',
         ]);
 
-        $user = Auth::user();
+        $user     = Auth::user();
         $uploaded = [];
 
         foreach ($request->file('media') as $file) {
-            $type = str_starts_with($file->getMimeType(), 'image/') ? 'image' : 'video';
-
+            $type     = str_starts_with($file->getMimeType(), 'image/') ? 'image' : 'video';
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $path = 'media/' . $user->id . '/' . date('Y/m');
+            $path     = 'media/' . $user->id . '/' . date('Y/m');
             $storedPath = $file->storeAs($path, $filename, 'public');
 
             if ($type === 'image') {
@@ -60,12 +52,12 @@ class MediaController extends Controller
                 'user_id'   => $user->id,
                 'trip_id'   => $request->trip_id,
                 'title'     => $file->getClientOriginalName(),
-                'file_path'=> $storedPath,
-                'file_name'=> $filename,
-                'mime_type'=> $file->getMimeType(),
-                'file_size'=> $file->getSize(),
-                'type'     => $type,
-                'location' => $request->location,
+                'file_path' => $storedPath,
+                'file_name' => $filename,
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'type'      => $type,
+                'location'  => $request->location,
             ]);
 
             $uploaded[] = $media;
@@ -78,31 +70,21 @@ class MediaController extends Controller
         ]);
     }
 
-    /**
-     * Create image thumbnails
-     */
     private function createThumbnail(string $imagePath): void
     {
         try {
-            $fullPath = storage_path('app/public/' . $imagePath);
-            $image = Image::make($fullPath);
-
-            // Thumbnail (300x300)
-            $thumbPath = str_replace('.', '_thumb.', $imagePath);
-            $image->fit(300, 300)->save(storage_path('app/public/' . $thumbPath));
-
-            // Medium (800x800)
+            $fullPath   = storage_path('app/public/' . $imagePath);
+            $image      = Image::make($fullPath);
+            $thumbPath  = str_replace('.', '_thumb.', $imagePath);
             $mediumPath = str_replace('.', '_medium.', $imagePath);
-            $image->fit(800, 800)->save(storage_path('app/public/' . $mediumPath));
 
+            $image->fit(300, 300)->save(storage_path('app/public/' . $thumbPath));
+            $image->fit(800, 800)->save(storage_path('app/public/' . $mediumPath));
         } catch (\Throwable $e) {
             \Log::error('Thumbnail creation failed: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Delete multiple media items
-     */
     public function delete(Request $request)
     {
         $request->validate([
@@ -110,13 +92,11 @@ class MediaController extends Controller
             'ids.*' => 'exists:media,id',
         ]);
 
-        $user = Auth::user();
+        $user    = Auth::user();
         $deleted = 0;
 
         foreach ($request->ids as $id) {
-            $media = Media::where('id', $id)
-                ->where('user_id', $user->id)
-                ->first();
+            $media = Media::where('id', $id)->where('user_id', $user->id)->first();
 
             if (!$media) continue;
 
@@ -136,25 +116,15 @@ class MediaController extends Controller
         ]);
     }
 
-    /**
-     * Toggle favorite
-     */
     public function toggleFavorite($id)
     {
-        $media = Media::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        $media = Media::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
         $media->update(['is_favorite' => !$media->is_favorite]);
 
-        return response()->json([
-            'is_favorite' => $media->is_favorite,
-        ]);
+        return response()->json(['is_favorite' => $media->is_favorite]);
     }
 
-    /**
-     * Update media metadata
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -164,13 +134,9 @@ class MediaController extends Controller
             'trip_id'     => 'nullable|exists:trips,id',
         ]);
 
-        $media = Media::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        $media = Media::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        $media->update(
-            $request->only(['title', 'description', 'location', 'trip_id'])
-        );
+        $media->update($request->only(['title', 'description', 'location', 'trip_id']));
 
         return response()->json([
             'message' => 'Media updated successfully',
@@ -178,13 +144,9 @@ class MediaController extends Controller
         ]);
     }
 
-    /**
-     * Dashboard stats
-     */
     public function stats()
     {
         $userId = Auth::id();
-
         $photos = Media::where('user_id', $userId)->images()->count();
         $videos = Media::where('user_id', $userId)->videos()->count();
         $size   = Media::where('user_id', $userId)->sum('file_size');

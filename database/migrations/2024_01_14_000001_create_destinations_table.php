@@ -26,6 +26,11 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('is_featured')->default(false);
             $table->timestamps();
+
+            $table->index('continent_id');
+            $table->index('is_active');
+            $table->index('is_featured');
+            $table->index('popularity_score');
         });
     }
 

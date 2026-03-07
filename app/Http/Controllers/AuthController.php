@@ -16,28 +16,21 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    /**
-     * Show the login form.
-     */
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle login request.
-     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            // Update last login information
             $user = Auth::user();
             $user->last_login_at = now();
             $user->last_login_ip = $request->ip();
@@ -51,44 +44,34 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    /**
-     * Show the registration form.
-     */
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle registration request.
-     */
     public function register(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'  => ['required', 'confirmed', Rules\Password::defaults()],
             'user_type' => ['nullable', 'in:user,agency'],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
             'user_type' => $request->user_type ?? 'user',
         ]);
 
         event(new Registered($user));
 
-        // Log the user in after registration
         Auth::login($user);
 
         return redirect(route('dashboard', absolute: false));
     }
 
-    /**
-     * Handle logout request.
-     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -99,9 +82,6 @@ class AuthController extends Controller
         return redirect('/');
     }
 
-    /**
-     * Check user activity (for session timeout).
-     */
     public function checkActivity(Request $request)
     {
         return response()->json([
@@ -109,13 +89,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // ============================================
-    // EMAIL VERIFICATION METHODS
-    // ============================================
-
-    /**
-     * Display the email verification prompt.
-     */
     public function showVerifyEmail(Request $request)
     {
         return $request->user()->hasVerifiedEmail()
@@ -123,10 +96,6 @@ class AuthController extends Controller
             : view('auth.verify-email');
     }
 
-    /**
-     * Mark the authenticated user's email address as verified.
-     * FIXED: Properly validate the signature
-     */
     public function verifyEmail(EmailVerificationRequest $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
@@ -140,9 +109,6 @@ class AuthController extends Controller
         return redirect()->intended(route('dashboard') . '?verified=1');
     }
 
-    /**
-     * Send a new email verification notification.
-     */
     public function resendVerification(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
@@ -154,21 +120,11 @@ class AuthController extends Controller
         return back()->with('status', 'verification-link-sent');
     }
 
-    // ============================================
-    // PASSWORD CONFIRMATION METHODS
-    // ============================================
-
-    /**
-     * Display the password confirmation screen.
-     */
     public function showConfirmPassword()
     {
         return view('auth.confirm-password');
     }
 
-    /**
-     * Confirm the user's password.
-     */
     public function confirmPassword(Request $request)
     {
         if (!Hash::check($request->password, $request->user()->password)) {
@@ -182,21 +138,11 @@ class AuthController extends Controller
         return redirect()->intended(route('dashboard'));
     }
 
-    // ============================================
-    // PASSWORD RESET METHODS
-    // ============================================
-
-    /**
-     * Display the password reset link request view.
-     */
     public function showForgotPassword()
     {
         return view('auth.forgot-password');
     }
 
-    /**
-     * Handle an incoming password reset link request.
-     */
     public function sendResetLink(Request $request)
     {
         $request->validate([
@@ -213,9 +159,6 @@ class AuthController extends Controller
                 ->withErrors(['email' => __($status)]);
     }
 
-    /**
-     * Display the password reset view.
-     */
     public function showResetPassword(Request $request)
     {
         return view('auth.reset-password', [
@@ -223,14 +166,11 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Handle an incoming new password request.
-     */
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'token' => ['required'],
-            'email' => ['required', 'email'],
+            'token'    => ['required'],
+            'email'    => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -238,7 +178,7 @@ class AuthController extends Controller
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
                 $user->forceFill([
-                    'password' => Hash::make($request->password),
+                    'password'       => Hash::make($request->password),
                     'remember_token' => Str::random(60),
                 ])->save();
 
