@@ -1,46 +1,37 @@
 name: Laravel CI/CD Pipeline
-
 on:
   push:
     branches: [ main, develop, master ]
   pull_request:
     branches: [ main, develop, master ]
-
 env:
   PHP_VERSION: '8.4'
   NODE_VERSION: '18'
-
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, sqlite3, gd, zip
           tools: composer
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
       - name: Install dependencies
         run: |
           composer install --no-progress --prefer-dist --optimize-autoloader
           npm ci --prefer-offline
-
       - name: Create SQLite database
         run: |
           mkdir -p database
           touch database/database.sqlite
-
       - name: Prepare environment
         run: |
           cp .env.example .env 2>/dev/null || cat > .env << 'EOF'
@@ -56,19 +47,16 @@ jobs:
           QUEUE_CONNECTION=sync
           MAIL_MAILER=array
           EOF
-
-      - name: Generate key and prepare app
+      - name: Generate application key
+        run: php artisan key:generate
+      - name: Run migrations
+        run: php artisan migrate --force
+      - name: Clear caches (after migrations)
         run: |
-          php artisan key:generate
           php artisan config:clear
           php artisan cache:clear
           chmod -R 777 storage bootstrap/cache
-
-      - name: Run migrations
-        run: php artisan migrate --force
-
       - name: Run all tests
         run: php artisan test
-
       - name: Build assets
         run: npm run build
