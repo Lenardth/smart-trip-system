@@ -3,14 +3,12 @@
 .env
 .env.*
 !.env.example
-
 # Laravel
 /vendor
 *.log
 .DS_Store
 .env.backup
 .env.production
-.env
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -25,58 +23,36 @@
 /public/storage
 /storage/*.key
 /bootstrap/cache/*
-/.phpunit.cache
 Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
-/.fleet
-/.idea
-/.vscode
 _ide_helper.php
 .phpstorm.meta.php
 _ide_helper_models.php
-.phpstorm.meta.php
 /.styleci.yml
 /.php_cs
 .php_cs.cache
 docker-compose.override.yml
-
 # OS
-.DS_Store
 Thumbs.db
-
 # Tests
 /coverage
 *.xml
 *.cache
-.phpunit.result.cache
-
 # Logs
-*.log
-
 # Backup files
 *.backup
 *.bak
-
 # Cache files
 /storage/framework/cache/*
 !/storage/framework/cache/.gitignore
-
 # Session files
 /storage/framework/sessions/*
 !/storage/framework/sessions/.gitignore
-
 # View files
 /storage/framework/views/*
 !/storage/framework/views/.gitignore
-
 # Your existing entries
-.env.backup
-.env.production
-.phpactor.json
-/.nova
-/.zed
-/auth.json
 /public/build
 /storage/pail
