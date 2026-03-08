@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
@@ -11,18 +13,42 @@ use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\ItineraryController;
+use App\Http\Controllers\AiSuggestionController;
 
 Route::get('/', function () {
     return view('public.landing');
 })->name('home');
 
-Route::get('/discover', function () {
-    return view('discover');
-})->name('discover');
+// ── AI (public, no auth required) ─────────────────────────────────────────────
+Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
+    ->middleware('throttle:20,1')
+    ->name('ai.suggest');
 
-Route::get('/community', function () {
-    return view('community');
-})->name('community');
+// ── Community (public) ────────────────────────────────────────────────────────
+Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
+
+Route::prefix('api/community')->group(function () {
+    Route::get('/stats',                [CommunityController::class, 'stats']);
+    Route::get('/topics',               [CommunityController::class, 'topics']);
+    Route::post('/topics',              [CommunityController::class, 'storeTopic']);
+    Route::get('/topics/{id}',          [CommunityController::class, 'showTopic']);
+    Route::post('/topics/{id}/replies', [CommunityController::class, 'storeReply']);
+    Route::get('/groups',               [CommunityController::class, 'groups']);
+    Route::post('/groups',              [CommunityController::class, 'storeGroup']);
+    Route::get('/tags',                 [CommunityController::class, 'tags']);
+    Route::get('/stories',              [CommunityController::class, 'stories']);
+    Route::get('/travelers',            [CommunityController::class, 'travelers']);
+});
+
+// ── Discover (public) ─────────────────────────────────────────────────────────
+Route::get('/discover', [DiscoverController::class, 'index'])->name('discover');
+
+Route::prefix('api/discover')->group(function () {
+    Route::get('/destinations', [DiscoverController::class, 'destinations'])->name('api.discover.destinations');
+    Route::get('/hidden-gems',  [DiscoverController::class, 'hiddenGems'])->name('api.discover.hidden-gems');
+    Route::get('/debug',        [DiscoverController::class, 'debug'])->name('api.discover.debug');
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations');
 Route::get('/destinations/compare', [DestinationController::class, 'compare'])->name('destinations.compare');

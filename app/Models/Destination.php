@@ -2,55 +2,54 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Destination extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
-        'slug',
-        'description',
-        'short_description',
-        'continent_id',
         'country',
-        'city',
+        'region',
         'category',
-        'price_per_person',
-        'rating',
-        'popularity_score',
-        'best_season',
+        'mood',
+        'price_from',
+        'description',
         'image_url',
-        'tags',
+        'badge',
+        'is_hidden_gem',
+        'match_score',
         'is_active',
-        'is_featured',
+        'sort_order',
     ];
 
     protected $casts = [
-        'tags' => 'array',
+        'is_hidden_gem' => 'boolean',
+        'is_active'     => 'boolean',
+        'price_from'    => 'integer',
+        'match_score'   => 'integer',
+        'sort_order'    => 'integer',
     ];
 
-    public function continent()
+    public function scopeActive($query)
     {
-        return $this->belongsTo(Continent::class);
+        return $query->where('is_active', true);
     }
 
-    public function savedByUsers()
+    public function scopeHiddenGems($query)
     {
-        return $this->hasMany(SavedDestination::class);
+        return $query->where('is_hidden_gem', true);
     }
 
-    public function getContinentAttribute()
+    public function scopeByCategory($query, string $category)
     {
-        return $this->getRelationValue('continent')?->name ?? '';
+        return $query->where('category', $category);
     }
 
-    public function getImageAttribute()
+    public function scopeByRegion($query, string $region)
     {
-        return $this->image_url;
-    }
-
-    public function getEstimatedCostAttribute()
-    {
-        return $this->price_per_person;
+        return $query->where('region', $region);
     }
 }
