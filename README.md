@@ -200,6 +200,7 @@ touch database/database.sqlite
 php artisan key:generate
 php artisan migrate
 php artisan migrate --seed
+php artisan db:seed --class=DestinationSeeder
 php artisan storage:link
 npm run build
 php artisan serve
