@@ -5,8 +5,8 @@
     <title>Community — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/community.css') }}">
+    
+    @vite(['resources/css/pages/community.css', 'resources/js/pages/community.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -240,7 +240,7 @@ window.__COMMUNITY__ = {
 };
 </script>
 
-<script src="{{ asset('js/pages/community.js') }}"></script>
+
 
 </body>
 </html>
