@@ -5,9 +5,8 @@
     <title>Community — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
-    @vite(['resources/css/pages/community.css', 'resources/js/pages/community.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @vite(['resources/css/app.css', 'resources/css/pages/community.css', 'resources/js/pages/community.js'])
 </head>
 <body>
 
@@ -42,7 +41,6 @@
 
 <div class="community-wrap">
 
-    {{-- Stats --}}
     <div class="community-stats">
         <div class="comm-stat">
             <div class="cs-num" id="stat-members"><span class="sk-line medium skeleton" style="display:inline-block;width:80px;height:32px;"></span></div>
@@ -62,10 +60,8 @@
         </div>
     </div>
 
-    {{-- Forum + Sidebar --}}
     <div class="comm-grid">
 
-        {{-- Forum --}}
         <div class="forum-section">
             <h3>
                 <span>
@@ -86,7 +82,6 @@
             </div>
         </div>
 
-        {{-- Sidebar --}}
         <div>
             <div class="sidebar-section">
                 <h3><i class="fas fa-users" style="color:var(--gold);margin-right:6px;"></i> Group Trips</h3>
@@ -110,7 +105,6 @@
         </div>
     </div>
 
-    {{-- Stories --}}
     <h2 class="section-title">Travel Stories</h2>
     <p class="section-subtitle">Real experiences from our community — inspiring tales from around the globe.</p>
     <div class="stories-grid" id="storiesGrid">
@@ -126,7 +120,6 @@
         @endfor
     </div>
 
-    {{-- Top Travelers --}}
     <h2 class="section-title">Top Travelers</h2>
     <p class="section-subtitle">Our most active and inspiring community members.</p>
     <div class="travelers-grid" id="travelersGrid">
@@ -137,7 +130,6 @@
 
 </div>
 
-{{-- New Topic Modal --}}
 <div class="modal-overlay" id="topicModal">
     <div class="modal">
         <div class="modal-header">
@@ -171,7 +163,6 @@
     </div>
 </div>
 
-{{-- New Group Modal --}}
 <div class="modal-overlay" id="groupModal">
     <div class="modal">
         <div class="modal-header">
@@ -209,7 +200,6 @@
     </div>
 </div>
 
-{{-- Toast --}}
 <div class="toast" id="toast">
     <i class="fas fa-check-circle"></i>
     <span id="toastMsg"></span>
@@ -228,10 +218,7 @@
     </div>
 </footer>
 
-{{-- Pusher SDK --}}
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-
-{{-- Pass server config to JS safely --}}
 <script>
 window.__COMMUNITY__ = {
     pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
@@ -239,8 +226,6 @@ window.__COMMUNITY__ = {
     csrfToken:     "{{ csrf_token() }}"
 };
 </script>
-
-
 
 </body>
 </html>
