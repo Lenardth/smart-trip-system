@@ -194,12 +194,15 @@ git clone https://github.com/Lenardth/smart-trip-system.git
 cd smart-trip-system
 composer install
 composer require barryvdh/laravel-dompdf
+npm install
 cp .env.example .env
 touch database/database.sqlite
 php artisan key:generate
-php artisan migrate 
+php artisan migrate
 php artisan migrate --seed
+php artisan db:seed --class=DestinationSeeder
 php artisan storage:link
+npm run build
 php artisan serve
 ```
 
