@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/dashboard.css') }}">
      @vite(['resources/css/app.css', 'resources/css/pages/dashboard.css', 'resources/js/pages/dashboard.js'])
+     @vite(['resources/css/app.css', 'resources/css/pages/base.css', 'resources/js/pages/dashboard.js'])
 </head>
 
 <body>

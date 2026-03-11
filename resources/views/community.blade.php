@@ -7,6 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/css/pages/community.css', 'resources/js/pages/community.js'])
+    @vite(['resources/css/app.css', 'resources/css/pages/base.css', 'resources/js/pages/community.js'])
+
 </head>
 <body>
 
