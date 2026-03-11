@@ -8,6 +8,194 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/landing.css') }}">
+     @vite(['resources/css/app.css', 'resources/css/pages/landing.css', 'resources/js/pages/landing.js'])
+    <style>
+        #originInput {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            box-sizing: border-box;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #originInput:focus {
+            border-color: var(--deep);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+        }
+
+        #originInput::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .input-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0.8;
+        }
+
+        .input-hint i {
+            margin-right: 4px;
+        }
+
+        .custom-select-wrapper {
+            position: relative;
+            user-select: none;
+        }
+
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .custom-select-trigger:hover,
+        .custom-select-wrapper.open .custom-select-trigger {
+            border-color: var(--deep);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+        }
+
+        .custom-select-icon {
+            color: var(--deep);
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .custom-select-text {
+            flex: 1;
+        }
+
+        .custom-select-arrow {
+            color: var(--text-muted);
+            font-size: 12px;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .custom-select-wrapper.open .custom-select-arrow {
+            transform: rotate(180deg);
+        }
+
+        .custom-select-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            z-index: 999;
+            max-height: 280px;
+            overflow-y: auto;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        }
+
+        .custom-select-wrapper.open .custom-select-dropdown {
+            display: block !important;
+        }
+
+        .custom-select-group {
+            padding: 8px 14px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--deep);
+            opacity: 0.8;
+            border-top: 1px solid var(--border);
+            margin-top: 4px;
+        }
+
+        .custom-select-group:first-child {
+            border-top: none;
+            margin-top: 0;
+        }
+
+        .custom-select-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            font-size: 14px;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .custom-select-option i {
+            color: var(--deep);
+            width: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .custom-select-option:hover {
+            background: rgba(201, 169, 110, 0.1);
+        }
+
+        .custom-select-option.selected {
+            background: rgba(201, 169, 110, 0.15);
+            font-weight: 600;
+        }
+
+        .category-card.active-style {
+            border-color: var(--deep) !important;
+            background: rgba(201, 169, 110, 0.12) !important;
+        }
+
+        .category-card.active-style .category-icon i {
+            color: var(--deep);
+        }
+
+        #destinationsGrid,
+        #styleDestinationsGrid {
+            align-items: stretch;
+        }
+
+        #destinationsGrid .destination-card,
+        #styleDestinationsGrid .destination-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #destinationsGrid .destination-card .destination-info,
+        #styleDestinationsGrid .destination-card .destination-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        #destinationsGrid .destination-card .destination-info a.primary-button,
+        #styleDestinationsGrid .destination-card .destination-info a.primary-button {
+            margin-top: auto !important;
+            display: block !important;
+            text-align: center !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -81,16 +269,72 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-heart"></i> Travel Mood</label>
-                <select id="moodSelect" name="mood">
-                    <option value="adventurous">🏔️ Adventurous — Thrills & outdoors</option>
-                    <option value="relaxed">🌴 Relaxed — Rest & recharge</option>
-                    <option value="cultural">🏛️ Cultural — History & arts</option>
-                    <option value="romantic">💖 Romantic — Intimate & scenic</option>
-                    <option value="foodie">🍽️ Foodie — Cuisine & markets</option>
-                    <option value="wellness">🧘 Wellness — Spa & mindfulness</option>
-                    <option value="nightlife">🎉 Nightlife — Music & entertainment</option>
-                    <option value="nature">🌿 Nature — Wildlife & eco-tourism</option>
-                </select>
+                <div class="custom-select-wrapper" id="moodSelectWrapper">
+                    <div class="custom-select-trigger" id="moodSelectTrigger">
+                        <span class="custom-select-icon"><i class="fas fa-hiking"></i></span>
+                        <span class="custom-select-text">Adventurous — Thrills & outdoors</span>
+                        <i class="fas fa-chevron-down custom-select-arrow"></i>
+                    </div>
+                    <div class="custom-select-dropdown" id="moodDropdown" style="display:none;">
+                        <div class="custom-select-group">Popular Moods</div>
+                        <div class="custom-select-option selected" data-value="adventurous"><i class="fas fa-hiking"></i> Adventurous — Thrills &amp; outdoors</div>
+                        <div class="custom-select-option" data-value="relaxed"><i class="fas fa-umbrella-beach"></i> Relaxed — Rest &amp; recharge</div>
+                        <div class="custom-select-option" data-value="romantic"><i class="fas fa-heart"></i> Romantic — Intimate &amp; scenic</div>
+                        <div class="custom-select-option" data-value="cultural"><i class="fas fa-landmark"></i> Cultural — History &amp; arts</div>
+                        <div class="custom-select-option" data-value="foodie"><i class="fas fa-utensils"></i> Foodie — Cuisine &amp; markets</div>
+                        <div class="custom-select-option" data-value="nature"><i class="fas fa-tree"></i> Nature — Wildlife &amp; eco-tourism</div>
+
+                        <div class="custom-select-group">Mindset &amp; Wellness</div>
+                        <div class="custom-select-option" data-value="wellness"><i class="fas fa-spa"></i> Wellness — Spa &amp; mindfulness</div>
+                        <div class="custom-select-option" data-value="spiritual"><i class="fas fa-place-of-worship"></i> Spiritual — Temples &amp; retreats</div>
+                        <div class="custom-select-option" data-value="digital_detox"><i class="fas fa-power-off"></i> Digital Detox — Unplug &amp; reconnect</div>
+                        <div class="custom-select-option" data-value="slow_travel"><i class="fas fa-feather"></i> Slow Travel — Immerse, don't rush</div>
+                        <div class="custom-select-option" data-value="healing"><i class="fas fa-hand-holding-heart"></i> Healing — Recovery &amp; self-care</div>
+                        <div class="custom-select-option" data-value="solo_discovery"><i class="fas fa-user"></i> Solo Discovery — Find yourself</div>
+
+                        <div class="custom-select-group">Social &amp; Entertainment</div>
+                        <div class="custom-select-option" data-value="nightlife"><i class="fas fa-music"></i> Nightlife — Music &amp; entertainment</div>
+                        <div class="custom-select-option" data-value="festival"><i class="fas fa-star"></i> Festival Chaser — Events &amp; carnivals</div>
+                        <div class="custom-select-option" data-value="sports"><i class="fas fa-futbol"></i> Sports Fan — Matches &amp; stadiums</div>
+                        <div class="custom-select-option" data-value="party"><i class="fas fa-glass-cheers"></i> Party Mode — Celebrate &amp; socialise</div>
+                        <div class="custom-select-option" data-value="lgbtq"><i class="fas fa-rainbow"></i> LGBTQ+ Friendly — Inclusive destinations</div>
+                        <div class="custom-select-option" data-value="social"><i class="fas fa-users"></i> Social Butterfly — Meet new people</div>
+
+                        <div class="custom-select-group">Exploration Styles</div>
+                        <div class="custom-select-option" data-value="road_trip"><i class="fas fa-car"></i> Road Trip — Open roads &amp; freedom</div>
+                        <div class="custom-select-option" data-value="backpacking"><i class="fas fa-suitcase"></i> Backpacking — Rough it &amp; explore</div>
+                        <div class="custom-select-option" data-value="island_hopping"><i class="fas fa-water"></i> Island Hopping — Sea &amp; archipelagos</div>
+                        <div class="custom-select-option" data-value="city_break"><i class="fas fa-city"></i> City Break — Urban buzz &amp; skylines</div>
+                        <div class="custom-select-option" data-value="off_beaten"><i class="fas fa-map"></i> Off the Beaten Path — Hidden gems</div>
+                        <div class="custom-select-option" data-value="luxury_escape"><i class="fas fa-gem"></i> Luxury Escape — Five-star everything</div>
+                        <div class="custom-select-option" data-value="safari"><i class="fas fa-paw"></i> Safari &amp; Wildlife — Raw nature up close</div>
+                        <div class="custom-select-option" data-value="cruise"><i class="fas fa-ship"></i> Cruise — Sea views &amp; port hopping</div>
+
+                        <div class="custom-select-group">Seasonal &amp; Weather</div>
+                        <div class="custom-select-option" data-value="sun_seeker"><i class="fas fa-sun"></i> Sun Seeker — Heat &amp; beaches</div>
+                        <div class="custom-select-option" data-value="snow_lover"><i class="fas fa-snowflake"></i> Snow Lover — Skiing &amp; winter wonderlands</div>
+                        <div class="custom-select-option" data-value="autumn_vibes"><i class="fas fa-leaf"></i> Autumn Vibes — Foliage &amp; cosy escapes</div>
+                        <div class="custom-select-option" data-value="monsoon_magic"><i class="fas fa-cloud-rain"></i> Monsoon Magic — Lush greens &amp; rain</div>
+                        <div class="custom-select-option" data-value="northern_lights"><i class="fas fa-moon"></i> Aurora Chaser — Northern lights</div>
+
+                        <div class="custom-select-group">Learning &amp; Growth</div>
+                        <div class="custom-select-option" data-value="language"><i class="fas fa-language"></i> Language Immersion — Learn while travelling</div>
+                        <div class="custom-select-option" data-value="photography"><i class="fas fa-camera"></i> Photography Trip — Capture stunning moments</div>
+                        <div class="custom-select-option" data-value="volunteer"><i class="fas fa-hands-helping"></i> Volunteer Travel — Give back while exploring</div>
+                        <div class="custom-select-option" data-value="study_abroad"><i class="fas fa-graduation-cap"></i> Study Abroad — Education &amp; experience</div>
+                        <div class="custom-select-option" data-value="cooking_class"><i class="fas fa-utensils"></i> Culinary School — Cook like a local</div>
+                        <div class="custom-select-option" data-value="art_retreat"><i class="fas fa-paint-brush"></i> Art Retreat — Paint, sculpt &amp; create</div>
+
+                        <div class="custom-select-group">Family &amp; Groups</div>
+                        <div class="custom-select-option" data-value="family_fun"><i class="fas fa-child"></i> Family Fun — Kids activities &amp; theme parks</div>
+                        <div class="custom-select-option" data-value="multigenerational"><i class="fas fa-users"></i> Multi-Generational — Everyone included</div>
+                        <div class="custom-select-option" data-value="honeymoon"><i class="fas fa-ring"></i> Honeymoon — Perfect romantic start</div>
+                        <div class="custom-select-option" data-value="girls_trip"><i class="fas fa-female"></i> Girls Trip — Friendship &amp; fun</div>
+                        <div class="custom-select-option" data-value="boys_trip"><i class="fas fa-male"></i> Boys Trip — Adventure &amp; bonding</div>
+                        <div class="custom-select-option" data-value="group_adventure"><i class="fas fa-mountain"></i> Group Adventure — Shared thrills</div>
+                    </div>
+                    <input type="hidden" id="moodSelect" name="mood" value="adventurous">
+                </div>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-star"></i> Experience Level</label>
@@ -191,19 +435,14 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-plane-departure"></i> Flying From</label>
-                <select id="originSelect" name="origin">
-                    <option value="johannesburg">Johannesburg (JNB)</option>
-                    <option value="cape_town">Cape Town (CPT)</option>
-                    <option value="durban">Durban (DUR)</option>
-                    <option value="london">London (LHR)</option>
-                    <option value="dubai">Dubai (DXB)</option>
-                    <option value="new_york">New York (JFK)</option>
-                    <option value="amsterdam">Amsterdam (AMS)</option>
-                    <option value="frankfurt">Frankfurt (FRA)</option>
-                    <option value="singapore">Singapore (SIN)</option>
-                    <option value="sydney">Sydney (SYD)</option>
-                    <option value="other">Other city</option>
-                </select>
+                <input
+                    type="text"
+                    id="originInput"
+                    name="origin"
+                    placeholder="e.g. Johannesburg, London, New York, Dubai..."
+                    autocomplete="off"
+                >
+                <small class="input-hint"><i class="fas fa-info-circle"></i> Enter any city or airport name</small>
             </div>
         </div>
         <div class="qb-nav">
@@ -329,18 +568,28 @@
     </div>
 
     <div class="filter-tags">
-        <span class="filter-tag active" data-filter="all">All</span>
-        <span class="filter-tag" data-filter="tropical">Tropical</span>
-        <span class="filter-tag" data-filter="mountain">Mountain</span>
-        <span class="filter-tag" data-filter="historical">Historical</span>
-        <span class="filter-tag" data-filter="beach">Beach</span>
-        <span class="filter-tag" data-filter="food">Food</span>
-        <span class="filter-tag" data-filter="culture">Art &amp; Culture</span>
-        <span class="filter-tag" data-filter="eco">Eco-Tourism</span>
+        <span class="filter-tag active" data-filter="all"><i class="fas fa-globe"></i> All</span>
+        <span class="filter-tag" data-filter="trending"><i class="fas fa-fire"></i> Trending</span>
+        <span class="filter-tag" data-filter="beach"><i class="fas fa-umbrella-beach"></i> Beach</span>
+        <span class="filter-tag" data-filter="mountain"><i class="fas fa-mountain"></i> Mountain</span>
+        <span class="filter-tag" data-filter="historical"><i class="fas fa-landmark"></i> Historical</span>
+        <span class="filter-tag" data-filter="food_culture"><i class="fas fa-utensils"></i> Food & Culture</span>
+        <span class="filter-tag" data-filter="eco_tourism"><i class="fas fa-leaf"></i> Eco-Tourism</span>
+        <span class="filter-tag" data-filter="romantic"><i class="fas fa-heart"></i> Romantic</span>
+        <span class="filter-tag" data-filter="adventurous"><i class="fas fa-hiking"></i> Adventure</span>
+        <span class="filter-tag" data-filter="hidden_gem"><i class="fas fa-gem"></i> Hidden Gems</span>
     </div>
 
-    <div class="destinations-grid" id="destinationsGrid">
-        <!-- Destinations will be loaded dynamically via API -->
+    <div id="destinationsLoading" style="text-align:center; padding: 60px 20px; color: var(--text-muted);">
+        <i class="fas fa-spinner fa-spin" style="font-size:28px; color:var(--deep);"></i>
+        <p style="margin-top:12px;">Loading destinations...</p>
+    </div>
+
+    <div class="destinations-grid" id="destinationsGrid" style="display:none;"></div>
+
+    <div id="destinationsEmpty" style="display:none; text-align:center; padding:60px 20px; color:var(--text-muted);">
+        <i class="fas fa-map-marked-alt" style="font-size:40px; opacity:0.3;"></i>
+        <p style="margin-top:12px;">No destinations found for this filter.</p>
     </div>
 </section>
 
@@ -386,26 +635,46 @@
     <p class="section-subtitle">Find destinations that match your preferred travel experience</p>
 
     <div class="explore-categories">
-        <div class="category-card" onclick="filterByStyle('adventure')">
+        <div class="category-card active-style" data-style="adventure" onclick="filterByStyle('adventure', this)">
             <div class="category-icon"><i class="fas fa-hiking"></i></div>
             <h3>Adventure Travel</h3>
             <p>Hiking, trekking, and extreme sports destinations</p>
         </div>
-        <div class="category-card" onclick="filterByStyle('beach')">
+        <div class="category-card" data-style="beach" onclick="filterByStyle('beach', this)">
             <div class="category-icon"><i class="fas fa-umbrella-beach"></i></div>
             <h3>Beach &amp; Relaxation</h3>
             <p>Perfect spots for sunbathing and unwinding</p>
         </div>
-        <div class="category-card" onclick="filterByStyle('cultural')">
+        <div class="category-card" data-style="cultural" onclick="filterByStyle('cultural', this)">
             <div class="category-icon"><i class="fas fa-landmark"></i></div>
             <h3>Cultural Immersion</h3>
             <p>Historical sites and cultural experiences</p>
         </div>
-        <div class="category-card" onclick="filterByStyle('food')">
+        <div class="category-card" data-style="food" onclick="filterByStyle('food', this)">
             <div class="category-icon"><i class="fas fa-utensils"></i></div>
             <h3>Culinary Tours</h3>
             <p>Foodie paradises and cooking experiences</p>
         </div>
+    </div>
+
+    <div id="styleResultsHeader" style="display:none; margin: 30px 0 16px; display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="styleResultsTitle" style="margin:0; color:var(--text); font-size:18px;"></h3>
+            <span id="styleResultsCount" style="font-size:13px; color:var(--text-muted);"></span>
+        </div>
+    </div>
+
+    <div class="destinations-grid" id="styleDestinationsGrid" style="display:none; margin-top:24px;"></div>
+
+    <div id="styleEmpty" style="display:none; text-align:center; padding:40px; color:var(--text-muted);">
+        <i class="fas fa-map-marked-alt" style="font-size:36px; opacity:0.3;"></i>
+        <p style="margin-top:12px;">No destinations found for this style.</p>
+    </div>
+
+    <div id="styleViewAll" style="display:none; text-align:center; margin-top:28px;">
+        <a href="/destinations" class="secondary-button" style="text-decoration:none; padding:10px 28px;">
+            <i class="fas fa-compass"></i> View All Destinations
+        </a>
     </div>
 </div>
 
@@ -499,7 +768,6 @@
         <p class="section-subtitle">Join thousands of satisfied travelers who discovered their perfect trips</p>
 
         <div class="testimonial-grid" id="testimonialsGrid">
-            <!-- Testimonials will be loaded dynamically via API -->
         </div>
     </div>
 </section>
@@ -529,7 +797,305 @@
     </div>
 </footer>
 
-<script src="{{ asset('js/pages/landing.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const wrapper  = document.getElementById('moodSelectWrapper');
+    const trigger  = document.getElementById('moodSelectTrigger');
+    const dropdown = document.getElementById('moodDropdown');
+    const hidden   = document.getElementById('moodSelect');
+
+    if (!wrapper || !trigger || !dropdown || !hidden) return;
+
+    const iconEl = trigger.querySelector('.custom-select-icon');
+    const textEl = trigger.querySelector('.custom-select-text');
+
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        wrapper.classList.toggle('open');
+    });
+
+    dropdown.querySelectorAll('.custom-select-option').forEach(function (opt) {
+        opt.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+
+            const iconTag = this.querySelector('i');
+            iconEl.innerHTML = iconTag ? iconTag.outerHTML : '';
+            textEl.textContent = this.textContent.trim();
+            hidden.value = this.dataset.value;
+
+            wrapper.classList.remove('open');
+        });
+    });
+
+    document.addEventListener('click', function () {
+        wrapper.classList.remove('open');
+    });
+});
+</script>
+
+<script>
+(function () {
+    const grid       = document.getElementById('destinationsGrid');
+    const loading    = document.getElementById('destinationsLoading');
+    const empty      = document.getElementById('destinationsEmpty');
+    const filterTags = document.querySelectorAll('.filter-tag');
+
+    let allDestinations = [];
+    let activeFilter    = 'all';
+
+    async function fetchDestinations() {
+        loading.style.display = 'block';
+        grid.style.display    = 'none';
+        empty.style.display   = 'none';
+
+        try {
+            const res = await fetch('/api/discover/destinations?active=1', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+
+            const data = await res.json();
+            console.log('[Destinations] Raw API response:', data);
+
+            if (Array.isArray(data)) {
+                allDestinations = data;
+            } else if (data && Array.isArray(data.data)) {
+                allDestinations = data.data;
+            } else if (data && Array.isArray(data.destinations)) {
+                allDestinations = data.destinations;
+            } else {
+                allDestinations = [];
+                console.warn('[Destinations] Unexpected response shape:', data);
+            }
+
+            console.log('[Destinations] Loaded:', allDestinations.length, 'destinations');
+            window._allDestinations = allDestinations;
+            renderGrid(allDestinations.slice(0, 8));
+
+        } catch (err) {
+            console.error('[Destinations] Fetch failed:', err);
+            loading.style.display = 'block';
+            loading.innerHTML = `
+                <div style="padding:40px;text-align:center;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:36px;color:var(--deep);opacity:0.7;"></i>
+                    <p style="margin:12px 0 4px;font-size:15px;color:var(--text);">Could not load destinations</p>
+                    <p style="font-size:12px;color:var(--text-muted);margin:0 0 16px;">${err.message}</p>
+                    <button class="secondary-button" onclick="initDestinations()" style="font-size:13px;">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>`;
+        }
+    }
+
+    function applyFilter(filter) {
+        activeFilter = filter;
+        let results;
+        if (filter === 'all') {
+            results = allDestinations;
+        } else if (filter === 'hidden_gem') {
+            results = allDestinations.filter(d => Number(d.is_hidden_gem) === 1);
+        } else if (filter === 'romantic') {
+            results = allDestinations.filter(d => d.mood === 'romantic' || (d.badge && d.badge.toLowerCase().includes('romantic')));
+        } else if (filter === 'adventurous') {
+            results = allDestinations.filter(d => d.mood === 'adventurous' || d.category === 'adventurous');
+        } else {
+            results = allDestinations.filter(d => d.category === filter || d.mood === filter);
+        }
+        renderGrid(results.slice(0, 8));
+    }
+
+    function renderGrid(destinations) {
+        loading.style.display = 'none';
+
+        if (!destinations || destinations.length === 0) {
+            grid.style.display  = 'none';
+            empty.style.display = 'block';
+            return;
+        }
+
+        empty.style.display = 'none';
+        grid.style.display  = 'grid';
+        grid.innerHTML      = destinations.map(d => buildCard(d)).join('');
+    }
+
+    function buildCard(d) {
+        const image       = d.image_url || `https://picsum.photos/seed/${encodeURIComponent(d.name)}/600/400`;
+        const price       = d.price_from ? `From $${Number(d.price_from).toLocaleString()}` : '';
+        const badge       = d.badge ? `<span class="destination-badge">${d.badge}</span>` : '';
+        const hiddenGem   = Number(d.is_hidden_gem) === 1
+            ? `<span class="destination-badge" style="background:rgba(138,43,226,0.85);"><i class="fas fa-gem"></i> Hidden Gem</span>` : '';
+        const matchScore  = d.match_score
+            ? `<div class="match-score"><i class="fas fa-star"></i> ${d.match_score}% match</div>` : '';
+        const description = d.description
+            ? (d.description.length > 110 ? d.description.substring(0, 110) + '…' : d.description)
+            : '';
+        const regionLabel = formatRegion(d.region);
+        const moodIcon    = moodIconMap(d.mood);
+
+        return `
+        <div class="destination-card" data-category="${d.category}" data-mood="${d.mood}" data-hidden="${d.is_hidden_gem}">
+            <div class="destination-image" style="background-image:url('${image}');background-size:cover;background-position:center;height:200px;position:relative;border-radius:6px 6px 0 0;overflow:hidden;">
+                <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.6));"></div>
+                <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;">
+                    ${badge}${hiddenGem}
+                </div>
+                ${matchScore ? `<div style="position:absolute;top:12px;right:12px;">${matchScore}</div>` : ''}
+                <div style="position:absolute;bottom:12px;left:14px;right:14px;">
+                    <h3 style="color:#fff;margin:0;font-size:17px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.7);">${d.name}</h3>
+                    <p style="color:rgba(255,255,255,0.85);margin:3px 0 0;font-size:13px;">
+                        <i class="fas fa-map-marker-alt" style="margin-right:4px;"></i>${d.country} &nbsp;·&nbsp; ${regionLabel}
+                    </p>
+                </div>
+            </div>
+            <div class="destination-info">
+                <p style="color:var(--text-muted);font-size:13px;margin:0 0 12px;line-height:1.5;">${description}</p>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12px;color:var(--text-muted);background:rgba(201,169,110,0.12);border:1px solid var(--border);border-radius:20px;padding:3px 10px;">${moodIcon} ${formatLabel(d.mood)}</span>
+                        <span style="font-size:12px;color:var(--text-muted);background:rgba(201,169,110,0.12);border:1px solid var(--border);border-radius:20px;padding:3px 10px;"><i class="fas fa-tag"></i> ${formatLabel(d.category)}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        ${price ? `<div style="font-size:15px;font-weight:700;color:var(--deep);">${price}</div><div style="font-size:11px;color:var(--text-muted);">per person</div>` : ''}
+                    </div>
+                </div>
+                <a href="/destinations/${d.id ?? ''}" class="primary-button" style="text-decoration:none;padding:9px;font-size:13px;">
+                    <i class="fas fa-compass"></i> Explore
+                </a>
+            </div>
+        </div>`;
+    }
+
+    function formatRegion(region) {
+        const map = {
+            europe: 'Europe', asia: 'Asia', middle_east: 'Middle East',
+            africa: 'Africa', america: 'Americas', oceania: 'Oceania', general: 'World'
+        };
+        return map[region] || (region ? region.replace(/_/g, ' ') : 'World');
+    }
+
+    function formatLabel(str) {
+        if (!str) return '';
+        return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function moodIconMap(mood) {
+        const icons = {
+            adventurous: '<i class="fas fa-hiking"></i>',
+            relaxed:     '<i class="fas fa-umbrella-beach"></i>',
+            cultural:    '<i class="fas fa-landmark"></i>',
+            romantic:    '<i class="fas fa-heart"></i>',
+            foodie:      '<i class="fas fa-utensils"></i>',
+            wellness:    '<i class="fas fa-spa"></i>',
+            eco:         '<i class="fas fa-leaf"></i>',
+            eco_tourism: '<i class="fas fa-leaf"></i>',
+            nature:      '<i class="fas fa-tree"></i>',
+            general:     '<i class="fas fa-globe"></i>',
+            beach:       '<i class="fas fa-umbrella-beach"></i>',
+            mountain:    '<i class="fas fa-mountain"></i>',
+            nightlife:   '<i class="fas fa-music"></i>',
+            spiritual:   '<i class="fas fa-place-of-worship"></i>',
+            wellness:    '<i class="fas fa-spa"></i>',
+            road_trip:   '<i class="fas fa-car"></i>',
+            backpacking: '<i class="fas fa-backpack"></i>',
+            city_break:  '<i class="fas fa-city"></i>',
+            safari:      '<i class="fas fa-paw"></i>',
+            cruise:      '<i class="fas fa-ship"></i>',
+            honeymoon:   '<i class="fas fa-ring"></i>',
+            photography: '<i class="fas fa-camera"></i>',
+        };
+        return icons[mood] || '<i class="fas fa-map-marker-alt"></i>';
+    }
+
+    filterTags.forEach(tag => {
+        tag.addEventListener('click', function () {
+            filterTags.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            applyFilter(this.dataset.filter);
+        });
+    });
+
+    window.initDestinations = fetchDestinations;
+    fetchDestinations();
+})();
+</script>
+
+<script>
+function filterByStyle(style, cardEl) {
+    const styleMap = {
+        adventure: { moods: ['adventurous'], categories: ['adventurous', 'mountain'], label: 'Adventure Travel' },
+        beach:     { moods: ['relaxed', 'beach'], categories: ['beach'],              label: 'Beach & Relaxation' },
+        cultural:  { moods: ['cultural'],          categories: ['historical', 'food_culture', 'general'], label: 'Cultural Immersion' },
+        food:      { moods: ['foodie'],             categories: ['food_culture'],      label: 'Culinary Tours' },
+    };
+
+    const styleGrid    = document.getElementById('styleDestinationsGrid');
+    const styleEmpty   = document.getElementById('styleEmpty');
+    const styleHeader  = document.getElementById('styleResultsHeader');
+    const styleTitle   = document.getElementById('styleResultsTitle');
+    const styleCount   = document.getElementById('styleResultsCount');
+    const styleViewAll = document.getElementById('styleViewAll');
+
+    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active-style'));
+    if (cardEl) cardEl.classList.add('active-style');
+
+    const mapping = styleMap[style];
+    if (!mapping || !window._allDestinations || window._allDestinations.length === 0) return;
+
+    const results = window._allDestinations.filter(d =>
+        mapping.moods.includes(d.mood) || mapping.categories.includes(d.category)
+    ).slice(0, 8);
+
+    styleHeader.style.display = 'block';
+    styleTitle.textContent    = mapping.label;
+    styleCount.textContent    = results.length + ' destinations';
+
+    styleGrid.style.display   = results.length ? 'grid' : 'none';
+    styleEmpty.style.display  = results.length ? 'none' : 'block';
+    styleViewAll.style.display = 'block';
+
+    styleGrid.innerHTML = results.map(d => buildStyleCard(d)).join('');
+
+    styleGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function buildStyleCard(d) {
+    const image       = d.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(d.name) + '/600/400';
+    const price       = d.price_from ? 'From $' + Number(d.price_from).toLocaleString() : '';
+    const badge       = d.badge ? '<span class="destination-badge">' + d.badge + '</span>' : '';
+    const hiddenGem   = Number(d.is_hidden_gem) === 1
+        ? '<span class="destination-badge" style="background:rgba(138,43,226,0.85);"><i class="fas fa-gem"></i> Hidden Gem</span>' : '';
+    const description = d.description
+        ? (d.description.length > 110 ? d.description.substring(0, 110) + '…' : d.description) : '';
+
+    return '<div class="destination-card">' +
+        '<div class="destination-image" style="background-image:url(\'' + image + '\');background-size:cover;background-position:center;height:200px;position:relative;border-radius:6px 6px 0 0;overflow:hidden;">' +
+            '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.6));"></div>' +
+            '<div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;">' + badge + hiddenGem + '</div>' +
+            '<div style="position:absolute;bottom:12px;left:14px;right:14px;">' +
+                '<h3 style="color:#fff;margin:0;font-size:17px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.7);">' + d.name + '</h3>' +
+                '<p style="color:rgba(255,255,255,0.85);margin:3px 0 0;font-size:13px;"><i class="fas fa-map-marker-alt" style="margin-right:4px;"></i>' + d.country + '</p>' +
+            '</div>' +
+        '</div>' +
+        '<div class="destination-info">' +
+            '<p style="color:var(--text-muted);font-size:13px;margin:0 0 12px;line-height:1.5;">' + description + '</p>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span style="font-size:12px;color:var(--text-muted);background:rgba(201,169,110,0.12);border:1px solid var(--border);border-radius:20px;padding:3px 10px;"><i class="fas fa-tag"></i> ' + (d.category || '').replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase()) + '</span>' +
+                (price ? '<div style="font-size:15px;font-weight:700;color:var(--deep);">' + price + '</div>' : '') +
+            '</div>' +
+            '<a href="/destinations/' + (d.id || '') + '" class="primary-button" style="text-decoration:none;padding:9px;font-size:13px;">' +
+                '<i class="fas fa-compass"></i> Explore' +
+            '</a>' +
+        '</div>' +
+    '</div>';
+}
+</script>
+
+
 
 </body>
 </html>

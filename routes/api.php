@@ -28,3 +28,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'update']);
 });
 Route::middleware(['auth'])->post('/api/test', function() { return response()->json(['success' => true]); });
+
+Route::get('/destinations', function () {
+    return \App\Models\Destination::active()
+        ->orderBy('sort_order')
+        ->get();
+});

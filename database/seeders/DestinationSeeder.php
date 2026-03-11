@@ -51,19 +51,7 @@ class DestinationSeeder extends Seeder
 
         $count      = DB::table('destinations')->count();
         $hiddenGems = DB::table('destinations')->where('is_hidden_gem', 1)->count();
-
-        $this->command->info('');
-        $this->command->info('✓========================================✓');
-        $this->command->info('  SEEDING COMPLETE');
-        $this->command->info('✓========================================✓');
-        $this->command->info("  Total destinations : {$count}");
-        $this->command->info("  Hidden gems        : {$hiddenGems}");
-        $this->command->info('✓========================================✓');
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ──────────────────────────────────────────────────────────────────────────
 
     private function determineRegion(string $country): string
     {

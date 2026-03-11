@@ -13,10 +13,73 @@
 }
 
 
-/* Page Hero with proper image */
+/* ULTRA AGGRESSIVE RESET - NO BORDERS ANYWHERE ON PAGE EDGES */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+}
+
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+    border-width: 0 !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    background-color: var(--cream);
+    font-family: 'Georgia', serif;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+
+/* Remove any potential borders from specific elements */
+
+body::before,
+body::after,
+html::before,
+html::after {
+    display: none !important;
+    content: none !important;
+    border: none !important;
+}
+
+
+/* Ensure no borders on any container at page level */
+
+.planner-wrap,
+.page-hero,
+.main-header,
+.nav-container,
+.footer,
+section,
+div[class*="container"],
+div[class*="wrapper"] {
+    border: none !important;
+    outline: none !important;
+}
+
+
+/* Keep the original styles but ensure no page borders */
 
 .page-hero {
-    background: linear-gradient(rgba(30, 15, 20, 0.6), rgba(30, 15, 20, 0.6)), url('/img/pexels-mikegles-30931569.jpg');
+    background: linear-gradient(rgba(30, 15, 20, 0.6), rgba(30, 15, 20, 0.6)), url('https://images.pexels.com/photos/30931569/pexels-photo-30931569.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
     background-size: cover;
     background-position: center;
     height: 220px;
@@ -25,31 +88,8 @@
     justify-content: center;
     text-align: center;
     color: var(--text-light);
-}
-
-
-/* Fallback image if custom image doesn't exist */
-
-@media (max-width: 768px) {
-    .page-hero {
-        background: linear-gradient(rgba(30, 15, 20, 0.7), rgba(30, 15, 20, 0.7)), url('https://images.pexels.com/photos/30931569/pexels-photo-30931569.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
-        background-size: cover;
-        background-position: center;
-    }
-}
-
-.page-hero h1 {
-    font-size: 34px;
-    font-weight: normal;
-    letter-spacing: 1px;
-    margin: 0 0 8px;
-    color: var(--text-light);
-}
-
-.page-hero p {
-    font-size: 16px;
-    color: var(--text-sub);
     margin: 0;
+    padding: 0;
 }
 
 
@@ -62,6 +102,7 @@
     gap: 15px;
     padding: 20px 40px 20px 60px;
     background-color: var(--deep);
+    margin: 0;
 }
 
 .logo {
@@ -91,6 +132,7 @@
     padding: 15px;
     flex-wrap: wrap;
     border-bottom: 2px solid var(--gold-hover);
+    margin: 0;
 }
 
 .nav-container a {
@@ -125,6 +167,7 @@
     padding-bottom: 15px;
     font-weight: normal;
     letter-spacing: 1px;
+    text-align: center;
 }
 
 .section-title:after {
@@ -145,6 +188,7 @@
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+    text-align: center;
 }
 
 
@@ -761,82 +805,7 @@
 }
 
 
-/* Footer */
-
-.footer {
-    background: var(--deep);
-    color: var(--text-sub);
-    text-align: center;
-    padding: 30px 20px;
-    margin-top: 60px;
-}
-
-.footer a {
-    color: var(--gold);
-    margin: 0 10px;
-    transition: color 0.3s ease;
-    text-decoration: none;
-}
-
-.footer a:hover {
-    color: var(--text-light);
-}
-
-.page-hero {
-    background: linear-gradient(rgba(30, 15, 20, 0.6), rgba(30, 15, 20, 0.6)), url('https://images.pexels.com/photos/30931569/pexels-photo-30931569.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
-    background-size: cover;
-    background-position: center;
-    height: 220px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--text-light);
-}
-
-@media (max-width: 768px) {
-    .main-header {
-        justify-content: center;
-        padding: 15px 20px;
-    }
-    .logo {
-        height: 60px;
-        min-width: 60px;
-    }
-    .logo-text {
-        font-size: 24px;
-    }
-    .nav-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    .nav-container a {
-        font-size: 14px;
-        padding: 8px 10px;
-    }
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    .steps::before {
-        width: 80%;
-    }
-    .mood-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .results-grid {
-        grid-template-columns: 1fr;
-    }
-    .receipt-row {
-        flex-direction: column;
-        gap: 2px;
-    }
-    .receipt-row .value {
-        text-align: left;
-    }
-}
-
-
-/* Add these styles for the enhanced receipt */
+/* Enhanced Receipt Styles */
 
 .receipt-header {
     background: var(--deep);
@@ -891,6 +860,29 @@
 }
 
 
+/* Footer */
+
+.footer {
+    background: var(--deep);
+    color: var(--text-sub);
+    text-align: center;
+    padding: 30px 20px;
+    margin-top: 60px;
+    border: none;
+}
+
+.footer a {
+    color: var(--gold);
+    margin: 0 10px;
+    transition: color 0.3s ease;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: var(--text-light);
+}
+
+
 /* Print-specific styles */
 
 @media print {
@@ -915,5 +907,52 @@
     }
     .receipt-detail-card {
         break-inside: avoid;
+    }
+}
+
+
+/* Mobile Responsive */
+
+@media (max-width: 768px) {
+    .main-header {
+        justify-content: center;
+        padding: 15px 20px;
+    }
+    .logo {
+        height: 60px;
+        min-width: 60px;
+    }
+    .logo-text {
+        font-size: 24px;
+    }
+    .nav-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .nav-container a {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    .steps::before {
+        width: 80%;
+    }
+    .mood-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .results-grid {
+        grid-template-columns: 1fr;
+    }
+    .receipt-row {
+        flex-direction: column;
+        gap: 2px;
+    }
+    .receipt-row .value {
+        text-align: left;
+    }
+    .receipt-details-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }

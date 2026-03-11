@@ -8,161 +8,80 @@ use Illuminate\Support\Facades\Log;
 
 class AiSuggestionController extends Controller
 {
+    private const API_URL    = 'https://api.groq.com/openai/v1/chat/completions';
+    private const MODEL      = 'llama-3.3-70b-versatile';
+    private const MAX_TOKENS = 2048;
+    private const MAX_TRIES  = 3;
+
+    private const TOOL = [
+        'type'     => 'function',
+        'function' => [
+            'name'        => 'suggest_destinations',
+            'description' => 'Return exactly 5 travel destination recommendations, each from a different country.',
+            'parameters'  => [
+                'type'       => 'object',
+                'required'   => ['destinations'],
+                'properties' => [
+                    'destinations' => [
+                        'type'  => 'array',
+                        'items' => [
+                            'type'       => 'object',
+                            'required'   => [
+                                'destination','country','region','description',
+                                'cost_min_usd','cost_max_usd','cost_includes',
+                                'best_months','is_good_right_now','top_activities',
+                                'travel_tip','visa_info','flight_info',
+                            ],
+                            'properties' => [
+                                'destination'       => ['type' => 'string'],
+                                'country'           => ['type' => 'string'],
+                                'region'            => ['type' => 'string'],
+                                'description'       => ['type' => 'string'],
+                                'cost_min_usd'      => ['type' => 'integer'],
+                                'cost_max_usd'      => ['type' => 'integer'],
+                                'cost_includes'     => ['type' => 'string'],
+                                'best_months'       => ['type' => 'array', 'items' => ['type' => 'string']],
+                                'is_good_right_now' => ['type' => 'boolean'],
+                                'top_activities'    => ['type' => 'array', 'items' => ['type' => 'string']],
+                                'travel_tip'        => ['type' => 'string'],
+                                'visa_info'         => ['type' => 'string'],
+                                'flight_info'       => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
     public function suggest(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'mood'          => 'required|string',
-            'budget'        => 'required|string',
-            'duration'      => 'required|string',
-            'companion'     => 'required|string',
-            'month'         => 'nullable|string',
-            'region'        => 'nullable|string',
-            'accommodation' => 'nullable|string',
-            'origin'        => 'nullable|string',
-            'experience'    => 'nullable|string',
+            'mood'                       => 'required|string|max:100',
+            'budget'                     => 'required|string|max:50',
+            'duration'                   => 'required|string|max:50',
+            'companion'                  => 'required|string|max:50',
+            'month'                      => 'nullable|string|max:20',
+            'region'                     => 'nullable|string|max:50',
+            'accommodation'              => 'nullable|string|max:50',
+            'origin'                     => 'nullable|string|max:100',
+            'experience'                 => 'nullable|string|max:50',
+            'excluded_destinations'      => 'nullable|array|max:200',
+            'excluded_destinations.*'    => 'string|max:100',
+            'excluded_countries'         => 'nullable|array|max:200',
+            'excluded_countries.*'       => 'string|max:100',
         ]);
 
         try {
-            $v = $validated;
-
-            $durationLabel = match ($v['duration']) {
-                'weekend'   => 'a long weekend (3-4 days)',
-                'week'      => 'one week (7 days)',
-                'two_weeks' => 'two weeks (10-14 days)',
-                'month'     => 'one month or more',
-                'flexible'  => 'a flexible open-ended trip',
-                default     => $v['duration'],
-            };
-
-            $budgetLabel = match ($v['budget']) {
-                'backpacker' => 'backpacker budget (under 500 USD total)',
-                'budget'     => 'budget-friendly (500-1,500 USD)',
-                'mid'        => 'mid-range (1,500-4,000 USD)',
-                'premium'    => 'premium (4,000-8,000 USD)',
-                'luxury'     => 'luxury (8,000 USD+)',
-                default      => $v['budget'],
-            };
-
-            $companionLabel = match ($v['companion']) {
-                'solo'          => 'solo traveller',
-                'couple'        => 'couple',
-                'family_young'  => 'family with young children',
-                'family_teens'  => 'family with teenagers',
-                'friends_small' => 'small group of friends (2-4)',
-                'friends_large' => 'large group of friends (5+)',
-                'business'      => 'business traveller',
-                default         => $v['companion'],
-            };
-
-            $extras = [];
-            if (!empty($v['month']))                                  $extras[] = "departing in {$v['month']}";
-            if (!empty($v['region']) && $v['region'] !== 'any')       $extras[] = "preferred region: {$v['region']}";
-            if (!empty($v['accommodation']) && $v['accommodation'] !== 'any') $extras[] = "accommodation style: {$v['accommodation']}";
-            if (!empty($v['origin']))                                 $extras[] = "flying from {$v['origin']}";
-            if (!empty($v['experience']))                             $extras[] = "traveller experience level: {$v['experience']}";
-            $extraStr = count($extras) ? ' Additional details: ' . implode(', ', $extras) . '.' : '';
-
-            $systemPrompt = 'You are an expert travel advisor with deep knowledge of global destinations, flights, visa rules, and costs. You MUST respond with a valid JSON array only — no markdown, no backticks, no explanation. The array must contain exactly 5 destination objects each from a DIFFERENT country. Each object must have exactly these keys: destination, country, description, estimated_cost, best_time_to_visit, top_activities, travel_tip, visa_info, flight_info. ALL values must be strings. estimated_cost must include currency e.g. "1,200 USD". top_activities must be a comma-separated string. visa_info should be short e.g. "Visa on arrival" or "No visa required". flight_info should mention approx flight time and major hub e.g. "~9h via Dubai (Emirates)".';
-
-            $userPrompt = "Recommend 5 travel destinations from 5 different countries for a {$companionLabel} in the mood for {$v['mood']} travel, with a {$budgetLabel} budget, for {$durationLabel}.{$extraStr} Prioritise well-suited, realistic, and currently popular destinations. Return ONLY a JSON array of 5 objects.";
-
-            $apiKey  = env('OPENAI_API_KEY');
-            $baseUrl = rtrim(env('OPENAI_URL', 'https://integrate.api.nvidia.com/v1'), '/');
+            $apiKey = config('services.groq.key') ?: env('GROQ_API_KEY') ?: getenv('GROQ_API_KEY');
 
             if (empty($apiKey)) {
-                throw new \RuntimeException('OPENAI_API_KEY is not set in .env');
+                throw new \RuntimeException('GROQ_API_KEY is not set.');
             }
 
-            $body = json_encode([
-                'model'       => 'meta/llama3-70b-instruct',
-                'messages'    => [
-                    ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user',   'content' => $userPrompt],
-                ],
-                'temperature' => 0.9,
-                'max_tokens'  => 2000,
-            ]);
+            $result = $this->callGroqWithRetry($validated, $apiKey);
 
-            $ch = curl_init("{$baseUrl}/chat/completions");
-
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => $body,
-                CURLOPT_HTTPHEADER     => [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                    "Authorization: Bearer {$apiKey}",
-                ],
-                CURLOPT_TIMEOUT        => 60,
-                CURLOPT_CONNECTTIMEOUT => 15,
-                CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
-                CURLOPT_TCP_KEEPALIVE  => 1,
-                CURLOPT_TCP_KEEPIDLE   => 30,
-                CURLOPT_TCP_KEEPINTVL  => 15,
-                CURLOPT_SSL_VERIFYPEER => true,
-                CURLOPT_SSL_VERIFYHOST => 2,
-            ]);
-
-            $responseBody = curl_exec($ch);
-            $curlError    = curl_error($ch);
-            $httpStatus   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($responseBody === false) {
-                throw new \RuntimeException("cURL error: {$curlError}");
-            }
-
-            if ($httpStatus >= 400) {
-                Log::error('NVIDIA API error', ['status' => $httpStatus, 'body' => $responseBody]);
-                throw new \RuntimeException("NVIDIA API error {$httpStatus}: {$responseBody}");
-            }
-
-            $decoded = json_decode($responseBody, true);
-            $text    = $decoded['choices'][0]['message']['content'] ?? null;
-
-            if (!$text) {
-                throw new \RuntimeException('Empty response from AI');
-            }
-
-            $clean = preg_replace('/^```(?:json)?\s*|\s*```$/s', '', trim($text));
-            $clean = preg_replace('/("estimated_cost"\s*:\s*)(\d{1,3}(?:,\d{3})+)/', '$1"$2"', $clean);
-
-            $result = json_decode($clean, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                preg_match('/(\[.*\]|\{.*\})/s', $clean, $matches);
-                if (!empty($matches[1])) {
-                    $result = json_decode($matches[1], true);
-                }
-
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    Log::error('AI returned invalid JSON', [
-                        'text'  => $text,
-                        'clean' => $clean,
-                        'error' => json_last_error_msg(),
-                    ]);
-                    throw new \RuntimeException('AI returned invalid JSON: ' . substr($text, 0, 200));
-                }
-            }
-
-            if (!is_array($result) || isset($result['destination'])) {
-                $result = [$result];
-            }
-
-            foreach ($result as $item) {
-                $required = ['destination', 'country', 'description', 'estimated_cost', 'best_time_to_visit', 'top_activities', 'travel_tip', 'visa_info', 'flight_info'];
-                foreach ($required as $field) {
-                    if (!isset($item[$field])) {
-                        Log::warning('Missing field in AI response', ['field' => $field, 'item' => $item]);
-                    }
-                }
-            }
-
-            return response()->json([
-                'success' => true,
-                'data'    => $result,
-            ]);
+            return response()->json(['success' => true, 'data' => $result]);
 
         } catch (\Throwable $e) {
             Log::error('AiSuggestionController failed', [
@@ -173,10 +92,216 @@ class AiSuggestionController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => config('app.debug')
-                    ? $e->getMessage()
-                    : 'Could not generate a suggestion right now. Please try again.',
+                'message' => config('app.debug') ? $e->getMessage() : 'Could not generate suggestions right now. Please try again.',
             ], 500);
         }
+    }
+
+    private function callGroqWithRetry(array $p, string $apiKey): array
+    {
+        $norm            = fn($s) => strtolower(trim(preg_replace('/\s+/', ' ', $s)));
+        $seenDests       = array_map($norm, $p['excluded_destinations'] ?? []);
+        $seenCountries   = array_map($norm, $p['excluded_countries']    ?? []);
+
+        $accumulated     = [];
+        $attemptExclDests     = $seenDests;
+        $attemptExclCountries = $seenCountries;
+
+        for ($try = 1; $try <= self::MAX_TRIES; $try++) {
+            $params = array_merge($p, [
+                'excluded_destinations' => $attemptExclDests,
+                'excluded_countries'    => $attemptExclCountries,
+            ]);
+
+            $batch = $this->callGroq($params, $apiKey);
+
+            foreach ($batch as $dest) {
+                $dNorm = $norm($dest['destination'] ?? '');
+                $cNorm = $norm($dest['country']     ?? '');
+
+                if (in_array($dNorm, $attemptExclDests,     true)) continue;
+                if (in_array($cNorm, $attemptExclCountries, true)) continue;
+
+                $accumulated[]          = $dest;
+                $attemptExclDests[]     = $dNorm;
+                $attemptExclCountries[] = $cNorm;
+            }
+
+            if (count($accumulated) >= 5) {
+                return array_slice($accumulated, 0, 5);
+            }
+        }
+
+        if (empty($accumulated)) {
+            throw new \RuntimeException('Could not generate non-duplicate destinations after ' . self::MAX_TRIES . ' attempts.');
+        }
+
+        return array_slice($accumulated, 0, 5);
+    }
+
+    private function callGroq(array $p, string $apiKey): array
+    {
+        [$system, $user] = $this->buildPrompts($p);
+
+        $payload = [
+            'model'       => self::MODEL,
+            'max_tokens'  => self::MAX_TOKENS,
+            'temperature' => 0.9,
+            'tools'       => [self::TOOL],
+            'tool_choice' => ['type' => 'function', 'function' => ['name' => 'suggest_destinations']],
+            'messages'    => [
+                ['role' => 'system', 'content' => $system],
+                ['role' => 'user',   'content' => $user],
+            ],
+        ];
+
+        $ch = curl_init(self::API_URL);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                "Authorization: Bearer {$apiKey}",
+            ],
+            CURLOPT_TIMEOUT        => 60,
+            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+        ]);
+
+        $body   = curl_exec($ch);
+        $err    = curl_error($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($body === false) throw new \RuntimeException("cURL error: {$err}");
+        if ($status === 401) throw new \RuntimeException('Groq authentication failed — check GROQ_API_KEY.');
+        if ($status >= 400) {
+            Log::error('Groq API error', ['status' => $status, 'body' => $body]);
+            throw new \RuntimeException("Groq API error {$status}: " . substr($body, 0, 300));
+        }
+
+        $decoded  = json_decode($body, true);
+        $toolCall = $decoded['choices'][0]['message']['tool_calls'][0] ?? null;
+
+        if (!$toolCall) {
+            Log::error('Groq did not return tool_calls', ['response' => $decoded]);
+            throw new \RuntimeException('Unexpected response from Groq.');
+        }
+
+        $input = json_decode($toolCall['function']['arguments'] ?? '{}', true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || empty($input['destinations'])) {
+            Log::error('Groq tool arguments invalid', ['raw' => $toolCall['function']['arguments'] ?? '', 'error' => json_last_error_msg()]);
+            throw new \RuntimeException('Groq returned malformed tool arguments.');
+        }
+
+        return array_values(array_map([$this, 'normalise'], $input['destinations']));
+    }
+
+    private function buildPrompts(array $p): array
+    {
+        $month = now()->format('F');
+        $year  = now()->year;
+
+        $duration = match ($p['duration']) {
+            'weekend'   => 'a long weekend (3–4 days)',
+            'week'      => 'one week (7 days)',
+            'two_weeks' => 'two weeks (10–14 days)',
+            'month'     => 'one month or longer',
+            'flexible'  => 'a flexible open-ended trip',
+            default     => $p['duration'],
+        };
+
+        $budget = match ($p['budget']) {
+            'backpacker' => 'backpacker (under $500 USD total)',
+            'budget'     => 'budget-friendly ($500–$1,500 USD)',
+            'mid'        => 'mid-range ($1,500–$4,000 USD)',
+            'premium'    => 'premium ($4,000–$8,000 USD)',
+            'luxury'     => 'luxury ($8,000+ USD)',
+            default      => $p['budget'],
+        };
+
+        $companion = match ($p['companion']) {
+            'solo'          => 'solo traveller',
+            'couple'        => 'couple',
+            'family_young'  => 'family with young children',
+            'family_teens'  => 'family with teenagers',
+            'friends_small' => 'small group of friends (2–4)',
+            'friends_large' => 'large group of friends (5+)',
+            'business'      => 'business traveller',
+            default         => $p['companion'],
+        };
+
+        $extras = [];
+        if (!empty($p['month']))                                           $extras[] = "departure month: {$p['month']}";
+        if (!empty($p['region'])        && $p['region']        !== 'any') $extras[] = "preferred region: {$p['region']}";
+        if (!empty($p['accommodation']) && $p['accommodation'] !== 'any') $extras[] = "accommodation: {$p['accommodation']}";
+        if (!empty($p['origin']))                                          $extras[] = "flying from: {$p['origin']}";
+        if (!empty($p['experience']))                                      $extras[] = "experience level: {$p['experience']}";
+        $extrasStr = $extras ? "\nContext: " . implode(' | ', $extras) . '.' : '';
+
+        $excludedStr = '';
+        $exclDests     = array_filter($p['excluded_destinations'] ?? []);
+        $exclCountries = array_filter($p['excluded_countries']    ?? []);
+
+        if (!empty($exclDests) || !empty($exclCountries)) {
+            $excludedStr = "\n\n### STRICT EXCLUSION LIST — violating this is an error ###";
+            if (!empty($exclDests)) {
+                $safe = array_map(fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d), $exclDests);
+                $excludedStr .= "\nDo NOT suggest these destinations: " . implode(', ', $safe) . '.';
+            }
+            if (!empty($exclCountries)) {
+                $safe = array_map(fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d), $exclCountries);
+                $excludedStr .= "\nDo NOT suggest destinations in these countries: " . implode(', ', $safe) . '.';
+            }
+            $excludedStr .= "\nEvery single one of the 5 destinations must be from a country NOT in the above list.";
+        }
+
+        $system = <<<SYSTEM
+You are a senior travel consultant with accurate knowledge of global destinations, visa rules, realistic costs, and travel conditions as of {$year}.
+
+Today is {$month} {$year}. Use this to:
+- Set is_good_right_now=true only when weather and season are genuinely good this month or next
+- Give specific best_months arrays, not vague seasons
+- Tailor visa and flight info to the origin country when provided
+
+Cost rules:
+- cost_min_usd and cost_max_usd are TOTAL per-person trip costs including return flights, accommodation, meals and activities
+- Must be realistic for the budget tier and duration
+- Example: budget traveller, 1 week, Southeast Asia → 700–1200 USD
+
+Diversity rule: 5 destinations, 5 completely different countries, spread across different continents.
+SYSTEM;
+
+        $user = "Recommend destinations for a {$companion} wanting {$p['mood']} travel."
+            . "\nBudget: {$budget}"
+            . "\nDuration: {$duration}"
+            . $extrasStr
+            . $excludedStr;
+
+        return [$system, $user];
+    }
+
+    private function normalise(array $d): array
+    {
+        return [
+            'destination'        => $d['destination']  ?? '',
+            'country'            => $d['country']       ?? '',
+            'region'             => $d['region']        ?? '',
+            'description'        => $d['description']   ?? '',
+            'estimated_cost'     => '$' . number_format($d['cost_min_usd'] ?? 0)
+                                  . ' – $' . number_format($d['cost_max_usd'] ?? 0)
+                                  . ' USD (' . ($d['cost_includes'] ?? 'flights, hotel, food') . ')',
+            'best_time_to_visit' => implode(', ', $d['best_months']             ?? []),
+            'is_good_right_now'  => (bool) ($d['is_good_right_now']             ?? false),
+            'top_activities'     => implode(', ', (array) ($d['top_activities'] ?? [])),
+            'travel_tip'         => $d['travel_tip']    ?? '',
+            'visa_info'          => $d['visa_info']     ?? '',
+            'flight_info'        => $d['flight_info']   ?? '',
+            'match_reason'       => $d['match_reason']  ?? '',
+        ];
     }
 }
