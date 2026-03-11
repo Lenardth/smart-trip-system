@@ -7,9 +7,8 @@ on:
 
 env:
   PHP_VERSION: '8.4'
-  NODE_VERSION: '18'
+  NODE_VERSION: '22'   # ← removed the duplicate '18' line
 
-  NODE_VERSION: '22'
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
