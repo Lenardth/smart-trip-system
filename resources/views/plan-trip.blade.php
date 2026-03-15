@@ -24,8 +24,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-
-    @vite(['resources/css/pages/plan-trip.css', 'resources/js/pages/plan-trip.js'])
+    @vite([
+        'resources/css/app.css',
+        'resources/css/pages/base.css',
+        'resources/css/pages/plan-trip.css',
+        'resources/js/pages/plan-trip.js'
+    ])
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 

@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/landing.css') }}">
-     @vite(['resources/css/app.css', 'resources/css/pages/landing.css', 'resources/js/pages/landing.js'])
+    @vite([
+        'resources/css/app.css',
+        'resources/css/pages/base.css',
+        'resources/css/pages/landing.css',
+        'resources/js/pages/landing.js'
+    ])
     <style>
         #originInput {
             width: 100%;
