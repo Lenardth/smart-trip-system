@@ -48,7 +48,6 @@ Route::prefix('api/discover')->group(function () {
     Route::get('/hidden-gems',  [DiscoverController::class, 'hiddenGems'])->name('api.discover.hidden-gems');
     Route::get('/debug',        [DiscoverController::class, 'debug'])->name('api.discover.debug');
 });
-// ─────────────────────────────────────────────────────────────────────────────
 
 Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations');
 Route::get('/destinations/compare', [DestinationController::class, 'compare'])->name('destinations.compare');
@@ -156,6 +155,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/trips/upcoming', [TripController::class, 'upcoming']);
 
         Route::post('/profile/update', [ProfileController::class, 'update']);
+
+        // Wishlist count + saved IDs (used by Discover page badge)
+        Route::get('/wishlist/count', [WishlistController::class, 'count']);
     });
 
 });

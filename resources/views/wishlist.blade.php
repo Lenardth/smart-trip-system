@@ -7,38 +7,52 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-       @vite([
+    @vite([
         'resources/css/app.css',
         'resources/css/pages/base.css',
-        'resources/css/pages/landing.css',
-        'resources/js/pages/landing.js'
+        'resources/css/pages/wishlist.css',
+        'resources/js/pages/base.js',
+        'resources/js/pages/wishlist.js'
     ])
+</head>
+<body>
 
 <header class="main-header">
-    <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-    <span class="logo-text">Smart Booking</span>
+    <a href="/" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
+        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
+        <span class="logo-text">Smart Booking</span>
+    </a>
+    @auth
     <div class="user-display">
         <i class="fas fa-user-circle"></i>
         <span>{{ Auth::user()->name }}</span>
     </div>
+    @endauth
 </header>
-
 
 <nav class="nav-container">
     <a href="/"><i class="fas fa-home"></i> Home</a>
+    @auth
     <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    @endauth
     <a href="/plan-trip"><i class="fas fa-route"></i> Plan Trip</a>
     <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
     <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
     <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
     <a href="/community"><i class="fas fa-users"></i> Community</a>
-    <a href="/wishlist" class="active"><i class="fas fa-heart"></i> Wishlist</a>
-    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+    @auth
+    <a href="/wishlist" class="active"><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
+    @endauth
+    @guest
+    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+    @endguest
+    @auth
+    <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </form>
+    @endauth
 </nav>
-
 
 <section class="page-hero">
     <div>
@@ -50,7 +64,6 @@
 <div class="wishlist-container">
 
     @if($wishlistItems->count() > 0)
-
 
     <div class="stats-card">
         <div class="stat-item">
@@ -71,11 +84,10 @@
         </div>
     </div>
 
-
     <div class="filter-section">
         <h3><i class="fas fa-filter"></i> Filter Destinations</h3>
         <div class="filter-controls">
-            <select id="filterContinent" onchange="filterWishlist()">
+            <select id="filterContinent">
                 <option value="all">All Continents</option>
                 <option value="Asia">Asia</option>
                 <option value="Europe">Europe</option>
@@ -84,20 +96,19 @@
                 <option value="South America">South America</option>
                 <option value="Oceania">Oceania</option>
             </select>
-            <select id="filterCategory" onchange="filterWishlist()">
+            <select id="filterCategory">
                 <option value="all">All Categories</option>
                 <option value="beach">Beach</option>
                 <option value="mountain">Mountain</option>
                 <option value="city">City</option>
                 <option value="adventure">Adventure</option>
             </select>
-            <input type="search" id="searchWishlist" placeholder="Search destinations..." onkeyup="filterWishlist()">
-            <button class="clear-all-btn" onclick="clearAllWishlist()">
+            <input type="search" id="searchWishlist" placeholder="Search destinations...">
+            <button class="clear-all-btn" onclick="Wishlist.clearAll()">
                 <i class="fas fa-trash-alt"></i> Clear All
             </button>
         </div>
     </div>
-
 
     <div class="wishlist-grid" id="wishlistGrid">
         @foreach($wishlistItems as $item)
@@ -108,7 +119,7 @@
 
             <div class="wishlist-image" style="background-image: url('{{ $item->destination->image ?? 'https://via.placeholder.com/400x300' }}')">
                 <span class="wishlist-badge">{{ $item->destination->category }}</span>
-                <button class="remove-btn" onclick="removeFromWishlist({{ $item->destination->id }}, '{{ $item->destination->name }}')">
+                <button class="remove-btn" onclick="Wishlist.remove({{ $item->destination->id }}, '{{ $item->destination->name }}')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -127,7 +138,7 @@
                         ${{ number_format($item->destination->estimated_cost, 0) }}
                         <span>/ person</span>
                     </div>
-                    <button class="plan-trip-btn" onclick="planTrip({{ $item->destination->id }}, '{{ $item->destination->name }}')">
+                    <button class="plan-trip-btn" onclick="Wishlist.planTrip({{ $item->destination->id }}, '{{ $item->destination->name }}')">
                         <i class="fas fa-route"></i> Plan Trip
                     </button>
                 </div>
@@ -137,7 +148,6 @@
     </div>
 
     @else
-
 
     <div class="empty-state">
         <i class="fas fa-heart-broken"></i>
@@ -152,16 +162,14 @@
 
 </div>
 
-
 <footer class="footer">
-    <p>&copy; 2024 Smart Booking. All rights reserved.</p>
+    <p>&copy; {{ date('Y') }} Smart Booking. All rights reserved.</p>
     <div>
         <a href="/privacy">Privacy Policy</a>
         <a href="/terms">Terms of Service</a>
         <a href="/contact">Contact Us</a>
     </div>
 </footer>
-
 
 </body>
 </html>

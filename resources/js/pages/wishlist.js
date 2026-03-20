@@ -1,30 +1,26 @@
-// Filter wishlist cards on the client
-function filterWishlist() {
-    const continent = document.getElementById('filterContinent').value;
-    const category = document.getElementById('filterCategory').value;
-    const search = document.getElementById('searchWishlist').value.toLowerCase();
+const Wishlist = (() => {
 
-    const cards = document.querySelectorAll('.wishlist-card');
-    let visibleCount = 0;
+    const CSRF = () => document.querySelector('meta[name="csrf-token"]').content;
 
-    cards.forEach(card => {
-        const cardContinent = card.dataset.continent;
-        const cardCategory = card.dataset.category;
-        const cardName = card.dataset.name;
+    /* ── Model ── */
 
-        const matchContinent = continent === 'all' || cardContinent === continent;
-        const matchCategory = category === 'all' || cardCategory === category;
-        const matchSearch = search === '' || cardName.includes(search);
+    function apiRemove(destinationId) {
+        return fetch(`/wishlist/${destinationId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': CSRF(),
+                'Content-Type': 'application/json'
+            }
+        }).then(r => r.json());
+    }
 
-        if (matchContinent && matchCategory && matchSearch) {
-            card.style.display = 'block';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
+    /* ── View ── */
 
-    if (visibleCount === 0 && (continent !== 'all' || category !== 'all' || search !== '')) {
+    function setCardVisible(card, visible) {
+        card.style.display = visible ? 'block' : 'none';
+    }
+
+    function showNoResults() {
         Swal.fire({
             title: 'No Results',
             text: 'No destinations match your filters',
@@ -32,47 +28,56 @@ function filterWishlist() {
             confirmButtonColor: '#c9a96e'
         });
     }
-}
 
-// Remove a single destination from wishlist
-async function removeFromWishlist(destinationId, destinationName) {
-    const result = await Swal.fire({
-        title: 'Remove from Wishlist?',
-        text: `Remove ${destinationName} from your wishlist?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e74c3c',
-        cancelButtonColor: '#6b5b4f',
-        confirmButtonText: 'Yes, remove it',
-        cancelButtonText: 'Cancel'
-    });
+    /* ── Controller ── */
 
-    if (result.isConfirmed) {
+    function filter() {
+        const continent = document.getElementById('filterContinent').value;
+        const category  = document.getElementById('filterCategory').value;
+        const search    = document.getElementById('searchWishlist').value.toLowerCase();
+
+        let visibleCount = 0;
+
+        document.querySelectorAll('.wishlist-card').forEach(card => {
+            const visible =
+                (continent === 'all' || card.dataset.continent === continent) &&
+                (category  === 'all' || card.dataset.category  === category)  &&
+                (search    === ''    || card.dataset.name.includes(search));
+
+            setCardVisible(card, visible);
+            if (visible) visibleCount++;
+        });
+
+        const filtersActive = continent !== 'all' || category !== 'all' || search !== '';
+        if (visibleCount === 0 && filtersActive) showNoResults();
+    }
+
+    async function remove(destinationId, destinationName) {
+        const result = await Swal.fire({
+            title: 'Remove from Wishlist?',
+            text: `Remove ${destinationName} from your wishlist?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#6b5b4f',
+            confirmButtonText: 'Yes, remove it',
+            cancelButtonText: 'Cancel'
+        });
+
+        if (!result.isConfirmed) return;
+
         try {
-            const response = await fetch(`/wishlist/${destinationId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Content-Type': 'application/json'
-                }
+            const data = await apiRemove(destinationId);
+            if (!data.success) throw new Error(data.message);
+            await Swal.fire({
+                title: 'Removed!',
+                text: data.message,
+                icon: 'success',
+                confirmButtonColor: '#c9a96e',
+                timer: 2000
             });
-
-            const data = await response.json();
-
-            if (data.success) {
-                Swal.fire({
-                    title: 'Removed!',
-                    text: data.message,
-                    icon: 'success',
-                    confirmButtonColor: '#c9a96e',
-                    timer: 2000
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                throw new Error(data.message);
-            }
-        } catch (error) {
+            window.location.reload();
+        } catch {
             Swal.fire({
                 title: 'Error',
                 text: 'Failed to remove from wishlist',
@@ -81,46 +86,81 @@ async function removeFromWishlist(destinationId, destinationName) {
             });
         }
     }
-}
 
-// Clear-all placeholder (kept client-side only)
-async function clearAllWishlist() {
-    const result = await Swal.fire({
-        title: 'Clear All?',
-        text: 'This will remove all destinations from your wishlist',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e74c3c',
-        cancelButtonColor: '#6b5b4f',
-        confirmButtonText: 'Yes, clear all',
-        cancelButtonText: 'Cancel'
-    });
+    async function clearAll() {
+        const result = await Swal.fire({
+            title: 'Clear All?',
+            text: 'This will remove all destinations from your wishlist',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#6b5b4f',
+            confirmButtonText: 'Yes, clear all',
+            cancelButtonText: 'Cancel'
+        });
 
-    if (result.isConfirmed) {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Feature Coming Soon',
+                text: 'Bulk remove functionality will be available soon',
+                icon: 'info',
+                confirmButtonColor: '#c9a96e'
+            });
+        }
+    }
+
+    function logout() {
         Swal.fire({
-            title: 'Feature Coming Soon',
-            text: 'Bulk remove functionality will be available soon',
-            icon: 'info',
-            confirmButtonColor: '#c9a96e'
+            title: 'Logout',
+            text: 'Are you sure you want to logout?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#c9a96e',
+            cancelButtonColor: '#f44336',
+            confirmButtonText: 'Yes, logout',
+            cancelButtonText: 'Cancel'
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            const form  = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/logout';
+            const csrf  = document.createElement('input');
+            csrf.type   = 'hidden';
+            csrf.name   = '_token';
+            csrf.value  = CSRF();
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
         });
     }
-}
 
-// Plan a trip based on a wishlist destination
-function planTrip(destinationId, destinationName) {
-    Swal.fire({
-        title: 'Plan Your Trip',
-        text: `Ready to plan your trip to ${destinationName}?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#c9a96e',
-        cancelButtonColor: '#6b5b4f',
-        confirmButtonText: "Yes, let's go!",
-        cancelButtonText: 'Not yet'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = `/plan-trip?destination=${destinationId}`;
-        }
-    });
-}
+    function planTrip(destinationId, destinationName) {
+        Swal.fire({
+            title: 'Plan Your Trip',
+            text: `Ready to plan your trip to ${destinationName}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#c9a96e',
+            cancelButtonColor: '#6b5b4f',
+            confirmButtonText: "Yes, let's go!",
+            cancelButtonText: 'Not yet'
+        }).then(result => {
+            if (result.isConfirmed) {
+                window.location.href = `/plan-trip?destination=${destinationId}`;
+            }
+        });
+    }
 
+    /* ── Boot ── */
+
+    function init() {
+        document.getElementById('filterContinent')?.addEventListener('change', filter);
+        document.getElementById('filterCategory')?.addEventListener('change', filter);
+        document.getElementById('searchWishlist')?.addEventListener('input', filter);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    return { filter, remove, clearAll, planTrip, logout };
+
+})();

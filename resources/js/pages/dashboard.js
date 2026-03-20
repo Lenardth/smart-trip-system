@@ -462,10 +462,24 @@
     }
 
     function loadUserStatistics() {
-        fetch('/api/user/statistics')
+        var statsPromise = fetch('/api/user/statistics')
             .then(function (r) { return r.json(); })
-            .then(function (data) { updateCounts(data); })
-            .catch(function () { updateCounts({}); });
+            .catch(function () { return {}; });
+
+        var wishlistPromise = fetch('/api/wishlist/count', {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(function (r) { return r.json(); })
+            .catch(function () { return { count: 0 }; });
+
+        Promise.all([statsPromise, wishlistPromise])
+            .then(function (results) {
+                var data = results[0] || {};
+                data.saved = (results[1] && results[1].count !== undefined)
+                    ? results[1].count
+                    : (data.saved || 0);
+                updateCounts(data);
+            });
     }
 
     function updateCounts(data) {

@@ -25,14 +25,7 @@ const Discover = (() => {
 
     /* ── Utilities ── */
 
-    function apiFetch(url) {
-        return fetch(url, {
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
-        }).then(r => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            return r.json();
-        });
-    }
+
 
     function showToast(msg, icon = 'fa-info-circle') {
         const t = document.getElementById('toast');
@@ -51,6 +44,71 @@ const Discover = (() => {
     }
 
     /* ── Render destinations ── */
+
+    /* ── Wishlist Model ── */
+
+    let wishlistedIds = new Set();
+
+    function apiFetch(url, options = {}) {
+        return fetch(url, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            ...options
+        }).then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        });
+    }
+
+    function loadWishlistCount() {
+        apiFetch('/api/wishlist/count')
+            .then(data => {
+                wishlistedIds = new Set(data.ids ?? []);
+                updateBadge(data.count ?? wishlistedIds.size);
+            })
+            .catch(() => {});
+    }
+
+    function updateBadge(count) {
+        const badge = document.getElementById('wishlistCount');
+        if (badge) badge.textContent = count;
+    }
+
+    function toggleWishlist(destinationId, btn) {
+        const inList = wishlistedIds.has(destinationId);
+        const icon = btn.querySelector('i');
+
+        if (inList) {
+            apiFetch(`/wishlist/${destinationId}`, { method: 'DELETE' })
+                .then(() => {
+                    wishlistedIds.delete(destinationId);
+                    updateBadge(wishlistedIds.size);
+                    icon.className = 'far fa-heart';
+                    btn.title = 'Save to Wishlist';
+                    showToast('Removed from wishlist', 'fa-heart-broken');
+                })
+                .catch(() => showToast('Could not remove', 'fa-exclamation-circle'));
+        } else {
+            apiFetch('/wishlist', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF
+                },
+                body: JSON.stringify({ destination_id: destinationId })
+            })
+                .then(() => {
+                    wishlistedIds.add(destinationId);
+                    updateBadge(wishlistedIds.size);
+                    icon.className = 'fas fa-heart';
+                    btn.title = 'Remove from Wishlist';
+                    showToast('Saved to Wishlist!', 'fa-heart');
+                })
+                .catch(() => showToast('Could not save', 'fa-exclamation-circle'));
+        }
+    }
+
+    /* ── View ── */
 
     function renderDestinations(destinations) {
         const grid = document.getElementById('destinationsGrid');
@@ -79,11 +137,17 @@ const Discover = (() => {
             const imgStyle = d.image_url
                 ? `background-image:url('${d.image_url}')`
                 : '';
+            const inList  = wishlistedIds.has(d.id);
+            const heartCls = inList ? 'fas fa-heart' : 'far fa-heart';
+            const heartTip = inList ? 'Remove from Wishlist' : 'Save to Wishlist';
 
             return `
                 <div class="destination-card" data-id="${d.id}">
                     <div class="destination-image" style="${imgStyle}">
                         ${badgeHtml}
+                        <button class="wishlist-toggle" data-id="${d.id}" title="${heartTip}">
+                            <i class="${heartCls}"></i>
+                        </button>
                     </div>
                     <div class="destination-content">
                         <h3>${d.name}${d.country ? ', ' + d.country : ''}</h3>
@@ -100,6 +164,14 @@ const Discover = (() => {
                     </div>
                 </div>`;
         }).join('');
+
+        grid.querySelectorAll('.wishlist-toggle').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWishlist(Number(btn.dataset.id), btn);
+            });
+        });
     }
 
     function skeletonGrid(count = 6) {
@@ -226,6 +298,7 @@ const Discover = (() => {
     /* ── Boot ── */
 
     function init() {
+        loadWishlistCount();
         initTabs();
         initRegions();
         initSearch();

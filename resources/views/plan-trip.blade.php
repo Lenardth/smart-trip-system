@@ -1,58 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-    /* Emergency fix - only for this page */
-    html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
-    }
-
-    /* Remove any possible container borders */
-    body > *:first-child {
-        margin-top: 0 !important;
-    }
-
-    body > *:last-child {
-        margin-bottom: 0 !important;
-    }
-</style>
-
     <meta charset="UTF-8">
     <title>Plan Trip — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     @vite([
         'resources/css/app.css',
         'resources/css/pages/base.css',
         'resources/css/pages/plan-trip.css',
+        'resources/js/pages/base.js',
         'resources/js/pages/plan-trip.js'
     ])
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
 <header class="main-header">
-    <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-    <span class="logo-text">Smart Booking</span>
+    <a href="/" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
+        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
+        <span class="logo-text">Smart Booking</span>
+    </a>
+    @auth
+    <div class="user-display">
+        <i class="fas fa-user-circle"></i>
+        <span>{{ Auth::user()->name }}</span>
+    </div>
+    @endauth
 </header>
 
-<nav>
-    <div class="nav-container">
-        <a href="/"><i class="fas fa-home"></i> Home</a>
-        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="/plan-trip" class="active"><i class="fas fa-route"></i> Plan Trip</a>
-        <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
-        <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
-        <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
-        <a href="/community"><i class="fas fa-users"></i> Community</a>
-        <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
-    </div>
+<nav class="nav-container">
+    <a href="/"><i class="fas fa-home"></i> Home</a>
+    @auth
+    <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    @endauth
+    <a href="/plan-trip" class="active"><i class="fas fa-route"></i> Plan Trip</a>
+    <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
+    <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
+    <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
+    <a href="/community"><i class="fas fa-users"></i> Community</a>
+    @auth
+    <a href="/wishlist"><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
+    @endauth
+    @guest
+    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+    @endguest
+    @auth
+    <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </form>
+    @endauth
 </nav>
 
 <section class="page-hero">
@@ -71,7 +71,6 @@
         <div class="step" id="si4"><div class="step-circle">4</div><div class="step-label">Results</div></div>
     </div>
 
-    <!-- Step 1 -->
     <div class="planner-card" id="step1">
         <h3><i class="fas fa-heart" style="color:var(--gold);margin-right:8px;"></i>How are you feeling?</h3>
         <p style="color:var(--text-muted);text-align:left;margin-top:0;">Choose the mood that best describes what kind of trip you're looking for.</p>
@@ -86,7 +85,6 @@
         <div class="btn-row"><button class="primary-button" onclick="goStep(2)">Next <i class="fas fa-arrow-right"></i></button></div>
     </div>
 
-    <!-- Step 2 -->
     <div class="planner-card" id="step2" style="display:none;">
         <h3><i class="fas fa-suitcase" style="color:var(--gold);margin-right:8px;"></i>Trip Details</h3>
         <div class="form-row">
@@ -141,7 +139,6 @@
         </div>
     </div>
 
-    <!-- Step 3 -->
     <div class="planner-card" id="step3" style="display:none;">
         <h3><i class="fas fa-sliders-h" style="color:var(--gold);margin-right:8px;"></i>Preferences</h3>
         <div class="form-row">
@@ -238,19 +235,13 @@
 </div>
 
 <footer class="footer">
-    <div style="max-width:1200px;margin:0 auto;">
-        <p>© 2026 Smart Trip Planner | Laravel Web Application Project</p>
-        <div style="margin-top:15px;">
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-laravel"></i></a>
-            <a href="#"><i class="fas fa-graduation-cap"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
+    <p>&copy; {{ date('Y') }} Smart Booking. All rights reserved.</p>
+    <div>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="/contact">Contact Us</a>
     </div>
 </footer>
-
-
 
 </body>
 </html>
