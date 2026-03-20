@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/css/pages/community.css',
                 'resources/css/pages/plan-trip.css',
                 'resources/js/app.js',
+                'resources/js/pages/base.js',
                 'resources/js/pages/login.js',
                 'resources/js/pages/landing.js',
                 'resources/js/pages/dashboard.js',
