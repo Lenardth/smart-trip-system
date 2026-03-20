@@ -10,6 +10,7 @@
         'resources/css/app.css',
         'resources/css/pages/base.css',
         'resources/css/pages/community.css',
+        'resources/js/pages/base.js',
         'resources/js/pages/community.js'
     ])
 
@@ -22,33 +23,35 @@
         <span class="logo-text">Smart Booking</span>
     </a>
     @auth
-    <div class="header-user">
+    <div class="user-display">
         <i class="fas fa-user-circle"></i>
         <span>{{ Auth::user()->name }}</span>
     </div>
     @endauth
 </header>
 
-<nav>
-    <div class="nav-container">
-        <a href="/" ><i class="fas fa-home"></i> Home</a>
-        <a href="/dashboard" ><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="/plan-trip" ><i class="fas fa-route"></i> Plan Trip</a>
-        <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
-        <a href="/discover" ><i class="fas fa-compass"></i> Discover</a>
-        <a href="/destinations" ><i class="fas fa-map-marked-alt"></i> Destinations</a>
-        <a href="/community" class="active"><i class="fas fa-users"></i> Community</a>
-        <a href="/wishlist" ><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
-        @guest
-        <a href="/login" ><i class="fas fa-sign-in-alt"></i> Login</a>
-        @endguest
-        @auth
-        <form method="POST" action="{{ route('logout') }}" style="display:inline;">
-            @csrf
-            <button type="submit" class="nav-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </form>
-        @endauth
-    </div>
+<nav class="nav-container">
+    <a href="/"><i class="fas fa-home"></i> Home</a>
+    @auth
+    <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    @endauth
+    <a href="/plan-trip"><i class="fas fa-route"></i> Plan Trip</a>
+    <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
+    <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
+    <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
+    <a href="/community" class="active"><i class="fas fa-users"></i> Community</a>
+    @auth
+    <a href="/wishlist"><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
+    @endauth
+    @guest
+    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+    @endguest
+    @auth
+    <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </form>
+    @endauth
 </nav>
 
 

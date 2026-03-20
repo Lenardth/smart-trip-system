@@ -788,13 +788,16 @@
     <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
     <a href="/community"><i class="fas fa-users"></i> Community</a>
     @auth
-    <a href="/wishlist"><i class="fas fa-heart"></i> Wishlist</a>
-    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+    <a href="/wishlist"><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
+    @endauth
+    @guest
+    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+    @endguest
+    @auth
+    <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </form>
-    @else
-    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
     @endauth
 </nav>
 
@@ -1236,5 +1239,20 @@
     });
 </script>
 
+<script>
+(function () {
+    function updateWishlistBadge(count) {
+        document.querySelectorAll('#wishlistCount').forEach(el => {
+            el.textContent = count;
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch('/api/wishlist/count', { headers: { 'Accept': 'application/json' } })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data) updateWishlistBadge(data.count ?? 0); })
+            .catch(() => {});
+    });
+})();
+</script>
 </body>
 </html>
