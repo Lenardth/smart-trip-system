@@ -1,10 +1,4 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Georgia', serif;
-}
-
-s.auth-logo {
+.auth-logo {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -22,9 +16,9 @@ s.auth-logo {
 .auth-logo-text {
     font-size: 24px;
     font-weight: 700;
-    color: #3b1f2b;
+    color: var(--deep);
     font-family: 'Georgia', serif;
-    letter-spacing: 0.5px;
+    letter-spacing: .5px;
 }
 
 .error-message {
@@ -55,7 +49,7 @@ s.auth-logo {
 .input-group label {
     display: block;
     margin-bottom: 6px;
-    color: #3b1f2b;
+    color: var(--deep);
     font-size: 14px;
     font-weight: 600;
 }
@@ -89,15 +83,15 @@ s.auth-logo {
     background: none;
     border: none;
     cursor: pointer;
-    color: #6b5b4f;
+    color: var(--text-muted);
     font-size: 15px;
     padding: 0;
     line-height: 1;
-    transition: color 0.2s;
+    transition: color .2s;
 }
 
 .toggle-password:hover {
-    color: #3b1f2b;
+    color: var(--deep);
 }
 
 .remember-me {
@@ -106,7 +100,7 @@ s.auth-logo {
     gap: 8px;
     margin-bottom: 20px;
     font-size: 14px;
-    color: #3b1f2b;
+    color: var(--deep);
 }
 
 .remember-me input[type="checkbox"] {
@@ -118,9 +112,6 @@ s.auth-logo {
     font-weight: normal;
     cursor: pointer;
 }
-
-
-/* ── Divider ────────────────────────────────────────────────── */
 
 .auth-divider {
     text-align: center;
@@ -135,30 +126,24 @@ s.auth-logo {
     right: 0;
     top: 50%;
     height: 1px;
-    background: #d4c4b0;
+    background: var(--border-soft);
 }
 
 .auth-divider span {
-    background: #fff8f2;
+    background: var(--card-bg);
     padding: 0 15px;
     position: relative;
-    color: #6b5b4f;
+    color: var(--text-muted);
     font-size: 14px;
 }
-
-
-/* ── Auth links ─────────────────────────────────────────────── */
 
 .auth-link {
     display: block;
     margin-top: 10px;
 }
 
-
-/* ── Loading state ──────────────────────────────────────────── */
-
 .auth-btn.loading {
-    opacity: 0.75;
+    opacity: .75;
     cursor: not-allowed;
     pointer-events: none;
 }

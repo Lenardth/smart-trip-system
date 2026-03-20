@@ -6,31 +6,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite(['resources/css/app.css', 'resources/css/pages/community.css', 'resources/js/pages/community.js'])
+    @vite([
+        'resources/css/app.css',
+        'resources/css/pages/base.css',
+        'resources/css/pages/community.css',
+        'resources/js/pages/community.js'
+    ])
+
 </head>
 <body>
 
 <header class="main-header">
-    <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-    <span class="logo-text">Smart Booking</span>
+    <a href="/" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
+        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
+        <span class="logo-text">Smart Booking</span>
+    </a>
+    @auth
+    <div class="header-user">
+        <i class="fas fa-user-circle"></i>
+        <span>{{ Auth::user()->name }}</span>
+    </div>
+    @endauth
 </header>
 
 <nav>
     <div class="nav-container">
-        <a href="/"><i class="fas fa-home"></i> Home</a>
-        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="/plan-trip"><i class="fas fa-route"></i> Plan Trip</a>
+        <a href="/" ><i class="fas fa-home"></i> Home</a>
+        <a href="/dashboard" ><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="/plan-trip" ><i class="fas fa-route"></i> Plan Trip</a>
         <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
-        <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
-        <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
+        <a href="/discover" ><i class="fas fa-compass"></i> Discover</a>
+        <a href="/destinations" ><i class="fas fa-map-marked-alt"></i> Destinations</a>
         <a href="/community" class="active"><i class="fas fa-users"></i> Community</a>
-        <a href="/wishlist" class="wishlist-counter">
-            <i class="fas fa-heart"></i> Wishlist
-            <span class="wishlist-count" id="wishlistCount">0</span>
-        </a>
-        <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="/wishlist" ><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
+        @guest
+        <a href="/login" ><i class="fas fa-sign-in-alt"></i> Login</a>
+        @endguest
+        @auth
+        <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+            @csrf
+            <button type="submit" class="nav-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+        @endauth
     </div>
 </nav>
+
+
+
+
+
 
 <section class="page-hero" style="background:linear-gradient(rgba(20,8,14,.55),rgba(20,8,14,.65)),url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&q=80&fit=crop') center/cover no-repeat;">
     <div>

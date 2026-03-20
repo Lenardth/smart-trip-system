@@ -1,241 +1,7 @@
-:root {
-    --deep: #3b1f2b;
-    --deep-alt: #4d2a3a;
-    --gold: #c9a96e;
-    --gold-hover: #b8955a;
-    --cream: #f5f0eb;
-    --card-bg: #fff8f2;
-    --border: #e2d5c7;
-    --border-soft: #d4c4b0;
-    --text-light: #f5e6d3;
-    --text-muted: #6b5b4f;
-    --text-sub: #d4c4b0;
-}
-
-
-/* ULTRA AGGRESSIVE RESET - NO BORDERS ANYWHERE ON PAGE EDGES */
-
-*,
-*::before,
-*::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    outline: none !important;
-    border-width: 0 !important;
-    border-style: none !important;
-    border-color: transparent !important;
-}
-
-body {
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    outline: none !important;
-    border-width: 0 !important;
-    border-style: none !important;
-    border-color: transparent !important;
-    background-color: var(--cream);
-    font-family: 'Georgia', serif;
-    min-height: 100vh;
-    width: 100%;
-    overflow-x: hidden;
-}
-
-
-/* Remove any potential borders from specific elements */
-
-body::before,
-body::after,
-html::before,
-html::after {
-    display: none !important;
-    content: none !important;
-    border: none !important;
-}
-
-
-/* Ensure no borders on any container at page level */
-
-.planner-wrap,
-.page-hero,
-.main-header,
-.nav-container,
-.footer,
-section,
-div[class*="container"],
-div[class*="wrapper"] {
-    border: none !important;
-    outline: none !important;
-}
-
-
-/* Keep the original styles but ensure no page borders */
-
-.page-hero {
-    background: linear-gradient(rgba(30, 15, 20, 0.6), rgba(30, 15, 20, 0.6)), url('https://images.pexels.com/photos/30931569/pexels-photo-30931569.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
-    background-size: cover;
-    background-position: center;
-    height: 220px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--text-light);
-    margin: 0;
-    padding: 0;
-}
-
-
-/* Main Header */
-
-.main-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 15px;
-    padding: 20px 40px 20px 60px;
-    background-color: var(--deep);
-    margin: 0;
-}
-
-.logo {
-    height: 100px;
-    width: auto;
-    min-width: 100px;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-}
-
-.logo-text {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text-light);
-    letter-spacing: 2px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-    font-variant: small-caps;
-}
-
-
-/* Navigation */
-
-.nav-container {
-    display: flex;
-    justify-content: center;
-    background: var(--gold);
-    padding: 15px;
-    flex-wrap: wrap;
-    border-bottom: 2px solid var(--gold-hover);
-    margin: 0;
-}
-
-.nav-container a {
-    text-decoration: none;
-    color: var(--deep);
-    font-size: 15px;
-    font-weight: bold;
-    padding: 10px 15px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    letter-spacing: 0.5px;
-    font-family: 'Georgia', serif;
-}
-
-.nav-container a:hover,
-.nav-container a.active {
-    background: rgba(59, 31, 43, 0.18);
-    transform: translateY(-2px);
-}
-
-
-/* Section Titles */
-
-.section-title {
-    color: var(--deep);
-    font-size: 28px;
-    margin-bottom: 10px;
-    position: relative;
-    padding-bottom: 15px;
-    font-weight: normal;
-    letter-spacing: 1px;
-    text-align: center;
-}
-
-.section-title:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 2px;
-    background: var(--gold);
-}
-
-.section-subtitle {
-    color: var(--text-muted);
-    font-size: 16px;
-    margin-bottom: 30px;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-}
-
-
-/* Buttons */
-
-.primary-button {
-    background: var(--gold);
-    color: var(--deep);
-    border: none;
-    padding: 12px 30px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 15px;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-family: 'Georgia', serif;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    text-decoration: none;
-}
-
-.primary-button:hover {
-    background: var(--gold-hover);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
-}
-
-.secondary-button {
-    background: transparent;
-    color: var(--deep);
-    border: 1px solid var(--deep);
-    padding: 10px 25px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 15px;
-    transition: all 0.3s ease;
-    font-family: 'Georgia', serif;
-    letter-spacing: 0.5px;
-}
-
-.secondary-button:hover {
-    background: var(--deep);
-    color: var(--text-light);
+.planner-wrap {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
 
 .pdf-button {
@@ -247,29 +13,17 @@ div[class*="wrapper"] {
     cursor: pointer;
     font-weight: bold;
     font-size: 15px;
-    transition: background 0.3s ease;
+    transition: background .3s ease;
     display: inline-flex;
     align-items: center;
     gap: 10px;
     font-family: 'Georgia', serif;
-    letter-spacing: 0.5px;
+    letter-spacing: .5px;
 }
 
 .pdf-button:hover {
     background: var(--deep-alt);
 }
-
-
-/* Planner Wrapper */
-
-.planner-wrap {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
-}
-
-
-/* Steps */
 
 .steps {
     display: flex;
@@ -313,7 +67,7 @@ div[class*="wrapper"] {
     color: var(--text-muted);
     font-size: 16px;
     font-weight: bold;
-    transition: all 0.3s ease;
+    transition: all .3s ease;
 }
 
 .step.active .step-circle,
@@ -334,9 +88,6 @@ div[class*="wrapper"] {
     color: var(--deep);
 }
 
-
-/* Mood Grid */
-
 .mood-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -350,20 +101,20 @@ div[class*="wrapper"] {
     border-radius: 8px;
     padding: 24px 14px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all .3s ease;
     text-align: center;
 }
 
 .mood-card:hover {
     border-color: var(--gold);
     transform: translateY(-3px);
-    box-shadow: 0 4px 14px rgba(59, 31, 43, 0.12);
+    box-shadow: 0 4px 14px rgba(59, 31, 43, .12);
 }
 
 .mood-card.selected {
     border-color: var(--gold);
     background: linear-gradient(135deg, #fff8f2, #fdf0dc);
-    box-shadow: 0 4px 14px rgba(201, 169, 110, 0.25);
+    box-shadow: 0 4px 14px rgba(201, 169, 110, .25);
 }
 
 .mood-card .mood-icon {
@@ -385,43 +136,6 @@ div[class*="wrapper"] {
     margin: 6px 0 0;
 }
 
-
-/* Form Styles */
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-align: left;
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    font-weight: bold;
-    color: var(--deep);
-    font-size: 14px;
-    letter-spacing: 0.5px;
-}
-
-.form-group input,
-.form-group select {
-    padding: 12px 14px;
-    border: 1px solid var(--border-soft);
-    border-radius: 4px;
-    font-size: 15px;
-    color: var(--deep);
-    background: var(--card-bg);
-    font-family: 'Georgia', serif;
-    transition: border-color 0.3s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--gold);
-    box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.2);
-}
-
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -433,7 +147,7 @@ div[class*="wrapper"] {
     border-radius: 6px;
     padding: 36px;
     border: 1px solid var(--border);
-    box-shadow: 0 3px 10px rgba(59, 31, 43, 0.08);
+    box-shadow: 0 3px 10px rgba(59, 31, 43, .08);
     margin-bottom: 30px;
 }
 
@@ -455,9 +169,6 @@ div[class*="wrapper"] {
     flex-wrap: wrap;
 }
 
-
-/* Results Grid */
-
 .results-section {
     margin-top: 10px;
 }
@@ -476,20 +187,20 @@ div[class*="wrapper"] {
     padding: 24px;
     text-align: left;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all .3s ease;
     position: relative;
 }
 
 .dest-card:hover {
     border-color: var(--gold);
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(59, 31, 43, 0.13);
+    box-shadow: 0 6px 20px rgba(59, 31, 43, .13);
 }
 
 .dest-card.selected {
     border-color: var(--gold);
     background: linear-gradient(135deg, #fff8f2, #fdf0dc);
-    box-shadow: 0 6px 20px rgba(201, 169, 110, 0.3);
+    box-shadow: 0 6px 20px rgba(201, 169, 110, .3);
 }
 
 .dest-card .select-badge {
@@ -530,7 +241,7 @@ div[class*="wrapper"] {
     color: var(--gold);
     font-size: 12px;
     font-weight: bold;
-    letter-spacing: 0.5px;
+    letter-spacing: .5px;
     text-transform: uppercase;
 }
 
@@ -580,9 +291,6 @@ div[class*="wrapper"] {
     margin-top: 6px;
 }
 
-
-/* Loading / Error */
-
 .loading-state {
     text-align: center;
     padding: 60px 20px;
@@ -594,14 +302,8 @@ div[class*="wrapper"] {
     border: 4px solid var(--border);
     border-top-color: var(--gold);
     border-radius: 50%;
-    animation: spin 0.9s linear infinite;
+    animation: spin .9s linear infinite;
     margin: 0 auto 20px;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 .loading-state p {
@@ -619,70 +321,9 @@ div[class*="wrapper"] {
     margin-top: 20px;
 }
 
-
-/* Receipt Modal */
-
-.modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(30, 10, 18, 0.7);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.modal-overlay.open {
-    display: flex;
-}
-
-.modal {
-    background: var(--card-bg);
-    border-radius: 8px;
+.modal.receipt-modal {
     max-width: 620px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
-
-.modal-header {
-    background: var(--deep);
-    padding: 24px 28px;
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    color: var(--text-light);
-    font-weight: normal;
-    font-size: 20px;
-    margin: 0;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    color: var(--text-sub);
-    font-size: 22px;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0;
-}
-
-.modal-close:hover {
-    color: var(--text-light);
-}
-
-.modal-body {
-    padding: 28px;
-}
-
-
-/* Receipt Styles */
 
 .receipt {
     border: 1px solid var(--border);
@@ -727,7 +368,7 @@ div[class*="wrapper"] {
 .receipt-dest .dest-country {
     font-size: 13px;
     color: var(--deep);
-    opacity: 0.75;
+    opacity: .75;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -804,9 +445,6 @@ div[class*="wrapper"] {
     border-top: 1px dashed var(--border);
 }
 
-
-/* Enhanced Receipt Styles */
-
 .receipt-header {
     background: var(--deep);
     color: var(--text-light);
@@ -832,7 +470,7 @@ div[class*="wrapper"] {
     padding: 15px;
     background: #f8f4f0;
     border-radius: 8px;
-    transition: transform 0.3s ease;
+    transition: transform .3s ease;
 }
 
 .receipt-detail-card:hover {
@@ -849,7 +487,7 @@ div[class*="wrapper"] {
     font-size: 11px;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: .5px;
 }
 
 .receipt-detail-value {
@@ -858,32 +496,6 @@ div[class*="wrapper"] {
     color: var(--deep);
     margin-top: 5px;
 }
-
-
-/* Footer */
-
-.footer {
-    background: var(--deep);
-    color: var(--text-sub);
-    text-align: center;
-    padding: 30px 20px;
-    margin-top: 60px;
-    border: none;
-}
-
-.footer a {
-    color: var(--gold);
-    margin: 0 10px;
-    transition: color 0.3s ease;
-    text-decoration: none;
-}
-
-.footer a:hover {
-    color: var(--text-light);
-}
-
-
-/* Print-specific styles */
 
 @media print {
     .modal-overlay {
@@ -910,29 +522,7 @@ div[class*="wrapper"] {
     }
 }
 
-
-/* Mobile Responsive */
-
 @media (max-width: 768px) {
-    .main-header {
-        justify-content: center;
-        padding: 15px 20px;
-    }
-    .logo {
-        height: 60px;
-        min-width: 60px;
-    }
-    .logo-text {
-        font-size: 24px;
-    }
-    .nav-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    .nav-container a {
-        font-size: 14px;
-        padding: 8px 10px;
-    }
     .form-row {
         grid-template-columns: 1fr;
     }

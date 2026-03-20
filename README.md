@@ -26,10 +26,10 @@ The project demonstrates end-to-end application development: database design, ba
 
 ---
 
-## What I Built
+## Key Functional Areas
 
-### 🧠 Custom Trip Planning Algorithm
-Rather than relying on an external paid API, I designed and implemented a **Hybrid Scoring Engine** in pure PHP that generates itineraries with no internet dependency and zero cost per request.
+### Custom Trip Planning Algorithm
+Rather than relying on an external paid API, the application implements a **Hybrid Scoring Engine** in pure PHP that generates itineraries with no internet dependency and zero cost per request.
 
 ```
 Score = 0.4 × MoodMatch + 0.3 × BudgetFit + 0.2 × CompanionFit + 0.1 × Rating
@@ -37,8 +37,8 @@ Score = 0.4 × MoodMatch + 0.3 × BudgetFit + 0.2 × CompanionFit + 0.1 × Ratin
 
 ---
 
-### ✈️ Dual-Role Flight & Booking System
-The application supports two distinct user roles with different capabilities:
+### Dual-Role Flight & Booking System
+The application supports two distinct user roles with clearly separated capabilities:
 
 | Role | What they can do |
 |---|---|
@@ -49,8 +49,8 @@ Booking is wrapped in a **database transaction** to prevent race conditions when
 
 ---
 
-### 🔐 Full Authentication System
-Built on top of Laravel Breeze, extended with:
+### Authentication and Security
+The authentication layer is built on top of Laravel Breeze and extended with:
 - Email verification via cryptographically signed URLs
 - Password reset via email token
 - Password confirmation gate for sensitive actions
@@ -60,12 +60,12 @@ Built on top of Laravel Breeze, extended with:
 
 ---
 
-### 📡 Real-Time Features
+### Real-Time Features
 Integrated **Pusher** with **Laravel Echo** to deliver real-time in-app messaging between users. The dashboard chat panel updates instantly without polling.
 
 ---
 
-### 📸 Media Management
+### Media Management
 Users can upload travel photos and videos which are processed server-side:
 - Auto-generated **300×300 thumbnail** and **800×800 medium** variant via Intervention Image
 - Batch delete, favourite toggle, metadata editing, and trip association
@@ -73,14 +73,14 @@ Users can upload travel photos and videos which are processed server-side:
 
 ---
 
-### 🗺️ Destinations & Discovery
+### Destinations and Discovery
 - Destination database seeded with real locations, mood tags, continent groupings, average daily costs, coordinates, and star ratings
 - Up to **3 destinations compared side-by-side** using session-backed state
 - Wishlist with summary stats (destinations saved, continents covered, average budget)
 
 ---
 
-### 📄 PDF Export
+### PDF Export
 Generated itineraries can be downloaded as formatted PDFs via `barryvdh/laravel-dompdf`, using a dedicated Blade template.
 
 ---
@@ -207,6 +207,81 @@ php artisan serve
 ```
 
 Open `http://localhost:8000`. A seeded agency account and sample destinations are included.
+
+---
+
+## Feature Walkthrough
+
+- **Public Landing & Marketing**  
+  High-level explanation of what Smart Booking does, key value propositions, and primary calls-to-action into planning a trip or exploring destinations.
+
+- **Trip Planning Wizard (`plan-trip`)**  
+  Four-step guided flow where travellers describe mood, budget, dates, companions, and preferences. Submitting the wizard triggers the hybrid scoring engine to generate a full multi-day itinerary.
+
+- **Dashboard**  
+  Authenticated overview showing upcoming trips, saved destinations, storage usage, recent activity, and quick links into flights, discovery, and community features.
+
+- **Flights & Bookings**  
+  Search and filter flights, select seats, and create bookings as a traveller. Agencies can create and manage flights, with atomic booking transactions and automatic seat availability updates.
+
+- **Destinations & Discover**  
+  Curated destination catalogue with mood tags, continent filters, budgets, and ratings. The discover and destinations pages allow browsing, comparing up to three places side-by-side, and adding to the wishlist.
+
+- **Wishlist**  
+  Session-backed and/or user-linked wishlist to quickly store interesting destinations with basic statistics on coverage and average costs.
+
+- **Community**  
+  Front-end community experience with live-feeling forum topics, group trip concepts, trending tags, and travel stories, wired for real-time capabilities via Pusher and `resources/js/pages/community.js`.
+
+- **Media & Memories**  
+  Upload, resize, and manage travel media associated with trips, including thumbnails, favourites, and metadata editing, with usage stats surfaced to the user.
+
+- **PDF Itinerary Export**  
+  Turn a generated itinerary into a nicely formatted PDF using a dedicated Blade view and `barryvdh/laravel-dompdf`.
+
+---
+
+## Frontend, CSS & JavaScript Structure
+
+- **Blade Views**  
+  All pages are built with Blade templates under `resources/views`. Public pages like `landing.blade.php`, core pages such as `dashboard.blade.php`, `plan-trip.blade.php`, `flights.blade.php`, `discover.blade.php`, `destinations.blade.php`, `community.blade.php`, and `wishlist.blade.php` share common headers, navigation, and footers. Reusable UI is implemented via Blade components under `resources/views/components` and layouts under `resources/views/layouts`.
+
+- **Global Styles**  
+  Tailwind is configured in `resources/css/app.css` (using `@tailwind base`, `@tailwind components`, `@tailwind utilities`) and compiled via Vite. Global design tokens and shared page scaffolding live in `resources/css/pages/base.css`.
+
+- **Page-Specific Styles**  
+  Each major page has its own stylesheet under `resources/css/pages` (for example `landing.css`, `login.css`, `dashboard.css`, `plan-trip.css`, `discover.css`, `community.css`). These are loaded via `@vite` in the corresponding Blade files so each screen only ships the styles it needs. Some legacy static pages (like `destinations.blade.php`) also reference pre-compiled CSS in `public/css/`.
+
+- **JavaScript Organisation**  
+  The application-level bootstrap code is in `resources/js/app.js` and `resources/js/bootstrap.js`. Page-specific interactivity lives under `resources/js/pages` (for example `landing.js`, `login.js`, `dashboard.js`, `plan-trip.js`, `discover.js`, `community.js`). Laravel Echo and Pusher are configured here, along with things like the session timeout handler (`resources/js/session-timeout.js`).
+
+- **How Assets Are Loaded**  
+  Blade views use the `@vite` directive to load CSS and JS from `resources/**`, letting Vite handle bundling and cache-busting. Static assets that do not go through Vite are referenced via `asset(...)` and live under `public/` (for example `public/css/destinations.css` and `public/js/destinations.js`).
+
+- **Adding a New Page**  
+  1. Create a new Blade view under `resources/views` and register a route in `routes/web.php`.  
+  2. Add any page-specific CSS under `resources/css/pages/your-page.css` and JS under `resources/js/pages/your-page.js`.  
+  3. Include them via `@vite(['resources/css/app.css', 'resources/css/pages/base.css', 'resources/css/pages/your-page.css', 'resources/js/pages/your-page.js'])` in the new Blade view or an appropriate layout.  
+  4. Run `npm run dev` (or `npm run build` for production) so Vite compiles the new assets.
+
+---
+
+## Developer Notes
+
+- **Trip Planning Algorithm**  
+  The hybrid scoring engine lives in the PHP domain layer (models/services) and combines mood match, budget fit, companion suitability, and ratings into a single score per destination and activity. When extending it, prefer configurable weights and avoid hard-coding thresholds directly into controllers.
+
+- **Validation & Requests**  
+  Form validation is centralised in request classes under `app/Http/Requests`. Any new endpoints or forms should follow this pattern to keep controllers thin and avoid duplicated validation rules.
+
+- **Testing**  
+  The existing PHPUnit suite focuses on authentication and profile flows. New business logic (especially around bookings, payments, and itinerary generation) should be accompanied by feature tests under `tests/Feature` and, where appropriate, unit tests for small, pure services.
+
+- **Real-Time Features**  
+  When adding new real-time behaviour, expose the relevant configuration (`pusherKey`, `pusherCluster`, CSRF token) to the front end via Blade (as is done in `community.blade.php`) and handle subscriptions and event binding inside the appropriate `resources/js/pages/*.js` file.
+
+- **Deployment**  
+  GitHub Actions workflows already cover building assets, running tests, and deploying on merges to `main`. Any new environment variables or external services should be reflected in `.env.example` and, if necessary, documented in comments within the workflow files.
 
 ---
 
