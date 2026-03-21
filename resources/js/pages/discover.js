@@ -1,6 +1,7 @@
 const Discover = (() => {
 
     const CSRF = window.__DISCOVER__.csrfToken;
+    const IS_AUTH = window.__DISCOVER__.auth === true;
 
     const MOOD_ICONS = {
         relaxed:      'fa-spa',
@@ -60,6 +61,7 @@ const Discover = (() => {
     }
 
     function loadWishlistCount() {
+        if (!IS_AUTH) return;
         apiFetch('/api/wishlist/count')
             .then(data => {
                 wishlistedIds = new Set(data.ids ?? []);
@@ -74,6 +76,10 @@ const Discover = (() => {
     }
 
     function toggleWishlist(destinationId, btn) {
+        if (!IS_AUTH) {
+            window.location.href = '/login';
+            return;
+        }
         const inList = wishlistedIds.has(destinationId);
         const icon = btn.querySelector('i');
 

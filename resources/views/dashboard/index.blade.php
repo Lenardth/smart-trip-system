@@ -11,8 +11,89 @@
         'resources/css/app.css',
         'resources/css/pages/base.css',
         'resources/css/pages/dashboard.css',
+        'resources/js/pages/base.js',
         'resources/js/pages/dashboard.js'
     ])
+    <style>
+        .trip-card {
+            background: linear-gradient(135deg, white, var(--card-bg, #fff8f2));
+            border: 1px solid var(--border, #e2d5c7);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            position: relative;
+            transition: box-shadow .25s, transform .25s;
+        }
+        .trip-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(59,31,43,.12);
+        }
+        .trip-card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+        .trip-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #c9a96e, #b8955a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .trip-info { flex: 1; min-width: 0; }
+        .trip-info h4 {
+            margin: 0 0 3px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #3b1f2b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .trip-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #6b5b4f;
+        }
+        .trip-cost {
+            font-size: 17px;
+            font-weight: 700;
+            color: #3b1f2b;
+            flex-shrink: 0;
+        }
+        .trip-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 12px;
+            color: #6b5b4f;
+        }
+        .trip-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .trip-meta i { color: #c9a96e; }
+        .trip-delete-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #d4c4b0;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px;
+            transition: color .2s;
+        }
+        .trip-delete-btn:hover { color: #f44336; }
+    </style>
 </head>
 
 <body>
@@ -39,8 +120,8 @@
             <a href="/discover" class="menu-item"><i class="fas fa-compass"></i><span>Discover</span></a>
             <a href="/destinations" class="menu-item"><i class="fas fa-map-marked-alt"></i><span>Destinations</span></a>
             <a href="/community" class="menu-item"><i class="fas fa-users"></i><span>Community</span></a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-heart"></i><span>Saved</span>
+            <a href="/wishlist" class="menu-item">
+                <i class="fas fa-heart"></i><span>Wishlist</span>
                 <span class="menu-badge" id="savedCount">0</span>
             </a>
             <a href="#" class="menu-item" onclick="openSettings(); return false;">
@@ -155,7 +236,7 @@
                     <div class="stat-change"><span>Upload to get started</span></div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="window.location.href='/plan-trip'" style="cursor:pointer;">
                 <div class="stat-icon trips"><i class="fas fa-route"></i></div>
                 <div class="stat-info">
                     <h3 id="statTripsCount">0</h3>
@@ -171,12 +252,12 @@
                     <div class="stat-change"><span>No bookings yet</span></div>
                 </div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="window.location.href='/wishlist'" style="cursor:pointer;">
                 <div class="stat-icon saved"><i class="fas fa-heart"></i></div>
                 <div class="stat-info">
                     <h3 id="statSavedCount">0</h3>
                     <p>Saved Places</p>
-                    <div class="stat-change"><span>Save your favorites</span></div>
+                    <div class="stat-change"><span>View your wishlist</span></div>
                 </div>
             </div>
         </div>
@@ -210,7 +291,7 @@
                         <i class="fas fa-plus"></i> New Trip
                     </button>
                 </div>
-                <div class="section-content">
+                <div class="section-content" id="upcomingTripsContent">
                     <div class="empty-state">
                         <i class="fas fa-route"></i>
                         <h3>No Trips Planned Yet</h3>

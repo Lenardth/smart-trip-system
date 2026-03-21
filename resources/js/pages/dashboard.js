@@ -15,6 +15,7 @@
         initializeUserData();
         loadMediaFromStorage();
         loadNotifications();
+        loadUpcomingTrips();
 
         if (!notifPollingInterval) {
             notifPollingInterval = setInterval(loadNotifications, 5000);
@@ -460,6 +461,101 @@
         }
         loadUserStatistics();
     }
+
+    function loadUpcomingTrips() {
+        fetch('/api/trips/upcoming', {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { renderTrips(data.trips || []); })
+        .catch(function () { renderTrips([]); });
+    }
+
+    var BUDGET_LABELS = {
+        backpacker: 'Backpacker', budget: 'Budget', mid: 'Mid-Range',
+        premium: 'Premium', luxury: 'Luxury'
+    };
+    var DURATION_LABELS = {
+        weekend: 'Long Weekend', week: 'One Week', two_weeks: 'Two Weeks',
+        month: 'One Month+', flexible: 'Flexible'
+    };
+    var MOOD_ICONS_DASH = {
+        adventurous: 'fa-hiking', relaxed: 'fa-spa', cultural: 'fa-landmark',
+        romantic: 'fa-heart', foodie: 'fa-utensils', 'eco-travel': 'fa-leaf'
+    };
+
+    function renderTrips(trips) {
+        var section = document.getElementById('upcomingTripsContent');
+        var countEl = document.getElementById('statTripsCount');
+        if (countEl) countEl.textContent = trips.length;
+
+        if (!section) return;
+
+        if (!trips.length) {
+            section.innerHTML =
+                '<div class="empty-state">' +
+                    '<i class="fas fa-route"></i>' +
+                    '<h3>No Trips Planned Yet</h3>' +
+                    '<p>Start planning your next adventure!</p>' +
+                    '<button class="btn" onclick="window.location.href=\'/plan-trip\'">' +
+                        '<i class="fas fa-plus"></i> Create Your First Trip' +
+                    '</button>' +
+                '</div>';
+            return;
+        }
+
+        section.innerHTML = trips.map(function (t) {
+            var icon    = MOOD_ICONS_DASH[t.mood] || 'fa-globe';
+            var budget  = BUDGET_LABELS[t.budget]   || t.budget   || '—';
+            var dur     = DURATION_LABELS[t.duration]|| t.duration || '—';
+            var cost    = t.estimated_cost
+                ? '$' + Number(t.estimated_cost).toLocaleString()
+                : '—';
+            return '<div class="trip-card">' +
+                '<div class="trip-card-header">' +
+                    '<div class="trip-icon"><i class="fas ' + icon + '"></i></div>' +
+                    '<div class="trip-info">' +
+                        '<h4>' + t.destination + (t.country ? ', ' + t.country : '') + '</h4>' +
+                        '<p>' + dur + ' &nbsp;·&nbsp; ' + budget + '</p>' +
+                    '</div>' +
+                    '<div class="trip-cost">' + cost + '</div>' +
+                '</div>' +
+                '<div class="trip-meta">' +
+                    (t.companion ? '<span><i class="fas fa-users"></i> ' + t.companion.replace(/_/g,' ') + '</span>' : '') +
+                    (t.month     ? '<span><i class="fas fa-calendar"></i> ' + t.month + '</span>' : '') +
+                    (t.origin    ? '<span><i class="fas fa-plane-departure"></i> from ' + t.origin + '</span>' : '') +
+                '</div>' +
+                '<button class="trip-delete-btn" onclick="deleteTrip(' + t.id + ', this)">' +
+                    '<i class="fas fa-trash-alt"></i>' +
+                '</button>' +
+            '</div>';
+        }).join('');
+    }
+
+    function deleteTrip(id, btn) {
+        Swal.fire({
+            title: 'Remove Trip?',
+            text: 'This will remove the trip from your dashboard.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f44336',
+            cancelButtonColor: '#6b5b4f',
+            confirmButtonText: 'Yes, remove it'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+            fetch('/api/trips/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(function () { loadUpcomingTrips(); })
+            .catch(function () {});
+        });
+    }
+
+    window.deleteTrip = deleteTrip;
 
     function loadUserStatistics() {
         var statsPromise = fetch('/api/user/statistics')
