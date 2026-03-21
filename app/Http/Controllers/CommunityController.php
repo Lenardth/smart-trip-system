@@ -18,7 +18,7 @@ class CommunityController extends Controller
 {
     public function index()
     {
-        return view('community');
+        return view('community.index');
     }
 
     public function stats(): JsonResponse

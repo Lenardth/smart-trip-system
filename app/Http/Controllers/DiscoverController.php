@@ -12,7 +12,7 @@ class DiscoverController extends Controller
 {
     public function index()
     {
-        return view('discover');
+        return view('discover.index');
     }
 
     public function destinations(Request $request): JsonResponse

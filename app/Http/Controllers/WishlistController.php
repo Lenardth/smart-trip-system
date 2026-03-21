@@ -17,7 +17,7 @@ class WishlistController extends Controller
             ->latest()
             ->get();
 
-        return view('wishlist', compact('wishlistItems'));
+        return view('wishlist.index', compact('wishlistItems'));
     }
 
     public function store(Request $request): JsonResponse

@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
             closeReceipt();
         }
     });
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
 });
 
 function selectMood(el) {
@@ -84,6 +86,8 @@ async function generateSuggestions() {
 
     selectedDest = null;
     document.getElementById('receiptBtn').style.display = 'none';
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.style.display = 'none';
     goStep(4);
     document.getElementById('loadingState').style.display  = 'block';
     document.getElementById('errorState').style.display    = 'none';
@@ -232,8 +236,65 @@ function selectDestination(idx) {
     document.querySelectorAll('.dest-card')[idx].classList.add('selected');
     selectedDest = lastResults[idx];
     document.getElementById('receiptBtn').style.display = 'inline-flex';
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        saveBtn.style.display = 'inline-flex';
+        saveBtn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard';
+        saveBtn.disabled = false;
+    }
     document.getElementById('receiptBtn').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+async function saveTripToDashboard() {
+    if (!selectedDest) return;
+    const btn = document.getElementById('saveBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+
+    try {
+        const res = await fetch('/api/trips', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({
+                destination:    selectedDest.destination,
+                country:        selectedDest.country        || null,
+                mood:           lastPayload.mood            || null,
+                budget:         lastPayload.budget          || null,
+                duration:       lastPayload.duration        || null,
+                companion:      lastPayload.companion       || null,
+                region:         lastPayload.region          || null,
+                accommodation:  lastPayload.accommodation   || null,
+                origin:         lastPayload.origin          || null,
+                month:          lastPayload.month           || null,
+                estimated_cost: selectedDest.costBreakdown?.total || null,
+            }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Saved!'; }
+            Swal.fire({
+                title: 'Trip Saved!',
+                text: selectedDest.destination + ' has been added to your dashboard.',
+                icon: 'success',
+                confirmButtonColor: '#c9a96e',
+                confirmButtonText: 'View Dashboard',
+                showCancelButton: true,
+                cancelButtonText: 'Stay Here'
+            }).then(result => {
+                if (result.isConfirmed) window.location.href = '/dashboard';
+            });
+        } else {
+            throw new Error(data.message || 'Failed to save');
+        }
+    } catch (err) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard'; }
+        Swal.fire({ title: 'Error', text: 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
+    }
+}
+
 
 function openReceipt() {
     if (!selectedDest) return;
@@ -783,10 +844,10 @@ function esc(str) {
         .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-window.selectMood         = selectMood;
-window.goStep             = goStep;
-window.generateSuggestions= generateSuggestions;
-window.openReceipt        = openReceipt;
-window.closeReceipt       = closeReceipt;
-window.printReceipt       = printReceipt;
-window.downloadReceiptPdf = downloadReceiptPdf;
+window.selectMood          = selectMood;
+window.goStep              = goStep;
+window.generateSuggestions = generateSuggestions;
+window.openReceipt         = openReceipt;
+window.closeReceipt        = closeReceipt;
+window.printReceipt        = printReceipt;
+window.downloadReceiptPdf  = downloadReceiptPdf;

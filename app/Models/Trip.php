@@ -2,79 +2,52 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Trip extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'user_id',
-        'destination_id',
-        'title',
-        'description',
-        'start_date',
-        'end_date',
-        'status',
+        'destination',
+        'country',
+        'mood',
         'budget',
-        'travelers_count',
+        'duration',
+        'companion',
+        'region',
+        'accommodation',
+        'origin',
+        'month',
+        'estimated_cost',
+        'status',
         'notes',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'budget' => 'decimal:2',
-        'travelers_count' => 'integer',
-    ];
-
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function destination()
+    public function getDurationLabelAttribute(): string
     {
-        return $this->belongsTo(Destination::class);
+        return [
+            'weekend'   => 'Long Weekend',
+            'week'      => 'One Week',
+            'two_weeks' => 'Two Weeks',
+            'month'     => 'One Month+',
+            'flexible'  => 'Flexible',
+        ][$this->duration] ?? $this->duration ?? '—';
     }
 
-    public function bookings()
+    public function getBudgetLabelAttribute(): string
     {
-        return $this->hasMany(Booking::class);
-    }
-
-    public function isActive()
-    {
-        return $this->status === 'active';
-    }
-
-    public function isUpcoming()
-    {
-        return $this->status === 'planned' && $this->start_date > now();
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
-    }
-
-    public function scopePlanned($query)
-    {
-        return $query->where('status', 'planned');
-    }
-
-    public function scopeByUser($query, $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-
-    public function getDurationAttribute()
-    {
-        if (! $this->start_date || ! $this->end_date) {
-            return 0;
-        }
-
-        return $this->start_date->diffInDays($this->end_date);
+        return [
+            'backpacker' => 'Backpacker',
+            'budget'     => 'Budget',
+            'mid'        => 'Mid-Range',
+            'premium'    => 'Premium',
+            'luxury'     => 'Luxury',
+        ][$this->budget] ?? $this->budget ?? '—';
     }
 }
