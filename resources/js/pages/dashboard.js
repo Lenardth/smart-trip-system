@@ -25,7 +25,77 @@
         initMenuItems();
         initOutsideClickHandlers();
         initializeRealTimeChat();
+        initTripSavedListener();
+
+        // Same-tab navigation: consume any pending save signal written before redirect
+        consumePendingTripSave();
     });
+
+    // Fires when page is restored from bfcache (back/forward navigation)
+    // In this case DOMContentLoaded does NOT re-run, so we check here too
+    window.addEventListener('pageshow', function (e) {
+        if (!e.persisted) return; // normal load already handled by DOMContentLoaded
+        loadUpcomingTrips();
+        loadUserStatistics();
+        consumePendingTripSave();
+    });
+
+    // Handles same-tab case: plan-trip writes signal → redirects → dashboard reads it on load
+    function consumePendingTripSave() {
+        try {
+            var raw = localStorage.getItem('smartBookingTripSaved');
+            if (!raw) return;
+            var payload = JSON.parse(raw);
+            // Only act if the signal was written in the last 15 seconds
+            if (!payload.ts || (Date.now() - payload.ts) > 15000) {
+                localStorage.removeItem('smartBookingTripSaved');
+                return;
+            }
+            // Consume immediately so it doesn't fire again on refresh
+            localStorage.removeItem('smartBookingTripSaved');
+            // Trips already loading via loadUpcomingTrips() above — just show the toast
+            var dest = payload.destination || 'Your trip';
+            showTripSavedToast(dest);
+        } catch (_) {}
+    }
+
+    // Handles cross-tab case: dashboard open in tab B, plan-trip saves in tab A
+    function initTripSavedListener() {
+        window.addEventListener('storage', function (e) {
+            if (e.key !== 'smartBookingTripSaved' || !e.newValue) return;
+            try {
+                var payload = JSON.parse(e.newValue);
+                localStorage.removeItem('smartBookingTripSaved'); // consume
+                loadUpcomingTrips();
+                loadUserStatistics();
+                var dest = payload.destination || 'Your trip';
+                showTripSavedToast(dest);
+            } catch (_) {}
+        });
+    }
+
+    function showTripSavedToast(destination) {
+        var toast = document.createElement('div');
+        toast.className = 'chat-toast';
+        toast.innerHTML =
+            '<div class="chat-toast-inner">' +
+                '<div class="chat-toast-avatar" style="background:linear-gradient(135deg,#43a047,#2e7d32);">' +
+                    '<i class="fas fa-route" style="font-size:18px;"></i>' +
+                '</div>' +
+                '<div class="chat-toast-body">' +
+                    '<div class="chat-toast-sender"><i class="fas fa-bookmark"></i> Trip Saved</div>' +
+                    '<div class="chat-toast-preview">' + destination + ' added to your dashboard</div>' +
+                '</div>' +
+                '<button class="chat-toast-close" onclick="this.closest(\'.chat-toast\').remove()">' +
+                    '<i class="fas fa-times"></i>' +
+                '</button>' +
+            '</div>';
+        document.body.appendChild(toast);
+        setTimeout(function () {
+            toast.style.animation = 'slideOutRight 0.4s ease forwards';
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 400);
+        }, 4000);
+    }
 
     function initUploadArea() {
         var uploadArea = document.getElementById('uploadArea');
@@ -466,9 +536,18 @@
         fetch('/api/trips/upcoming', {
             headers: { 'Accept': 'application/json' }
         })
-        .then(function (r) { return r.json(); })
-        .then(function (data) { renderTrips(data.trips || []); })
-        .catch(function () { renderTrips([]); });
+        .then(function (r) {
+            console.log('[dashboard] GET /api/trips/upcoming status:', r.status);
+            return r.json();
+        })
+        .then(function (data) {
+            console.log('[dashboard] trips data:', data);
+            renderTrips(data.trips || []);
+        })
+        .catch(function (err) {
+            console.error('[dashboard] loadUpcomingTrips failed:', err);
+            renderTrips([]);
+        });
     }
 
     var BUDGET_LABELS = {
@@ -555,7 +634,9 @@
         });
     }
 
-    window.deleteTrip = deleteTrip;
+    window.deleteTrip          = deleteTrip;
+    window.loadUpcomingTrips   = loadUpcomingTrips;
+    window.loadUserStatistics  = loadUserStatistics;
 
     function loadUserStatistics() {
         var statsPromise = fetch('/api/user/statistics')
