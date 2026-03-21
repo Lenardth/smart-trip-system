@@ -23,7 +23,6 @@ class TripController extends Controller
         $trips = Trip::where('user_id', Auth::id())
             ->where('status', 'planned')
             ->latest()
-            ->take(5)
             ->get();
 
         return response()->json(['trips' => $trips]);
@@ -45,10 +44,27 @@ class TripController extends Controller
             'estimated_cost' => 'nullable|numeric|min:0',
         ]);
 
+        $exists = Trip::where('user_id', Auth::id())
+            ->where('destination', $data['destination'])
+            ->where('budget',      $data['budget']   ?? null)
+            ->where('duration',    $data['duration'] ?? null)
+            ->where('status',      'planned')
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This trip is already saved to your dashboard.',
+            ], 409);
+        }
+
         $trip = Trip::create([
             ...$data,
             'user_id' => Auth::id(),
             'status'  => 'planned',
+            // title is NOT NULL in the existing schema — derive it from destination
+            'start_date' => now(),
+            'title'   => $data['destination'] . ($data['country'] ? ', ' . $data['country'] : ''),
         ]);
 
         return response()->json([

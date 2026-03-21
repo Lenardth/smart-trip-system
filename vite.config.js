@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/css/pages/discover.css',
                 'resources/css/pages/community.css',
                 'resources/css/pages/plan-trip.css',
+                'resources/css/pages/wishlist.css',
                 'resources/js/app.js',
                 'resources/js/pages/base.js',
                 'resources/js/pages/login.js',

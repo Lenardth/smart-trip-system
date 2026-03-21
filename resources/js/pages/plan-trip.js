@@ -250,31 +250,57 @@ async function saveTripToDashboard() {
     const btn = document.getElementById('saveBtn');
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
 
+    const payload = {
+        destination:    selectedDest.destination,
+        country:        selectedDest.country        || null,
+        mood:           lastPayload.mood            || null,
+        budget:         lastPayload.budget          || null,
+        duration:       lastPayload.duration        || null,
+        companion:      lastPayload.companion       || null,
+        region:         lastPayload.region          || null,
+        accommodation:  lastPayload.accommodation   || null,
+        origin:         lastPayload.origin          || null,
+        month:          lastPayload.month           || null,
+        estimated_cost: selectedDest.costBreakdown?.total || null,
+    };
+    console.log('[plan-trip] POST /api/trips payload:', payload);
+
     try {
-        const res = await fetch('/api/trips', {
+        const res  = await fetch('/api/trips', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                'Accept':       'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             },
-            body: JSON.stringify({
-                destination:    selectedDest.destination,
-                country:        selectedDest.country        || null,
-                mood:           lastPayload.mood            || null,
-                budget:         lastPayload.budget          || null,
-                duration:       lastPayload.duration        || null,
-                companion:      lastPayload.companion       || null,
-                region:         lastPayload.region          || null,
-                accommodation:  lastPayload.accommodation   || null,
-                origin:         lastPayload.origin          || null,
-                month:          lastPayload.month           || null,
-                estimated_cost: selectedDest.costBreakdown?.total || null,
-            }),
+            body: JSON.stringify(payload),
         });
         const data = await res.json();
+        console.log('[plan-trip] POST /api/trips response:', res.status, data);
+
+        if (res.status === 409) {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved'; }
+            Swal.fire({
+                title: 'Already Saved',
+                text: selectedDest.destination + ' is already on your dashboard.',
+                icon: 'info',
+                confirmButtonColor: '#c9a96e',
+                confirmButtonText: 'View Dashboard',
+                showCancelButton: true,
+                cancelButtonText: 'Stay Here',
+            }).then(result => { if (result.isConfirmed) window.location.href = '/dashboard'; });
+            return;
+        }
+
         if (res.ok && data.success) {
             if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Saved!'; }
+            try {
+                localStorage.setItem('smartBookingTripSaved', JSON.stringify({
+                    ts:          Date.now(),
+                    destination: selectedDest.destination,
+                    country:     selectedDest.country || null,
+                }));
+            } catch (_) {}
             Swal.fire({
                 title: 'Trip Saved!',
                 text: selectedDest.destination + ' has been added to your dashboard.',
@@ -282,16 +308,15 @@ async function saveTripToDashboard() {
                 confirmButtonColor: '#c9a96e',
                 confirmButtonText: 'View Dashboard',
                 showCancelButton: true,
-                cancelButtonText: 'Stay Here'
-            }).then(result => {
-                if (result.isConfirmed) window.location.href = '/dashboard';
-            });
+                cancelButtonText: 'Stay Here',
+            }).then(result => { if (result.isConfirmed) window.location.href = '/dashboard'; });
         } else {
             throw new Error(data.message || 'Failed to save');
         }
     } catch (err) {
+        console.error('[plan-trip] saveTripToDashboard error:', err);
         if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard'; }
-        Swal.fire({ title: 'Error', text: 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
+        Swal.fire({ title: 'Error', text: err.message || 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
     }
 }
 

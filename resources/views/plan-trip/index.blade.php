@@ -9,13 +9,24 @@
         border: 0 !important;
     }
 
-    /* Remove any possible container borders */
     body > *:first-child {
         margin-top: 0 !important;
     }
 
     body > *:last-child {
         margin-bottom: 0 !important;
+    }
+
+    .author-badge {
+        margin-left: auto;
+        margin-right: 20px;
+        color: var(--gold);
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        opacity: 0.85;
     }
 </style>
 
@@ -34,12 +45,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
 <header class="main-header">
     <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
     <span class="logo-text">Smart Booking</span>
+    <span class="author-badge"><i class="fas fa-user-circle"></i> Lenard</span>
 </header>
 
 <nav>
@@ -250,8 +263,6 @@
         </div>
     </div>
 </footer>
-
-
 
 </body>
 </html>
