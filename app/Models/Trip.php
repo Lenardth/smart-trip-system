@@ -22,6 +22,8 @@ class Trip extends Model
         'month',
         'estimated_cost',
         'status',
+        'start_date',
+        'end_date',
         'notes',
     ];
 

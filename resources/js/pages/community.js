@@ -1,609 +1,434 @@
-const Community = (() => {
+(function () {
 
-    const CSRF = window.__COMMUNITY__.csrfToken;
-    const cfg  = window.__COMMUNITY__;
+    var cfg          = window.__COMMUNITY__ || {};
+    var inviteTarget = null;
 
-    const AVATAR_COLORS = ['#3b1f2b','#4d2a3a','#5a3040','#3b2535','#4a2838','#2f1a24'];
+    function csrfToken() { return cfg.csrfToken || ''; }
 
-    /* ── Utilities ── */
+    function apiFetch(url, opts) {
+        opts = opts || {};
+        opts.headers = Object.assign({
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken()
+        }, opts.headers || {});
+        opts.credentials = 'same-origin';
+        return fetch(url, opts).then(function (r) { return r.json(); });
+    }
 
     function initials(name) {
-        if (!name) return '??';
-        return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+        return (name || '').split(' ').map(function (w) { return w[0]; }).join('').toUpperCase().substring(0, 2);
     }
 
-    function avatarColor(name) {
-        let n = 0;
-        for (let i = 0; i < (name || '').length; i++) n += name.charCodeAt(i);
-        return AVATAR_COLORS[n % AVATAR_COLORS.length];
+    function avatar(user, size) {
+        size = size || 44;
+        var s = 'width:' + size + 'px;height:' + size + 'px;';
+        if (user && user.avatar) {
+            return '<div style="' + s + 'border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="' + user.avatar + '" style="width:100%;height:100%;object-fit:cover;"></div>';
+        }
+        return '<div style="' + s + 'border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--deep));color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:' + Math.round(size * 0.36) + 'px;flex-shrink:0;">' + initials(user && user.name || 'U') + '</div>';
     }
 
-    function timeAgo(dateStr) {
-        const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-        if (diff < 60)    return 'just now';
-        if (diff < 3600)  return Math.floor(diff / 60) + ' min ago';
-        if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
-        return Math.floor(diff / 86400) + ' day' + (Math.floor(diff / 86400) > 1 ? 's' : '') + ' ago';
-    }
-
-    function animateCount(el, target) {
-        const current = parseInt(el.textContent.replace(/,/g,'')) || 0;
-        if (current === target) return;
-        const dur = 800, startTime = performance.now();
-        const step = now => {
-            const t    = Math.min((now - startTime) / dur, 1);
-            const ease = t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-            el.textContent = Math.round(current + (target - current) * ease).toLocaleString();
-            if (t < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-    }
-
-    function bumpStat(id, value) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const prev = parseInt(el.textContent.replace(/,/g,'')) || 0;
-        if (prev === value) return;
-        animateCount(el, value);
-        el.classList.add('bump');
-        setTimeout(() => el.classList.remove('bump'), 600);
-    }
-
-    function showToast(msg, icon = 'fa-check-circle') {
-        const t = document.getElementById('toast');
-        t.querySelector('i').className = `fas ${icon}`;
-        document.getElementById('toastMsg').textContent = msg;
+    function showToast(msg) {
+        var t = document.getElementById('toast');
+        var m = document.getElementById('toastMsg');
+        if (!t || !m) return;
+        m.textContent = msg;
         t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3500);
+        setTimeout(function () { t.classList.remove('show'); }, 3000);
     }
 
-    function apiFetch(url, options = {}) {
-        return fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept':       'application/json',
-                'X-CSRF-TOKEN': CSRF,
-            },
-            ...options
-        }).then(r => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            return r.json();
+    function requireLogin(action) {
+        if (cfg.isLoggedIn) return true;
+        Swal.fire({
+            title: 'Login Required',
+            html: 'You need to be logged in to ' + (action || 'use chat') + '.<br><br>' +
+                  '<a href="/login" style="color:var(--gold);font-weight:700;">Sign in</a> &nbsp;·&nbsp; ' +
+                  '<a href="/register" style="color:var(--gold);font-weight:700;">Create account</a>',
+            icon: 'info',
+            confirmButtonColor: '#c9a96e',
+            confirmButtonText: 'Go to Login',
+        }).then(function (r) {
+            if (r.isConfirmed) window.location.href = '/login';
         });
+        return false;
     }
 
-    /* ── Modal helpers ── */
-
-    function openModal(id) {
-        document.getElementById(id).classList.add('open');
-        document.addEventListener('keydown', escListener);
+    function startChat(userId, e) {
+        if (e) e.preventDefault();
+        if (!requireLogin('send messages')) return;
+        window.location.href = '/chat/' + userId;
     }
 
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('open');
-        document.removeEventListener('keydown', escListener);
+    function messageBtn(userId, userName) {
+        if (!userId || userId === cfg.authUserId) return '';
+        return '<button class="msg-btn" onclick="Community.startChat(' + userId + ',event)">' +
+            '<i class="fas fa-comment-dots"></i> Message' +
+        '</button>';
     }
 
-    function escListener(e) {
-        if (e.key === 'Escape')
-            document.querySelectorAll('.modal-overlay.open')
-                .forEach(m => m.classList.remove('open'));
+    function inviteBtn(userId, userName, userAvatar, sub) {
+        if (!userId || userId === cfg.authUserId) return '';
+        var encoded = encodeURIComponent(JSON.stringify({ id: userId, name: userName, avatar: userAvatar || '', sub: sub || '' }));
+        return '<button class="invite-btn" onclick="Community.openInviteModal(\'' + encoded + '\')">' +
+            '<i class="fas fa-paper-plane"></i> Invite' +
+        '</button>';
     }
-
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => {
-            if (e.target === overlay) overlay.classList.remove('open');
-        });
-    });
-
-    /* ── Stats ── */
 
     function loadStats() {
-        apiFetch('/api/community/stats')
-            .then(data => {
-                bumpStat('stat-members', data.members);
-                bumpStat('stat-stories', data.stories);
-                bumpStat('stat-groups',  data.groups);
-                bumpStat('stat-topics',  data.topics);
-            })
-            .catch(() => {
-                ['stat-members','stat-stories','stat-groups','stat-topics'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el && el.querySelector('.skeleton')) el.textContent = '—';
-                });
-            });
+        apiFetch('/api/community/stats').then(function (data) {
+            function bump(id, val) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = val;
+                el.classList.add('bump');
+                setTimeout(function () { el.classList.remove('bump'); }, 600);
+            }
+            bump('stat-members', data.members || 0);
+            bump('stat-stories', data.stories || 0);
+            bump('stat-groups',  data.groups  || 0);
+            bump('stat-topics',  data.topics  || 0);
+        }).catch(function () {});
     }
 
-    /* ── Forum ── */
+    function loadTopics() {
+        apiFetch('/api/community/topics').then(function (data) {
+            var el = document.getElementById('forumTopics');
+            if (!el) return;
+            var topics = data.topics || data || [];
+            if (!topics.length) {
+                el.innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);">No topics yet. Start the conversation!</p>';
+                return;
+            }
+            el.innerHTML = topics.map(function (t) {
+                var tags       = (t.tags || []).map(function (tag) { return '<span class="ft-tag">' + tag + '</span>'; }).join('');
+                var authorId   = t.user_id || null;
+                var authorName = t.author  || 'Traveler';
+                var msgBtn     = cfg.isLoggedIn ? messageBtn(authorId, authorName) : '';
+                var invBtn     = cfg.isLoggedIn ? inviteBtn(authorId, authorName, null, 'Forum member') : '';
 
-    let forumTopics     = [];
-    let lastTopicCount  = 0;
-
-    function renderTopics(topics, prepend = false) {
-        const container = document.getElementById('forumTopics');
-        if (!topics.length) {
-            container.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><p>No topics yet. Be the first!</p></div>';
-            return;
-        }
-        if (prepend && forumTopics.length) {
-            const el = buildTopicEl(topics[0], true);
-            container.insertBefore(el, container.firstChild);
-            setTimeout(() => el.classList.remove('is-new'), 3000);
-            forumTopics = [topics[0], ...forumTopics];
-        } else {
-            container.innerHTML = '';
-            topics.forEach(t => container.appendChild(buildTopicEl(t)));
-            forumTopics = topics;
-        }
-        lastTopicCount = forumTopics.length;
+                return '<div class="forum-topic">' +
+                    '<div class="forum-avatar">' + initials(authorName) + '</div>' +
+                    '<div class="ft-body">' +
+                        '<h4 onclick="Community.openTopic(' + t.id + ')">' + t.title + '</h4>' +
+                        '<div class="ft-meta">' +
+                            '<span>by <strong>' + authorName + '</strong></span> · ' + (t.created_at || '') +
+                        '</div>' +
+                        '<div style="margin-top:6px;">' + tags + '</div>' +
+                        (msgBtn || invBtn
+                            ? '<div class="ft-actions" style="display:flex;gap:8px;margin-top:8px;">' + msgBtn + invBtn + '</div>'
+                            : '') +
+                    '</div>' +
+                    '<div class="ft-stats">' +
+                        '<div class="fs-num">' + (t.replies_count || 0) + '</div>' +
+                        '<div class="fs-label">replies</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }).catch(function () {});
     }
 
-    function buildTopicEl(t, isNew = false) {
-        const div = document.createElement('div');
-        div.className = 'forum-topic' + (isNew ? ' is-new' : '');
-        div.dataset.topicId = t.id;
-        const tags  = (t.tags || []).map(tag => `<span class="ft-tag">${tag}</span>`).join('');
-        const color = avatarColor(t.author);
-        div.innerHTML = `
-            <div class="forum-avatar" style="background:${color}">${initials(t.author)}</div>
-            <div class="ft-body">
-                <div>${tags}</div>
-                <h4 class="topic-title-link">${t.title}</h4>
-                <div class="ft-meta">Posted by <strong>${t.author}</strong> · ${timeAgo(t.created_at)}</div>
-            </div>
-            <div class="ft-stats">
-                <div class="fs-num reply-count-${t.id}">${t.replies ?? 0}</div>
-                <div class="fs-label">Replies</div>
-                <button class="reply-btn" data-id="${t.id}" title="View & reply">
-                    <i class="fas fa-reply"></i> Reply
-                </button>
-            </div>`;
-        div.querySelector('.topic-title-link').addEventListener('click', () => openTopicThread(t.id));
-        div.querySelector('.reply-btn').addEventListener('click', () => openTopicThread(t.id));
-        return div;
+    function loadGroups() {
+        apiFetch('/api/community/groups').then(function (data) {
+            var el = document.getElementById('groupTrips');
+            if (!el) return;
+            var groups = data.groups || data || [];
+            if (!groups.length) {
+                el.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:13px;">No group trips yet.</p>';
+                return;
+            }
+            el.innerHTML = groups.map(function (g) {
+                var full     = g.spots_taken >= g.spots_total;
+                var badgeCls = full ? 'gt-badge full' : 'gt-badge';
+                var badgeTxt = full ? 'Full' : (g.spots_available || (g.spots_total - (g.spots_taken || 0))) + ' spots left';
+                var orgId    = g.user_id || null;
+                var orgName  = g.organizer || 'Organizer';
+                var msgBtn   = cfg.isLoggedIn ? messageBtn(orgId, orgName) : '';
+
+                return '<div class="group-trip">' +
+                    '<div class="gt-icon"><i class="fas fa-map-marked-alt"></i></div>' +
+                    '<div class="gt-info">' +
+                        '<h4>' + g.name + '</h4>' +
+                        '<p>' + (g.destination || '') + (g.date ? ' · ' + g.date : '') + '</p>' +
+                        (msgBtn ? '<div style="margin-top:6px;">' + msgBtn + '</div>' : '') +
+                    '</div>' +
+                    '<span class="' + badgeCls + '">' + badgeTxt + '</span>' +
+                '</div>';
+            }).join('');
+        }).catch(function () {});
     }
 
-    function loadTopics(silent = false) {
-        apiFetch('/api/community/topics')
-            .then(data => {
-                const topics = data.data ?? data;
-                // Only re-render if something changed
-                if (!silent || topics.length !== lastTopicCount) {
-                    renderTopics(topics);
-                }
-            })
-            .catch(() => {
-                if (!silent) {
-                    document.getElementById('forumTopics').innerHTML =
-                        '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Could not load topics.</p></div>';
-                }
-            });
+    function loadTags() {
+        apiFetch('/api/community/tags').then(function (data) {
+            var el = document.getElementById('trendingTags');
+            if (!el) return;
+            var tags = data.tags || data || [];
+            el.innerHTML = tags.map(function (tag) {
+                var name = tag.name || tag;
+                return '<button class="tag-item">#' + name + '</button>';
+            }).join('');
+        }).catch(function () {});
     }
 
-    /* ── Topic Thread Modal (replies) ── */
+    function loadStories() {
+        apiFetch('/api/community/stories').then(function (data) {
+            var el = document.getElementById('storiesGrid');
+            if (!el) return;
+            var stories = data.stories || data || [];
+            if (!stories.length) {
+                el.innerHTML = '<p style="text-align:center;color:var(--text-muted);">No stories yet.</p>';
+                return;
+            }
+            el.innerHTML = stories.map(function (s) {
+                var authorId   = s.user_id || null;
+                var authorName = s.author  || 'Traveler';
+                var msgBtn     = cfg.isLoggedIn ? messageBtn(authorId, authorName) : '';
 
-    function openTopicThread(topicId) {
-        let modal = document.getElementById('threadModal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'threadModal';
-            modal.className = 'modal-overlay';
-            modal.innerHTML = `
-                <div class="modal" style="max-width:680px;max-height:90vh;display:flex;flex-direction:column;">
-                    <div class="modal-header" style="flex-shrink:0;">
-                        <h2 id="threadTitle" style="font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:500px;"></h2>
-                        <button class="modal-close" id="threadClose">&#x2715;</button>
-                    </div>
-                    <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
-                        <div id="threadMeta" style="padding:16px 28px 14px;border-bottom:1px solid var(--border);flex-shrink:0;"></div>
-                        <div id="threadReplies" style="padding:8px 28px;flex:1;overflow-y:auto;min-height:80px;"></div>
-                        <div style="padding:20px 28px;border-top:1px solid var(--border);background:var(--cream);flex-shrink:0;">
-                            <p style="font-size:13px;font-weight:bold;color:var(--deep);margin:0 0 10px;">
-                                <i class="fas fa-reply" style="color:var(--gold);margin-right:6px;"></i>Post a Reply
-                            </p>
-                            <div class="form-group" style="margin-bottom:10px;">
-                                <input type="text" id="replyAuthor" placeholder="Your name" autocomplete="name">
-                            </div>
-                            <div class="form-group" style="margin-bottom:12px;">
-                                <textarea id="replyBody" placeholder="Write your reply..." style="min-height:70px;"></textarea>
-                            </div>
-                            <div style="display:flex;justify-content:flex-end;gap:10px;">
-                                <button class="secondary-button" id="threadCancelBtn">Cancel</button>
-                                <button class="primary-button" id="submitReplyBtn">
-                                    <i class="fas fa-paper-plane"></i> Post Reply
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', e => { if (e.target === modal) closeModal('threadModal'); });
-            document.getElementById('threadClose').addEventListener('click', () => closeModal('threadModal'));
-            document.getElementById('threadCancelBtn').addEventListener('click', () => closeModal('threadModal'));
-        }
-
-        modal.dataset.topicId = topicId;
-        document.getElementById('replyBody').value = '';
-        document.getElementById('submitReplyBtn').onclick = () => submitReply(topicId);
-        document.getElementById('threadTitle').textContent = 'Loading…';
-        document.getElementById('threadMeta').innerHTML = '';
-        document.getElementById('threadReplies').innerHTML =
-            '<div style="padding:20px;text-align:center;"><i class="fas fa-spinner fa-spin" style="color:var(--gold);font-size:22px;"></i></div>';
-
-        openModal('threadModal');
-
-        apiFetch(`/api/community/topics/${topicId}`)
-            .then(data => {
-                const t    = data.topic;
-                const tags = (t.tags || []).map(tag => `<span class="ft-tag">${tag}</span>`).join('');
-                document.getElementById('threadTitle').innerHTML =
-                    `<i class="fas fa-comments" style="color:var(--gold);margin-right:8px;"></i>${t.title}`;
-                document.getElementById('threadMeta').innerHTML = `
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-                        <div class="forum-avatar" style="background:${avatarColor(t.author)};width:36px;height:36px;font-size:13px;flex-shrink:0;">${initials(t.author)}</div>
-                        <div>
-                            <div style="font-weight:bold;color:var(--deep);font-size:13px;">${t.author}</div>
-                            <div style="color:var(--text-muted);font-size:11px;">${timeAgo(t.created_at)}</div>
-                        </div>
-                    </div>
-                    ${t.body ? `<p style="color:var(--text-muted);font-size:13px;line-height:1.6;margin:0 0 8px;text-align:left;">${t.body}</p>` : ''}
-                    <div style="text-align:left;">${tags}</div>`;
-                renderReplies(data.replies || []);
-            })
-            .catch(() => {
-                document.getElementById('threadReplies').innerHTML =
-                    '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Could not load topic. Please try again.</p></div>';
-            });
-    }
-
-    function renderReplies(replies) {
-        const container = document.getElementById('threadReplies');
-        if (!replies.length) {
-            container.innerHTML = `
-                <div class="empty-state" style="padding:24px 0;">
-                    <i class="fas fa-comment-slash"></i>
-                    <p>No replies yet — be the first to respond!</p>
-                </div>`;
-            return;
-        }
-        container.innerHTML = replies.map(r => `
-            <div class="reply-item">
-                <div class="forum-avatar" style="background:${avatarColor(r.author)};width:34px;height:34px;font-size:12px;flex-shrink:0;">${initials(r.author)}</div>
-                <div class="reply-body">
-                    <div class="reply-author"><strong>${r.author}</strong><span>${timeAgo(r.created_at)}</span></div>
-                    <p>${r.body}</p>
-                </div>
-            </div>`).join('');
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function submitReply(topicId) {
-        const btn    = document.getElementById('submitReplyBtn');
-        const author = document.getElementById('replyAuthor').value.trim();
-        const body   = document.getElementById('replyBody').value.trim();
-        if (!author) { showToast('Please enter your name.', 'fa-exclamation-circle'); return; }
-        if (!body)   { showToast('Please write a reply.', 'fa-exclamation-circle'); return; }
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting…';
-        apiFetch(`/api/community/topics/${topicId}/replies`, {
-            method: 'POST',
-            body: JSON.stringify({ author, body }),
-        })
-        .then(data => {
-            document.getElementById('replyBody').value = '';
-            showToast('Reply posted!');
-            const container = document.getElementById('threadReplies');
-            const empty = container.querySelector('.empty-state');
-            if (empty) container.innerHTML = '';
-            const r  = data.reply;
-            const el = document.createElement('div');
-            el.className = 'reply-item is-new';
-            el.innerHTML = `
-                <div class="forum-avatar" style="background:${avatarColor(r.author)};width:34px;height:34px;font-size:12px;flex-shrink:0;">${initials(r.author)}</div>
-                <div class="reply-body">
-                    <div class="reply-author"><strong>${r.author}</strong><span>just now</span></div>
-                    <p>${r.body}</p>
-                </div>`;
-            container.appendChild(el);
-            container.scrollTop = container.scrollHeight;
-            const countEl = document.querySelector(`.reply-count-${topicId}`);
-            if (countEl) countEl.textContent = data.reply_count;
-        })
-        .catch(() => showToast('Failed to post reply. Please try again.', 'fa-exclamation-circle'))
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Reply';
-        });
-    }
-
-    /* ── New Topic ── */
-
-    function openTopicModal() { openModal('topicModal'); }
-
-    function submitTopic() {
-        const btn    = document.getElementById('submitTopicBtn');
-        const author = document.getElementById('topicAuthor').value.trim();
-        const title  = document.getElementById('topicTitle').value.trim();
-        const tags   = document.getElementById('topicTags').value.trim();
-        const body   = document.getElementById('topicBody').value.trim();
-        if (!author || !title) {
-            showToast('Please fill in your name and topic title.', 'fa-exclamation-circle');
-            return;
-        }
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting…';
-        apiFetch('/api/community/topics', {
-            method: 'POST',
-            body: JSON.stringify({
-                author, title,
-                tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-                body,
-            })
-        })
-        .then(() => {
-            closeModal('topicModal');
-            ['topicAuthor','topicTitle','topicTags','topicBody'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-            showToast('Topic posted!');
-            loadTopics();
-            loadStats();
-            loadTags();
-        })
-        .catch(() => showToast('Failed to post topic.', 'fa-exclamation-circle'))
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Topic';
-        });
-    }
-
-    /* ── Group Trips ── */
-
-    let lastGroupHash = '';
-
-    function renderGroups(groups) {
-        const container = document.getElementById('groupTrips');
-        const hash = JSON.stringify(groups.map(g => g.id + g.spots_left + g.status));
-        if (hash === lastGroupHash) return; // no change
-        lastGroupHash = hash;
-
-        if (!groups.length) {
-            container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No group trips yet.</p></div>';
-            return;
-        }
-        const icons = ['fa-map-marker-alt','fa-mountain','fa-umbrella-beach','fa-plane','fa-globe','fa-ship'];
-        container.innerHTML = groups.map((g, i) => {
-            const full     = g.spots_left <= 0 || g.status === 'full';
-            const badgeCls = full ? 'gt-badge full' : 'gt-badge';
-            const badgeTxt = full ? 'Full' : `${g.spots_left} left`;
-            return `
-                <div class="group-trip">
-                    <div class="gt-icon"><i class="fas ${icons[i % icons.length]}"></i></div>
-                    <div class="gt-info">
-                        <h4>${g.name}</h4>
-                        <p><i class="fas fa-map-marker-alt" style="font-size:10px;"></i> ${g.destination} · ${g.date}</p>
-                    </div>
-                    <span class="${badgeCls}">${badgeTxt}</span>
-                </div>`;
-        }).join('');
-    }
-
-    function loadGroups(silent = false) {
-        apiFetch('/api/community/groups')
-            .then(data => renderGroups(data.data ?? data))
-            .catch(() => {
-                if (!silent) {
-                    document.getElementById('groupTrips').innerHTML =
-                        '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Could not load groups.</p></div>';
-                }
-            });
-    }
-
-    function openGroupModal() { openModal('groupModal'); }
-
-    function submitGroup() {
-        const btn       = document.getElementById('submitGroupBtn');
-        const organizer = document.getElementById('groupOrganizer').value.trim();
-        const name      = document.getElementById('groupName').value.trim();
-        const dest      = document.getElementById('groupDest').value.trim();
-        const date      = document.getElementById('groupDate').value.trim();
-        const spots     = parseInt(document.getElementById('groupSpots').value) || 0;
-        if (!organizer || !name || !dest || !date) {
-            showToast('Please fill in all required fields.', 'fa-exclamation-circle'); return;
-        }
-        if (spots < 1) { showToast('Spots must be at least 1.', 'fa-exclamation-circle'); return; }
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating…';
-        apiFetch('/api/community/groups', {
-            method: 'POST',
-            body: JSON.stringify({ organizer, name, destination: dest, date, spots_left: spots })
-        })
-        .then(() => {
-            closeModal('groupModal');
-            ['groupOrganizer','groupName','groupDest','groupDate','groupSpots'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-            showToast('Group trip created!');
-            loadGroups();
-            loadStats();
-        })
-        .catch(() => showToast('Failed to create group.', 'fa-exclamation-circle'))
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-plus"></i> Create Group';
-        });
-    }
-
-    /* ── Tags ── */
-
-    function renderTags(tags) {
-        const container = document.getElementById('trendingTags');
-        if (!tags.length) {
-            container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No tags yet.</p>';
-            return;
-        }
-        container.innerHTML = tags.map(tag =>
-            `<button class="tag-item" onclick="Community.filterByTag('${tag.name}')">#${tag.name}</button>`
-        ).join('');
-    }
-
-    function loadTags(silent = false) {
-        apiFetch('/api/community/tags')
-            .then(renderTags)
-            .catch(() => { if (!silent) document.getElementById('trendingTags').innerHTML = ''; });
-    }
-
-    function filterByTag(tag) {
-        showToast(`Filtering by #${tag}`, 'fa-tag');
-    }
-
-    /* ── Stories ── */
-
-    let lastStoryHash = '';
-
-    function renderStories(stories) {
-        const grid = document.getElementById('storiesGrid');
-        const hash = JSON.stringify(stories.map(s => s.id + s.likes));
-        if (hash === lastStoryHash) return;
-        lastStoryHash = hash;
-
-        if (!stories.length) {
-            grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-book-open"></i><p>No stories yet.</p></div>';
-            return;
-        }
-        grid.innerHTML = stories.map(s => {
-            const imgStyle = s.image_url ? `background-image:url('${s.image_url}')` : 'background:var(--border)';
-            return `
-                <div class="story-card">
-                    <div class="story-img" style="${imgStyle}"></div>
-                    <div class="story-body">
-                        <div class="story-author">
-                            <div class="sa-avatar" style="background:${avatarColor(s.author)}">${initials(s.author)}</div>
-                            <div class="sa-info">
-                                <strong>${s.author}</strong>
-                                ${s.published_at ? new Date(s.published_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}
-                            </div>
-                        </div>
-                        <h4>${s.title}</h4>
-                        <p>${s.excerpt ?? ''}</p>
-                        <div class="story-footer">
-                            <span><i class="fas fa-heart" style="color:#e57373;"></i> ${(s.likes ?? 0).toLocaleString()}</span>
-                            <span><i class="fas fa-comment" style="color:var(--gold);"></i> ${(s.comments ?? 0).toLocaleString()}</span>
-                        </div>
-                    </div>
-                </div>`;
-        }).join('');
-    }
-
-    function loadStories(silent = false) {
-        apiFetch('/api/community/stories')
-            .then(data => renderStories(data.data ?? data))
-            .catch(() => {
-                if (!silent) {
-                    document.getElementById('storiesGrid').innerHTML =
-                        '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-exclamation-circle"></i><p>Could not load stories.</p></div>';
-                }
-            });
-    }
-
-    /* ── Top Travelers ── */
-
-    function renderTravelers(travelers) {
-        const grid = document.getElementById('travelersGrid');
-        if (!travelers.length) {
-            grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-user-friends"></i><p>No travelers yet.</p></div>';
-            return;
-        }
-        grid.innerHTML = travelers.map(t => `
-            <div class="traveler-card">
-                <div class="traveler-avatar" style="background:${avatarColor(t.name)}">${initials(t.name)}</div>
-                <h4>${t.name}</h4>
-                <div class="tc-sub">${t.bio ?? 'Travel enthusiast'}</div>
-                <div class="tc-stats">
-                    <div class="tc-stat"><div class="ts-num">${t.trips ?? 0}</div><div class="ts-label">Trips</div></div>
-                    <div class="tc-stat"><div class="ts-num">${t.countries ?? 0}</div><div class="ts-label">Countries</div></div>
-                    <div class="tc-stat"><div class="ts-num">${t.posts ?? 0}</div><div class="ts-label">Posts</div></div>
-                </div>
-                ${t.badge ? `<div class="tc-badge">${t.badge}</div>` : ''}
-            </div>`).join('');
+                return '<div class="story-card">' +
+                    '<div class="story-img" style="background-image:url(\'' + (s.image_url || s.image || '') + '\');"></div>' +
+                    '<div class="story-body">' +
+                        '<div class="story-author">' +
+                            avatar({ name: authorName, avatar: s.author_avatar }, 34) +
+                            '<div class="sa-info">' +
+                                '<strong>' + authorName + '</strong>' +
+                                (s.created_at || '') +
+                            '</div>' +
+                            (msgBtn ? '<div style="margin-left:auto;">' + msgBtn + '</div>' : '') +
+                        '</div>' +
+                        '<h4>' + s.title + '</h4>' +
+                        '<p>' + (s.excerpt || '') + '</p>' +
+                        '<div class="story-footer">' +
+                            '<span><i class="fas fa-heart" style="color:var(--gold);"></i> ' + (s.likes || 0) + '</span>' +
+                            '<span><i class="fas fa-comment"></i> ' + (s.comments || 0) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }).catch(function () {});
     }
 
     function loadTravelers() {
-        apiFetch('/api/community/travelers')
-            .then(data => renderTravelers(data.data ?? data))
-            .catch(() => {
-                document.getElementById('travelersGrid').innerHTML =
-                    '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-exclamation-circle"></i><p>Could not load travelers.</p></div>';
+        apiFetch('/api/community/travelers').then(function (data) {
+            var el = document.getElementById('travelersGrid');
+            if (!el) return;
+            var travelers = data.travelers || data || [];
+            if (!travelers.length) {
+                el.innerHTML = '<p style="text-align:center;color:var(--text-muted);">No travelers yet.</p>';
+                return;
+            }
+            el.innerHTML = travelers.map(function (t) {
+                var userId = t.id || null;
+                var msgBtn = cfg.isLoggedIn ? messageBtn(userId, t.name) : '';
+                var invBtn = cfg.isLoggedIn ? inviteBtn(userId, t.name, t.avatar, t.location || 'Traveler') : '';
+                var av     = t.avatar
+                    ? '<img src="' + t.avatar + '" style="width:100%;height:100%;object-fit:cover;">'
+                    : initials(t.name);
+
+                return '<div class="traveler-card">' +
+                    '<div class="traveler-avatar">' + av + '</div>' +
+                    '<h4>' + t.name + '</h4>' +
+                    '<p class="tc-sub">' + (t.location || t.bio || 'Traveler') + '</p>' +
+                    '<div class="tc-stats">' +
+                        '<div class="tc-stat"><div class="ts-num">' + (t.trips || 0) + '</div><div class="ts-label">Trips</div></div>' +
+                        '<div class="tc-stat"><div class="ts-num">' + (t.countries || 0) + '</div><div class="ts-label">Countries</div></div>' +
+                    '</div>' +
+                    (t.badge ? '<div class="tc-badge">' + t.badge + '</div>' : '') +
+                    '<div class="tc-actions">' + msgBtn + invBtn + '</div>' +
+                '</div>';
+            }).join('');
+        }).catch(function () {});
+    }
+
+    function openTopic(id) {
+        apiFetch('/api/community/topics/' + id).then(function (data) {
+            var topic     = data.topic || data;
+            var replyHtml = (topic.replies || []).map(function (r) {
+                var rUserId = r.user_id || null;
+                var rName   = r.author  || 'Traveler';
+                var msgBtn  = cfg.isLoggedIn ? messageBtn(rUserId, rName) : '';
+                return '<div class="reply-item">' +
+                    '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(rName) + '</div>' +
+                    '<div class="reply-body">' +
+                        '<div class="reply-author"><strong>' + rName + '</strong> ' + (r.created_at || '') +
+                            (msgBtn ? ' <span style="margin-left:8px;">' + msgBtn + '</span>' : '') +
+                        '</div>' +
+                        '<p>' + r.body + '</p>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+
+            var authorId   = topic.user_id || null;
+            var authorName = topic.author  || 'Traveler';
+            var topicMsgBtn = cfg.isLoggedIn ? messageBtn(authorId, authorName) : '';
+
+            Swal.fire({
+                title: topic.title,
+                html:
+                    '<div style="text-align:left;">' +
+                        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">' +
+                            '<span style="color:var(--text-muted);font-size:13px;">by <strong>' + authorName + '</strong> · ' + (topic.created_at || '') + '</span>' +
+                            (topicMsgBtn ? '<div style="margin-left:auto;">' + topicMsgBtn + '</div>' : '') +
+                        '</div>' +
+                        '<p style="margin-bottom:16px;">' + (topic.body || '') + '</p>' +
+                        '<div id="threadReplies">' + (replyHtml || '<p style="color:var(--text-muted);font-size:13px;">No replies yet.</p>') + '</div>' +
+                        '<hr style="margin:16px 0;border-color:var(--border);">' +
+                        '<textarea id="replyBody" placeholder="Write a reply…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:14px;resize:vertical;min-height:70px;"></textarea>' +
+                    '</div>',
+                showCancelButton: true,
+                confirmButtonColor: '#c9a96e',
+                cancelButtonColor: '#6b5b4f',
+                confirmButtonText: '<i class="fas fa-paper-plane"></i> Post Reply',
+                cancelButtonText: 'Close',
+                width: 640,
+                preConfirm: function () {
+                    if (!requireLogin('post replies')) return false;
+                    var body = document.getElementById('replyBody').value.trim();
+                    if (!body) { Swal.showValidationMessage('Please write a reply'); return false; }
+                    return apiFetch('/api/community/topics/' + id + '/replies', {
+                        method: 'POST',
+                        body:   JSON.stringify({ body: body }),
+                    });
+                },
+            }).then(function (r) {
+                if (r.isConfirmed && r.value) {
+                    showToast('Reply posted!');
+                    loadTopics();
+                }
             });
+        }).catch(function () {});
     }
 
-    /* ── Polling fallback (when Pusher not configured) ── */
+    function submitTopic() {
+        var author = (document.getElementById('topicAuthor') || {}).value || '';
+        var title  = (document.getElementById('topicTitle')  || {}).value || '';
+        var tags   = (document.getElementById('topicTags')   || {}).value || '';
+        var body   = (document.getElementById('topicBody')   || {}).value || '';
+        if (!title.trim() || !body.trim()) { showToast('Please fill in the required fields'); return; }
 
-    function startPolling() {
-        // Poll every 15 seconds for new topics, groups, stories, stats
-        setInterval(() => {
+        var btn = document.getElementById('submitTopicBtn');
+        if (btn) btn.disabled = true;
+
+        var tagArray = tags.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+
+        apiFetch('/api/community/topics', {
+            method: 'POST',
+            body:   JSON.stringify({ author: author, title: title, tags: tagArray, body: body }),
+        }).then(function () {
+            closeModal('topicModal');
+            showToast('Topic posted!');
+            loadTopics();
             loadStats();
-            loadTopics(true);
-            loadGroups(true);
-            loadStories(true);
-            loadTags(true);
-        }, 15000);
+            ['topicAuthor', 'topicTitle', 'topicTags', 'topicBody'].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }).catch(function () { showToast('Failed to post topic'); })
+        .finally(function () { if (btn) btn.disabled = false; });
     }
 
-    /* ── Real-time via Pusher ── */
+    function submitGroup() {
+        var org   = (document.getElementById('groupOrganizer') || {}).value || '';
+        var name  = (document.getElementById('groupName')      || {}).value || '';
+        var dest  = (document.getElementById('groupDest')      || {}).value || '';
+        var date  = (document.getElementById('groupDate')      || {}).value || '';
+        var spots = (document.getElementById('groupSpots')     || {}).value || '';
+        if (!name.trim() || !dest.trim()) { showToast('Please fill in the required fields'); return; }
 
-    function initPusher() {
-        if (!cfg.pusherKey || cfg.pusherKey === '') {
-            console.info('Pusher not configured — using polling fallback (15s interval).');
-            startPolling();
-            return;
-        }
+        var btn = document.getElementById('submitGroupBtn');
+        if (btn) btn.disabled = true;
 
-        Pusher.logToConsole = false;
-        const pusher  = new Pusher(cfg.pusherKey, { cluster: cfg.pusherCluster });
-        const channel = pusher.subscribe('community');
-
-        channel.bind('topic.created', data => {
-            renderTopics([data.topic], true);
-            loadStats();
-            loadTags(true);
-            showToast(`New topic: "${data.topic.title}"`, 'fa-comments');
-        });
-
-        channel.bind('group.created', data => {
+        apiFetch('/api/community/groups', {
+            method: 'POST',
+            body:   JSON.stringify({ organizer: org, name: name, destination: dest, date: date, spots_left: parseInt(spots) || 1 }),
+        }).then(function () {
+            closeModal('groupModal');
+            showToast('Group trip created!');
             loadGroups();
             loadStats();
-            showToast(`New group trip: "${data.group.name}"`, 'fa-users');
-        });
+        }).catch(function () { showToast('Failed to create group'); })
+        .finally(function () { if (btn) btn.disabled = false; });
+    }
 
-        channel.bind('story.created', data => {
-            loadStories();
-            loadStats();
-            showToast(`New story: "${data.story.title}"`, 'fa-book-open');
-        });
+    function openInviteModal(encoded) {
+        if (!requireLogin('send invites')) return;
+        try { inviteTarget = JSON.parse(decodeURIComponent(encoded)); } catch (_) { return; }
 
-        channel.bind('stats.updated', data => {
-            if (data.members !== undefined) bumpStat('stat-members', data.members);
-            if (data.stories !== undefined) bumpStat('stat-stories', data.stories);
-            if (data.groups  !== undefined) bumpStat('stat-groups',  data.groups);
-            if (data.topics  !== undefined) bumpStat('stat-topics',  data.topics);
-        });
+        var avEl   = document.getElementById('inviteAvatar');
+        var nameEl = document.getElementById('inviteName');
+        var subEl  = document.getElementById('inviteSub');
+        var msgEl  = document.getElementById('inviteMsg');
 
-        pusher.connection.bind('connected',    () => {
-            console.info('Pusher connected — real-time active.');
-        });
-        pusher.connection.bind('disconnected', () => {
-            console.warn('Pusher disconnected — falling back to polling.');
-            startPolling();
-        });
-        pusher.connection.bind('failed', () => {
-            console.warn('Pusher failed — falling back to polling.');
-            startPolling();
+        if (avEl) {
+            avEl.innerHTML = inviteTarget.avatar
+                ? '<img src="' + inviteTarget.avatar + '">'
+                : initials(inviteTarget.name);
+        }
+        if (nameEl) nameEl.textContent = inviteTarget.name;
+        if (subEl)  subEl.textContent  = inviteTarget.sub;
+        if (msgEl)  msgEl.value = 'Hey ' + inviteTarget.name.split(' ')[0] + '! I saw your profile on the Smart Booking community and would love to connect about travel plans. Would you be up for chatting?';
+
+        document.getElementById('inviteModal').classList.add('open');
+    }
+
+    function sendInvite() {
+        if (!inviteTarget || !inviteTarget.id) return;
+        var body = (document.getElementById('inviteMsg') || {}).value || '';
+        if (!body.trim()) { showToast('Please write a message'); return; }
+
+        var btn = document.getElementById('submitInviteBtn');
+        if (btn) btn.disabled = true;
+
+        fetch('/api/messages', {
+            method:      'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            body: JSON.stringify({ receiver_id: inviteTarget.id, body: body }),
+        }).then(function (r) {
+            if (r.status === 401) { requireLogin('send messages'); throw new Error('unauthenticated'); }
+            return r.json();
+        }).then(function () {
+            closeModal('inviteModal');
+            window.location.href = '/chat/' + inviteTarget.id;
+        }).catch(function (err) {
+            if (err.message !== 'unauthenticated') showToast('Failed to send invite');
+            if (btn) btn.disabled = false;
         });
     }
 
-    /* ── Boot ── */
+    function openTopicModal() {
+        if (!requireLogin('post topics')) return;
+        document.getElementById('topicModal').classList.add('open');
+    }
 
-    function init() {
+    function openGroupModal() {
+        if (!requireLogin('create groups')) return;
+        document.getElementById('groupModal').classList.add('open');
+    }
+
+    function closeModal(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('open');
+    }
+
+    document.addEventListener('click', function (e) {
+        ['topicModal', 'groupModal', 'inviteModal'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && e.target === el) el.classList.remove('open');
+        });
+    });
+
+    function initPusher() {
+        if (!cfg.pusherKey) return;
+        try {
+            var pusher  = new Pusher(cfg.pusherKey, { cluster: cfg.pusherCluster });
+            var channel = pusher.subscribe('community');
+            channel.bind('new-topic', function () { loadTopics(); loadStats(); });
+            channel.bind('new-reply', function () { loadTopics(); });
+            channel.bind('new-group', function () { loadGroups(); loadStats(); });
+        } catch (_) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
         loadStats();
         loadTopics();
         loadGroups();
@@ -611,18 +436,18 @@ const Community = (() => {
         loadStories();
         loadTravelers();
         initPusher();
-    }
+    });
 
-    document.addEventListener('DOMContentLoaded', init);
-
-    return {
-        openTopicModal,
-        openGroupModal,
-        closeModal,
-        submitTopic,
-        submitGroup,
-        filterByTag,
-        openTopicThread,
+    window.Community = {
+        openTopicModal:  openTopicModal,
+        openGroupModal:  openGroupModal,
+        openInviteModal: openInviteModal,
+        closeModal:      closeModal,
+        submitTopic:     submitTopic,
+        submitGroup:     submitGroup,
+        sendInvite:      sendInvite,
+        openTopic:       openTopic,
+        startChat:       startChat,
     };
 
-})();
+}());

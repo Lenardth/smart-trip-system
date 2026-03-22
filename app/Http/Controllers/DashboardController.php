@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\Booking;
 use App\Models\Trip;
 use App\Models\Message;
-use App\Models\Notification;
 use App\Models\SavedDestination;
 
 class DashboardController extends Controller
@@ -22,12 +21,13 @@ class DashboardController extends Controller
 
     public function statistics(): JsonResponse
     {
-        $userId = Auth::id();
+        $user   = Auth::user();
+        $userId = $user->id;
 
         $trips         = Trip::where('user_id', $userId)->count();
         $bookings      = Booking::where('user_id', $userId)->count();
         $saved         = SavedDestination::where('user_id', $userId)->count();
-        $notifications = Notification::where('user_id', $userId)->where('read', false)->count();
+        $notifications = $user->unreadNotifications()->count();
 
         return response()->json([
             'trips'         => $trips,
@@ -45,19 +45,34 @@ class DashboardController extends Controller
 
     public function notifications(): JsonResponse
     {
-        $notifications = Notification::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
+        $user = Auth::user();
+
+        $rows = $user->notifications()
+            ->latest()
+            ->limit(50)
             ->get();
 
-        return response()->json(['notifications' => $notifications]);
+        $mapped = $rows->map(function ($n) {
+            $data = $n->data;
+
+            return [
+                'id'      => $n->id,
+                'type'    => $data['type']    ?? 'system',
+                'title'   => $data['title']   ?? 'Notification',
+                'message' => $data['message'] ?? '',
+                'url'     => $data['url']     ?? null,
+                'time'    => $n->created_at->diffForHumans(),
+                'read'    => $n->read_at !== null,
+                'user'    => $data['user']    ?? null,
+            ];
+        });
+
+        return response()->json(['notifications' => $mapped]);
     }
 
     public function markAllNotificationsRead(): JsonResponse
     {
-        Notification::where('user_id', Auth::id())
-            ->where('read', false)
-            ->update(['read' => true]);
+        Auth::user()->unreadNotifications()->update(['read_at' => now()]);
 
         return response()->json(['success' => true]);
     }
@@ -66,12 +81,14 @@ class DashboardController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'integer',
+            'ids.*' => 'string',
         ]);
 
-        Notification::where('user_id', Auth::id())
+        Auth::user()
+            ->notifications()
             ->whereIn('id', $request->ids)
-            ->update(['read' => true]);
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
 
         return response()->json(['success' => true]);
     }
@@ -85,7 +102,7 @@ class DashboardController extends Controller
                 $q->where('name',  'like', '%' . $query . '%')
                   ->orWhere('email', 'like', '%' . $query . '%');
             })
-            ->select('id', 'name', 'email')
+            ->select('id', 'name', 'email', 'avatar')
             ->limit(10)
             ->get();
 
@@ -96,13 +113,13 @@ class DashboardController extends Controller
     {
         $request->validate([
             'receiver_id' => 'required|exists:users,id',
-            'content'     => 'required|string|max:1000',
+            'content'     => 'required|string|max:2000',
         ]);
 
         $message = Message::create([
             'sender_id'   => Auth::id(),
             'receiver_id' => $request->receiver_id,
-            'content'     => $request->input('content'),
+            'body'        => $request->input('content'),
         ]);
 
         return response()->json([

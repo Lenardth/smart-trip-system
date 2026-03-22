@@ -1,15 +1,12 @@
 (function () {
 
-    var mediaLibrary        = [];
-    var selectedMedia       = new Set();
-    var currentMediaIndex   = 0;
-    var notifications       = [];
-    var currentTab          = 'all';
-    var unreadCount         = 0;
-    var chatPollingInterval = null;
+    var mediaLibrary         = [];
+    var selectedMedia        = new Set();
+    var currentMediaIndex    = 0;
+    var notifications        = [];
+    var currentTab           = 'all';
+    var unreadCount          = 0;
     var notifPollingInterval = null;
-    var searchTimeout       = null;
-    var availableUsers      = [];
 
     document.addEventListener('DOMContentLoaded', function () {
         initializeUserData();
@@ -25,51 +22,41 @@
         initMenuItems();
         initOutsideClickHandlers();
         initializeRealTimeChat();
+        initNotificationListDelegate();
         initTripSavedListener();
-
-        // Same-tab navigation: consume any pending save signal written before redirect
         consumePendingTripSave();
     });
 
-    // Fires when page is restored from bfcache (back/forward navigation)
-    // In this case DOMContentLoaded does NOT re-run, so we check here too
     window.addEventListener('pageshow', function (e) {
-        if (!e.persisted) return; // normal load already handled by DOMContentLoaded
+        if (!e.persisted) return;
         loadUpcomingTrips();
         loadUserStatistics();
         consumePendingTripSave();
     });
 
-    // Handles same-tab case: plan-trip writes signal → redirects → dashboard reads it on load
     function consumePendingTripSave() {
         try {
             var raw = localStorage.getItem('smartBookingTripSaved');
             if (!raw) return;
             var payload = JSON.parse(raw);
-            // Only act if the signal was written in the last 15 seconds
             if (!payload.ts || (Date.now() - payload.ts) > 15000) {
                 localStorage.removeItem('smartBookingTripSaved');
                 return;
             }
-            // Consume immediately so it doesn't fire again on refresh
             localStorage.removeItem('smartBookingTripSaved');
-            // Trips already loading via loadUpcomingTrips() above — just show the toast
-            var dest = payload.destination || 'Your trip';
-            showTripSavedToast(dest);
+            showTripSavedToast(payload.destination || 'Your trip');
         } catch (_) {}
     }
 
-    // Handles cross-tab case: dashboard open in tab B, plan-trip saves in tab A
     function initTripSavedListener() {
         window.addEventListener('storage', function (e) {
             if (e.key !== 'smartBookingTripSaved' || !e.newValue) return;
             try {
                 var payload = JSON.parse(e.newValue);
-                localStorage.removeItem('smartBookingTripSaved'); // consume
+                localStorage.removeItem('smartBookingTripSaved');
                 loadUpcomingTrips();
                 loadUserStatistics();
-                var dest = payload.destination || 'Your trip';
-                showTripSavedToast(dest);
+                showTripSavedToast(payload.destination || 'Your trip');
             } catch (_) {}
         });
     }
@@ -100,7 +87,6 @@
     function initUploadArea() {
         var uploadArea = document.getElementById('uploadArea');
         if (!uploadArea) return;
-
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (ev) {
             uploadArea.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); });
         });
@@ -144,66 +130,49 @@
         });
     }
 
+    // Use event delegation so UUID-keyed items don't need inline onclick
+    function initNotificationListDelegate() {
+        var list = document.getElementById('notificationList');
+        if (!list) return;
+        list.addEventListener('click', function (e) {
+            var item = e.target.closest('.notification-item[data-id]');
+            if (!item) return;
+            handleNotificationClick(item.getAttribute('data-id'));
+        });
+    }
+
     function initializeRealTimeChat() {
         var cfg = window.__dashboardConfig || {};
-        if (!cfg.pusherKey) {
-            startChatPolling();
-            return;
-        }
+        if (!cfg.pusherKey || !cfg.userId) return;
+
         try {
+            window.Pusher.logToConsole = false;
             window.Echo = new LaravelEcho.default({
-                broadcaster: 'pusher',
-                key:         cfg.pusherKey,
-                cluster:     cfg.pusherCluster,
-                forceTLS:    true,
+                broadcaster:  'pusher',
+                key:          cfg.pusherKey,
+                cluster:      cfg.pusherCluster,
+                forceTLS:     true,
+                authEndpoint: '/broadcasting/auth',
+                auth: {
+                    headers: { 'X-CSRF-TOKEN': csrfToken() },
+                },
             });
-            window.Echo.private('user.' + cfg.userId)
-                .listen('NewChatMessage', handleRealTimeChatMessage)
-                .listen('Notification',   handleRealTimeNotification);
+
+            window.Echo.private('chat.' + cfg.userId)
+                .listen('.new-message', function (data) {
+                    showChatToast(data.sender.name, data.body, data.sender_id);
+                    loadNotifications(true);
+                });
         } catch (err) {
-            startChatPolling();
+            console.warn('[dashboard] Echo init failed:', err);
         }
     }
 
-    function startChatPolling() {
-        if (chatPollingInterval) return;
-        chatPollingInterval = setInterval(function () { loadNotifications(true); }, 3000);
-    }
-
-    function handleRealTimeChatMessage(data) {
-        var notif = {
-            id:      data.message_id || Date.now(),
-            type:    'chat',
-            title:   'New chat from ' + data.sender_name,
-            message: data.content,
-            time:    'Just now',
-            read:    false,
-            user: {
-                name:     data.sender_name,
-                avatar:   data.sender_avatar,
-                initials: data.sender_initials,
-            },
-        };
-        notifications.unshift(notif);
-        unreadCount++;
-        updateNotificationBadge();
-        renderNotifications();
-        playNotificationSound();
-        showChatToast(data.sender_name, data.content);
-    }
-
-    function handleRealTimeNotification(data) {
-        notifications.unshift(data);
-        if (!data.read) unreadCount++;
-        updateNotificationBadge();
-        renderNotifications();
-    }
-
-    function showChatToast(sender, message) {
-        var toast     = document.createElement('div');
+    function showChatToast(sender, message, senderId) {
+        var toast    = document.createElement('div');
         toast.className = 'chat-toast';
-        var preview   = message.length > 60 ? message.substring(0, 60) + '…' : message;
-        var initials  = sender.split(' ').map(function (n) { return n[0]; }).join('').toUpperCase().substring(0, 2);
+        var preview  = message.length > 60 ? message.substring(0, 60) + '…' : message;
+        var initials = sender.split(' ').map(function (n) { return n[0]; }).join('').toUpperCase().substring(0, 2);
 
         toast.innerHTML =
             '<div class="chat-toast-inner">' +
@@ -212,17 +181,22 @@
                     '<div class="chat-toast-sender"><i class="fas fa-comments"></i> ' + sender + '</div>' +
                     '<div class="chat-toast-preview">' + preview + '</div>' +
                 '</div>' +
-                '<button class="chat-toast-close" onclick="this.closest(\'.chat-toast\').remove()">' +
+                '<button class="chat-toast-close" onclick="event.stopPropagation();this.closest(\'.chat-toast\').remove()">' +
                     '<i class="fas fa-times"></i>' +
                 '</button>' +
             '</div>';
 
-        toast.onclick = function () { window.location.href = '/chat'; toast.remove(); };
+        toast.onclick = function () {
+            window.location.href = '/chat/' + (senderId || '');
+            toast.remove();
+        };
+
         document.body.appendChild(toast);
+        playNotificationSound();
 
         setTimeout(function () {
             toast.style.animation = 'slideOutRight 0.4s ease forwards';
-            setTimeout(function () { toast.remove(); }, 400);
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 400);
         }, 5000);
     }
 
@@ -245,32 +219,18 @@
         fetch('/api/notifications')
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                notifications = data.notifications || getSampleNotifications();
+                notifications = data.notifications || [];
                 unreadCount   = notifications.filter(function (n) { return !n.read; }).length;
                 updateNotificationBadge();
                 renderNotifications();
             })
             .catch(function () {
                 if (!silent) {
-                    notifications = getSampleNotifications();
-                    unreadCount   = notifications.filter(function (n) { return !n.read; }).length;
+                    notifications = [];
                     updateNotificationBadge();
                     renderNotifications();
                 }
             });
-    }
-
-    function getSampleNotifications() {
-        return [
-            { id:1, type:'chat',    title:'New chat from Sarah Johnson',     message:"Hey! I saw you're planning a trip to Bali. I have some great recommendations!", time:'5 minutes ago', read:false, user:{name:'Sarah Johnson',   avatar:null, initials:'SJ'} },
-            { id:2, type:'booking', title:'Booking Confirmed',               message:'Your flight to Tokyo has been confirmed. Check-in opens 24 hours before departure.',  time:'2 hours ago',   read:false },
-            { id:3, type:'chat',    title:'Michael Roberts sent you a chat',  message:'Thanks for the travel tips! The restaurant you recommended was amazing.',            time:'5 hours ago',   read:true,  user:{name:'Michael Roberts', avatar:null, initials:'MR'} },
-            { id:4, type:'trip',    title:'Trip Reminder',                   message:"Your trip to Paris starts in 5 days. Don't forget to pack!",                          time:'1 day ago',     read:false },
-            { id:5, type:'photo',   title:'Photos Uploaded',                 message:'Successfully uploaded 24 photos to your Bali album.',                                 time:'2 days ago',    read:true  },
-            { id:6, type:'chat',    title:'Anna Chen mentioned you',          message:'Anna Chen mentioned you: "You should check out this place!"',                        time:'2 days ago',    read:true,  user:{name:'Anna Chen', avatar:null, initials:'AC'} },
-            { id:7, type:'booking', title:'Price Drop Alert',                 message:'Good news! The hotel you saved in Santorini dropped by 25%.',                        time:'3 days ago',    read:true  },
-            { id:8, type:'system',  title:'Account Verified',                 message:'Congratulations! Your account has been successfully verified.',                      time:'1 week ago',    read:true  },
-        ];
     }
 
     function toggleNotifications() {
@@ -315,7 +275,8 @@
                     : '<div style="width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--deep));color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;">' + notif.user.initials + '</div>')
                 : '<i class="' + getNotificationIcon(notif.type) + '"></i>';
 
-            return '<div class="notification-item ' + (notif.read ? '' : 'unread') + '" onclick="handleNotificationClick(' + notif.id + ')">' +
+            // data-id carries the UUID safely — no inline JS eval
+            return '<div class="notification-item ' + (notif.read ? '' : 'unread') + '" data-id="' + notif.id + '">' +
                 '<div class="notification-icon-wrapper ' + notif.type + '">' + avatarHtml + '</div>' +
                 '<div class="notification-content">' +
                     '<h4>' + notif.title + '</h4>' +
@@ -327,7 +288,7 @@
     }
 
     function getNotificationIcon(type) {
-        var map = { chat:'fas fa-comments', booking:'fas fa-ticket-alt', trip:'fas fa-route', photo:'fas fa-images', system:'fas fa-info-circle' };
+        var map = { chat: 'fas fa-comments', booking: 'fas fa-ticket-alt', trip: 'fas fa-route', photo: 'fas fa-images', system: 'fas fa-info-circle' };
         return map[type] || 'fas fa-bell';
     }
 
@@ -348,7 +309,7 @@
         updateNotificationBadge();
         renderNotifications();
         fetch('/api/notifications/mark-all-read', {
-            method: 'POST',
+            method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
         }).catch(console.error);
         Swal.fire({ title: 'All marked as read', icon: 'success', timer: 1500, showConfirmButton: false });
@@ -365,161 +326,48 @@
         updateNotificationBadge();
         renderNotifications();
         fetch('/api/notifications/mark-read', {
-            method: 'POST',
+            method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-            body: JSON.stringify({ ids: ids }),
+            body:    JSON.stringify({ ids: ids }),
         }).catch(console.error);
     }
 
     function handleNotificationClick(id) {
         var notif = notifications.find(function (n) { return n.id === id; });
         if (!notif) return;
+
         notifications = notifications.map(function (n) {
             return n.id === id ? Object.assign({}, n, { read: true }) : n;
         });
         unreadCount = notifications.filter(function (n) { return !n.read; }).length;
         updateNotificationBadge();
         renderNotifications();
+
+        fetch('/api/notifications/mark-read', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            body:    JSON.stringify({ ids: [id] }),
+        }).catch(function () {});
+
+        // Prefer the url stored with the notification, fall back to type-based routes
+        if (notif.url) {
+            window.location.href = notif.url;
+            return;
+        }
+
         var routes = { chat: '/chat', booking: '/bookings', trip: '/plan-trip' };
-        if (routes[notif.type])          window.location.href = routes[notif.type];
-        else if (notif.type === 'photo') { openGallery(); toggleNotifications(); }
+        if (routes[notif.type]) {
+            window.location.href = routes[notif.type];
+        } else if (notif.type === 'photo') {
+            openGallery();
+            toggleNotifications();
+        }
     }
 
     function openComposeMessage() {
-        Swal.fire({
-            title: '<i class="fas fa-comments"></i> Send a Chat Message',
-            html:
-                '<div style="text-align:left;padding:10px 20px;">' +
-                    '<label style="display:block;margin-bottom:8px;font-weight:600;"><i class="fas fa-user"></i> To:</label>' +
-                    '<input type="text" id="userSearch" placeholder="Search users…" style="width:100%;padding:12px;border:2px solid #e2d5c3;border-radius:8px;font-size:14px;" oninput="searchUsers(this.value)">' +
-                    '<div id="userSearchResults" style="max-height:150px;overflow-y:auto;margin-top:10px;border:1px solid #e2d5c3;border-radius:8px;display:none;"></div>' +
-                    '<div id="selectedUser" style="display:none;padding:12px;background:rgba(201,169,110,0.1);border-radius:8px;margin:10px 0;">' +
-                        '<div style="display:flex;align-items:center;gap:12px;">' +
-                            '<div id="selectedUserAvatar"></div>' +
-                            '<div><div id="selectedUserName" style="font-weight:600;"></div><div id="selectedUserType" style="font-size:12px;color:#999;"></div></div>' +
-                            '<button onclick="clearSelectedUser()" style="margin-left:auto;background:none;border:none;color:#e53935;cursor:pointer;font-size:18px;"><i class="fas fa-times"></i></button>' +
-                        '</div>' +
-                    '</div>' +
-                    '<label style="display:block;margin:10px 0 8px;font-weight:600;"><i class="fas fa-comments"></i> Message:</label>' +
-                    '<textarea id="messageContent" placeholder="Type your message…" style="width:100%;min-height:120px;padding:12px;border:2px solid #e2d5c3;border-radius:8px;font-size:14px;resize:vertical;" maxlength="1000" oninput="document.getElementById(\'charCount\').textContent=this.value.length"></textarea>' +
-                    '<div style="text-align:right;font-size:12px;color:#999;margin-top:4px;"><span id="charCount">0</span>/1000</div>' +
-                    '<input type="hidden" id="selectedUserId" value="">' +
-                '</div>',
-            width: 600,
-            showCancelButton: true,
-            confirmButtonColor: '#c9a96e',
-            cancelButtonColor: '#f44336',
-            confirmButtonText: '<i class="fas fa-paper-plane"></i> Send',
-            cancelButtonText: 'Cancel',
-            showLoaderOnConfirm: true,
-            preConfirm: function () {
-                var userId  = document.getElementById('selectedUserId').value;
-                var message = document.getElementById('messageContent').value.trim();
-                if (!userId)               { Swal.showValidationMessage('Please select a user');              return false; }
-                if (!message)              { Swal.showValidationMessage('Please enter a message');            return false; }
-                if (message.length > 1000) { Swal.showValidationMessage('Message too long (max 1000 chars)'); return false; }
-                return sendMessage(userId, message);
-            },
-        }).then(function (result) {
-            if (result.isConfirmed && result.value) {
-                Swal.fire({ title: 'Message Sent!', text: 'Your message has been delivered.', icon: 'success', confirmButtonColor: '#c9a96e', timer: 2000, showConfirmButton: false });
-                loadNotifications();
-            }
-        });
-    }
-
-    function searchUsers(query) {
-        clearTimeout(searchTimeout);
-        var resultsEl = document.getElementById('userSearchResults');
-        if (query.length < 2) { if (resultsEl) resultsEl.style.display = 'none'; return; }
-
-        searchTimeout = setTimeout(function () {
-            fetch('/api/users/search?q=' + encodeURIComponent(query))
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    availableUsers = data.users || [];
-                    displaySearchResults(availableUsers);
-                })
-                .catch(function () {
-                    availableUsers = getSampleUsers().filter(function (u) {
-                        return u.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
-                    });
-                    displaySearchResults(availableUsers);
-                });
-        }, 300);
-    }
-
-    function getSampleUsers() {
-        return [
-            { id:2, name:'Sarah Johnson',   type:'traveler', avatar:null, verified:true  },
-            { id:3, name:'Michael Roberts', type:'traveler', avatar:null, verified:false },
-            { id:4, name:'Anna Chen',        type:'agency',   avatar:null, verified:true  },
-            { id:5, name:'David Martinez',   type:'traveler', avatar:null, verified:true  },
-            { id:6, name:'Emily Wilson',     type:'agency',   avatar:null, verified:true  },
-            { id:7, name:'James Brown',      type:'traveler', avatar:null, verified:false },
-            { id:8, name:'Lisa Anderson',    type:'traveler', avatar:null, verified:true  },
-            { id:9, name:'Tom Smith',        type:'agency',   avatar:null, verified:true  },
-        ];
-    }
-
-    function displaySearchResults(users) {
-        var el = document.getElementById('userSearchResults');
-        if (!el) return;
-        if (!users.length) {
-            el.innerHTML = '<div style="padding:15px;text-align:center;color:#999;">No users found</div>';
-            el.style.display = 'block';
-            return;
-        }
-        el.innerHTML = users.map(function (user) {
-            var initials   = user.name.split(' ').map(function (n) { return n[0]; }).join('').toUpperCase().substring(0, 2);
-            var avatarHtml = user.avatar
-                ? '<img src="' + user.avatar + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">'
-                : '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#c9a96e,#2c1810);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">' + initials + '</div>';
-            var agencyBadge  = user.type === 'agency' ? '<span style="background:rgba(156,39,176,0.1);color:#9c27b0;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:8px;"><i class="fas fa-building"></i> Agency</span>' : '';
-            var verifiedIcon = user.verified ? '<i class="fas fa-check-circle" style="color:#43a047;font-size:12px;margin-left:5px;"></i>' : '';
-            return '<div onclick="selectUser(' + user.id + ')" style="padding:12px;cursor:pointer;border-bottom:1px solid #e2d5c3;display:flex;align-items:center;gap:12px;" onmouseenter="this.style.background=\'rgba(201,169,110,0.1)\'" onmouseleave="this.style.background=\'\'">' +
-                avatarHtml + '<div><strong style="font-size:14px;">' + user.name + verifiedIcon + agencyBadge + '</strong></div></div>';
-        }).join('');
-        el.style.display = 'block';
-    }
-
-    function selectUser(userId) {
-        var user = availableUsers.find(function (u) { return u.id === userId; });
-        if (!user) return;
-        var initials   = user.name.split(' ').map(function (n) { return n[0]; }).join('').toUpperCase().substring(0, 2);
-        var avatarHtml = user.avatar
-            ? '<img src="' + user.avatar + '" style="width:45px;height:45px;border-radius:50%;object-fit:cover;">'
-            : '<div style="width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg,#c9a96e,#2c1810);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;">' + initials + '</div>';
-        document.getElementById('selectedUserId').value          = userId;
-        document.getElementById('selectedUser').style.display    = 'block';
-        document.getElementById('selectedUserAvatar').innerHTML  = avatarHtml;
-        document.getElementById('selectedUserName').textContent  = user.name;
-        document.getElementById('selectedUserType').textContent  = user.type === 'agency' ? 'Travel Agency' : 'Traveler';
-        document.getElementById('userSearch').value              = '';
-        document.getElementById('userSearchResults').style.display = 'none';
-        var mc = document.getElementById('messageContent');
-        if (mc) mc.focus();
-    }
-
-    function clearSelectedUser() {
-        document.getElementById('selectedUserId').value       = '';
-        document.getElementById('selectedUser').style.display = 'none';
-        var us = document.getElementById('userSearch');
-        if (us) us.focus();
-    }
-
-    function sendMessage(userId, message) {
-        return fetch('/api/chat/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' },
-            body: JSON.stringify({ receiver_id: userId, content: message }),
-        }).then(function (response) {
-            if (!response.ok) throw new Error('Failed to send');
-            return response.json();
-        }).catch(function () {
-            Swal.showValidationMessage('Failed to send. Please try again.');
-            return false;
-        });
+        var dropdown = document.getElementById('notificationDropdown');
+        if (dropdown) dropdown.classList.remove('active');
+        window.location.href = '/chat';
     }
 
     function initializeUserData() {
@@ -533,21 +381,10 @@
     }
 
     function loadUpcomingTrips() {
-        fetch('/api/trips/upcoming', {
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(function (r) {
-            console.log('[dashboard] GET /api/trips/upcoming status:', r.status);
-            return r.json();
-        })
-        .then(function (data) {
-            console.log('[dashboard] trips data:', data);
-            renderTrips(data.trips || []);
-        })
-        .catch(function (err) {
-            console.error('[dashboard] loadUpcomingTrips failed:', err);
-            renderTrips([]);
-        });
+        fetch('/api/trips/upcoming', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { renderTrips(data.trips || []); })
+            .catch(function () { renderTrips([]); });
     }
 
     var BUDGET_LABELS = {
@@ -567,7 +404,6 @@
         var section = document.getElementById('upcomingTripsContent');
         var countEl = document.getElementById('statTripsCount');
         if (countEl) countEl.textContent = trips.length;
-
         if (!section) return;
 
         if (!trips.length) {
@@ -584,12 +420,10 @@
         }
 
         section.innerHTML = trips.map(function (t) {
-            var icon    = MOOD_ICONS_DASH[t.mood] || 'fa-globe';
-            var budget  = BUDGET_LABELS[t.budget]   || t.budget   || '—';
-            var dur     = DURATION_LABELS[t.duration]|| t.duration || '—';
-            var cost    = t.estimated_cost
-                ? '$' + Number(t.estimated_cost).toLocaleString()
-                : '—';
+            var icon   = MOOD_ICONS_DASH[t.mood] || 'fa-globe';
+            var budget = BUDGET_LABELS[t.budget]    || t.budget    || '—';
+            var dur    = DURATION_LABELS[t.duration] || t.duration  || '—';
+            var cost   = t.estimated_cost ? '$' + Number(t.estimated_cost).toLocaleString() : '—';
             return '<div class="trip-card">' +
                 '<div class="trip-card-header">' +
                     '<div class="trip-icon"><i class="fas ' + icon + '"></i></div>' +
@@ -600,18 +434,18 @@
                     '<div class="trip-cost">' + cost + '</div>' +
                 '</div>' +
                 '<div class="trip-meta">' +
-                    (t.companion ? '<span><i class="fas fa-users"></i> ' + t.companion.replace(/_/g,' ') + '</span>' : '') +
+                    (t.companion ? '<span><i class="fas fa-users"></i> ' + t.companion.replace(/_/g, ' ') + '</span>' : '') +
                     (t.month     ? '<span><i class="fas fa-calendar"></i> ' + t.month + '</span>' : '') +
                     (t.origin    ? '<span><i class="fas fa-plane-departure"></i> from ' + t.origin + '</span>' : '') +
                 '</div>' +
-                '<button class="trip-delete-btn" onclick="deleteTrip(' + t.id + ', this)">' +
+                '<button class="trip-delete-btn" onclick="deleteTrip(' + t.id + ')">' +
                     '<i class="fas fa-trash-alt"></i>' +
                 '</button>' +
             '</div>';
         }).join('');
     }
 
-    function deleteTrip(id, btn) {
+    function deleteTrip(id) {
         Swal.fire({
             title: 'Remove Trip?',
             text: 'This will remove the trip from your dashboard.',
@@ -619,44 +453,34 @@
             showCancelButton: true,
             confirmButtonColor: '#f44336',
             cancelButtonColor: '#6b5b4f',
-            confirmButtonText: 'Yes, remove it'
+            confirmButtonText: 'Yes, remove it',
         }).then(function (result) {
             if (!result.isConfirmed) return;
             fetch('/api/trips/' + id, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(function () { loadUpcomingTrips(); })
-            .catch(function () {});
+                method:  'DELETE',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            }).then(function () { loadUpcomingTrips(); }).catch(function () {});
         });
     }
 
-    window.deleteTrip          = deleteTrip;
-    window.loadUpcomingTrips   = loadUpcomingTrips;
-    window.loadUserStatistics  = loadUserStatistics;
+    window.deleteTrip         = deleteTrip;
+    window.loadUpcomingTrips  = loadUpcomingTrips;
+    window.loadUserStatistics = loadUserStatistics;
 
     function loadUserStatistics() {
         var statsPromise = fetch('/api/user/statistics')
             .then(function (r) { return r.json(); })
             .catch(function () { return {}; });
 
-        var wishlistPromise = fetch('/api/wishlist/count', {
-            headers: { 'Accept': 'application/json' }
-        })
+        var wishlistPromise = fetch('/api/wishlist/count', { headers: { 'Accept': 'application/json' } })
             .then(function (r) { return r.json(); })
             .catch(function () { return { count: 0 }; });
 
-        Promise.all([statsPromise, wishlistPromise])
-            .then(function (results) {
-                var data = results[0] || {};
-                data.saved = (results[1] && results[1].count !== undefined)
-                    ? results[1].count
-                    : (data.saved || 0);
-                updateCounts(data);
-            });
+        Promise.all([statsPromise, wishlistPromise]).then(function (results) {
+            var data   = results[0] || {};
+            data.saved = (results[1] && results[1].count !== undefined) ? results[1].count : (data.saved || 0);
+            updateCounts(data);
+        });
     }
 
     function updateCounts(data) {
@@ -701,7 +525,7 @@
 
     function handleFileSelect(event) {
         Array.from(event.target.files).forEach(function (file) {
-            var reader  = new FileReader();
+            var reader = new FileReader();
             reader.onload = function (e) {
                 mediaLibrary.push({
                     id:   Date.now() + Math.random(),
@@ -805,7 +629,7 @@
         Swal.fire({ title: 'Share Selected', text: 'Share ' + selectedMedia.size + ' selected items.', icon: 'info', confirmButtonColor: '#c9a96e' });
     }
 
-    function saveMediaToStorage()   { try { localStorage.setItem('smartBookingMedia', JSON.stringify(mediaLibrary)); } catch(_) {} }
+    function saveMediaToStorage()   { try { localStorage.setItem('smartBookingMedia', JSON.stringify(mediaLibrary)); } catch (_) {} }
     function loadMediaFromStorage() { try { var s = localStorage.getItem('smartBookingMedia'); if (s) { mediaLibrary = JSON.parse(s); updateMediaCounts(); } } catch (_) {} }
     function updateMediaCounts()    { updateCounts({ photos: mediaLibrary.length }); }
     function uploadPhotos()         { openGallery(); }
@@ -856,10 +680,10 @@
             var form  = document.createElement('form');
             form.method = 'POST';
             form.action = '/logout';
-            var csrf  = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = '_token';
-            csrf.value = csrfToken();
+            var csrf    = document.createElement('input');
+            csrf.type   = 'hidden';
+            csrf.name   = '_token';
+            csrf.value  = csrfToken();
             form.appendChild(csrf);
             document.body.appendChild(form);
             form.submit();
@@ -883,9 +707,6 @@
     window.markAllRead             = markAllRead;
     window.handleNotificationClick = handleNotificationClick;
     window.openComposeMessage      = openComposeMessage;
-    window.searchUsers             = searchUsers;
-    window.selectUser              = selectUser;
-    window.clearSelectedUser       = clearSelectedUser;
     window.toggleSidebar           = toggleSidebar;
     window.openGallery             = openGallery;
     window.closeGallery            = closeGallery;
