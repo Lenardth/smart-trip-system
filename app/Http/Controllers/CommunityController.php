@@ -12,6 +12,7 @@ use App\Events\CommunityGroupCreated;
 use App\Events\CommunityStoryCreated;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class CommunityController extends Controller
@@ -33,32 +34,50 @@ class CommunityController extends Controller
 
     public function topics(): JsonResponse
     {
-        $topics = CommunityTopic::latest()
+        $topics = CommunityTopic::with('user:id,name,avatar')
+            ->latest()
             ->take(10)
-            ->get(['id', 'author', 'title', 'tags', 'replies', 'created_at']);
+            ->get();
 
-        $topics->transform(fn($t) => [
-            ...$t->toArray(),
-            'tags' => is_string($t->tags) ? (json_decode($t->tags, true) ?? []) : ($t->tags ?? []),
+        $mapped = $topics->map(fn($t) => [
+            'id'            => $t->id,
+            'title'         => $t->title,
+            'body'          => $t->body,
+            'author'        => $t->user?->name ?? $t->author,
+            'user_id'       => $t->user_id,
+            'tags'          => is_string($t->tags) ? (json_decode($t->tags, true) ?? []) : ($t->tags ?? []),
+            'replies_count' => $t->replies ?? 0,
+            'created_at'    => $t->created_at->diffForHumans(),
         ]);
 
-        return response()->json($topics);
+        return response()->json($mapped);
     }
 
     public function showTopic($id): JsonResponse
     {
-        $topic = CommunityTopic::findOrFail($id);
+        $topic = CommunityTopic::with('user:id,name,avatar')->findOrFail($id);
 
-        $replies = CommunityReply::where('topic_id', $id)
+        $replies = CommunityReply::with('user:id,name,avatar')
+            ->where('topic_id', $id)
             ->oldest()
-            ->get(['id', 'author', 'body', 'created_at']);
+            ->get()
+            ->map(fn($r) => [
+                'id'         => $r->id,
+                'body'       => $r->body,
+                'author'     => $r->user?->name ?? $r->author,
+                'user_id'    => $r->user_id,
+                'created_at' => $r->created_at->diffForHumans(),
+            ]);
 
         return response()->json([
             'topic' => [
-                ...$topic->toArray(),
-                'tags' => is_string($topic->tags)
-                    ? (json_decode($topic->tags, true) ?? [])
-                    : ($topic->tags ?? []),
+                'id'         => $topic->id,
+                'title'      => $topic->title,
+                'body'       => $topic->body,
+                'author'     => $topic->user?->name ?? $topic->author,
+                'user_id'    => $topic->user_id,
+                'tags'       => is_string($topic->tags) ? (json_decode($topic->tags, true) ?? []) : ($topic->tags ?? []),
+                'created_at' => $topic->created_at->diffForHumans(),
             ],
             'replies' => $replies,
         ]);
@@ -67,7 +86,7 @@ class CommunityController extends Controller
     public function storeTopic(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'author' => 'required|string|max:100',
+            'author' => 'nullable|string|max:100',
             'title'  => 'required|string|max:255',
             'tags'   => 'nullable|array',
             'tags.*' => 'string|max:50',
@@ -76,6 +95,11 @@ class CommunityController extends Controller
 
         $data['tags']    = json_encode($data['tags'] ?? []);
         $data['replies'] = 0;
+        $data['user_id'] = Auth::id();
+
+        if (Auth::check() && empty($data['author'])) {
+            $data['author'] = Auth::user()->name;
+        }
 
         $topic = CommunityTopic::create($data);
 
@@ -89,11 +113,17 @@ class CommunityController extends Controller
         $topic = CommunityTopic::findOrFail($topicId);
 
         $data = $request->validate([
-            'author' => 'required|string|max:100',
+            'author' => 'nullable|string|max:100',
             'body'   => 'required|string|max:5000',
         ]);
 
         $data['topic_id'] = $topic->id;
+        $data['user_id']  = Auth::id();
+
+        if (Auth::check() && empty($data['author'])) {
+            $data['author'] = Auth::user()->name;
+        }
+
         $reply = CommunityReply::create($data);
         $topic->increment('replies');
 
@@ -105,9 +135,23 @@ class CommunityController extends Controller
 
     public function groups(): JsonResponse
     {
-        $groups = CommunityGroup::latest()
+        $groups = CommunityGroup::with('user:id,name,avatar')
+            ->latest()
             ->take(6)
-            ->get(['id', 'organizer', 'name', 'destination', 'date', 'spots_left', 'status']);
+            ->get()
+            ->map(fn($g) => [
+                'id'              => $g->id,
+                'name'            => $g->name,
+                'destination'     => $g->destination,
+                'date'            => $g->date,
+                'organizer'       => $g->user?->name ?? $g->organizer,
+                'user_id'         => $g->user_id,
+                'spots_left'      => $g->spots_left,
+                'spots_available' => $g->spots_left,
+                'spots_taken'     => 0,
+                'spots_total'     => $g->spots_left,
+                'status'          => $g->status,
+            ]);
 
         return response()->json($groups);
     }
@@ -115,14 +159,20 @@ class CommunityController extends Controller
     public function storeGroup(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'organizer'   => 'required|string|max:100',
+            'organizer'   => 'nullable|string|max:100',
             'name'        => 'required|string|max:150',
             'destination' => 'required|string|max:150',
             'date'        => 'required|string|max:50',
             'spots_left'  => 'required|integer|min:1|max:100',
         ]);
 
-        $data['status'] = 'open';
+        $data['status']  = 'open';
+        $data['user_id'] = Auth::id();
+
+        if (Auth::check() && empty($data['organizer'])) {
+            $data['organizer'] = Auth::user()->name;
+        }
+
         $group = CommunityGroup::create($data);
 
         $this->broadcast(new CommunityGroupCreated($group));
@@ -149,9 +199,23 @@ class CommunityController extends Controller
 
     public function stories(): JsonResponse
     {
-        $stories = CommunityStory::latest('published_at')
+        $stories = CommunityStory::with('user:id,name,avatar')
+            ->latest('published_at')
             ->take(6)
-            ->get(['id', 'author', 'title', 'excerpt', 'image_url', 'likes', 'comments', 'published_at']);
+            ->get()
+            ->map(fn($s) => [
+                'id'          => $s->id,
+                'title'       => $s->title,
+                'excerpt'     => $s->excerpt,
+                'image_url'   => $s->image_url,
+                'image'       => $s->image_url,
+                'author'      => $s->user?->name ?? $s->author,
+                'user_id'     => $s->user_id,
+                'author_avatar' => $s->user?->avatar,
+                'likes'       => $s->likes    ?? 0,
+                'comments'    => $s->comments ?? 0,
+                'created_at'  => $s->published_at?->diffForHumans() ?? '',
+            ]);
 
         return response()->json($stories);
     }
@@ -159,21 +223,22 @@ class CommunityController extends Controller
     public function travelers(): JsonResponse
     {
         $travelers = User::orderBy('created_at')
-            ->take(4)
-            ->get(['id', 'name'])
+            ->take(8)
+            ->get(['id', 'name', 'avatar', 'bio', 'location'])
             ->map(fn($u) => [
+                'id'        => $u->id,
                 'name'      => $u->name,
-                'bio'       => 'Travel enthusiast',
+                'avatar'    => $u->avatar,
+                'bio'       => $u->bio       ?? 'Travel enthusiast',
+                'location'  => $u->location  ?? null,
                 'trips'     => rand(3, 30),
                 'countries' => rand(2, 20),
                 'posts'     => rand(1, 15),
-                'badge'     => collect(['Explorer','Adventurer','Globetrotter','Nomad'])->random(),
+                'badge'     => collect(['Explorer', 'Adventurer', 'Globetrotter', 'Nomad'])->random(),
             ]);
 
-        return response()->json($travelers);
+        return response()->json(['travelers' => $travelers]);
     }
-
-    /* ── Helper ── */
 
     private function broadcast($event): void
     {

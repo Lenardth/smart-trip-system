@@ -58,13 +58,21 @@ class TripController extends Controller
             ], 409);
         }
 
+        $days = match ($data['duration'] ?? 'week') {
+            'weekend'   => 4,
+            'week'      => 7,
+            'two_weeks' => 14,
+            'month'     => 30,
+            default     => 7,
+        };
+
         $trip = Trip::create([
             ...$data,
-            'user_id' => Auth::id(),
-            'status'  => 'planned',
-            // title is NOT NULL in the existing schema — derive it from destination
-            'start_date' => now(),
-            'title'   => $data['destination'] . ($data['country'] ? ', ' . $data['country'] : ''),
+            'user_id'    => Auth::id(),
+            'status'     => 'planned',
+            'start_date' => now()->toDateString(),
+            'end_date'   => now()->addDays($days)->toDateString(),
+            'title'      => $data['destination'] . ($data['country'] ? ', ' . $data['country'] : ''),
         ]);
 
         return response()->json([

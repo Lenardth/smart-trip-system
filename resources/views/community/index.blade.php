@@ -13,7 +13,94 @@
         'resources/js/pages/base.js',
         'resources/js/pages/community.js'
     ])
+    <style>
+        .msg-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            color: var(--deep);
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .25s;
+            box-shadow: 0 2px 6px rgba(201,169,110,.3);
+            font-family: 'Georgia', serif;
+        }
+        .msg-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201,169,110,.45);
+        }
+        .invite-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            background: transparent;
+            color: var(--deep);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Georgia', serif;
+        }
+        .invite-btn:hover {
+            border-color: var(--gold);
+            background: rgba(201,169,110,.08);
+        }
+        .traveler-card .tc-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        .forum-topic .ft-actions {
+            margin-top: 8px;
+        }
+        .topic-author-link {
+            color: var(--gold);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .topic-author-link:hover { text-decoration: underline; }
 
+        /* Invite modal */
+        #inviteModal .invite-preview {
+            background: var(--cream);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        #inviteModal .invite-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--deep));
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        #inviteModal .invite-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        #inviteModal .invite-name { font-weight: 700; color: var(--deep); font-size: 15px; }
+        #inviteModal .invite-sub  { font-size: 12px; color: var(--text-muted); }
+    </style>
 </head>
 <body>
 
@@ -53,11 +140,6 @@
     </form>
     @endauth
 </nav>
-
-
-
-
-
 
 <section class="page-hero" style="background:linear-gradient(rgba(20,8,14,.55),rgba(20,8,14,.65)),url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&q=80&fit=crop') center/cover no-repeat;">
     <div>
@@ -148,7 +230,7 @@
     </div>
 
     <h2 class="section-title">Top Travelers</h2>
-    <p class="section-subtitle">Our most active and inspiring community members.</p>
+    <p class="section-subtitle">Connect with our most active community members.</p>
     <div class="travelers-grid" id="travelersGrid">
         @for ($i = 0; $i < 4; $i++)
         <div class="traveler-card skeleton" style="height:200px;"></div>
@@ -157,6 +239,7 @@
 
 </div>
 
+<!-- New Topic Modal -->
 <div class="modal-overlay" id="topicModal">
     <div class="modal">
         <div class="modal-header">
@@ -190,6 +273,7 @@
     </div>
 </div>
 
+<!-- Create Group Modal -->
 <div class="modal-overlay" id="groupModal">
     <div class="modal">
         <div class="modal-header">
@@ -227,6 +311,35 @@
     </div>
 </div>
 
+<!-- Invite to Chat Modal -->
+<div class="modal-overlay" id="inviteModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-paper-plane" style="color:var(--gold);margin-right:8px;"></i> Send Invite</h2>
+            <button class="modal-close" onclick="Community.closeModal('inviteModal')">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+            <div class="invite-preview">
+                <div class="invite-avatar" id="inviteAvatar"></div>
+                <div>
+                    <div class="invite-name" id="inviteName"></div>
+                    <div class="invite-sub" id="inviteSub"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inviteMsg">Message</label>
+                <textarea id="inviteMsg" rows="4" placeholder="Hey! I saw your post on the community and wanted to connect…"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-button" onclick="Community.closeModal('inviteModal')">Cancel</button>
+                <button class="primary-button" id="submitInviteBtn" onclick="Community.sendInvite()">
+                    <i class="fas fa-paper-plane"></i> Send &amp; Open Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toast">
     <i class="fas fa-check-circle"></i>
     <span id="toastMsg"></span>
@@ -250,7 +363,9 @@
 window.__COMMUNITY__ = {
     pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
     pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
-    csrfToken:     "{{ csrf_token() }}"
+    csrfToken:     "{{ csrf_token() }}",
+    authUserId:    {{ Auth::id() ?? 'null' }},
+    isLoggedIn:    {{ Auth::check() ? 'true' : 'false' }}
 };
 </script>
 

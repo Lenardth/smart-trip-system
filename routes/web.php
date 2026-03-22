@@ -14,17 +14,16 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\ItineraryController;
 use App\Http\Controllers\AiSuggestionController;
+use App\Http\Controllers\MessageController;
 
 Route::get('/', function () {
     return view('landing.index');
 })->name('home');
 
-// ── AI (public, no auth required) ─────────────────────────────────────────────
 Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
     ->middleware('throttle:20,1')
     ->name('ai.suggest');
 
-// ── Community (public) ────────────────────────────────────────────────────────
 Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
 
 Route::prefix('api/community')->group(function () {
@@ -40,7 +39,6 @@ Route::prefix('api/community')->group(function () {
     Route::get('/travelers',            [CommunityController::class, 'travelers']);
 });
 
-// ── Discover (public) ─────────────────────────────────────────────────────────
 Route::get('/discover', [DiscoverController::class, 'index'])->name('discover');
 
 Route::prefix('api/discover')->group(function () {
@@ -49,14 +47,12 @@ Route::prefix('api/discover')->group(function () {
     Route::get('/debug',        [DiscoverController::class, 'debug'])->name('api.discover.debug');
 });
 
-// ── Destinations (public) ─────────────────────────────────────────────────────
-Route::get('/destinations',             [DestinationController::class, 'index'])->name('destinations');
-Route::get('/destinations/compare',     [DestinationController::class, 'compare'])->name('destinations.compare');
-Route::get('/destinations/{slug}',      [DestinationController::class, 'show'])->name('destinations.show');
+Route::get('/destinations',                 [DestinationController::class, 'index'])->name('destinations');
+Route::get('/destinations/compare',         [DestinationController::class, 'compare'])->name('destinations.compare');
+Route::get('/destinations/{slug}',          [DestinationController::class, 'show'])->name('destinations.show');
 Route::post('/destinations/compare/add',    [DestinationController::class, 'addToCompare'])->name('destinations.compare.add');
 Route::post('/destinations/compare/remove', [DestinationController::class, 'removeFromCompare'])->name('destinations.compare.remove');
 
-// ── Guest only ────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login',                    [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login',                   [AuthController::class, 'login']);
@@ -68,10 +64,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password',          [AuthController::class, 'resetPassword'])->name('password.store');
 });
 
-// ── Auth only ─────────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
-    // Email verification
     Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
         ->middleware(['signed', 'throttle:6,1'])
@@ -85,8 +79,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout',           [AuthController::class, 'logout'])->name('logout');
     Route::get('/check-activity',    [AuthController::class, 'checkActivity'])->name('check.activity');
 
-    // Core pages
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/notifications', function () {
+        return view('notifications.index');
+    })->name('notifications.index');
+
+    Route::get('/chat', function () {
+        return view('chat.index');
+    })->name('chat.index');
+
+    Route::get('/chat/{userId}', function ($userId) {
+        $other = \App\Models\User::findOrFail($userId);
+        return view('chat.index', compact('other'));
+    })->where('userId', '[0-9]+')->name('chat.thread');
 
     Route::get('/plan-trip', function () {
         return view('plan-trip.index');
@@ -96,13 +102,11 @@ Route::middleware('auth')->group(function () {
         return view('settings');
     })->name('settings');
 
-    // Agency
     Route::prefix('agency')->name('agency.')->group(function () {
         Route::get('/flights',  fn () => view('agency.flights'))->name('flights');
         Route::get('/bookings', [BookingController::class, 'agencyBookings'])->name('bookings');
     });
 
-    // Itineraries
     Route::prefix('itineraries')->name('itineraries.')->group(function () {
         Route::get('/',           [ItineraryController::class, 'index'])->name('index');
         Route::post('/api/store', [ItineraryController::class, 'store'])->name('store');
@@ -111,7 +115,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}',    [ItineraryController::class, 'destroy'])->name('destroy');
     });
 
-    // Flights
     Route::get('/flights',                  [FlightController::class, 'index'])->name('flights.index');
     Route::post('/flights/search',          [FlightController::class, 'search'])->name('flights.search');
     Route::get('/flights/create',           [FlightController::class, 'create'])->name('flights.create');
@@ -121,51 +124,52 @@ Route::middleware('auth')->group(function () {
     Route::post('/flights/{flight}/book',   [FlightController::class, 'book'])->name('flights.book');
     Route::post('/flights/{flight}/cancel', [FlightController::class, 'cancel'])->name('flights.cancel');
 
-    // Bookings
-    Route::get('/bookings',                  [BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/agency',           [BookingController::class, 'agencyBookings'])->name('bookings.agency');
-    Route::get('/bookings/{booking}',        [BookingController::class, 'show'])->name('bookings.show');
-    Route::post('/bookings/{booking}/cancel',[BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::get('/bookings',                   [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/agency',            [BookingController::class, 'agencyBookings'])->name('bookings.agency');
+    Route::get('/bookings/{booking}',         [BookingController::class, 'show'])->name('bookings.show');
+    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
-    // Wishlist
-    Route::get('/wishlist',          [WishlistController::class, 'index'])->name('wishlist.index');
-    Route::post('/wishlist',         [WishlistController::class, 'store'])->name('wishlist.store');
-    Route::delete('/wishlist/{id}',  [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+    Route::get('/wishlist',         [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist',        [WishlistController::class, 'store'])->name('wishlist.store');
+    Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
 
-    // Profile
-    Route::get('/profile',             [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile',           [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile',          [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::put('/password',            [ProfileController::class, 'updatePassword'])->name('password.update');
-    Route::post('/profile/picture',    [ProfileController::class, 'uploadProfilePicture'])->name('profile.picture.upload');
-    Route::delete('/profile/picture',  [ProfileController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
+    Route::get('/profile',            [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',          [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile',         [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/password',           [ProfileController::class, 'updatePassword'])->name('password.update');
+    Route::post('/profile/picture',   [ProfileController::class, 'uploadProfilePicture'])->name('profile.picture.upload');
+    Route::delete('/profile/picture', [ProfileController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
 
-    // Internal API
     Route::prefix('api')->group(function () {
-        Route::get('/user/statistics',            [DashboardController::class, 'statistics']);
-        Route::get('/notifications',              [DashboardController::class, 'notifications']);
+        Route::get('/user/statistics',             [DashboardController::class, 'statistics']);
+        Route::get('/notifications',               [DashboardController::class, 'notifications']);
         Route::post('/notifications/mark-all-read',[DashboardController::class, 'markAllNotificationsRead']);
-        Route::post('/notifications/mark-read',   [DashboardController::class, 'markNotificationsRead']);
-        Route::get('/users/search',               [DashboardController::class, 'searchUsers']);
-        Route::post('/chat/send',                 [DashboardController::class, 'sendChat']);
+        Route::post('/notifications/mark-read',    [DashboardController::class, 'markNotificationsRead']);
+        Route::get('/users/search',                [MessageController::class, 'searchUsers']);
+        Route::post('/chat/send',                  [DashboardController::class, 'sendChat']);
 
-        Route::post('/itineraries',               [ItineraryController::class, 'store']);
+        Route::get('/conversations',               [MessageController::class, 'conversations']);
+        Route::get('/messages/unread-count',       [MessageController::class, 'unreadCount']);
+        Route::get('/messages/{userId}',           [MessageController::class, 'thread'])->where('userId', '[0-9]+');
+        Route::post('/messages',                   [MessageController::class, 'send']);
 
-        Route::get('/media',                      [MediaController::class, 'index']);
-        Route::post('/media/upload',              [MediaController::class, 'upload']);
-        Route::delete('/media/delete',            [MediaController::class, 'delete']);
-        Route::post('/media/{media}/favorite',    [MediaController::class, 'toggleFavorite']);
-        Route::put('/media/{media}',              [MediaController::class, 'update']);
-        Route::get('/dashboard/stats',            [MediaController::class, 'stats']);
+        Route::post('/itineraries',                [ItineraryController::class, 'store']);
+
+        Route::get('/media',                       [MediaController::class, 'index']);
+        Route::post('/media/upload',               [MediaController::class, 'upload']);
+        Route::delete('/media/delete',             [MediaController::class, 'delete']);
+        Route::post('/media/{media}/favorite',     [MediaController::class, 'toggleFavorite']);
+        Route::put('/media/{media}',               [MediaController::class, 'update']);
+        Route::get('/dashboard/stats',             [MediaController::class, 'stats']);
 
         Route::get('/trips',          [TripController::class, 'index']);
         Route::get('/trips/upcoming', [TripController::class, 'upcoming']);
         Route::post('/trips',         [TripController::class, 'store']);
         Route::delete('/trips/{id}',  [TripController::class, 'destroy']);
 
-        Route::post('/profile/update',            [ProfileController::class, 'update']);
+        Route::post('/profile/update', [ProfileController::class, 'update']);
 
-        Route::get('/wishlist/count',             [WishlistController::class, 'count']);
+        Route::get('/wishlist/count',  [WishlistController::class, 'count']);
     });
 
 });
