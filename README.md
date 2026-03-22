@@ -156,19 +156,60 @@ app/
 ├── Models/                   # 13 Eloquent models
 └── View/Components/          # AppLayout, GuestLayout
 
-resources/views/
-├── public/landing.blade.php  # Public landing page
-├── dashboard.blade.php       # Authenticated dashboard
-├── plan-trip.blade.php       # 4-step wizard
-├── flights.blade.php         # Flight search & booking
-├── discover.blade.php        # Destination discovery
-├── community.blade.php       # Community feed
-├── wishlist.blade.php        # Saved destinations
-├── layouts/                  # app, guest, navigation partials
-├── components/               # 13 reusable Blade components
-├── auth/                     # 6 auth views (login, register, verify, reset…)
-├── profile/                  # Profile edit with form partials
-└── pdf/itinerary-pdf.blade.php
+resources/
+├── css/
+│   ├── app.css
+│   └── pages/                # Page-specific styles (modular frontend)
+│
+├── js/
+│   ├── app.js
+│   ├── bootstrap.js
+│   ├── session-timeout.js
+│   └── pages/                # Page-specific scripts
+│
+└── views/
+    ├── landing/
+    │   └── index.blade.php        # Public landing page
+    │
+    ├── dashboard/
+    │   └── index.blade.php        # Authenticated dashboard
+    │
+    ├── plan-trip/
+    │   └── index.blade.php        # Trip planning wizard
+    │
+    ├── flights/
+    │   └── index.blade.php        # Flight search & booking
+    │
+    ├── discover/
+    │   └── index.blade.php        # Destination discovery
+    │
+    ├── destinations/
+    │   └── index.blade.php        # Destination listings
+    │
+    ├── community/
+    │   └── index.blade.php        # Community feed
+    │
+    ├── chat/
+    │   └── index.blade.php        # Chat functionality
+    │
+    ├── wishlist/
+    │   └── index.blade.php        # Saved destinations
+    │
+    ├── notifications/
+    │   └── index.blade.php        # Notifications system
+    │
+    ├── layouts/                   # App layout, guest layout, navigation
+    │
+    ├── components/                # Reusable Blade UI components
+    │
+    ├── auth/                      # Authentication views (login, register, reset, etc.)
+    │
+    ├── profile/
+    │   ├── edit.blade.php
+    │   └── partials/              # Profile management forms
+    │
+    └── pdf/
+        └── itinerary.blade.php    # PDF generation view
 
 database/
 ├── migrations/               # 14 migrations, timestamped and ordered
