@@ -14,7 +14,28 @@
     ])
 </head>
 
-<body>
+<body
+    data-dashboard-user-id="{{ Auth::id() }}"
+    data-dashboard-user-name="{{ Auth::user()->name ?? '' }}"
+    data-dashboard-user-avatar="{{ Auth::user()->avatar ?? '' }}"
+    data-dashboard-user-type="{{ Auth::user()->type ?? '' }}"
+    data-dashboard-user-verified="{{ Auth::user()->verified ? '1' : '0' }}"
+>
+    <script>
+        window.__dashboardConfig = {
+            pusherKey: "{{ config('broadcasting.connections.pusher.key') }}",
+            pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}",
+            userId: {{ Auth::id() ?? 'null' }},
+            user: {
+                id: {{ Auth::id() ?? 'null' }},
+                name: @json(Auth::user()->name ?? ''),
+                firstName: @json(Auth::check() ? explode(' ', Auth::user()->name)[0] : ''),
+                avatar: @json(Auth::user()->avatar ?? ''),
+                type: @json(Auth::user()->type ?? ''),
+                verified: {{ Auth::user()->verified ? 'true' : 'false' }}
+            }
+        };
+    </script>
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">

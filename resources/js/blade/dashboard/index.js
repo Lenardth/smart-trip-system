@@ -1,16 +1,16 @@
-window.__dashboardConfig = {
-            pusherKey:     "null",
-            pusherCluster: "null",
-            userId:        null,
-            user: {
-                name:      "null",
-                firstName: "null",
-                avatar:    "null",
-                type:      "null",
-                verified:  null,
-                id:        "null"
-            }
-        };
+window.__dashboardConfig = window.__dashboardConfig || {
+    pusherKey: "",
+    pusherCluster: "mt1",
+    userId: null,
+    user: {
+        name: "",
+        firstName: "",
+        avatar: "",
+        type: "",
+        verified: false,
+        id: null
+    }
+};
 (function () {
 
     var mediaLibrary         = [];
@@ -23,7 +23,7 @@ window.__dashboardConfig = {
 
     document.addEventListener('DOMContentLoaded', function () {
         initializeUserData();
-        loadMediaFromStorage();
+        loadMediaFromServer();
         loadNotifications();
         loadUpcomingTrips();
 
@@ -537,23 +537,32 @@ window.__dashboardConfig = {
     }
 
     function handleFileSelect(event) {
-        Array.from(event.target.files).forEach(function (file) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                mediaLibrary.push({
-                    id:   Date.now() + Math.random(),
-                    type: file.type.indexOf('image/') === 0 ? 'image' : 'video',
-                    src:  e.target.result,
-                    name: file.name,
-                    date: new Date().toISOString(),
+        var files = Array.from((event && event.target && event.target.files) || []);
+        if (!files.length) return;
+        var fd = new FormData();
+        files.forEach(function (file) { fd.append('media[]', file); });
+        fetch('/api/media/upload', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+            body: fd
+        })
+            .then(function (r) { return r.json(); })
+            .then(function () {
+                loadMediaFromServer();
+                Swal.fire({
+                    title: 'Uploaded',
+                    text: files.length + ' file(s) uploaded successfully.',
+                    icon: 'success',
+                    timer: 1400,
+                    showConfirmButton: false
                 });
-                saveMediaToStorage();
-                renderGallery();
-                updateMediaCounts();
-            };
-            reader.readAsDataURL(file);
-        });
-        if (event.target && event.target.value !== undefined) event.target.value = '';
+            })
+            .catch(function () {
+                Swal.fire({ title: 'Upload failed', text: 'Please try again.', icon: 'error' });
+            });
+        if (event.target && event.target.value !== undefined) {
+            event.target.value = '';
+        }
     }
 
     function renderGallery() {
@@ -609,12 +618,17 @@ window.__dashboardConfig = {
         Swal.fire({ title: 'Delete this media?', text: 'This action cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f44336', cancelButtonColor: '#6b5b4f', confirmButtonText: 'Yes, delete it' })
         .then(function (result) {
             if (!result.isConfirmed) return;
-            mediaLibrary.splice(currentMediaIndex, 1);
-            saveMediaToStorage();
-            updateMediaCounts();
-            closeViewer();
-            renderGallery();
-            Swal.fire({ title: 'Deleted!', text: 'Media has been removed.', icon: 'success', confirmButtonColor: '#c9a96e', timer: 2000, showConfirmButton: false });
+            var item = mediaLibrary[currentMediaIndex];
+            if (!item) return;
+            fetch('/api/media/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                body: JSON.stringify({ ids: [item.id] })
+            }).then(function () {
+                closeViewer();
+                loadMediaFromServer();
+                Swal.fire({ title: 'Deleted!', text: 'Media has been removed.', icon: 'success', confirmButtonColor: '#c9a96e', timer: 2000, showConfirmButton: false });
+            }).catch(function () {});
         });
     }
 
@@ -628,12 +642,16 @@ window.__dashboardConfig = {
         Swal.fire({ title: 'Delete ' + selectedMedia.size + ' items?', text: 'This action cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#f44336', cancelButtonColor: '#6b5b4f', confirmButtonText: 'Yes, delete them' })
         .then(function (result) {
             if (!result.isConfirmed) return;
-            mediaLibrary = mediaLibrary.filter(function (_, i) { return !selectedMedia.has(i); });
-            selectedMedia.clear();
-            saveMediaToStorage();
-            updateMediaCounts();
-            renderGallery();
-            Swal.fire({ title: 'Deleted!', text: 'Selected items removed.', icon: 'success', confirmButtonColor: '#c9a96e', timer: 2000, showConfirmButton: false });
+            var ids = Array.from(selectedMedia).map(function (i) { return mediaLibrary[i] && mediaLibrary[i].id; }).filter(Boolean);
+            fetch('/api/media/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                body: JSON.stringify({ ids: ids })
+            }).then(function () {
+                selectedMedia.clear();
+                loadMediaFromServer();
+                Swal.fire({ title: 'Deleted!', text: 'Selected items removed.', icon: 'success', confirmButtonColor: '#c9a96e', timer: 2000, showConfirmButton: false });
+            }).catch(function () {});
         });
     }
 
@@ -642,8 +660,29 @@ window.__dashboardConfig = {
         Swal.fire({ title: 'Share Selected', text: 'Share ' + selectedMedia.size + ' selected items.', icon: 'info', confirmButtonColor: '#c9a96e' });
     }
 
-    function saveMediaToStorage()   { try { localStorage.setItem('smartBookingMedia', JSON.stringify(mediaLibrary)); } catch (_) {} }
-    function loadMediaFromStorage() { try { var s = localStorage.getItem('smartBookingMedia'); if (s) { mediaLibrary = JSON.parse(s); updateMediaCounts(); } } catch (_) {} }
+    function loadMediaFromServer() {
+        fetch('/api/media', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var items = (data.media || []).map(function (m) {
+                    return {
+                        id: m.id,
+                        type: m.type,
+                        src: m.url,
+                        name: m.title || m.file_name || ('media-' + m.id),
+                        date: m.created_at
+                    };
+                });
+                mediaLibrary = items;
+                renderGallery();
+                updateMediaCounts();
+            })
+            .catch(function () {
+                mediaLibrary = [];
+                renderGallery();
+                updateMediaCounts();
+            });
+    }
     function updateMediaCounts()    { updateCounts({ photos: mediaLibrary.length }); }
     function uploadPhotos()         { openGallery(); }
 

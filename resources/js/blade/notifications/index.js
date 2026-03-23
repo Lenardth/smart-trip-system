@@ -142,3 +142,31 @@ window.__dashboardConfig = {
         }
 
         document.addEventListener('DOMContentLoaded', loadNotifications);
+
+        // Expose handlers for Blade inline onclick attributes (Vite bundles as modules).
+        window.switchTab = switchTab;
+        window.markAllRead = markAllRead;
+
+        // Sidebar inline handlers
+        if (typeof window.viewProfile !== 'function') {
+            window.viewProfile = function () {
+                window.location.href = '/profile/edit';
+            };
+        }
+
+        if (typeof window.logout !== 'function') {
+            window.logout = async function () {
+                try {
+                    await fetch('/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken()
+                        },
+                    });
+                } catch (_) {
+                    // ignore; navigation will happen anyway
+                }
+                window.location.href = '/login';
+            };
+        }

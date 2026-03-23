@@ -7,7 +7,8 @@
     <title>Login — Smart Booking</title>
     @vite([
         'resources/css/blade/base.css',
-        'resources/css/blade/auth/login.css'
+        'resources/css/blade/auth/login.css',
+        'resources/js/blade/login.js'
     ])
 
 </head>
@@ -33,7 +34,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login') }}" id="loginForm">
                 @csrf
 
                 <div class="input-group">
@@ -55,14 +56,25 @@
 
                 <div class="input-group">
                     <label for="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        class="auth-input @error('password') is-invalid @enderror"
-                        required
-                        placeholder="Enter your password"
-                    >
+                    <div class="password-wrapper">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="auth-input @error('password') is-invalid @enderror"
+                            required
+                            placeholder="Enter your password"
+                        >
+
+                        <button
+                            class="toggle-password"
+                            type="button"
+                            id="togglePassword"
+                            aria-label="Toggle password visibility"
+                        >
+                            <i id="toggleIcon" class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
                     @error('password')
                         <div class="input-error">{{ $message }}</div>
                     @enderror
@@ -73,7 +85,7 @@
                     <label for="remember" style="margin:0;font-weight:normal;cursor:pointer;">Remember me</label>
                 </div>
 
-                <button type="submit" class="auth-btn">
+                <button type="submit" class="auth-btn" id="loginBtn">
                     <i class="fas fa-sign-in-alt"></i> Log In
                 </button>
             </form>

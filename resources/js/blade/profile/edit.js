@@ -1278,3 +1278,28 @@
                 }
             }
         });
+
+        // Expose for Blade inline onclick attributes (Vite bundles as modules).
+        if (typeof toggleSidebar === 'function') window.toggleSidebar = toggleSidebar;
+        if (typeof toggleNotifications === 'function') window.toggleNotifications = toggleNotifications;
+        if (typeof switchNotificationTab === 'function') window.switchNotificationTab = switchNotificationTab;
+        if (typeof markAllRead === 'function') window.markAllRead = markAllRead;
+        if (typeof openComposeMessage === 'function') window.openComposeMessage = openComposeMessage;
+        if (typeof viewProfile === 'function') window.viewProfile = viewProfile;
+        if (typeof openSettings === 'function') window.openSettings = openSettings;
+        if (typeof logout === 'function') window.logout = logout;
+
+        if (typeof uploadPhotos === 'function') window.uploadPhotos = uploadPhotos;
+        if (typeof openGallery === 'function') window.openGallery = openGallery;
+        if (typeof closeGallery === 'function') window.closeGallery = closeGallery;
+        if (typeof triggerFileInput === 'function') window.triggerFileInput = triggerFileInput;
+        if (typeof handleFileSelect === 'function') window.handleFileSelect = handleFileSelect;
+        if (typeof selectAll === 'function') window.selectAll = selectAll;
+        if (typeof deleteSelected === 'function') window.deleteSelected = deleteSelected;
+        if (typeof shareSelected === 'function') window.shareSelected = shareSelected;
+        if (typeof viewMedia === 'function') window.viewMedia = viewMedia;
+        if (typeof closeViewer === 'function') window.closeViewer = closeViewer;
+        if (typeof editMedia === 'function') window.editMedia = editMedia;
+        if (typeof downloadMedia === 'function') window.downloadMedia = downloadMedia;
+        if (typeof shareMedia === 'function') window.shareMedia = shareMedia;
+        if (typeof deleteMedia === 'function') window.deleteMedia = deleteMedia;

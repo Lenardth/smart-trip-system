@@ -41,7 +41,7 @@ class FlightController extends Controller
             'departure_date' => 'required|date',
             'return_date'    => 'nullable|date|after:departure_date',
             'passengers'     => 'required|integer|min:1',
-            'class'          => 'required|in:economy,business,first',
+            'class'          => 'required|in:economy,premium_economy,business,first',
         ]);
 
         $flights = Flight::where('departure_city', 'like', '%' . $request->from . '%')
@@ -55,7 +55,32 @@ class FlightController extends Controller
 
         return response()->json([
             'success' => true,
-            'flights' => $flights,
+            'flights' => $flights->map(function ($f) {
+                $fromCode = strtoupper(substr((string) $f->departure_city, 0, 3));
+                $toCode   = strtoupper(substr((string) $f->arrival_city, 0, 3));
+                $durationMinutes = $f->arrival_time && $f->departure_time
+                    ? $f->arrival_time->diffInMinutes($f->departure_time)
+                    : null;
+                return [
+                    'id'              => $f->id,
+                    'airline'         => $f->airline,
+                    'airline_logo'    => '✈️',
+                    'flight_number'   => $f->flight_number,
+                    'from'            => $f->departure_city,
+                    'to'              => $f->arrival_city,
+                    'from_code'       => $fromCode,
+                    'to_code'         => $toCode,
+                    'departure_time'  => optional($f->departure_time)->format('H:i'),
+                    'arrival_time'    => optional($f->arrival_time)->format('H:i'),
+                    'duration'        => $durationMinutes ? floor($durationMinutes / 60) . 'h ' . ($durationMinutes % 60) . 'm' : '—',
+                    'stops'           => 0,
+                    'price'           => (float) $f->price,
+                    'class'           => $f->class,
+                    'seats_available' => (int) $f->seats_available,
+                    'baggage'         => '1 x 23kg',
+                    'amenities'       => ['Meals', 'Entertainment'],
+                ];
+            }),
             'count'   => $flights->count(),
         ]);
     }
@@ -148,11 +173,26 @@ class FlightController extends Controller
 
             DB::commit();
 
-            return redirect()->route('bookings.show', $booking)
-                ->with('success', 'Flight booked successfully!');
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success'  => true,
+                    'message'  => 'Flight booked successfully!',
+                    'redirect' => route('bookings.show', $booking),
+                    'booking'  => $booking->id,
+                ]);
+            }
+
+            return redirect()->route('bookings.show', $booking)->with('success', 'Flight booked successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking failed. Please try again.',
+                ], 422);
+            }
+
             return back()->with('error', 'Booking failed. Please try again.');
         }
     }

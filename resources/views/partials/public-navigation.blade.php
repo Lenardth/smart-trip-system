@@ -11,7 +11,11 @@
     @endauth
 </header>
 
-<nav class="nav-container">
+<button class="public-nav-toggle" type="button" onclick="togglePublicNav()" aria-label="Toggle navigation">
+    <i class="fas fa-bars"></i>
+</button>
+
+<nav class="nav-container" id="publicNav">
     <a href="/" class="{{ request()->is('/') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
     @auth
     <a href="/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>

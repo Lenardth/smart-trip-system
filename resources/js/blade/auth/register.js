@@ -34,3 +34,6 @@ function toggleAgencyFields() {
                 return true;
             });
         });
+
+        // Expose for Blade inline onchange="toggleAgencyFields()"
+        window.toggleAgencyFields = toggleAgencyFields;

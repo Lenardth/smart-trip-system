@@ -74,7 +74,7 @@
             searchBtn.classList.remove('loading');
 
             if (data.success) {
-                displayFlights(data.flights || generateMockFlights(formData));
+                displayFlights(data.flights || []);
             } else {
                 Swal.fire({
                     title: 'Search Error',
@@ -86,53 +86,14 @@
         } catch (error) {
             searchBtn.classList.remove('loading');
             console.error('Search error:', error);
-
-            // Show mock results for demo
-            displayFlights(generateMockFlights(formData));
-        }
-    });
-
-    // Generate mock flight data for demo
-    function generateMockFlights(searchData) {
-        const airlines = [
-            { name: 'Emirates', code: 'EK', logo: '✈️' },
-            { name: 'Qatar Airways', code: 'QR', logo: '🛫' },
-            { name: 'Singapore Airlines', code: 'SQ', logo: '🛬' },
-            { name: 'Lufthansa', code: 'LH', logo: '✈️' },
-            { name: 'British Airways', code: 'BA', logo: '🛫' }
-        ];
-
-        const flights = [];
-        const basePrice = 300 + Math.random() * 400;
-
-        for (let i = 0; i < 5; i++) {
-            const airline = airlines[i % airlines.length];
-            const departureHour = 6 + Math.floor(Math.random() * 12);
-            const duration = 3 + Math.floor(Math.random() * 8);
-            const stops = Math.random() > 0.6 ? 0 : 1;
-
-            flights.push({
-                id: `FL${1000 + i}`,
-                airline: airline.name,
-                airline_code: airline.code,
-                airline_logo: airline.logo,
-                flight_number: `${airline.code}${100 + i}`,
-                from: searchData.from,
-                to: searchData.to,
-                departure_time: `${departureHour.toString().padStart(2, '0')}:${(Math.random() * 60).toFixed(0).padStart(2, '0')}`,
-                arrival_time: `${((departureHour + duration) % 24).toString().padStart(2, '0')}:${(Math.random() * 60).toFixed(0).padStart(2, '0')}`,
-                duration: `${duration}h ${(Math.random() * 60).toFixed(0)}m`,
-                stops: stops,
-                price: (basePrice + i * 50).toFixed(2),
-                class: searchData.class,
-                seats_available: 5 + Math.floor(Math.random() * 15),
-                baggage: stops === 0 ? '2 x 23kg' : '1 x 23kg',
-                amenities: stops === 0 ? ['WiFi', 'Meals', 'Entertainment'] : ['Meals', 'Entertainment']
+            Swal.fire({
+                title: 'Network Error',
+                text: 'Could not load flights. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#c9a96e'
             });
         }
-
-        return flights;
-    }
+    });
 
     // Display flights
     function displayFlights(flights) {
@@ -173,7 +134,7 @@
                 <div class="flight-route">
                     <div class="route-point">
                         <div class="time">${flight.departure_time}</div>
-                        <div class="airport-code">${flight.from.substring(0, 3).toUpperCase()}</div>
+                        <div class="airport-code">${(flight.from_code || flight.from.substring(0, 3)).toUpperCase()}</div>
                         <div class="location">${flight.from}</div>
                     </div>
                     <div class="route-divider">
@@ -183,7 +144,7 @@
                     </div>
                     <div class="route-point">
                         <div class="time">${flight.arrival_time}</div>
-                        <div class="airport-code">${flight.to.substring(0, 3).toUpperCase()}</div>
+                        <div class="airport-code">${(flight.to_code || flight.to.substring(0, 3)).toUpperCase()}</div>
                         <div class="location">${flight.to}</div>
                     </div>
                 </div>
@@ -222,9 +183,8 @@
     }
 
     // Book flight
-    function bookFlight(flightId, airline, price) {
-
-        Swal.fire({
+    async function bookFlight(flightId, airline, price) {
+        const result = await Swal.fire({
             title: 'Book Flight',
             html: `
                 <div style="text-align: left; padding: 20px;">
@@ -244,38 +204,39 @@
             cancelButtonColor: '#6b5b4f',
             confirmButtonText: 'Continue to Booking',
             cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // In production, redirect to booking page
-                Swal.fire({
-                    title: 'Processing...',
-                    html: 'Redirecting to booking page',
-                    icon: 'success',
-                    confirmButtonColor: '#c9a96e',
-                    timer: 2000,
-                    timerProgressBar: true
-                }).then(() => {
-                    // window.location.href = `/flights/book/${flightId}`;
-                    console.log('Booking flight:', flightId);
-                });
-            }
         });
-
-        Swal.fire({
-            title: 'Login Required',
-            text: 'Please log in to book flights',
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonColor: '#c9a96e',
-            cancelButtonColor: '#6b5b4f',
-            confirmButtonText: 'Go to Login',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '/login';
+        if (!result.isConfirmed) return;
+        try {
+            const response = await fetch(`/flights/${flightId}/book`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ seats: 1 })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Could not complete booking.');
             }
-        });
-
+            await Swal.fire({
+                title: 'Booked!',
+                text: data.message || 'Your flight is booked.',
+                icon: 'success',
+                confirmButtonColor: '#c9a96e'
+            });
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        } catch (err) {
+            Swal.fire({
+                title: 'Booking Error',
+                text: err.message || 'Unable to book this flight now.',
+                icon: 'error',
+                confirmButtonColor: '#c9a96e'
+            });
+        }
     }
 
     // Sort flights
@@ -303,3 +264,7 @@
             .catch(() => {});
     });
 })();
+
+// Expose handlers for Blade inline onclick attributes.
+window.fillRoute = fillRoute;
+window.bookFlight = bookFlight;

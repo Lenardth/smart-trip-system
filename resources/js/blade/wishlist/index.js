@@ -164,3 +164,6 @@ const Wishlist = (() => {
     return { filter, remove, clearAll, planTrip, logout };
 
 })();
+
+// Expose for Blade inline onclick="Wishlist.*"
+window.Wishlist = Wishlist;
