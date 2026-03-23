@@ -71,6 +71,7 @@ class AiSuggestionController extends Controller
             'excluded_countries'         => 'nullable|array|max:200',
             'excluded_countries.*'       => 'string|max:100',
         ]);
+        $validated['accommodation'] = $this->normaliseAccommodation($validated['accommodation'] ?? null);
 
         try {
             $apiKey = config('services.groq.key') ?: env('GROQ_API_KEY') ?: getenv('GROQ_API_KEY');
@@ -238,7 +239,9 @@ class AiSuggestionController extends Controller
         $extras = [];
         if (!empty($p['month']))                                           $extras[] = "departure month: {$p['month']}";
         if (!empty($p['region'])        && $p['region']        !== 'any') $extras[] = "preferred region: {$p['region']}";
-        if (!empty($p['accommodation']) && $p['accommodation'] !== 'any') $extras[] = "accommodation: {$p['accommodation']}";
+        if (!empty($p['accommodation']) && $p['accommodation'] !== 'any') {
+            $extras[] = 'accommodation: ' . $this->accommodationLabel($p['accommodation']);
+        }
         if (!empty($p['origin']))                                          $extras[] = "flying from: {$p['origin']}";
         if (!empty($p['experience']))                                      $extras[] = "experience level: {$p['experience']}";
         $extrasStr = $extras ? "\nContext: " . implode(' | ', $extras) . '.' : '';
@@ -303,5 +306,29 @@ SYSTEM;
             'flight_info'        => $d['flight_info']   ?? '',
             'match_reason'       => $d['match_reason']  ?? '',
         ];
+    }
+
+    private function normaliseAccommodation(?string $value): ?string
+    {
+        if (!$value) return null;
+        return match ($value) {
+            'hotel' => 'budget_hotel',
+            'bnb' => 'boutique',
+            default => $value,
+        };
+    }
+
+    private function accommodationLabel(string $value): string
+    {
+        return match ($value) {
+            'hostel' => 'hostel / shared accommodation',
+            'budget_hotel' => 'budget hotel',
+            'boutique' => 'boutique hotel or BnB',
+            'resort' => 'resort',
+            'villa' => 'private villa',
+            'airbnb' => 'apartment or Airbnb',
+            'glamping' => 'glamping or eco-lodge',
+            default => $value,
+        };
     }
 }

@@ -43,6 +43,7 @@ class TripController extends Controller
             'month'          => 'nullable|string|max:50',
             'estimated_cost' => 'nullable|numeric|min:0',
         ]);
+        $data['accommodation'] = $this->normaliseAccommodation($data['accommodation'] ?? null);
 
         $exists = Trip::where('user_id', Auth::id())
             ->where('destination', $data['destination'])
@@ -89,5 +90,16 @@ class TripController extends Controller
             ->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    private function normaliseAccommodation(?string $value): ?string
+    {
+        if (!$value) return null;
+
+        return match ($value) {
+            'hotel' => 'budget_hotel',
+            'bnb' => 'boutique',
+            default => $value,
+        };
     }
 }

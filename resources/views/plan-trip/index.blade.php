@@ -1,72 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-    /* Emergency fix - only for this page */
-    html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
-    }
-
-    body > *:first-child {
-        margin-top: 0 !important;
-    }
-
-    body > *:last-child {
-        margin-bottom: 0 !important;
-    }
-
-    .author-badge {
-        margin-left: auto;
-        margin-right: 20px;
-        color: var(--gold);
-        font-size: 14px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        opacity: 0.85;
-    }
-</style>
-
     <meta charset="UTF-8">
     <title>Plan Trip — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @vite([
-        'resources/css/app.css',
-        'resources/css/pages/base.css',
-        'resources/css/pages/plan-trip.css',
-        'resources/js/pages/plan-trip.js'
-    ])
+    'resources/css/blade/plan-trip/index.css',
+    'resources/css/blade/base.css',
+    'resources/js/blade/base.js',
+])
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
-<header class="main-header">
-    <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-    <span class="logo-text">Smart Booking</span>
-    <span class="author-badge"><i class="fas fa-user-circle"></i> Lenard</span>
-</header>
-
-<nav>
-    <div class="nav-container">
-        <a href="/"><i class="fas fa-home"></i> Home</a>
-        <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="/plan-trip" class="active"><i class="fas fa-route"></i> Plan Trip</a>
-        <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
-        <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
-        <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
-        <a href="/community"><i class="fas fa-users"></i> Community</a>
-        <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
-    </div>
-</nav>
+@include('partials.public-navigation')
 
 <section class="page-hero">
     <div>
@@ -251,18 +200,7 @@
     </div>
 </div>
 
-<footer class="footer">
-    <div style="max-width:1200px;margin:0 auto;">
-        <p>© 2026 Smart Trip Planner | Laravel Web Application Project</p>
-        <div style="margin-top:15px;">
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-laravel"></i></a>
-            <a href="#"><i class="fas fa-graduation-cap"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
-</footer>
+@include('partials.public-footer')
 
 </body>
 </html>

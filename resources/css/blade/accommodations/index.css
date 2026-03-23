@@ -1,0 +1,74 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
+.accommodations-wrap {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 16px 40px;
+}
+
+.head h1 {
+    margin-bottom: 6px;
+}
+
+.head p {
+    color: #666;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: 1fr 200px 120px;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.filters input,
+.filters select,
+.filters button {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.filters button {
+    background: #2f5a5a;
+    color: #fff;
+    border: 0;
+    cursor: pointer;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.card {
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+}
+
+.card h3 {
+    margin: 0 0 6px;
+}
+
+.muted {
+    color: #777;
+    font-size: 14px;
+}
+
+.tag {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #f2f2f2;
+    font-size: 12px;
+}
+
+.empty {
+    padding: 18px;
+    background: #f7f7f7;
+    border-radius: 10px;
+}

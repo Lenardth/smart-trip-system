@@ -34,7 +34,7 @@ class CommunityController extends Controller
 
     public function topics(): JsonResponse
     {
-        $topics = CommunityTopic::with('user:id,name,avatar')
+        $topics = CommunityTopic::with('user:id,name,profile_picture')
             ->latest()
             ->take(10)
             ->get();
@@ -55,9 +55,9 @@ class CommunityController extends Controller
 
     public function showTopic($id): JsonResponse
     {
-        $topic = CommunityTopic::with('user:id,name,avatar')->findOrFail($id);
+        $topic = CommunityTopic::with('user:id,name,profile_picture')->findOrFail($id);
 
-        $replies = CommunityReply::with('user:id,name,avatar')
+        $replies = CommunityReply::with('user:id,name,profile_picture')
             ->where('topic_id', $id)
             ->oldest()
             ->get()
@@ -135,7 +135,7 @@ class CommunityController extends Controller
 
     public function groups(): JsonResponse
     {
-        $groups = CommunityGroup::with('user:id,name,avatar')
+        $groups = CommunityGroup::with('user:id,name,profile_picture')
             ->latest()
             ->take(6)
             ->get()
@@ -199,7 +199,7 @@ class CommunityController extends Controller
 
     public function stories(): JsonResponse
     {
-        $stories = CommunityStory::with('user:id,name,avatar')
+        $stories = CommunityStory::with('user:id,name,profile_picture')
             ->latest('published_at')
             ->take(6)
             ->get()
@@ -224,7 +224,7 @@ class CommunityController extends Controller
     {
         $travelers = User::orderBy('created_at')
             ->take(8)
-            ->get(['id', 'name', 'avatar', 'bio', 'location'])
+            ->get(['id', 'name', 'profile_picture', 'bio', 'location'])
             ->map(fn($u) => [
                 'id'        => $u->id,
                 'name'      => $u->name,

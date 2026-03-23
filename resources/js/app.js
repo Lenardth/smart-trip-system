@@ -9,13 +9,13 @@ Alpine.start();
 const path = window.location.pathname;
 
 const pageScripts = {
-    '/':            () => import('./pages/landing.js'),
-    '/dashboard':   () => import('./pages/dashboard.js'),
-    '/discover':    () => import('./pages/discover.js'),
-    '/plan-trip':   () => import('./pages/plan-trip.js'),
-    '/wishlist':    () => import('./pages/wishlist.js'),
-    '/community':   () => import('./pages/community.js'),
-    '/destinations':() => import('./pages/destinations.js'),
+    '/':            () => import('./blade/landing/index.js'),
+    '/dashboard':   () => import('./blade/dashboard/index.js'),
+    '/discover':    () => import('./blade/discover/index.js'),
+    '/plan-trip':   () => import('./blade/plan-trip/index.js'),
+    '/wishlist':    () => import('./blade/wishlist/index.js'),
+    '/community':   () => import('./blade/community/index.js'),
+    '/destinations':() => import('./blade/destinations/index.js'),
 };
 
 const load = pageScripts[path];

@@ -273,7 +273,7 @@ Open `http://localhost:8000`. A seeded agency account and sample destinations ar
   Session-backed and/or user-linked wishlist to quickly store interesting destinations with basic statistics on coverage and average costs.
 
 - **Community**  
-  Front-end community experience with live-feeling forum topics, group trip concepts, trending tags, and travel stories, wired for real-time capabilities via Pusher and `resources/js/pages/community.js`.
+  Front-end community experience with live-feeling forum topics, group trip concepts, trending tags, and travel stories, wired for real-time capabilities via Pusher and `resources/js/blade/community/index.js`.
 
 - **Media & Memories**  
   Upload, resize, and manage travel media associated with trips, including thumbnails, favourites, and metadata editing, with usage stats surfaced to the user.
@@ -289,21 +289,21 @@ Open `http://localhost:8000`. A seeded agency account and sample destinations ar
   All pages are built with Blade templates under `resources/views`. Public pages like `landing.blade.php`, core pages such as `dashboard.blade.php`, `plan-trip.blade.php`, `flights.blade.php`, `discover.blade.php`, `destinations.blade.php`, `community.blade.php`, and `wishlist.blade.php` share common headers, navigation, and footers. Reusable UI is implemented via Blade components under `resources/views/components` and layouts under `resources/views/layouts`.
 
 - **Global Styles**  
-  Tailwind is configured in `resources/css/app.css` (using `@tailwind base`, `@tailwind components`, `@tailwind utilities`) and compiled via Vite. Global design tokens and shared page scaffolding live in `resources/css/pages/base.css`.
+  Tailwind is configured in `resources/css/app.css` (using `@tailwind base`, `@tailwind components`, `@tailwind utilities`) and compiled via Vite. Global design tokens and shared page scaffolding live in `resources/css/blade/base.css`.
 
 - **Page-Specific Styles**  
-  Each major page has its own stylesheet under `resources/css/pages` (for example `landing.css`, `login.css`, `dashboard.css`, `plan-trip.css`, `discover.css`, `community.css`). These are loaded via `@vite` in the corresponding Blade files so each screen only ships the styles it needs. Some legacy static pages (like `destinations.blade.php`) also reference pre-compiled CSS in `public/css/`.
+  Each major page has its own stylesheet under `resources/css/blade` (for example `landing.css`, `login.css`, `dashboard.css`, `plan-trip.css`, `discover.css`, `community.css`). These are loaded via `@vite` in the corresponding Blade files so each screen only ships the styles it needs. Some legacy static pages (like `destinations.blade.php`) also reference pre-compiled CSS in `public/css/`.
 
 - **JavaScript Organisation**  
-  The application-level bootstrap code is in `resources/js/app.js` and `resources/js/bootstrap.js`. Page-specific interactivity lives under `resources/js/pages` (for example `landing.js`, `login.js`, `dashboard.js`, `plan-trip.js`, `discover.js`, `community.js`). Laravel Echo and Pusher are configured here, along with things like the session timeout handler (`resources/js/session-timeout.js`).
+  The application-level bootstrap code is in `resources/js/app.js` and `resources/js/bootstrap.js`. Page-specific interactivity lives under `resources/js/blade` (for example `landing.js`, `login.js`, `dashboard.js`, `plan-trip.js`, `discover.js`, `community.js`). Laravel Echo and Pusher are configured here, along with things like the session timeout handler (`resources/js/session-timeout.js`).
 
 - **How Assets Are Loaded**  
   Blade views use the `@vite` directive to load CSS and JS from `resources/**`, letting Vite handle bundling and cache-busting. Static assets that do not go through Vite are referenced via `asset(...)` and live under `public/` (for example `public/css/destinations.css` and `public/js/destinations.js`).
 
 - **Adding a New Page**  
   1. Create a new Blade view under `resources/views` and register a route in `routes/web.php`.  
-  2. Add any page-specific CSS under `resources/css/pages/your-page.css` and JS under `resources/js/pages/your-page.js`.  
-  3. Include them via `@vite(['resources/css/app.css', 'resources/css/pages/base.css', 'resources/css/pages/your-page.css', 'resources/js/pages/your-page.js'])` in the new Blade view or an appropriate layout.  
+  2. Add any page-specific CSS under `resources/css/blade/your-page.css` and JS under `resources/js/blade/your-page.js`.  
+  3. Include them via `@vite(['resources/css/app.css', 'resources/css/blade/base.css', 'resources/css/blade/your-page.css', 'resources/js/blade/your-page.js'])` in the new Blade view or an appropriate layout.  
   4. Run `npm run dev` (or `npm run build` for production) so Vite compiles the new assets.
 
 ---
@@ -320,7 +320,7 @@ Open `http://localhost:8000`. A seeded agency account and sample destinations ar
   The existing PHPUnit suite focuses on authentication and profile flows. New business logic (especially around bookings, payments, and itinerary generation) should be accompanied by feature tests under `tests/Feature` and, where appropriate, unit tests for small, pure services.
 
 - **Real-Time Features**  
-  When adding new real-time behaviour, expose the relevant configuration (`pusherKey`, `pusherCluster`, CSRF token) to the front end via Blade (as is done in `community.blade.php`) and handle subscriptions and event binding inside the appropriate `resources/js/pages/*.js` file.
+  When adding new real-time behaviour, expose the relevant configuration (`pusherKey`, `pusherCluster`, CSRF token) to the front end via Blade (as is done in `community.blade.php`) and handle subscriptions and event binding inside the appropriate `resources/js/blade/*.js` file.
 
 - **Deployment**  
   GitHub Actions workflows already cover building assets, running tests, and deploying on merges to `main`. Any new environment variables or external services should be reflected in `.env.example` and, if necessary, documented in comments within the workflow files.

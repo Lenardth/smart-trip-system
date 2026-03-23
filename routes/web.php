@@ -15,6 +15,7 @@ use App\Http\Controllers\TripController;
 use App\Http\Controllers\ItineraryController;
 use App\Http\Controllers\AiSuggestionController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\AccommodationController;
 
 Route::get('/', function () {
     return view('landing.index');
@@ -25,6 +26,7 @@ Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
     ->name('ai.suggest');
 
 Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
+Route::get('/accommodations', [AccommodationController::class, 'index'])->name('accommodations.index');
 
 Route::prefix('api/community')->group(function () {
     Route::get('/stats',                [CommunityController::class, 'stats']);
@@ -46,6 +48,9 @@ Route::prefix('api/discover')->group(function () {
     Route::get('/hidden-gems',  [DiscoverController::class, 'hiddenGems'])->name('api.discover.hidden-gems');
     Route::get('/debug',        [DiscoverController::class, 'debug'])->name('api.discover.debug');
 });
+
+Route::get('/api/accommodations', [AccommodationController::class, 'list'])
+    ->name('api.accommodations.index');
 
 Route::get('/destinations',                 [DestinationController::class, 'index'])->name('destinations');
 Route::get('/destinations/compare',         [DestinationController::class, 'compare'])->name('destinations.compare');

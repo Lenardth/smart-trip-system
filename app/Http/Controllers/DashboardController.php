@@ -102,7 +102,7 @@ class DashboardController extends Controller
                 $q->where('name',  'like', '%' . $query . '%')
                   ->orWhere('email', 'like', '%' . $query . '%');
             })
-            ->select('id', 'name', 'email', 'avatar')
+            ->select('id', 'name', 'email', 'profile_picture')
             ->limit(10)
             ->get();
 

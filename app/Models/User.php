@@ -30,6 +30,7 @@ class User extends Authenticatable
     protected $appends = [
         'profile_picture_url',
         'display_name',
+        'avatar',
     ];
 
     protected function casts(): array
@@ -69,5 +70,10 @@ class User extends Authenticatable
     public function getDisplayNameAttribute()
     {
         return $this->agency_name ?: $this->name;
+    }
+
+    public function getAvatarAttribute(): string
+    {
+        return $this->profile_picture_url;
     }
 }
