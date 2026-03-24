@@ -19,15 +19,10 @@ try {
         if (!is_dir($dir)) mkdir($dir, 0777, true);
     }
 
-    // Override storage and bootstrap paths via env
-    $_ENV['APP_STORAGE_PATH'] = '/tmp/storage';
-    putenv('APP_STORAGE_PATH=/tmp/storage');
-
     require __DIR__ . '/../vendor/autoload.php';
 
     $app = require __DIR__ . '/../bootstrap/app.php';
 
-    // Override paths on the app instance
     $app->useStoragePath('/tmp/storage');
     $app->bootstrapPath('/tmp/bootstrap');
 
@@ -43,5 +38,13 @@ try {
 
 } catch (\Throwable $e) {
     http_response_code(500);
-    echo '<pre>' . $e->getMessage() . "\n\n" . $e->getTraceAsString() . '</pre>';
+    echo '<pre>';
+    $current = $e;
+    while ($current) {
+        echo get_class($current) . ': ' . $current->getMessage() . "\n";
+        echo 'in ' . $current->getFile() . ':' . $current->getLine() . "\n\n";
+        $current = $current->getPrevious();
+    }
+    echo $e->getTraceAsString();
+    echo '</pre>';
 }
