@@ -6,7 +6,6 @@ error_reporting(E_ALL);
 try {
     define('LARAVEL_START', microtime(true));
 
-    // Create writable dirs in /tmp
     $dirs = [
         '/tmp/storage/logs',
         '/tmp/storage/framework/cache/data',
@@ -19,12 +18,18 @@ try {
         if (!is_dir($dir)) mkdir($dir, 0777, true);
     }
 
+    // Copy bootstrap cache files to /tmp so they're writable
+    $srcCache = __DIR__ . '/../bootstrap/cache';
+    foreach (glob($srcCache . '/*.php') as $file) {
+        $dest = '/tmp/bootstrap/cache/' . basename($file);
+        if (!file_exists($dest)) copy($file, $dest);
+    }
+
     require __DIR__ . '/../vendor/autoload.php';
 
     $app = require __DIR__ . '/../bootstrap/app.php';
 
     $app->useStoragePath('/tmp/storage');
-    $app->bootstrapPath('/tmp/bootstrap');
 
     if (!file_exists('/tmp/database.sqlite')) {
         touch('/tmp/database.sqlite');
