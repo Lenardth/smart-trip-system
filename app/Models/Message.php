@@ -34,7 +34,7 @@ class Message extends Model
             $q->where('sender_id', $userA)->where('receiver_id', $userB);
         })->orWhere(function ($q) use ($userA, $userB) {
             $q->where('sender_id', $userB)->where('receiver_id', $userA);
-        })->with(['sender:id,name,avatar', 'receiver:id,name,avatar'])
+        })->with(['sender:id,name,profile_picture', 'receiver:id,name,profile_picture'])
           ->orderBy('created_at');
     }
 
@@ -48,7 +48,7 @@ class Message extends Model
             ->pluck('id');
 
         return static::whereIn('id', $latestIds)
-            ->with(['sender:id,name,avatar', 'receiver:id,name,avatar'])
+            ->with(['sender:id,name,profile_picture', 'receiver:id,name,profile_picture'])
             ->orderByDesc('created_at')
             ->get();
     }

@@ -5,52 +5,16 @@
     <title>Destinations — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite([
-        'resources/css/app.css',
-        'resources/css/pages/base.css',
-        'resources/css/pages/destinations.css',
-        'resources/js/pages/destinations.js'
+        'resources/css/blade/base.css',
+        'resources/css/blade/destinations/index.css',
+        'resources/js/blade/base.js',
+        'resources/js/blade/destinations/index.js'
     ])
 </head>
 <body>
 
-<header class="main-header">
-    <a href="/" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
-        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking" class="logo">
-        <span class="logo-text">Smart Booking</span>
-    </a>
-    @auth
-    <div class="user-display">
-        <i class="fas fa-user-circle"></i>
-        <span>{{ Auth::user()->name }}</span>
-    </div>
-    @endauth
-</header>
-
-<nav class="nav-container">
-    <a href="/"><i class="fas fa-home"></i> Home</a>
-    @auth
-    <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    @endauth
-    <a href="/plan-trip"><i class="fas fa-route"></i> Plan Trip</a>
-    <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
-    <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
-    <a href="/destinations" class="active"><i class="fas fa-map-marked-alt"></i> Destinations</a>
-    <a href="/community"><i class="fas fa-users"></i> Community</a>
-    @auth
-    <a href="/wishlist"><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
-    @endauth
-    @guest
-    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
-    @endguest
-    @auth
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    </form>
-    @endauth
-</nav>
+@include('partials.public-navigation')
 
 <section class="page-hero">
     <div>
@@ -159,17 +123,6 @@
     </div>
 </div>
 
-<footer class="footer">
-    <div style="max-width:1200px;margin:0 auto;">
-        <p>© 2026 Smart Trip Planner | Laravel Web Application Project</p>
-        <div style="margin-top:15px;">
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-laravel"></i></a>
-            <a href="#"><i class="fas fa-graduation-cap"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
-</footer>
+@include('partials.public-footer')
 </body>
 </html>

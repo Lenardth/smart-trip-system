@@ -5,141 +5,16 @@
     <title>Community — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite([
-        'resources/css/app.css',
-        'resources/css/pages/base.css',
-        'resources/css/pages/community.css',
-        'resources/js/pages/base.js',
-        'resources/js/pages/community.js'
+        'resources/css/blade/base.css',
+        'resources/css/blade/community/index.css',
+        'resources/js/blade/base.js',
+        'resources/js/blade/community/index.js'
     ])
-    <style>
-        .msg-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
-            color: var(--deep);
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all .25s;
-            box-shadow: 0 2px 6px rgba(201,169,110,.3);
-            font-family: 'Georgia', serif;
-        }
-        .msg-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(201,169,110,.45);
-        }
-        .invite-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            background: transparent;
-            color: var(--deep);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all .2s;
-            font-family: 'Georgia', serif;
-        }
-        .invite-btn:hover {
-            border-color: var(--gold);
-            background: rgba(201,169,110,.08);
-        }
-        .traveler-card .tc-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-        .forum-topic .ft-actions {
-            margin-top: 8px;
-        }
-        .topic-author-link {
-            color: var(--gold);
-            font-weight: 600;
-            text-decoration: none;
-            font-size: 12px;
-        }
-        .topic-author-link:hover { text-decoration: underline; }
-
-        /* Invite modal */
-        #inviteModal .invite-preview {
-            background: var(--cream);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        #inviteModal .invite-avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--gold), var(--deep));
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-        #inviteModal .invite-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        #inviteModal .invite-name { font-weight: 700; color: var(--deep); font-size: 15px; }
-        #inviteModal .invite-sub  { font-size: 12px; color: var(--text-muted); }
-    </style>
 </head>
 <body>
 
-<header class="main-header">
-    <a href="/" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
-        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-        <span class="logo-text">Smart Booking</span>
-    </a>
-    @auth
-    <div class="user-display">
-        <i class="fas fa-user-circle"></i>
-        <span>{{ Auth::user()->name }}</span>
-    </div>
-    @endauth
-</header>
-
-<nav class="nav-container">
-    <a href="/"><i class="fas fa-home"></i> Home</a>
-    @auth
-    <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    @endauth
-    <a href="/plan-trip"><i class="fas fa-route"></i> Plan Trip</a>
-    <a href="/flights"><i class="fas fa-plane"></i> Book Flights</a>
-    <a href="/discover"><i class="fas fa-compass"></i> Discover</a>
-    <a href="/destinations"><i class="fas fa-map-marked-alt"></i> Destinations</a>
-    <a href="/community" class="active"><i class="fas fa-users"></i> Community</a>
-    @auth
-    <a href="/wishlist"><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
-    @endauth
-    @guest
-    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
-    @endguest
-    @auth
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    </form>
-    @endauth
-</nav>
+@include('partials.public-navigation')
 
 <section class="page-hero" style="background:linear-gradient(rgba(20,8,14,.55),rgba(20,8,14,.65)),url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&q=80&fit=crop') center/cover no-repeat;">
     <div>
@@ -345,29 +220,7 @@
     <span id="toastMsg"></span>
 </div>
 
-<footer class="footer">
-    <div style="max-width:1200px;margin:0 auto;">
-        <p>© 2026 Smart Trip Planner | Laravel Web Application Project</p>
-        <div style="margin-top:15px;">
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-laravel"></i></a>
-            <a href="#"><i class="fas fa-graduation-cap"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
-</footer>
-
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-<script>
-window.__COMMUNITY__ = {
-    pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
-    pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
-    csrfToken:     "{{ csrf_token() }}",
-    authUserId:    {{ Auth::id() ?? 'null' }},
-    isLoggedIn:    {{ Auth::check() ? 'true' : 'false' }}
-};
-</script>
+@include('partials.public-footer')
 
 </body>
 </html>

@@ -6,97 +6,36 @@
     <title>Dashboard — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite([
-        'resources/css/app.css',
-        'resources/css/pages/base.css',
-        'resources/css/pages/dashboard.css',
-        'resources/js/pages/base.js',
-        'resources/js/pages/dashboard.js'
+        'resources/css/blade/base.css',
+        'resources/css/blade/dashboard/index.css',
+        'resources/js/blade/base.js',
+        'resources/js/blade/dashboard/index.js'
     ])
-    <style>
-        .trip-card {
-            background: linear-gradient(135deg, white, var(--card-bg, #fff8f2));
-            border: 1px solid var(--border, #e2d5c7);
-            border-radius: 10px;
-            padding: 16px 20px;
-            margin-bottom: 14px;
-            position: relative;
-            transition: box-shadow .25s, transform .25s;
-        }
-        .trip-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(59,31,43,.12);
-        }
-        .trip-card-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 10px;
-        }
-        .trip-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #c9a96e, #b8955a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-        .trip-info { flex: 1; min-width: 0; }
-        .trip-info h4 {
-            margin: 0 0 3px;
-            font-size: 15px;
-            font-weight: 700;
-            color: #3b1f2b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .trip-info p {
-            margin: 0;
-            font-size: 12px;
-            color: #6b5b4f;
-        }
-        .trip-cost {
-            font-size: 17px;
-            font-weight: 700;
-            color: #3b1f2b;
-            flex-shrink: 0;
-        }
-        .trip-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-size: 12px;
-            color: #6b5b4f;
-        }
-        .trip-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .trip-meta i { color: #c9a96e; }
-        .trip-delete-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #d4c4b0;
-            font-size: 13px;
-            cursor: pointer;
-            padding: 4px;
-            transition: color .2s;
-        }
-        .trip-delete-btn:hover { color: #f44336; }
-    </style>
 </head>
 
-<body>
+<body
+    data-dashboard-user-id="{{ Auth::id() }}"
+    data-dashboard-user-name="{{ Auth::user()->name ?? '' }}"
+    data-dashboard-user-avatar="{{ Auth::user()->avatar ?? '' }}"
+    data-dashboard-user-type="{{ Auth::user()->type ?? '' }}"
+    data-dashboard-user-verified="{{ Auth::user()->verified ? '1' : '0' }}"
+>
+    <script>
+        window.__dashboardConfig = {
+            pusherKey: "{{ config('broadcasting.connections.pusher.key') }}",
+            pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}",
+            userId: {{ Auth::id() ?? 'null' }},
+            user: {
+                id: {{ Auth::id() ?? 'null' }},
+                name: @json(Auth::user()->name ?? ''),
+                firstName: @json(Auth::check() ? explode(' ', Auth::user()->name)[0] : ''),
+                avatar: @json(Auth::user()->avatar ?? ''),
+                type: @json(Auth::user()->type ?? ''),
+                verified: {{ Auth::user()->verified ? 'true' : 'false' }}
+            }
+        };
+    </script>
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -360,26 +299,5 @@
         <i class="fas fa-bars"></i>
     </button>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
-
-    <script>
-        window.__dashboardConfig = {
-            pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
-            pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
-            userId:        {{ Auth::id() ?? 'null' }},
-            user: {
-                name:      "{{ Auth::user()->name      ?? '' }}",
-                firstName: "{{ Auth::user()->first_name ?? (Auth::user() ? explode(' ', Auth::user()->name)[0] : '') }}",
-                avatar:    "{{ Auth::user()->avatar     ?? '' }}",
-                type:      "{{ Auth::user()->type       ?? 'traveler' }}",
-                verified:  {{ Auth::user()->verified ? 'true' : 'false' }},
-                id:        "{{ Auth::user()->id         ?? '' }}"
-            }
-        };
-    </script>
-
 </body>
 </html>
-{{-- --}}

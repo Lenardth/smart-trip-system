@@ -5,17 +5,23 @@
     <title>Messages — Smart Booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite([
-        'resources/css/app.css',
-        'resources/css/pages/base.css',
-        'resources/css/pages/dashboard.css',
-        'resources/css/pages/chat.css',
-        'resources/js/pages/base.js',
-        'resources/js/pages/chat.js'
+        'resources/css/blade/base.css',
+        'resources/css/blade/chat/index.css',
+        'resources/js/blade/base.js',
+        'resources/js/blade/chat/index.js'
     ])
 </head>
-<body>
+<body
+    data-chat-user-id="{{ Auth::id() }}"
+    data-chat-user-name="{{ Auth::user()->name ?? '' }}"
+    data-chat-user-avatar="{{ Auth::user()->avatar ?? '' }}"
+    data-chat-open-user-id="{{ isset($other) ? $other->id : '' }}"
+    data-chat-open-user-name="{{ isset($other) ? $other->name : '' }}"
+    data-chat-open-user-avatar="{{ isset($other) ? ($other->avatar ?? '') : '' }}"
+    data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
+    data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster') }}"
+>
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -68,7 +74,7 @@
             <div class="chat-sidebar-search">
                 <i class="fas fa-search chat-sidebar-search-icon"></i>
                 <input type="text" id="pageSearchInput" placeholder="Search people…"
-                    oninput="PageChat.onSearch(event)" autocomplete="off">
+                    oninput="ChatSystem.onSearchInput(event)" autocomplete="off">
                 <div id="pageSearchResults" class="search-results-dropdown" style="display:none;"></div>
             </div>
 
@@ -99,9 +105,9 @@
                 <div class="thread-messages" id="threadMessages"></div>
                 <div class="thread-input-area">
                     <textarea id="threadInput" rows="1" placeholder="Type a message… (Enter to send)"
-                        oninput="PageChat.autoResize(this)"
-                        onkeydown="PageChat.handleKey(event)"></textarea>
-                    <button class="thread-send-btn" id="threadSendBtn" onclick="PageChat.send()">
+                        oninput="ChatSystem.autoResize(this)"
+                        onkeydown="ChatSystem.handleKey(event)"></textarea>
+                    <button class="thread-send-btn" id="threadSendBtn" onclick="ChatSystem.send()">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
@@ -113,26 +119,6 @@
     <button class="mobile-toggle" onclick="toggleSidebar()">
         <i class="fas fa-bars"></i>
     </button>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
-
-    <script>
-        window.__dashboardConfig = {
-            pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
-            pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
-            userId:        {{ Auth::id() ?? 'null' }},
-            user: {
-                name:   "{{ Auth::user()->name   ?? '' }}",
-                avatar: "{{ Auth::user()->avatar ?? '' }}",
-                id:     {{ Auth::id() ?? 'null' }},
-            },
-            openUserId:     {{ isset($other) ? $other->id   : 'null' }},
-            openUserName:   "{{ isset($other) ? $other->name : '' }}",
-            openUserAvatar: "{{ isset($other) ? ($other->avatar ?? '') : '' }}",
-        };
-    </script>
 
 </body>
 </html>

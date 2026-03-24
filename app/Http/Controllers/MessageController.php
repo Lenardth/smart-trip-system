@@ -88,7 +88,7 @@ class MessageController extends Controller
             'body'        => $data['body'],
         ]);
 
-        $message->load('sender:id,name,avatar', 'receiver:id,name,avatar');
+        $message->load('sender:id,name,profile_picture', 'receiver:id,name,profile_picture');
 
         broadcast(new NewMessage($message))->toOthers();
 
@@ -131,7 +131,7 @@ class MessageController extends Controller
                 $query->where('name', 'like', "%{$q}%")
                       ->orWhere('email', 'like', "%{$q}%");
             })
-            ->select('id', 'name', 'avatar', 'email')
+            ->select('id', 'name', 'profile_picture', 'email')
             ->limit(10)
             ->get();
 

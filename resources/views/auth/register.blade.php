@@ -5,30 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Register — Smart Booking</title>
-    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { margin: 0; padding: 0; font-family: 'Georgia', serif; }
-        .error-message { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #f5c6cb; font-size: 14px; }
-        .input-group { position: relative; margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 6px; color: #3b1f2b; font-size: 14px; font-weight: 600; }
-        .input-error { color: #721c24; font-size: 13px; margin-top: 5px; }
-        .auth-input.is-invalid { border-color: #f5c6cb; background: #fff5f5; }
-        .auth-divider { text-align: center; margin: 25px 0; position: relative; }
-        .auth-divider::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #d4c4b0; }
-        .auth-divider span { background: #fff8f2; padding: 0 15px; position: relative; color: #6b5b4f; font-size: 14px; }
+    @vite([
+        'resources/css/blade/base.css',
+        'resources/css/blade/auth/register.css',
+        'resources/js/blade/auth/register.js'
+    ])
 
-        .user-type-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .type-option { position: relative; cursor: pointer; }
-        .type-option input[type="radio"] { position: absolute; opacity: 0; }
-        .type-card { background: #fff8f2; border: 2px solid #d4c4b0; border-radius: 8px; padding: 20px; text-align: center; transition: all 0.3s; cursor: pointer; }
-        .type-option input[type="radio"]:checked + .type-card { border-color: #c9a96e; background: linear-gradient(135deg, #fff8f2, #fdf0dc); box-shadow: 0 4px 12px rgba(201,169,110,0.25); }
-        .type-icon { font-size: 2.5em; color: #3b1f2b; margin-bottom: 10px; }
-        .type-card h4 { color: #3b1f2b; margin: 0 0 5px; font-size: 16px; font-weight: normal; }
-        .type-card p { color: #6b5b4f; margin: 0; font-size: 12px; }
-        .agency-fields { display: none; }
-        .agency-fields.show { display: block; }
-    </style>
 </head>
 <body>
     <div class="auth-page">
@@ -124,43 +106,5 @@
         </div>
     </div>
 
-    <script>
-        function toggleAgencyFields() {
-            const agencyFields = document.getElementById('agency-fields');
-            const isAgency = document.getElementById('type_agency').checked;
-            const agencyNameInput = document.getElementById('agency_name');
-
-            if (isAgency) {
-                agencyFields.classList.add('show');
-                // Remove the required attribute - let Laravel handle validation
-                // agencyNameInput.removeAttribute('required');
-            } else {
-                agencyFields.classList.remove('show');
-                // Clear the agency_name field when not needed
-                agencyNameInput.value = '';
-                // agencyNameInput.removeAttribute('required');
-            }
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            toggleAgencyFields();
-
-            // Form validation before submission
-            document.getElementById('registerForm').addEventListener('submit', function(e) {
-                const isAgency = document.getElementById('type_agency').checked;
-                const agencyNameInput = document.getElementById('agency_name');
-
-                if (isAgency && !agencyNameInput.value.trim()) {
-                    e.preventDefault();
-                    alert('Please enter your agency name.');
-                    agencyNameInput.focus();
-                    return false;
-                }
-
-                return true;
-            });
-        });
-    </script>
-</body>
+    </body>
 </html>

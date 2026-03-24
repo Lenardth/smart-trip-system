@@ -13,6 +13,7 @@ class Trip extends Model
         'destination',
         'country',
         'mood',
+        'feeling_note',
         'budget',
         'duration',
         'companion',

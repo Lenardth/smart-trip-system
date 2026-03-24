@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\Trip;
 use App\Models\Message;
 use App\Models\SavedDestination;
+use App\Models\Media;
 
 class DashboardController extends Controller
 {
@@ -27,9 +28,11 @@ class DashboardController extends Controller
         $trips         = Trip::where('user_id', $userId)->count();
         $bookings      = Booking::where('user_id', $userId)->count();
         $saved         = SavedDestination::where('user_id', $userId)->count();
+        $photos        = Media::where('user_id', $userId)->count();
         $notifications = $user->unreadNotifications()->count();
 
         return response()->json([
+            'photos'        => $photos,
             'trips'         => $trips,
             'bookings'      => $bookings,
             'saved'         => $saved,
@@ -102,7 +105,7 @@ class DashboardController extends Controller
                 $q->where('name',  'like', '%' . $query . '%')
                   ->orWhere('email', 'like', '%' . $query . '%');
             })
-            ->select('id', 'name', 'email', 'avatar')
+            ->select('id', 'name', 'email', 'profile_picture')
             ->limit(10)
             ->get();
 
