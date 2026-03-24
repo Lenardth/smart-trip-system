@@ -18,12 +18,12 @@ try {
         if (!is_dir($dir)) mkdir($dir, 0777, true);
     }
 
-    // Copy bootstrap cache files to /tmp so they're writable
-    $srcCache = __DIR__ . '/../bootstrap/cache';
-    foreach (glob($srcCache . '/*.php') as $file) {
-        $dest = '/tmp/bootstrap/cache/' . basename($file);
-        if (!file_exists($dest)) copy($file, $dest);
-    }
+    // Point all Laravel cache files to /tmp
+    putenv('APP_SERVICES_CACHE=/tmp/bootstrap/cache/services.php');
+    putenv('APP_PACKAGES_CACHE=/tmp/bootstrap/cache/packages.php');
+    putenv('APP_CONFIG_CACHE=/tmp/bootstrap/cache/config.php');
+    putenv('APP_ROUTES_CACHE=/tmp/bootstrap/cache/routes-v7.php');
+    putenv('APP_EVENTS_CACHE=/tmp/bootstrap/cache/events.php');
 
     require __DIR__ . '/../vendor/autoload.php';
 
