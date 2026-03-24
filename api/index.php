@@ -18,7 +18,6 @@ try {
         if (!is_dir($dir)) mkdir($dir, 0777, true);
     }
 
-    // Point all Laravel cache files to /tmp
     putenv('APP_SERVICES_CACHE=/tmp/bootstrap/cache/services.php');
     putenv('APP_PACKAGES_CACHE=/tmp/bootstrap/cache/packages.php');
     putenv('APP_CONFIG_CACHE=/tmp/bootstrap/cache/config.php');
@@ -31,8 +30,17 @@ try {
 
     $app->useStoragePath('/tmp/storage');
 
-    if (!file_exists('/tmp/database.sqlite')) {
+    $needsMigration = !file_exists('/tmp/database.sqlite');
+
+    if ($needsMigration) {
         touch('/tmp/database.sqlite');
+    }
+
+    // Run migrations and seeders on first boot
+    if ($needsMigration) {
+        $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
+        $artisan->call('migrate', ['--force' => true]);
+        $artisan->call('db:seed', ['--force' => true]);
     }
 
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
