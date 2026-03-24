@@ -451,6 +451,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
                     (t.month     ? '<span><i class="fas fa-calendar"></i> ' + t.month + '</span>' : '') +
                     (t.origin    ? '<span><i class="fas fa-plane-departure"></i> from ' + t.origin + '</span>' : '') +
                 '</div>' +
+                (t.feeling_note ? '<div class="trip-feeling"><i class="fas fa-heart"></i> ' + t.feeling_note + '</div>' : '') +
                 '<button class="trip-delete-btn" onclick="deleteTrip(' + t.id + ')">' +
                     '<i class="fas fa-trash-alt"></i>' +
                 '</button>' +

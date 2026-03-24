@@ -33,7 +33,20 @@
             <option value="airbnb">Airbnb</option>
             <option value="glamping">Glamping</option>
         </select>
+        <select id="budgetSelect">
+            <option value="any">Any budget</option>
+            <option value="backpacker">Backpacker</option>
+            <option value="budget">Budget</option>
+            <option value="mid">Mid-range</option>
+            <option value="premium">Premium</option>
+            <option value="luxury">Luxury</option>
+        </select>
         <button id="reloadBtn" type="button">Search</button>
+    </section>
+
+    <section id="aiMatchPanel" class="ai-match" style="display:none;">
+        <h3><i class="fas fa-wand-magic-sparkles"></i> AI Accommodation Match</h3>
+        <p id="aiMatchSummary"></p>
     </section>
 
     <section id="accommodationsGrid" class="grid"></section>
@@ -42,4 +55,4 @@
 
 @include('partials.public-footer')
 </body>
-</html>=
+</html>

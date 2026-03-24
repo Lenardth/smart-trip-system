@@ -34,6 +34,7 @@ class TripController extends Controller
             'destination'    => 'required|string|max:255',
             'country'        => 'nullable|string|max:255',
             'mood'           => 'nullable|string|max:100',
+            'feeling_note'   => 'nullable|string|max:500',
             'budget'         => 'nullable|string|max:100',
             'duration'       => 'nullable|string|max:100',
             'companion'      => 'nullable|string|max:100',

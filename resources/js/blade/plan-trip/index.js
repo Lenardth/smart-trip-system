@@ -95,6 +95,7 @@ async function generateSuggestions() {
 
     lastPayload = {
         mood:          selectedMood,
+        feeling_note:  document.getElementById('feelingNote')?.value.trim() || null,
         budget:        document.getElementById('budget').value,
         duration:      document.getElementById('duration').value,
         companion:     document.getElementById('companion').value,
@@ -254,6 +255,7 @@ async function saveTripToDashboard() {
         destination:    selectedDest.destination,
         country:        selectedDest.country        || null,
         mood:           lastPayload.mood            || null,
+        feeling_note:   lastPayload.feeling_note    || null,
         budget:         lastPayload.budget          || null,
         duration:       lastPayload.duration        || null,
         companion:      lastPayload.companion       || null,
@@ -299,6 +301,13 @@ async function saveTripToDashboard() {
                     ts:          Date.now(),
                     destination: selectedDest.destination,
                     country:     selectedDest.country || null,
+                }));
+                localStorage.setItem('smartBookingTripProfile', JSON.stringify({
+                    mood:          lastPayload.mood || null,
+                    budget:        lastPayload.budget || null,
+                    accommodation: lastPayload.accommodation || null,
+                    region:        lastPayload.region || null,
+                    feeling_note:  lastPayload.feeling_note || null,
                 }));
             } catch (_) {}
             Swal.fire({

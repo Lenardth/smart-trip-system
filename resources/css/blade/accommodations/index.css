@@ -16,7 +16,7 @@
 
 .filters {
     display: grid;
-    grid-template-columns: 1fr 200px 120px;
+    grid-template-columns: 1fr 170px 170px 120px;
     gap: 10px;
     margin: 20px 0;
 }
@@ -30,10 +30,31 @@
 }
 
 .filters button {
-    background: #2f5a5a;
+    background: var(--deep);
     color: #fff;
     border: 0;
     cursor: pointer;
+}
+
+.ai-match {
+    background: linear-gradient(135deg, #fff8f2, #fdf0dc);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.ai-match h3 {
+    margin: 0 0 6px;
+    color: var(--deep);
+    font-size: 16px;
+}
+
+.ai-match p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
 }
 
 .grid {
@@ -67,8 +88,26 @@
     font-size: 12px;
 }
 
+.ai-score {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--deep);
+    font-weight: 600;
+}
+
+.ai-score i {
+    color: var(--gold);
+    margin-right: 6px;
+}
+
 .empty {
     padding: 18px;
     background: #f7f7f7;
     border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+    .filters {
+        grid-template-columns: 1fr;
+    }
 }

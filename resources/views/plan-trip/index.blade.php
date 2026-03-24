@@ -10,6 +10,7 @@
     'resources/css/blade/plan-trip/index.css',
     'resources/css/blade/base.css',
     'resources/js/blade/base.js',
+    'resources/js/blade/plan-trip/index.js',
 ])
 
 </head>
@@ -44,6 +45,11 @@
             <div class="mood-card" data-mood="romantic"><div class="mood-icon"><i class="fas fa-heart"></i></div><h4>Romantic</h4><p>Love & escape</p></div>
             <div class="mood-card" data-mood="foodie"><div class="mood-icon"><i class="fas fa-utensils"></i></div><h4>Foodie</h4><p>Cuisine & flavor</p></div>
             <div class="mood-card" data-mood="eco-travel"><div class="mood-icon"><i class="fas fa-leaf"></i></div><h4>Eco-Travel</h4><p>Nature & sustainability</p></div>
+        </div>
+        <div class="form-group">
+            <label for="feelingNote">Describe how you feel (optional)</label>
+            <textarea id="feelingNote" rows="4" maxlength="500" placeholder="Example: I feel mentally tired and want calm beaches, nature walks, and peaceful local food spots."></textarea>
+            <small style="display:block;margin-top:8px;color:var(--text-muted);">This helps AI personalize destination and accommodation style better.</small>
         </div>
         <div class="btn-row"><button class="primary-button" onclick="goStep(2)">Next <i class="fas fa-arrow-right"></i></button></div>
     </div>

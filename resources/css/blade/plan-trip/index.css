@@ -171,6 +171,12 @@
     gap: 20px;
 }
 
+.form-group textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+}
+
 .planner-card {
     background: var(--card-bg);
     border-radius: 6px;

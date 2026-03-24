@@ -90,7 +90,7 @@ window.ChatSystem = {
 
     bindSidebarActions() {
         window.toggleSidebar = function toggleSidebar() {
-            document.getElementById("sidebar")?.classList.toggle("open");
+            document.getElementById("sidebar")?.classList.toggle("active");
         };
         window.viewProfile = function viewProfile() {
             window.location.href = "/profile";
@@ -137,12 +137,19 @@ window.ChatSystem = {
             list.innerHTML = conversations
                 .map((c) => {
                     const u = c.user;
-                    const unread = c.unread_count > 0 ? `<span class="badge">${c.unread_count}</span>` : "";
+                    const unread = c.unread_count > 0 ? `<span class="conv-badge">${c.unread_count}</span>` : "";
+                    const lastMessage = esc(c.last_message?.body || "No messages yet");
+                    const initials = esc((u.name || "U").split(" ").map((part) => part[0]).join("").toUpperCase().substring(0, 2));
                     return `
-                        <button class="conv-item" onclick="ChatSystem.openThread(${u.id}, '${esc(u.name)}')">
-                            <div class="conv-name">${esc(u.name)}</div>
-                            <div class="conv-last">${esc(c.last_message?.body || "")}</div>
-                            ${unread}
+                        <button class="conv-item ${c.unread_count > 0 ? "unread" : ""}" onclick="ChatSystem.openThread(${u.id}, '${esc(u.name)}')">
+                            <div class="conv-avatar">${initials}</div>
+                            <div class="conv-item-info">
+                                <strong>${esc(u.name)}</strong>
+                                <span>${lastMessage}</span>
+                            </div>
+                            <div class="conv-item-meta">
+                                ${unread}
+                            </div>
                         </button>
                     `;
                 })
@@ -155,8 +162,21 @@ window.ChatSystem = {
     async openThread(userId, name = "Conversation") {
         Chat.currentThreadUserId = Number(userId);
         document.getElementById("threadName").textContent = name;
+        const avatar = document.getElementById("threadAvatar");
+        const subtitle = document.getElementById("threadSub");
+        if (avatar) {
+            avatar.textContent = (name || "U")
+                .split(" ")
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase()
+                .substring(0, 2);
+        }
+        if (subtitle) {
+            subtitle.textContent = "Conversation";
+        }
         document.getElementById("threadEmptyState").style.display = "none";
-        document.getElementById("threadView").style.display = "block";
+        document.getElementById("threadView").style.display = "flex";
 
         try {
             Chat.messages = await apiFetch(`/api/messages/${userId}`);
@@ -173,7 +193,10 @@ window.ChatSystem = {
         node.innerHTML = Chat.messages
             .map((m) => {
                 const mine = m.sender_id === me;
-                return `<div class="msg ${mine ? "mine" : "theirs"}">${esc(m.body)}</div>`;
+                const time = m.created_at
+                    ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                    : "";
+                return `<div class="msg-bubble ${mine ? "mine" : "theirs"}">${esc(m.body)}${time ? `<span class="msg-time">${time}</span>` : ""}</div>`;
             })
             .join("");
         node.scrollTop = node.scrollHeight;
@@ -229,7 +252,12 @@ window.ChatSystem = {
                     return;
                 }
                 box.innerHTML = users
-                    .map((u) => `<div class="search-item" onclick="ChatSystem.openThread(${u.id}, '${esc(u.name)}')">${esc(u.name)}</div>`)
+                    .map((u) => `
+                        <div class="user-result" onclick="ChatSystem.openThread(${u.id}, '${esc(u.name)}')">
+                            <strong>${esc(u.name)}</strong>
+                            <small>Start conversation</small>
+                        </div>
+                    `)
                     .join("");
                 box.style.display = "block";
             } catch (_e) {

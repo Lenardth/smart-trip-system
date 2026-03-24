@@ -65,6 +65,20 @@
             gap: 4px;
         }
         .trip-meta i { color: #c9a96e; }
+        .trip-feeling {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6b5b4f;
+            background: rgba(201, 169, 110, .09);
+            border: 1px solid rgba(201, 169, 110, .25);
+            border-radius: 8px;
+            padding: 8px 10px;
+            line-height: 1.45;
+        }
+        .trip-feeling i {
+            color: #c9a96e;
+            margin-right: 6px;
+        }
         .trip-delete-btn {
             position: absolute;
             top: 12px;

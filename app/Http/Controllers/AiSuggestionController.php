@@ -66,6 +66,7 @@ class AiSuggestionController extends Controller
             'accommodation'              => 'nullable|string|max:50',
             'origin'                     => 'nullable|string|max:100',
             'experience'                 => 'nullable|string|max:50',
+            'feeling_note'               => 'nullable|string|max:500',
             'excluded_destinations'      => 'nullable|array|max:200',
             'excluded_destinations.*'    => 'string|max:100',
             'excluded_countries'         => 'nullable|array|max:200',
@@ -244,6 +245,7 @@ class AiSuggestionController extends Controller
         }
         if (!empty($p['origin']))                                          $extras[] = "flying from: {$p['origin']}";
         if (!empty($p['experience']))                                      $extras[] = "experience level: {$p['experience']}";
+        if (!empty($p['feeling_note']))                                    $extras[] = "traveller emotional context: {$p['feeling_note']}";
         $extrasStr = $extras ? "\nContext: " . implode(' | ', $extras) . '.' : '';
 
         $excludedStr = '';
