@@ -6,9 +6,7 @@ error_reporting(E_ALL);
 try {
     define('LARAVEL_START', microtime(true));
 
-    require __DIR__ . '/../vendor/autoload.php';
-
-    // Move writable directories to /tmp
+    // Create writable dirs in /tmp
     $dirs = [
         '/tmp/storage/logs',
         '/tmp/storage/framework/cache/data',
@@ -21,26 +19,21 @@ try {
         if (!is_dir($dir)) mkdir($dir, 0777, true);
     }
 
-    // Symlink storage and bootstrap/cache to /tmp
-    $links = [
-        __DIR__ . '/../storage/logs'               => '/tmp/storage/logs',
-        __DIR__ . '/../storage/framework/cache'    => '/tmp/storage/framework/cache',
-        __DIR__ . '/../storage/framework/sessions' => '/tmp/storage/framework/sessions',
-        __DIR__ . '/../storage/framework/views'    => '/tmp/storage/framework/views',
-        __DIR__ . '/../bootstrap/cache'            => '/tmp/bootstrap/cache',
-    ];
-    foreach ($links as $link => $target) {
-        if (!is_link($link) && !is_dir($link)) {
-            symlink($target, $link);
-        }
-    }
+    // Override storage and bootstrap paths via env
+    $_ENV['APP_STORAGE_PATH'] = '/tmp/storage';
+    putenv('APP_STORAGE_PATH=/tmp/storage');
 
-    // SQLite
+    require __DIR__ . '/../vendor/autoload.php';
+
+    $app = require __DIR__ . '/../bootstrap/app.php';
+
+    // Override paths on the app instance
+    $app->useStoragePath('/tmp/storage');
+    $app->bootstrapPath('/tmp/bootstrap');
+
     if (!file_exists('/tmp/database.sqlite')) {
         touch('/tmp/database.sqlite');
     }
-
-    $app = require __DIR__ . '/../bootstrap/app.php';
 
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
     $response = $kernel->handle(
