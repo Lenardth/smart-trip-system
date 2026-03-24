@@ -1,11 +1,19 @@
-<?php
-
-$app = require __DIR__ . '/../bootstrap/app.php';
-$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
-
-if (!file_exists('/tmp/database.sqlite')) {
-    touch('/tmp/database.sqlite');
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+{
+  "buildCommand": "composer install --no-dev --optimize-autoloader && npm run build",
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.2"
+    }
+  },
+  "routes": [
+    {
+      "src": "/build/(.*)",
+      "dest": "/public/build/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.php"
+    }
+  ]
 }
-
-require __DIR__ . '/../public/index.php';
