@@ -11,16 +11,22 @@
         'resources/js/blade/base.js',
         'resources/js/blade/accommodations/index.js'
     ])
+    <style>
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        main { flex: 1; }
+    </style>
 </head>
 <body>
 @include('partials.public-navigation')
 
-<main class="accommodations-wrap">
-    <section class="head">
-        <h1>Find Accommodation</h1>
+<section class="page-hero accommodations-hero">
+    <div>
+        <h1><i class="fas fa-hotel"></i> Find Accommodation</h1>
         <p>Browse accommodation options and match your trip style.</p>
-    </section>
+    </div>
+</section>
 
+<main class="accommodations-wrap">
     <section class="filters">
         <input id="searchInput" type="text" placeholder="Search by city, country, or name">
         <select id="styleSelect">
@@ -41,7 +47,7 @@
             <option value="premium">Premium</option>
             <option value="luxury">Luxury</option>
         </select>
-        <button id="reloadBtn" type="button">Search</button>
+        <button id="reloadBtn" type="button"><i class="fas fa-search"></i> Search</button>
     </section>
 
     <section id="aiMatchPanel" class="ai-match" style="display:none;">
