@@ -1,15 +1,12 @@
 <?php
-
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 
 try {
     define('LARAVEL_START', microtime(true));
 
-    // Parse Neon DATABASE_URL and force pgsql
     if ($dbUrl = getenv('DATABASE_URL')) {
         $url = parse_url($dbUrl);
-
         $vars = [
             'DB_CONNECTION' => 'pgsql',
             'DB_HOST'       => $url['host'],
@@ -19,7 +16,6 @@ try {
             'DB_PASSWORD'   => $url['pass'],
             'DB_SSLMODE'    => 'require',
         ];
-
         foreach ($vars as $key => $value) {
             putenv("$key=$value");
             $_ENV[$key] = $value;
@@ -27,7 +23,6 @@ try {
         }
     }
 
-    // Create writable dirs in /tmp
     $dirs = [
         '/tmp/storage/logs',
         '/tmp/storage/framework/cache/data',
@@ -36,14 +31,10 @@ try {
         '/tmp/storage/app/public',
         '/tmp/bootstrap/cache',
     ];
-
     foreach ($dirs as $dir) {
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
+        if (!is_dir($dir)) mkdir($dir, 0777, true);
     }
 
-    // Cache paths (required for serverless)
     putenv('APP_SERVICES_CACHE=/tmp/bootstrap/cache/services.php');
     putenv('APP_PACKAGES_CACHE=/tmp/bootstrap/cache/packages.php');
     putenv('APP_CONFIG_CACHE=/tmp/bootstrap/cache/config.php');
@@ -51,50 +42,47 @@ try {
     putenv('APP_EVENTS_CACHE=/tmp/bootstrap/cache/events.php');
 
     require __DIR__ . '/../vendor/autoload.php';
-
     $app = require __DIR__ . '/../bootstrap/app.php';
-
-    // Force storage path to /tmp
     $app->useStoragePath('/tmp/storage');
 
-    // Run migrations safely (Laravel handles duplicates)
     $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
-    $artisan->call('migrate', ['--force' => true]);
+    runMigrationsIfNeeded($artisan);
 
-    // Run seeders
-    $artisan->call('db:seed', [
-        '--class' => 'DestinationSeeder',
-        '--force' => true
-    ]);
+    if (getenv('RUN_SEEDS_ONCE') === 'true') {
+        $artisan->call('db:seed', ['--class' => 'DestinationSeeder', '--force' => true]);
+        $artisan->call('db:seed', ['--class' => 'CommunitySeeder',   '--force' => true]);
+    }
 
-    $artisan->call('db:seed', [
-        '--class' => 'CommunitySeeder',
-        '--force' => true
-    ]);
-
-    // Handle request
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-
     $response = $kernel->handle(
         $request = Illuminate\Http\Request::capture()
     )->send();
-
     $kernel->terminate($request, $response);
 
 } catch (\Throwable $e) {
     http_response_code(500);
-
     echo '<pre>';
-
     $current = $e;
     while ($current) {
         echo get_class($current) . ': ' . $current->getMessage() . "\n";
         echo 'in ' . $current->getFile() . ':' . $current->getLine() . "\n\n";
         $current = $current->getPrevious();
     }
-
     echo $e->getTraceAsString();
-
     echo '</pre>';
+}
+
+function runMigrationsIfNeeded($artisan): void
+{
+    try {
+        $artisan->call('migrate:status', ['--pending' => true]);
+        $output = $artisan->output();
+
+        if (!empty(trim($output))) {
+            $artisan->call('migrate', ['--force' => true]);
+        }
+    } catch (\Throwable $e) {
+        error_log('Migration check failed: ' . $e->getMessage());
+    }
 }
