@@ -1,61 +1,99 @@
 const { jsPDF } = window.jspdf;
 
 let selectedMood = '';
-let lastResults  = [];
-let lastPayload  = {};
+let lastResults = [];
+let lastPayload = {};
 let selectedDest = null;
 
 const COST_MULTIPLIERS = {
-    budget:    { backpacker:0.7, budget:1.0, mid:1.5, premium:2.5, luxury:4.0 },
-    duration:  { weekend:0.4, week:1.0, two_weeks:1.8, month:3.5, flexible:1.0 },
-    companion: { solo:1.0, couple:0.9, family_young:1.2, family_teens:1.3, friends_small:0.95, friends_large:0.9, business:1.4 }
+    budget: { backpacker: 0.7, budget: 1.0, mid: 1.5, premium: 2.5, luxury: 4.0 },
+    duration: { weekend: 0.4, week: 1.0, two_weeks: 1.8, month: 3.5, flexible: 1.0 },
+    companion: { solo: 1.0, couple: 0.9, family_young: 1.2, family_teens: 1.3, friends_small: 0.95, friends_large: 0.9, business: 1.4 }
 };
 
 const REGION_BASE_COSTS = {
-    europe:2500, southeast_asia:1500, east_asia:2200, south_asia:1400,
-    middle_east:2000, africa:1800, north_america:2800, latin_america:1600,
-    oceania:3000, caribbean:2400, any:2000
+    europe: 2500,
+    southeast_asia: 1500,
+    east_asia: 2200,
+    south_asia: 1400,
+    middle_east: 2000,
+    africa: 1800,
+    north_america: 2800,
+    latin_america: 1600,
+    oceania: 3000,
+    caribbean: 2400,
+    any: 2000
 };
 
 const REGION_TAX_RATES = {
-    europe:19, southeast_asia:10, east_asia:13, south_asia:12,
-    middle_east:5, africa:15, north_america:11, latin_america:16,
-    oceania:15, caribbean:18, any:12
+    europe: 19,
+    southeast_asia: 10,
+    east_asia: 13,
+    south_asia: 12,
+    middle_east: 5,
+    africa: 15,
+    north_america: 11,
+    latin_america: 16,
+    oceania: 15,
+    caribbean: 18,
+    any: 12
 };
 
 const budgetLabels = {
-    backpacker:'Backpacker (Under $500)', budget:'Budget-Friendly ($500–$1,500)',
-    mid:'Mid-Range ($1,500–$4,000)', premium:'Premium ($4,000–$8,000)', luxury:'Luxury ($8,000+)'
+    backpacker: 'Backpacker (Under $500)',
+    budget: 'Budget-Friendly ($500–$1,500)',
+    mid: 'Mid-Range ($1,500–$4,000)',
+    premium: 'Premium ($4,000–$8,000)',
+    luxury: 'Luxury ($8,000+)'
 };
 const durLabels = {
-    weekend:'Long Weekend (3–4 days)', week:'One Week (7 days)',
-    two_weeks:'Two Weeks (10–14 days)', month:'One Month or more', flexible:'Flexible / Open-ended'
+    weekend: 'Long Weekend (3–4 days)',
+    week: 'One Week (7 days)',
+    two_weeks: 'Two Weeks (10–14 days)',
+    month: 'One Month or more',
+    flexible: 'Flexible / Open-ended'
 };
 const compLabels = {
-    solo:'Solo Traveller', couple:'Couple', family_young:'Family with Young Children',
-    family_teens:'Family with Teenagers', friends_small:'Small Group of Friends (2–4)',
-    friends_large:'Large Group of Friends (5+)', business:'Business Traveller'
+    solo: 'Solo Traveller',
+    couple: 'Couple',
+    family_young: 'Family with Young Children',
+    family_teens: 'Family with Teenagers',
+    friends_small: 'Small Group of Friends (2–4)',
+    friends_large: 'Large Group of Friends (5+)',
+    business: 'Business Traveller'
 };
 const regionLabels = {
-    europe:'Europe', southeast_asia:'Southeast Asia', east_asia:'East Asia',
-    south_asia:'South Asia', middle_east:'Middle East', africa:'Africa',
-    north_america:'North America', latin_america:'Latin America',
-    oceania:'Oceania', caribbean:'Caribbean', any:'No preference'
+    europe: 'Europe',
+    southeast_asia: 'Southeast Asia',
+    east_asia: 'East Asia',
+    south_asia: 'South Asia',
+    middle_east: 'Middle East',
+    africa: 'Africa',
+    north_america: 'North America',
+    latin_america: 'Latin America',
+    oceania: 'Oceania',
+    caribbean: 'Caribbean',
+    any: 'No preference'
 };
 const accommodationLabels = {
-    hostel:'Hostel / Dorm', budget_hotel:'Budget Hotel', boutique:'Boutique Hotel',
-    resort:'Resort', villa:'Private Villa', airbnb:'Apartment / Airbnb',
-    glamping:'Glamping / Eco-Lodge', any:'No preference'
+    hostel: 'Hostel / Dorm',
+    budget_hotel: 'Budget Hotel',
+    boutique: 'Boutique Hotel',
+    resort: 'Resort',
+    villa: 'Private Villa',
+    airbnb: 'Apartment / Airbnb',
+    glamping: 'Glamping / Eco-Lodge',
+    any: 'No preference'
 };
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.mood-card').forEach(card => {
-        card.addEventListener('click', function () { selectMood(this); });
+        card.addEventListener('click', function() { selectMood(this); });
     });
-    document.getElementById('receiptModal').addEventListener('click', function (e) {
+    document.getElementById('receiptModal').addEventListener('click', function(e) {
         if (e.target === this) closeReceipt();
     });
-    document.addEventListener('keydown', function (e) {
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && document.getElementById('receiptModal').classList.contains('open')) {
             closeReceipt();
         }
@@ -82,36 +120,37 @@ function goStep(n) {
 }
 
 async function generateSuggestions() {
-    if (!selectedMood) { alert('Please select a mood first.'); goStep(1); return; }
+    if (!selectedMood) { alert('Please select a mood first.');
+        goStep(1); return; }
 
     selectedDest = null;
     document.getElementById('receiptBtn').style.display = 'none';
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) saveBtn.style.display = 'none';
     goStep(4);
-    document.getElementById('loadingState').style.display  = 'block';
-    document.getElementById('errorState').style.display    = 'none';
-    document.getElementById('resultsState').style.display  = 'none';
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('resultsState').style.display = 'none';
 
     lastPayload = {
-        mood:          selectedMood,
-        feeling_note:  document.getElementById('feelingNote')?.value.trim() || null,
-        budget:        document.getElementById('budget').value,
-        duration:      document.getElementById('duration').value,
-        companion:     document.getElementById('companion').value,
-        month:         document.getElementById('month').value        || null,
-        region:        document.getElementById('region').value       || null,
+        mood: selectedMood,
+        feeling_note: document.getElementById('feelingNote') ? .value.trim() || null,
+        budget: document.getElementById('budget').value,
+        duration: document.getElementById('duration').value,
+        companion: document.getElementById('companion').value,
+        month: document.getElementById('month').value || null,
+        region: document.getElementById('region').value || null,
         accommodation: document.getElementById('accommodation').value || null,
-        origin:        document.getElementById('origin').value.trim() || null,
-        experience:    document.getElementById('experience').value    || null,
+        origin: document.getElementById('origin').value.trim() || null,
+        experience: document.getElementById('experience').value || null,
     };
 
     try {
-        const res  = await fetch('/ai/suggest', {
+        const res = await fetch('/ai/suggest', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             },
             body: JSON.stringify(lastPayload),
@@ -139,73 +178,77 @@ async function generateSuggestions() {
 }
 
 function calculateCostBreakdown(destination, payload) {
-    const region   = payload.region || 'any';
+    const region = payload.region || 'any';
     const baseCost = REGION_BASE_COSTS[region] || 2000;
 
-    const budgetMult    = COST_MULTIPLIERS.budget[payload.budget]       || 1.0;
-    const durationMult  = COST_MULTIPLIERS.duration[payload.duration]   || 1.0;
-    const companionMult = COST_MULTIPLIERS.companion[payload.companion]  || 1.0;
+    const budgetMult = COST_MULTIPLIERS.budget[payload.budget] || 1.0;
+    const durationMult = COST_MULTIPLIERS.duration[payload.duration] || 1.0;
+    const companionMult = COST_MULTIPLIERS.companion[payload.companion] || 1.0;
 
-    const flights         = Math.round(baseCost * 0.40 * budgetMult);
+    const flights = Math.round(baseCost * 0.40 * budgetMult);
     const accommodation_c = Math.round(baseCost * 0.35 * durationMult * budgetMult);
-    const activities      = Math.round(baseCost * 0.15 * companionMult);
-    const food            = Math.round(baseCost * 0.20 * durationMult);
-    const transportation  = Math.round(baseCost * 0.10 * budgetMult);
-    const subtotal        = flights + accommodation_c + activities + food + transportation;
-    const taxRate         = REGION_TAX_RATES[region] || 12;
-    const taxes           = Math.round(subtotal * (taxRate / 100));
-    const serviceFee      = Math.round(subtotal * 0.05);
-    const total           = subtotal + taxes + serviceFee;
-    const nights          = getNightsFromDuration(payload.duration);
+    const activities = Math.round(baseCost * 0.15 * companionMult);
+    const food = Math.round(baseCost * 0.20 * durationMult);
+    const transportation = Math.round(baseCost * 0.10 * budgetMult);
+    const subtotal = flights + accommodation_c + activities + food + transportation;
+    const taxRate = REGION_TAX_RATES[region] || 12;
+    const taxes = Math.round(subtotal * (taxRate / 100));
+    const serviceFee = Math.round(subtotal * 0.05);
+    const total = subtotal + taxes + serviceFee;
+    const nights = getNightsFromDuration(payload.duration);
 
     return {
         breakdown: {
-            flights:        { amount: flights,        description: 'Round-trip flights (economy)',         details: getFlightDetails(payload.origin, destination.destination) },
-            accommodation:  { amount: accommodation_c, description: getAccommodationDescription(payload.accommodation), nights },
-            activities:     { amount: activities,     description: 'Guided tours & activities',            items: getActivityCount(destination.top_activities) },
-            food:           { amount: food,           description: 'Meals & dining experiences',           perDay: Math.round(food / (nights || 7)) },
-            transportation: { amount: transportation,  description: 'Local transportation',                includes: ['Airport transfers', 'Public transport', 'Inter-city travel'] }
+            flights: { amount: flights, description: 'Round-trip flights (economy)', details: getFlightDetails(payload.origin, destination.destination) },
+            accommodation: { amount: accommodation_c, description: getAccommodationDescription(payload.accommodation), nights },
+            activities: { amount: activities, description: 'Guided tours & activities', items: getActivityCount(destination.top_activities) },
+            food: { amount: food, description: 'Meals & dining experiences', perDay: Math.round(food / (nights || 7)) },
+            transportation: { amount: transportation, description: 'Local transportation', includes: ['Airport transfers', 'Public transport', 'Inter-city travel'] }
         },
         subtotal,
-        taxes:      { amount: taxes,      rate: taxRate, type: 'VAT/GST' },
+        taxes: { amount: taxes, rate: taxRate, type: 'VAT/GST' },
         serviceFee: { amount: serviceFee, description: 'Booking & service fee' },
         total,
         range: {
-            low:     Math.round(total * 0.85),
-            high:    Math.round(total * 1.15),
+            low: Math.round(total * 0.85),
+            high: Math.round(total * 1.15),
             display: `$${fmt(Math.round(total * 0.85))} – $${fmt(Math.round(total * 1.15))}`
         },
         savings: {
-            earlyBird:     Math.round(total * 0.10),
-            groupDiscount: (payload.companion||'').includes('family') || (payload.companion||'').includes('friends') ? Math.round(total * 0.08) : 0,
-            packageDeal:   Math.round(total * 0.05)
+            earlyBird: Math.round(total * 0.10),
+            groupDiscount: (payload.companion || '').includes('family') || (payload.companion || '').includes('friends') ? Math.round(total * 0.08) : 0,
+            packageDeal: Math.round(total * 0.05)
         }
     };
 }
 
-function fmt(n)  { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function fmt(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
 function getFlightDetails(origin, dest) {
     if (!origin) return 'Based on average prices from major hubs';
     const airlines = ['Emirates', 'Qatar Airways', 'Singapore Airlines', 'British Airways', 'Lufthansa', 'Delta', 'United'];
-    const airline  = airlines[Math.floor(Math.random() * airlines.length)];
-    const hrs      = Math.floor(Math.random() * 6) + 8;
+    const airline = airlines[Math.floor(Math.random() * airlines.length)];
+    const hrs = Math.floor(Math.random() * 6) + 8;
     return `${airline} · ~${hrs}h from ${origin}`;
 }
+
 function getAccommodationDescription(p) {
-    const d = { hostel:'Shared dormitory in central location', budget_hotel:'2–3 star hotel with breakfast', boutique:'Boutique hotel with local character', resort:'All-inclusive resort', villa:'Private villa with pool', airbnb:'Private apartment with kitchen', glamping:'Eco-lodge with unique experience', any:'Mix of comfortable accommodations' };
+    const d = { hostel: 'Shared dormitory in central location', budget_hotel: '2–3 star hotel with breakfast', boutique: 'Boutique hotel with local character', resort: 'All-inclusive resort', villa: 'Private villa with pool', airbnb: 'Private apartment with kitchen', glamping: 'Eco-lodge with unique experience', any: 'Mix of comfortable accommodations' };
     return d[p] || d.any;
 }
-function getNightsFromDuration(d) { return { weekend:3, week:7, two_weeks:12, month:28, flexible:7 }[d] || 7; }
+
+function getNightsFromDuration(d) { return { weekend: 3, week: 7, two_weeks: 12, month: 28, flexible: 7 }[d] || 7; }
+
 function getActivityCount(a) { if (!a) return 'Multiple activities'; return `${a.split(',').length} included activities`; }
-function generateAirportCode(dest) { const w = dest.split(' '); return (w.length===1 ? dest.substring(0,3) : w.map(x=>x[0]).join('').substring(0,3)).toUpperCase(); }
+
+function generateAirportCode(dest) { const w = dest.split(' '); return (w.length === 1 ? dest.substring(0, 3) : w.map(x => x[0]).join('').substring(0, 3)).toUpperCase(); }
 
 function renderResults(destinations) {
     const grid = document.getElementById('resultsGrid');
     grid.innerHTML = '';
     destinations.forEach((d, idx) => {
         const card = document.createElement('div');
-        card.className   = 'dest-card';
+        card.className = 'dest-card';
         card.dataset.idx = idx;
         card.innerHTML = `
             <div class="select-badge"><i class="fas fa-check"></i></div>
@@ -249,30 +292,31 @@ function selectDestination(idx) {
 async function saveTripToDashboard() {
     if (!selectedDest) return;
     const btn = document.getElementById('saveBtn');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+    if (btn) { btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
 
     const payload = {
-        destination:    selectedDest.destination,
-        country:        selectedDest.country        || null,
-        mood:           lastPayload.mood            || null,
-        feeling_note:   lastPayload.feeling_note    || null,
-        budget:         lastPayload.budget          || null,
-        duration:       lastPayload.duration        || null,
-        companion:      lastPayload.companion       || null,
-        region:         lastPayload.region          || null,
-        accommodation:  lastPayload.accommodation   || null,
-        origin:         lastPayload.origin          || null,
-        month:          lastPayload.month           || null,
-        estimated_cost: selectedDest.costBreakdown?.total || null,
+        destination: selectedDest.destination,
+        country: selectedDest.country || null,
+        mood: lastPayload.mood || null,
+        feeling_note: lastPayload.feeling_note || null,
+        budget: lastPayload.budget || null,
+        duration: lastPayload.duration || null,
+        companion: lastPayload.companion || null,
+        region: lastPayload.region || null,
+        accommodation: lastPayload.accommodation || null,
+        origin: lastPayload.origin || null,
+        month: lastPayload.month || null,
+        estimated_cost: selectedDest.costBreakdown ? .total || null,
     };
     console.log('[plan-trip] POST /api/trips payload:', payload);
 
     try {
-        const res  = await fetch('/api/trips', {
+        const res = await fetch('/api/trips', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept':       'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             },
             body: JSON.stringify(payload),
@@ -281,7 +325,8 @@ async function saveTripToDashboard() {
         console.log('[plan-trip] POST /api/trips response:', res.status, data);
 
         if (res.status === 409) {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved'; }
+            if (btn) { btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved'; }
             Swal.fire({
                 title: 'Already Saved',
                 text: selectedDest.destination + ' is already on your dashboard.',
@@ -298,16 +343,16 @@ async function saveTripToDashboard() {
             if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Saved!'; }
             try {
                 localStorage.setItem('smartBookingTripSaved', JSON.stringify({
-                    ts:          Date.now(),
+                    ts: Date.now(),
                     destination: selectedDest.destination,
-                    country:     selectedDest.country || null,
+                    country: selectedDest.country || null,
                 }));
                 localStorage.setItem('smartBookingTripProfile', JSON.stringify({
-                    mood:          lastPayload.mood || null,
-                    budget:        lastPayload.budget || null,
+                    mood: lastPayload.mood || null,
+                    budget: lastPayload.budget || null,
                     accommodation: lastPayload.accommodation || null,
-                    region:        lastPayload.region || null,
-                    feeling_note:  lastPayload.feeling_note || null,
+                    region: lastPayload.region || null,
+                    feeling_note: lastPayload.feeling_note || null,
                 }));
             } catch (_) {}
             Swal.fire({
@@ -324,7 +369,8 @@ async function saveTripToDashboard() {
         }
     } catch (err) {
         console.error('[plan-trip] saveTripToDashboard error:', err);
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard'; }
+        if (btn) { btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard'; }
         Swal.fire({ title: 'Error', text: err.message || 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
     }
 }
@@ -336,23 +382,26 @@ function openReceipt() {
     document.getElementById('receiptModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
+
 function closeReceipt() {
     document.getElementById('receiptModal').classList.remove('open');
     document.body.style.overflow = '';
 }
 
 function generateReferenceNumber() {
-    const ts  = Date.now().toString().slice(-8);
+    const ts = Date.now().toString().slice(-8);
     const rnd = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     return `SBP-${ts}-${rnd}`;
 }
+
 function getFormattedDates() {
-    const now      = new Date();
-    const valid    = new Date(now); valid.setMonth(valid.getMonth() + 3);
+    const now = new Date();
+    const valid = new Date(now);
+    valid.setMonth(valid.getMonth() + 3);
     return {
-        issueDate:  now.toLocaleDateString('en-US',   { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
-        issueTime:  now.toLocaleTimeString('en-US',   { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true }),
-        validUntil: valid.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }),
+        issueDate: now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+        issueTime: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+        validUntil: valid.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
         bookingRef: generateReferenceNumber()
     };
 }
@@ -368,13 +417,13 @@ function generateActivityTags(activities) {
 
 function buildReceiptHTML(d) {
     const dates = getFormattedDates();
-    const cost  = d.costBreakdown;
-    const bk    = cost.breakdown;
+    const cost = d.costBreakdown;
+    const bk = cost.breakdown;
 
-    const mood  = (lastPayload.mood||'').charAt(0).toUpperCase() + (lastPayload.mood||'').slice(1);
-    const bud   = budgetLabels[lastPayload.budget]           || lastPayload.budget    || '—';
-    const dur   = durLabels[lastPayload.duration]            || lastPayload.duration   || '—';
-    const comp  = compLabels[lastPayload.companion]          || lastPayload.companion  || '—';
+    const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
+    const bud = budgetLabels[lastPayload.budget] || lastPayload.budget || '—';
+    const dur = durLabels[lastPayload.duration] || lastPayload.duration || '—';
+    const comp = compLabels[lastPayload.companion] || lastPayload.companion || '—';
 
     return `
     <div style="font-family:'Georgia',serif;color:#2c2c2c;">
@@ -565,6 +614,7 @@ function printReceipt() {
 }
 
 async function downloadReceiptPdf() {
+    const { jsPDF } = window.jspdf;
     if (!selectedDest) return;
 
     const d     = selectedDest;
