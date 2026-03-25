@@ -44,12 +44,14 @@ try {
     $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
     try {
-        $migrated = \Illuminate\Support\Facades\DB::table('migrations')->count();
+        $tableExists = \Illuminate\Support\Facades\DB::select(
+            "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users') as exists"
+        )[0]->exists;
     } catch (\Throwable $e) {
-        $migrated = 0;
+        $tableExists = false;
     }
 
-    if (!$migrated) {
+    if (!$tableExists) {
         $artisan->call('migrate', ['--force' => true]);
         $artisan->call('db:seed', ['--class' => 'DestinationSeeder', '--force' => true]);
         $artisan->call('db:seed', ['--class' => 'CommunitySeeder', '--force' => true]);
