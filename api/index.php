@@ -6,17 +6,26 @@ error_reporting(E_ALL);
 try {
     define('LARAVEL_START', microtime(true));
 
+    // Parse Neon DATABASE_URL and force pgsql
     if ($dbUrl = getenv('DATABASE_URL')) {
         $url = parse_url($dbUrl);
-        putenv('DB_CONNECTION=pgsql');
-        putenv('DB_HOST=' . $url['host']);
-        putenv('DB_PORT=' . ($url['port'] ?? 5432));
-        putenv('DB_DATABASE=' . ltrim($url['path'], '/'));
-        putenv('DB_USERNAME=' . $url['user']);
-        putenv('DB_PASSWORD=' . $url['pass']);
-        putenv('DB_SSLMODE=require');
+        $vars = [
+            'DB_CONNECTION' => 'pgsql',
+            'DB_HOST'       => $url['host'],
+            'DB_PORT'       => $url['port'] ?? 5432,
+            'DB_DATABASE'   => ltrim($url['path'], '/'),
+            'DB_USERNAME'   => $url['user'],
+            'DB_PASSWORD'   => $url['pass'],
+            'DB_SSLMODE'    => 'require',
+        ];
+        foreach ($vars as $key => $value) {
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+        }
     }
 
+    // Create writable dirs in /tmp
     $dirs = [
         '/tmp/storage/logs',
         '/tmp/storage/framework/cache/data',
