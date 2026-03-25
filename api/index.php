@@ -6,6 +6,19 @@ error_reporting(E_ALL);
 try {
     define('LARAVEL_START', microtime(true));
 
+    // Parse Neon DATABASE_URL into Laravel DB env vars
+    if ($dbUrl = getenv('DATABASE_URL')) {
+        $url = parse_url($dbUrl);
+        putenv('DB_CONNECTION=pgsql');
+        putenv('DB_HOST=' . $url['host']);
+        putenv('DB_PORT=' . ($url['port'] ?? 5432));
+        putenv('DB_DATABASE=' . ltrim($url['path'], '/'));
+        putenv('DB_USERNAME=' . $url['user']);
+        putenv('DB_PASSWORD=' . $url['pass']);
+        putenv('DB_SSLMODE=require');
+    }
+
+    // Create writable dirs in /tmp
     $dirs = [
         '/tmp/storage/logs',
         '/tmp/storage/framework/cache/data',
@@ -30,15 +43,10 @@ try {
 
     $app->useStoragePath('/tmp/storage');
 
-    $needsMigration = !file_exists('/tmp/database.sqlite');
-
-    if ($needsMigration) {
-        touch('/tmp/database.sqlite');
-        $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
-        $artisan->call('migrate', ['--force' => true]);
-        $artisan->call('db:seed', ['--class' => 'DestinationSeeder', '--force' => true]);
-        $artisan->call('db:seed', ['--class' => 'CommunitySeeder', '--force' => true]);
-    }
+    $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $artisan->call('migrate', ['--force' => true]);
+    $artisan->call('db:seed', ['--class' => 'DestinationSeeder', '--force' => true]);
+    $artisan->call('db:seed', ['--class' => 'CommunitySeeder', '--force' => true]);
 
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
     $response = $kernel->handle(
