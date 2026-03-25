@@ -47,7 +47,11 @@ try {
 
     $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
-    runMigrationsIfNeeded($artisan);
+    try {
+        $artisan->call('migrate', ['--force' => true]);
+    } catch (\Throwable $e) {
+        error_log('Migration failed: ' . $e->getMessage());
+    }
 
     if (getenv('RUN_SEEDS_ONCE') === 'true') {
         $artisan->call('db:seed', ['--class' => 'DestinationSeeder', '--force' => true]);
@@ -71,18 +75,4 @@ try {
     }
     echo $e->getTraceAsString();
     echo '</pre>';
-}
-
-function runMigrationsIfNeeded($artisan): void
-{
-    try {
-        $artisan->call('migrate:status', ['--pending' => true]);
-        $output = $artisan->output();
-
-        if (!empty(trim($output))) {
-            $artisan->call('migrate', ['--force' => true]);
-        }
-    } catch (\Throwable $e) {
-        error_log('Migration check failed: ' . $e->getMessage());
-    }
 }
