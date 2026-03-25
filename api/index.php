@@ -34,13 +34,10 @@ try {
 
     if ($needsMigration) {
         touch('/tmp/database.sqlite');
-    }
-
-    // Run migrations and seeders on first boot
-    if ($needsMigration) {
         $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
         $artisan->call('migrate', ['--force' => true]);
-        $artisan->call('db:seed', ['--force' => true]);
+        $artisan->call('db:seed', ['--class' => 'DestinationSeeder', '--force' => true]);
+        $artisan->call('db:seed', ['--class' => 'CommunitySeeder', '--force' => true]);
     }
 
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
