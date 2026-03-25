@@ -120,8 +120,11 @@ function goStep(n) {
 }
 
 async function generateSuggestions() {
-    if (!selectedMood) { alert('Please select a mood first.');
-        goStep(1); return; }
+    if (!selectedMood) {
+        alert('Please select a mood first.');
+        goStep(1);
+        return;
+    }
 
     selectedDest = null;
     document.getElementById('receiptBtn').style.display = 'none';
@@ -134,7 +137,7 @@ async function generateSuggestions() {
 
     lastPayload = {
         mood: selectedMood,
-        feeling_note: document.getElementById('feelingNote') ? .value.trim() || null,
+
         budget: document.getElementById('budget').value,
         duration: document.getElementById('duration').value,
         companion: document.getElementById('companion').value,
@@ -292,8 +295,10 @@ function selectDestination(idx) {
 async function saveTripToDashboard() {
     if (!selectedDest) return;
     const btn = document.getElementById('saveBtn');
-    if (btn) { btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+    }
 
     const payload = {
         destination: selectedDest.destination,
@@ -307,7 +312,9 @@ async function saveTripToDashboard() {
         accommodation: lastPayload.accommodation || null,
         origin: lastPayload.origin || null,
         month: lastPayload.month || null,
-        estimated_cost: selectedDest.costBreakdown ? .total || null,
+        estimated_cost: selectedDest && selectedDest.costBreakdown ?
+            selectedDest.costBreakdown.total :
+            null,
     };
     console.log('[plan-trip] POST /api/trips payload:', payload);
 
@@ -325,8 +332,10 @@ async function saveTripToDashboard() {
         console.log('[plan-trip] POST /api/trips response:', res.status, data);
 
         if (res.status === 409) {
-            if (btn) { btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved'; }
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved';
+            }
             Swal.fire({
                 title: 'Already Saved',
                 text: selectedDest.destination + ' is already on your dashboard.',
@@ -369,8 +378,10 @@ async function saveTripToDashboard() {
         }
     } catch (err) {
         console.error('[plan-trip] saveTripToDashboard error:', err);
-        if (btn) { btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard'; }
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard';
+        }
         Swal.fire({ title: 'Error', text: err.message || 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
     }
 }
