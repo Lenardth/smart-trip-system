@@ -1,39 +1,42 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Smart Booking')</title>
 
-        <title>{{ config('app.name', 'Smart Booking') }}</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <!-- Scripts -->
-        <!-- Styles -->
-        @stack('styles')
     @vite([
-    'resources/css/app.css'
-])
+        'resources/css/blade/base.css',
+        'resources/js/blade/base.js',
+        'resources/js/session-timeout.js'
+    ])
 
+    @stack('styles')
 </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+<body
+    data-user-id="{{ Auth::id() }}"
+    data-user-name="{{ Auth::user()->name ?? '' }}"
+    data-user-avatar="{{ Auth::user()->avatar ?? '' }}"
+    data-user-type="{{ Auth::user()->type ?? '' }}"
+    data-user-verified="{{ Auth::user()->verified ? '1' : '0' }}"
+    data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
+    data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster') }}"
+>
+    @include('partials.dashboard-sidebar')
 
-            <!-- Page Heading -->
-            @if (isset($header))
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endif
+    <div class="main-content">
+        @include('partials.dashboard-header')
 
-            <!-- Page Content -->
-            <main>
-                @yield('content')
-            </main>
-        </div>
-    </body>
+        <main>
+            @yield('content')
+        </main>
+    </div>
+
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    @stack('scripts')
+</body>
 </html>

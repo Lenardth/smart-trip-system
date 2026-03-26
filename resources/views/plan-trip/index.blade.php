@@ -1,23 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Plan Trip — Smart Booking</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@extends('layouts.public')
 
-    @vite([
-    'resources/css/blade/plan-trip/index.css',
-    'resources/css/blade/base.css',
-    'resources/js/blade/base.js',
-    'resources/js/blade/plan-trip/index.js',
-])
+@section('title', 'Plan Trip — Smart Booking')
 
-</head>
-<body>
+@push('styles')
+    @vite(['resources/css/blade/plan-trip/index.css'])
+@endpush
 
-@include('partials.public-navigation')
+@push('scripts_body')
+    @vite(['resources/js/blade/plan-trip/index.js'])
+@endpush
 
+@section('content')
 <section class="page-hero">
     <div>
         <h1><i class="fas fa-route"></i> Plan Your Trip</h1>
@@ -26,7 +19,6 @@
 </section>
 
 <div class="planner-wrap">
-
     <div class="steps">
         <div class="step active" id="si1"><div class="step-circle">1</div><div class="step-label">Mood & Style</div></div>
         <div class="step" id="si2"><div class="step-circle">2</div><div class="step-label">Trip Details</div></div>
@@ -34,7 +26,6 @@
         <div class="step" id="si4"><div class="step-circle">4</div><div class="step-label">Results</div></div>
     </div>
 
-    <!-- Step 1 -->
     <div class="planner-card" id="step1">
         <h3><i class="fas fa-heart" style="color:var(--gold);margin-right:8px;"></i>How are you feeling?</h3>
         <p style="color:var(--text-muted);text-align:left;margin-top:0;">Choose the mood that best describes what kind of trip you're looking for.</p>
@@ -54,7 +45,6 @@
         <div class="btn-row"><button class="primary-button" onclick="goStep(2)">Next <i class="fas fa-arrow-right"></i></button></div>
     </div>
 
-    <!-- Step 2 -->
     <div class="planner-card" id="step2" style="display:none;">
         <h3><i class="fas fa-suitcase" style="color:var(--gold);margin-right:8px;"></i>Trip Details</h3>
         <div class="form-row">
@@ -109,7 +99,6 @@
         </div>
     </div>
 
-    <!-- Step 3 -->
     <div class="planner-card" id="step3" style="display:none;">
         <h3><i class="fas fa-sliders-h" style="color:var(--gold);margin-right:8px;"></i>Preferences</h3>
         <div class="form-row">
@@ -186,7 +175,6 @@
             <button class="primary-button" id="saveBtn" style="display:none;background:var(--deep);color:var(--text-light);"><i class="fas fa-bookmark"></i> Save to Dashboard</button>
         </div>
     </div>
-
 </div>
 
 <div class="modal-overlay" id="receiptModal">
@@ -205,8 +193,4 @@
         </div>
     </div>
 </div>
-
-@include('partials.public-footer')
-
-</body>
-</html>
+@endsection

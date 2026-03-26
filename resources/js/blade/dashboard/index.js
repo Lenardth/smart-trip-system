@@ -11,14 +11,14 @@ window.__dashboardConfig = window.__dashboardConfig || {
         id: null
     }
 };
-(function () {
 
-    var mediaLibrary         = [];
-    var selectedMedia        = new Set();
-    var currentMediaIndex    = 0;
-    var notifications        = [];
-    var currentTab           = 'all';
-    var unreadCount          = 0;
+(function () {
+    var mediaLibrary = [];
+    var selectedMedia = new Set();
+    var currentMediaIndex = 0;
+    var notifications = [];
+    var currentTab = 'all';
+    var unreadCount = 0;
     var notifPollingInterval = null;
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -127,14 +127,14 @@ window.__dashboardConfig = window.__dashboardConfig || {
     function initOutsideClickHandlers() {
         document.addEventListener('click', function (event) {
             var sidebar = document.getElementById('sidebar');
-            var toggle  = document.querySelector('.mobile-toggle');
+            var toggle = document.querySelector('.mobile-toggle');
             if (window.innerWidth <= 768 && sidebar && toggle) {
                 if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
                     sidebar.classList.remove('active');
                 }
             }
             var dropdown = document.getElementById('notificationDropdown');
-            var bell     = document.querySelector('.notification-btn');
+            var bell = document.querySelector('.notification-btn');
             if (dropdown && bell &&
                 !dropdown.contains(event.target) &&
                 !bell.contains(event.target)) {
@@ -143,7 +143,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
         });
     }
 
-    // Use event delegation so UUID-keyed items don't need inline onclick
     function initNotificationListDelegate() {
         var list = document.getElementById('notificationList');
         if (!list) return;
@@ -161,10 +160,10 @@ window.__dashboardConfig = window.__dashboardConfig || {
         try {
             window.Pusher.logToConsole = false;
             window.Echo = new LaravelEcho.default({
-                broadcaster:  'pusher',
-                key:          cfg.pusherKey,
-                cluster:      cfg.pusherCluster,
-                forceTLS:     true,
+                broadcaster: 'pusher',
+                key: cfg.pusherKey,
+                cluster: cfg.pusherCluster,
+                forceTLS: true,
                 authEndpoint: '/broadcasting/auth',
                 auth: {
                     headers: { 'X-CSRF-TOKEN': csrfToken() },
@@ -182,9 +181,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
     }
 
     function showChatToast(sender, message, senderId) {
-        var toast    = document.createElement('div');
+        var toast = document.createElement('div');
         toast.className = 'chat-toast';
-        var preview  = message.length > 60 ? message.substring(0, 60) + '…' : message;
+        var preview = message.length > 60 ? message.substring(0, 60) + '…' : message;
         var initials = sender.split(' ').map(function (n) { return n[0]; }).join('').toUpperCase().substring(0, 2);
 
         toast.innerHTML =
@@ -215,8 +214,8 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     function playNotificationSound() {
         try {
-            var ctx  = new (window.AudioContext || window.webkitAudioContext)();
-            var osc  = ctx.createOscillator();
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var osc = ctx.createOscillator();
             var gain = ctx.createGain();
             osc.connect(gain);
             gain.connect(ctx.destination);
@@ -233,7 +232,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 notifications = data.notifications || [];
-                unreadCount   = notifications.filter(function (n) { return !n.read; }).length;
+                unreadCount = notifications.filter(function (n) { return !n.read; }).length;
                 updateNotificationBadge();
                 renderNotifications();
             })
@@ -268,7 +267,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         if (!listEl) return;
 
         var filtered = notifications;
-        if (currentTab === 'chat')     filtered = notifications.filter(function (n) { return n.type === 'chat'; });
+        if (currentTab === 'chat') filtered = notifications.filter(function (n) { return n.type === 'chat'; });
         if (currentTab === 'activity') filtered = notifications.filter(function (n) { return n.type !== 'chat'; });
 
         if (!filtered.length) {
@@ -288,7 +287,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
                     : '<div style="width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--deep));color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;">' + notif.user.initials + '</div>')
                 : '<i class="' + getNotificationIcon(notif.type) + '"></i>';
 
-            // data-id carries the UUID safely — no inline JS eval
             return '<div class="notification-item ' + (notif.read ? '' : 'unread') + '" data-id="' + notif.id + '">' +
                 '<div class="notification-icon-wrapper ' + notif.type + '">' + avatarHtml + '</div>' +
                 '<div class="notification-content">' +
@@ -309,7 +307,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         var badge = document.getElementById('notificationCount');
         if (!badge) return;
         if (unreadCount > 0) {
-            badge.textContent   = unreadCount > 99 ? '99+' : unreadCount;
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
             badge.style.display = 'block';
         } else {
             badge.style.display = 'none';
@@ -318,11 +316,11 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     function markAllRead() {
         notifications = notifications.map(function (n) { return Object.assign({}, n, { read: true }); });
-        unreadCount   = 0;
+        unreadCount = 0;
         updateNotificationBadge();
         renderNotifications();
         fetch('/api/notifications/mark-all-read', {
-            method:  'POST',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
         }).catch(console.error);
         Swal.fire({ title: 'All marked as read', icon: 'success', timer: 1500, showConfirmButton: false });
@@ -339,9 +337,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
         updateNotificationBadge();
         renderNotifications();
         fetch('/api/notifications/mark-read', {
-            method:  'POST',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-            body:    JSON.stringify({ ids: ids }),
+            body: JSON.stringify({ ids: ids }),
         }).catch(console.error);
     }
 
@@ -357,12 +355,11 @@ window.__dashboardConfig = window.__dashboardConfig || {
         renderNotifications();
 
         fetch('/api/notifications/mark-read', {
-            method:  'POST',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-            body:    JSON.stringify({ ids: [id] }),
+            body: JSON.stringify({ ids: [id] }),
         }).catch(function () {});
 
-        // Prefer the url stored with the notification, fall back to type-based routes
         if (notif.url) {
             window.location.href = notif.url;
             return;
@@ -433,10 +430,10 @@ window.__dashboardConfig = window.__dashboardConfig || {
         }
 
         section.innerHTML = trips.map(function (t) {
-            var icon   = MOOD_ICONS_DASH[t.mood] || 'fa-globe';
-            var budget = BUDGET_LABELS[t.budget]    || t.budget    || '—';
-            var dur    = DURATION_LABELS[t.duration] || t.duration  || '—';
-            var cost   = t.estimated_cost ? '$' + Number(t.estimated_cost).toLocaleString() : '—';
+            var icon = MOOD_ICONS_DASH[t.mood] || 'fa-globe';
+            var budget = BUDGET_LABELS[t.budget] || t.budget || '—';
+            var dur = DURATION_LABELS[t.duration] || t.duration || '—';
+            var cost = t.estimated_cost ? '$' + Number(t.estimated_cost).toLocaleString() : '—';
             return '<div class="trip-card">' +
                 '<div class="trip-card-header">' +
                     '<div class="trip-icon"><i class="fas ' + icon + '"></i></div>' +
@@ -448,8 +445,8 @@ window.__dashboardConfig = window.__dashboardConfig || {
                 '</div>' +
                 '<div class="trip-meta">' +
                     (t.companion ? '<span><i class="fas fa-users"></i> ' + t.companion.replace(/_/g, ' ') + '</span>' : '') +
-                    (t.month     ? '<span><i class="fas fa-calendar"></i> ' + t.month + '</span>' : '') +
-                    (t.origin    ? '<span><i class="fas fa-plane-departure"></i> from ' + t.origin + '</span>' : '') +
+                    (t.month ? '<span><i class="fas fa-calendar"></i> ' + t.month + '</span>' : '') +
+                    (t.origin ? '<span><i class="fas fa-plane-departure"></i> from ' + t.origin + '</span>' : '') +
                 '</div>' +
                 (t.feeling_note ? '<div class="trip-feeling"><i class="fas fa-heart"></i> ' + t.feeling_note + '</div>' : '') +
                 '<button class="trip-delete-btn" onclick="deleteTrip(' + t.id + ')">' +
@@ -471,14 +468,14 @@ window.__dashboardConfig = window.__dashboardConfig || {
         }).then(function (result) {
             if (!result.isConfirmed) return;
             fetch('/api/trips/' + id, {
-                method:  'DELETE',
+                method: 'DELETE',
                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
             }).then(function () { loadUpcomingTrips(); }).catch(function () {});
         });
     }
 
-    window.deleteTrip         = deleteTrip;
-    window.loadUpcomingTrips  = loadUpcomingTrips;
+    window.deleteTrip = deleteTrip;
+    window.loadUpcomingTrips = loadUpcomingTrips;
     window.loadUserStatistics = loadUserStatistics;
 
     function loadUserStatistics() {
@@ -491,7 +488,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
             .catch(function () { return { count: 0 }; });
 
         Promise.all([statsPromise, wishlistPromise]).then(function (results) {
-            var data   = results[0] || {};
+            var data = results[0] || {};
             data.saved = (results[1] && results[1].count !== undefined) ? results[1].count : (data.saved || 0);
             updateCounts(data);
         });
@@ -499,24 +496,24 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     function updateCounts(data) {
         data = data || {};
-        var photos   = data.photos        !== undefined ? data.photos        : mediaLibrary.length;
-        var trips    = data.trips         !== undefined ? data.trips         : 0;
-        var bookings = data.bookings      !== undefined ? data.bookings      : 0;
-        var saved    = data.saved         !== undefined ? data.saved         : 0;
-        var notifs   = data.notifications !== undefined ? data.notifications : 0;
+        var photos = data.photos !== undefined ? data.photos : mediaLibrary.length;
+        var trips = data.trips !== undefined ? data.trips : 0;
+        var bookings = data.bookings !== undefined ? data.bookings : 0;
+        var saved = data.saved !== undefined ? data.saved : 0;
+        var notifs = data.notifications !== undefined ? data.notifications : 0;
 
         function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
-        set('photosCount',       photos);
-        set('statPhotosCount',   photos);
-        set('bookingsCount',     bookings);
+        set('photosCount', photos);
+        set('statPhotosCount', photos);
+        set('bookingsCount', bookings);
         set('statBookingsCount', bookings);
-        set('savedCount',        saved);
-        set('statSavedCount',    saved);
-        set('statTripsCount',    trips);
+        set('savedCount', saved);
+        set('statSavedCount', saved);
+        set('statTripsCount', trips);
 
         var badge = document.getElementById('notificationCount');
         if (badge) {
-            badge.textContent   = notifs;
+            badge.textContent = notifs;
             badge.style.display = notifs > 0 ? 'block' : 'none';
         }
     }
@@ -580,7 +577,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     function viewMedia(index) {
         currentMediaIndex = index;
-        var item    = mediaLibrary[index];
+        var item = mediaLibrary[index];
         var content = document.getElementById('viewerContent');
         if (!content) return;
         content.innerHTML = item.type === 'image'
@@ -604,8 +601,8 @@ window.__dashboardConfig = window.__dashboardConfig || {
     function downloadMedia() {
         var item = mediaLibrary[currentMediaIndex];
         if (!item) return;
-        var link    = document.createElement('a');
-        link.href     = item.src;
+        var link = document.createElement('a');
+        link.href = item.src;
         link.download = item.name;
         link.click();
         Swal.fire({ title: 'Downloaded!', text: 'Media saved to your device.', icon: 'success', confirmButtonColor: '#c9a96e', timer: 2000, showConfirmButton: false });
@@ -684,11 +681,12 @@ window.__dashboardConfig = window.__dashboardConfig || {
                 updateMediaCounts();
             });
     }
-    function updateMediaCounts()    { updateCounts({ photos: mediaLibrary.length }); }
-    function uploadPhotos()         { openGallery(); }
+
+    function updateMediaCounts() { updateCounts({ photos: mediaLibrary.length }); }
+    function uploadPhotos() { openGallery(); }
 
     function viewProfile() {
-        var cfg  = (window.__dashboardConfig && window.__dashboardConfig.user) || {};
+        var cfg = (window.__dashboardConfig && window.__dashboardConfig.user) || {};
         var init = cfg.name ? cfg.name.split(' ').map(function (n) { return n[0]; }).join('').toUpperCase().substring(0, 2) : 'U';
         var avatarHtml = cfg.avatar
             ? '<img src="' + cfg.avatar + '" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #c9a96e;">'
@@ -702,9 +700,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
                     '<p style="margin:10px 0;"><strong>Verified:</strong> ' + (cfg.verified ? '✅ Yes' : '❌ No') + '</p>' +
                 '</div>',
             confirmButtonColor: '#c9a96e',
-            confirmButtonText:  'Edit Profile',
-            showCancelButton:   true,
-            cancelButtonText:   'Close',
+            confirmButtonText: 'Edit Profile',
+            showCancelButton: true,
+            cancelButtonText: 'Close',
         }).then(function (r) { if (r.isConfirmed) window.location.href = '/profile/edit'; });
     }
 
@@ -720,9 +718,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
                 '<p>• Default budget range</p><p>• Preferred destinations</p>' +
             '</div>',
             confirmButtonColor: '#c9a96e',
-            confirmButtonText:  'Go to Settings',
-            showCancelButton:   true,
-            cancelButtonText:   'Close',
+            confirmButtonText: 'Go to Settings',
+            showCancelButton: true,
+            cancelButtonText: 'Close',
         }).then(function (r) { if (r.isConfirmed) window.location.href = '/settings'; });
     }
 
@@ -730,13 +728,13 @@ window.__dashboardConfig = window.__dashboardConfig || {
         Swal.fire({ title: 'Logout', text: 'Are you sure you want to logout?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#c9a96e', cancelButtonColor: '#f44336', confirmButtonText: 'Yes, logout' })
         .then(function (result) {
             if (!result.isConfirmed) return;
-            var form  = document.createElement('form');
+            var form = document.createElement('form');
             form.method = 'POST';
             form.action = '/logout';
-            var csrf    = document.createElement('input');
-            csrf.type   = 'hidden';
-            csrf.name   = '_token';
-            csrf.value  = csrfToken();
+            var csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = csrfToken();
             form.appendChild(csrf);
             document.body.appendChild(form);
             form.submit();
@@ -755,28 +753,28 @@ window.__dashboardConfig = window.__dashboardConfig || {
         return match ? decodeURIComponent(match[1]) : '';
     }
 
-    window.toggleNotifications     = toggleNotifications;
-    window.switchNotificationTab   = switchNotificationTab;
-    window.markAllRead             = markAllRead;
+    window.toggleNotifications = toggleNotifications;
+    window.switchNotificationTab = switchNotificationTab;
+    window.markAllRead = markAllRead;
     window.handleNotificationClick = handleNotificationClick;
-    window.openComposeMessage      = openComposeMessage;
-    window.toggleSidebar           = toggleSidebar;
-    window.openGallery             = openGallery;
-    window.closeGallery            = closeGallery;
-    window.triggerFileInput        = triggerFileInput;
-    window.handleFileSelect        = handleFileSelect;
-    window.viewMedia               = viewMedia;
-    window.closeViewer             = closeViewer;
-    window.editMedia               = editMedia;
-    window.downloadMedia           = downloadMedia;
-    window.shareMedia              = shareMedia;
-    window.deleteMedia             = deleteMedia;
-    window.selectAll               = selectAll;
-    window.deleteSelected          = deleteSelected;
-    window.shareSelected           = shareSelected;
-    window.uploadPhotos            = uploadPhotos;
-    window.viewProfile             = viewProfile;
-    window.openSettings            = openSettings;
-    window.logout                  = logout;
+    window.openComposeMessage = openComposeMessage;
+    window.toggleSidebar = toggleSidebar;
+    window.openGallery = openGallery;
+    window.closeGallery = closeGallery;
+    window.triggerFileInput = triggerFileInput;
+    window.handleFileSelect = handleFileSelect;
+    window.viewMedia = viewMedia;
+    window.closeViewer = closeViewer;
+    window.editMedia = editMedia;
+    window.downloadMedia = downloadMedia;
+    window.shareMedia = shareMedia;
+    window.deleteMedia = deleteMedia;
+    window.selectAll = selectAll;
+    window.deleteSelected = deleteSelected;
+    window.shareSelected = shareSelected;
+    window.uploadPhotos = uploadPhotos;
+    window.viewProfile = viewProfile;
+    window.openSettings = openSettings;
+    window.logout = logout;
 
 }());

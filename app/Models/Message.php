@@ -44,7 +44,7 @@ class Message extends Model
             ->where(function ($q) use ($userId) {
                 $q->where('sender_id', $userId)->orWhere('receiver_id', $userId);
             })
-            ->groupByRaw('LEAST(sender_id, receiver_id), GREATEST(sender_id, receiver_id)')
+            ->groupByRaw('CASE WHEN sender_id < receiver_id THEN sender_id ELSE receiver_id END, CASE WHEN sender_id < receiver_id THEN receiver_id ELSE sender_id END')
             ->pluck('id');
 
         return static::whereIn('id', $latestIds)

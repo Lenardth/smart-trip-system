@@ -46,6 +46,7 @@ const budgetLabels = {
     premium: 'Premium ($4,000–$8,000)',
     luxury: 'Luxury ($8,000+)'
 };
+
 const durLabels = {
     weekend: 'Long Weekend (3–4 days)',
     week: 'One Week (7 days)',
@@ -53,6 +54,7 @@ const durLabels = {
     month: 'One Month or more',
     flexible: 'Flexible / Open-ended'
 };
+
 const compLabels = {
     solo: 'Solo Traveller',
     couple: 'Couple',
@@ -62,6 +64,7 @@ const compLabels = {
     friends_large: 'Large Group of Friends (5+)',
     business: 'Business Traveller'
 };
+
 const regionLabels = {
     europe: 'Europe',
     southeast_asia: 'Southeast Asia',
@@ -75,6 +78,7 @@ const regionLabels = {
     caribbean: 'Caribbean',
     any: 'No preference'
 };
+
 const accommodationLabels = {
     hostel: 'Hostel / Dorm',
     budget_hotel: 'Budget Hotel',
@@ -90,14 +94,23 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.mood-card').forEach(card => {
         card.addEventListener('click', function() { selectMood(this); });
     });
-    document.getElementById('receiptModal').addEventListener('click', function(e) {
-        if (e.target === this) closeReceipt();
-    });
+
+    const receiptModal = document.getElementById('receiptModal');
+    if (receiptModal) {
+        receiptModal.addEventListener('click', function(e) {
+            if (e.target === this) closeReceipt();
+        });
+    }
+
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && document.getElementById('receiptModal').classList.contains('open')) {
-            closeReceipt();
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('receiptModal');
+            if (modal && modal.classList.contains('open')) {
+                closeReceipt();
+            }
         }
     });
+
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
 });
@@ -110,57 +123,90 @@ function selectMood(el) {
 
 function goStep(n) {
     [1, 2, 3, 4].forEach(i => {
-        document.getElementById('step' + i).style.display = 'none';
-        document.getElementById('si' + i).classList.remove('active', 'done');
+        const step = document.getElementById('step' + i);
+        const si = document.getElementById('si' + i);
+        if (step) step.style.display = 'none';
+        if (si) si.classList.remove('active', 'done');
     });
-    for (let i = 1; i < n; i++) document.getElementById('si' + i).classList.add('done');
-    document.getElementById('si' + n).classList.add('active');
-    document.getElementById('step' + n).style.display = 'block';
+    for (let i = 1; i < n; i++) {
+        const si = document.getElementById('si' + i);
+        if (si) si.classList.add('done');
+    }
+    const currentSi = document.getElementById('si' + n);
+    if (currentSi) currentSi.classList.add('active');
+    const currentStep = document.getElementById('step' + n);
+    if (currentStep) currentStep.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function generateSuggestions() {
-    if (!selectedMood) { alert('Please select a mood first.');
-        goStep(1); return; }
+    if (!selectedMood) {
+        alert('Please select a mood first.');
+        goStep(1);
+        return;
+    }
 
     selectedDest = null;
-    document.getElementById('receiptBtn').style.display = 'none';
+
+    const receiptBtn = document.getElementById('receiptBtn');
+    if (receiptBtn) receiptBtn.style.display = 'none';
+
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) saveBtn.style.display = 'none';
+
     goStep(4);
-    document.getElementById('loadingState').style.display = 'block';
-    document.getElementById('errorState').style.display = 'none';
-    document.getElementById('resultsState').style.display = 'none';
+
+    const loadingState = document.getElementById('loadingState');
+    const errorState = document.getElementById('errorState');
+    const resultsState = document.getElementById('resultsState');
+
+    if (loadingState) loadingState.style.display = 'block';
+    if (errorState) errorState.style.display = 'none';
+    if (resultsState) resultsState.style.display = 'none';
+
+    const feelingNoteElement = document.getElementById('feelingNote');
+    const budgetElement = document.getElementById('budget');
+    const durationElement = document.getElementById('duration');
+    const companionElement = document.getElementById('companion');
+    const monthElement = document.getElementById('month');
+    const regionElement = document.getElementById('region');
+    const accommodationElement = document.getElementById('accommodation');
+    const originElement = document.getElementById('origin');
+    const experienceElement = document.getElementById('experience');
 
     lastPayload = {
         mood: selectedMood,
-        feeling_note: document.getElementById('feelingNote') ? .value.trim() || null,
-        budget: document.getElementById('budget').value,
-        duration: document.getElementById('duration').value,
-        companion: document.getElementById('companion').value,
-        month: document.getElementById('month').value || null,
-        region: document.getElementById('region').value || null,
-        accommodation: document.getElementById('accommodation').value || null,
-        origin: document.getElementById('origin').value.trim() || null,
-        experience: document.getElementById('experience').value || null,
+        feeling_note: (feelingNoteElement && feelingNoteElement.value) ? feelingNoteElement.value.trim() : null,
+        budget: budgetElement ? budgetElement.value : null,
+        duration: durationElement ? durationElement.value : null,
+        companion: companionElement ? companionElement.value : null,
+        month: (monthElement && monthElement.value) ? monthElement.value : null,
+        region: (regionElement && regionElement.value) ? regionElement.value : null,
+        accommodation: (accommodationElement && accommodationElement.value) ? accommodationElement.value : null,
+        origin: (originElement && originElement.value.trim()) ? originElement.value.trim() : null,
+        experience: (experienceElement && experienceElement.value) ? experienceElement.value : null,
     };
 
     try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
         const res = await fetch('/ai/suggest', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
             },
             body: JSON.stringify(lastPayload),
         });
+
         const json = await res.json();
-        document.getElementById('loadingState').style.display = 'none';
+        if (loadingState) loadingState.style.display = 'none';
 
         if (!json.success) {
-            document.getElementById('errorState').textContent = json.message || 'Something went wrong.';
-            document.getElementById('errorState').style.display = 'block';
+            if (errorState) {
+                errorState.textContent = json.message || 'Something went wrong.';
+                errorState.style.display = 'block';
+            }
             return;
         }
 
@@ -171,9 +217,11 @@ async function generateSuggestions() {
         renderResults(lastResults);
 
     } catch (err) {
-        document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('errorState').textContent = 'Network error: ' + err.message;
-        document.getElementById('errorState').style.display = 'block';
+        if (loadingState) loadingState.style.display = 'none';
+        if (errorState) {
+            errorState.textContent = 'Network error: ' + err.message;
+            errorState.style.display = 'block';
+        }
     }
 }
 
@@ -245,6 +293,8 @@ function generateAirportCode(dest) { const w = dest.split(' '); return (w.length
 
 function renderResults(destinations) {
     const grid = document.getElementById('resultsGrid');
+    if (!grid) return;
+
     grid.innerHTML = '';
     destinations.forEach((d, idx) => {
         const card = document.createElement('div');
@@ -272,28 +322,38 @@ function renderResults(destinations) {
         card.addEventListener('click', () => selectDestination(idx));
         grid.appendChild(card);
     });
-    document.getElementById('resultsState').style.display = 'block';
+
+    const resultsState = document.getElementById('resultsState');
+    if (resultsState) resultsState.style.display = 'block';
 }
 
 function selectDestination(idx) {
     document.querySelectorAll('.dest-card').forEach(c => c.classList.remove('selected'));
-    document.querySelectorAll('.dest-card')[idx].classList.add('selected');
+    const cards = document.querySelectorAll('.dest-card');
+    if (cards[idx]) cards[idx].classList.add('selected');
     selectedDest = lastResults[idx];
-    document.getElementById('receiptBtn').style.display = 'inline-flex';
+
+    const receiptBtn = document.getElementById('receiptBtn');
+    if (receiptBtn) receiptBtn.style.display = 'inline-flex';
+
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
         saveBtn.style.display = 'inline-flex';
         saveBtn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard';
         saveBtn.disabled = false;
     }
-    document.getElementById('receiptBtn').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    if (receiptBtn) receiptBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 async function saveTripToDashboard() {
     if (!selectedDest) return;
+
     const btn = document.getElementById('saveBtn');
-    if (btn) { btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+    }
 
     const payload = {
         destination: selectedDest.destination,
@@ -307,17 +367,18 @@ async function saveTripToDashboard() {
         accommodation: lastPayload.accommodation || null,
         origin: lastPayload.origin || null,
         month: lastPayload.month || null,
-        estimated_cost: selectedDest.costBreakdown ? .total || null,
+        estimated_cost: (selectedDest.costBreakdown && selectedDest.costBreakdown.total) ? selectedDest.costBreakdown.total : null,
     };
     console.log('[plan-trip] POST /api/trips payload:', payload);
 
     try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
         const res = await fetch('/api/trips', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
             },
             body: JSON.stringify(payload),
         });
@@ -325,17 +386,21 @@ async function saveTripToDashboard() {
         console.log('[plan-trip] POST /api/trips response:', res.status, data);
 
         if (res.status === 409) {
-            if (btn) { btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved'; }
-            Swal.fire({
-                title: 'Already Saved',
-                text: selectedDest.destination + ' is already on your dashboard.',
-                icon: 'info',
-                confirmButtonColor: '#c9a96e',
-                confirmButtonText: 'View Dashboard',
-                showCancelButton: true,
-                cancelButtonText: 'Stay Here',
-            }).then(result => { if (result.isConfirmed) window.location.href = '/dashboard'; });
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved';
+            }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Already Saved',
+                    text: selectedDest.destination + ' is already on your dashboard.',
+                    icon: 'info',
+                    confirmButtonColor: '#c9a96e',
+                    confirmButtonText: 'View Dashboard',
+                    showCancelButton: true,
+                    cancelButtonText: 'Stay Here',
+                }).then(result => { if (result.isConfirmed) window.location.href = '/dashboard'; });
+            }
             return;
         }
 
@@ -355,37 +420,51 @@ async function saveTripToDashboard() {
                     feeling_note: lastPayload.feeling_note || null,
                 }));
             } catch (_) {}
-            Swal.fire({
-                title: 'Trip Saved!',
-                text: selectedDest.destination + ' has been added to your dashboard.',
-                icon: 'success',
-                confirmButtonColor: '#c9a96e',
-                confirmButtonText: 'View Dashboard',
-                showCancelButton: true,
-                cancelButtonText: 'Stay Here',
-            }).then(result => { if (result.isConfirmed) window.location.href = '/dashboard'; });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Trip Saved!',
+                    text: selectedDest.destination + ' has been added to your dashboard.',
+                    icon: 'success',
+                    confirmButtonColor: '#c9a96e',
+                    confirmButtonText: 'View Dashboard',
+                    showCancelButton: true,
+                    cancelButtonText: 'Stay Here',
+                }).then(result => { if (result.isConfirmed) window.location.href = '/dashboard'; });
+            }
         } else {
             throw new Error(data.message || 'Failed to save');
         }
     } catch (err) {
         console.error('[plan-trip] saveTripToDashboard error:', err);
-        if (btn) { btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard'; }
-        Swal.fire({ title: 'Error', text: err.message || 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard';
+        }
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ title: 'Error', text: err.message || 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
+        }
     }
 }
 
-
 function openReceipt() {
     if (!selectedDest) return;
-    document.getElementById('receiptContent').innerHTML = buildReceiptHTML(selectedDest);
-    document.getElementById('receiptModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
+    const receiptContent = document.getElementById('receiptContent');
+    if (receiptContent) {
+        receiptContent.innerHTML = buildReceiptHTML(selectedDest);
+    }
+    const receiptModal = document.getElementById('receiptModal');
+    if (receiptModal) {
+        receiptModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeReceipt() {
-    document.getElementById('receiptModal').classList.remove('open');
-    document.body.style.overflow = '';
+    const receiptModal = document.getElementById('receiptModal');
+    if (receiptModal) {
+        receiptModal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
 }
 
 function generateReferenceNumber() {
@@ -427,12 +506,9 @@ function buildReceiptHTML(d) {
 
     return `
     <div style="font-family:'Georgia',serif;color:#2c2c2c;">
-
-        <!-- Header -->
         <div style="background:#3b1f2b;padding:28px 30px;">
             <div style="display:flex;align-items:center;gap:15px;margin-bottom:18px;">
                 <div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="/img/travel-icon.png" alt="Smart Booking" style="width:100%;height:100%;object-fit:contain;filter:brightness(0) invert(1);"></div>
-                </div>
                 <div>
                     <div style="font-size:22px;font-weight:bold;color:#f5e6d3;letter-spacing:2px;font-variant:small-caps;">Smart Booking</div>
                     <div style="font-size:11px;color:#d4c4b0;">AI-Powered Travel Planning</div>
@@ -454,8 +530,6 @@ function buildReceiptHTML(d) {
                 </div>
             </div>
         </div>
-
-        <!-- Destination banner -->
         <div style="background:linear-gradient(135deg,#c9a96e,#b8955a);padding:18px 30px;display:flex;justify-content:space-between;align-items:center;">
             <div>
                 <div style="font-size:26px;font-weight:bold;color:#3b1f2b;">${esc(d.destination)}</div>
@@ -466,8 +540,6 @@ function buildReceiptHTML(d) {
                 <div style="font-size:26px;font-weight:bold;color:#3b1f2b;font-family:monospace;">${generateAirportCode(d.destination)}</div>
             </div>
         </div>
-
-        <!-- Trip details grid -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 30px;background:#fff;">
             ${[
                 ['fas fa-smile',   'Mood',         mood],
@@ -481,13 +553,10 @@ function buildReceiptHTML(d) {
                     <div style="font-size:13px;font-weight:bold;color:#3b1f2b;margin-top:4px;">${val}</div>
                 </div>`).join('')}
         </div>
-
-        <!-- Cost breakdown -->
         <div style="padding:20px 30px;background:#fff;border-top:1px solid #e2d5c7;">
             <h3 style="color:#3b1f2b;font-size:16px;font-weight:normal;border-bottom:2px solid #c9a96e;padding-bottom:10px;margin:0 0 18px;">
                 <i class="fas fa-calculator" style="color:#c9a96e;margin-right:8px;"></i>Cost Estimation Breakdown
             </h3>
-
             ${[
                 ['fas fa-plane',   'Flights',           fmt(bk.flights.amount),        bk.flights.description,        bk.flights.details],
                 ['fas fa-hotel',   'Accommodation',     fmt(bk.accommodation.amount),  bk.accommodation.description,  `${bk.accommodation.nights} nights`],
@@ -505,8 +574,6 @@ function buildReceiptHTML(d) {
                     </div>
                     <div style="font-size:11px;color:#6b5b4f;margin-left:28px;">${desc}<br><span style="color:#c9a96e;">${detail}</span></div>
                 </div>`).join('')}
-
-            <!-- Totals -->
             <div style="margin-top:16px;border-top:2px solid #e2d5c7;padding-top:14px;">
                 ${[
                     ['Subtotal',                                `$${fmt(cost.subtotal)}`],
@@ -517,8 +584,6 @@ function buildReceiptHTML(d) {
                         <span style="color:#6b5b4f;">${l}</span><span style="color:#3b1f2b;">${v}</span>
                     </div>`).join('')}
             </div>
-
-            <!-- Grand total -->
             <div style="background:linear-gradient(135deg,#3b1f2b,#4d2a3a);border-radius:8px;padding:18px 20px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
                 <div>
                     <div style="color:#c9a96e;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Total per person</div>
@@ -526,8 +591,6 @@ function buildReceiptHTML(d) {
                 </div>
                 <div style="color:#c9a96e;font-size:30px;font-weight:bold;">$${fmt(cost.total)}</div>
             </div>
-
-            <!-- Savings -->
             <div style="margin-top:16px;background:#e8f4e8;border-radius:8px;padding:14px 16px;border-left:4px solid #4CAF50;">
                 <div style="font-weight:bold;color:#2c5e2c;margin-bottom:10px;font-size:13px;"><i class="fas fa-tag" style="margin-right:6px;color:#4CAF50;"></i>Available Discounts</div>
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;">
@@ -546,8 +609,6 @@ function buildReceiptHTML(d) {
                 </div>
             </div>
         </div>
-
-        <!-- Flight info -->
         <div style="padding:0 30px 20px;background:#fff;">
             <div style="background:#f8f4f0;padding:14px 16px;border-radius:6px;border-left:4px solid #c9a96e;">
                 <div style="font-weight:bold;color:#3b1f2b;margin-bottom:6px;font-size:13px;">
@@ -556,16 +617,12 @@ function buildReceiptHTML(d) {
                 <div style="color:#6b5b4f;font-size:13px;line-height:1.6;">${esc(d.flight_info)}</div>
             </div>
         </div>
-
-        <!-- Activities -->
         <div style="padding:0 30px 20px;background:#fff;">
             <div style="font-weight:bold;color:#3b1f2b;border-bottom:2px solid #c9a96e;padding-bottom:8px;margin-bottom:12px;font-size:13px;">
                 <i class="fas fa-star" style="color:#c9a96e;margin-right:6px;"></i>Recommended Activities
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:8px;">${generateActivityTags(d.top_activities)}</div>
         </div>
-
-        <!-- Travel tip -->
         <div style="padding:0 30px 20px;background:#fff;">
             <div style="background:linear-gradient(135deg,#fdf0dc,#fff8f2);padding:16px;border-radius:6px;border:1px dashed #c9a96e;display:flex;gap:14px;align-items:flex-start;">
                 <i class="fas fa-lightbulb" style="font-size:22px;color:#c9a96e;flex-shrink:0;margin-top:2px;"></i>
@@ -575,8 +632,6 @@ function buildReceiptHTML(d) {
                 </div>
             </div>
         </div>
-
-        <!-- T&C -->
         <div style="padding:14px 30px;background:#f8f4f0;font-size:10px;color:#6b5b4f;line-height:1.6;border-top:1px solid #e2d5c7;">
             <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px;">
                 <span><i class="fas fa-check-circle" style="color:#c9a96e;"></i> 24/7 Customer Support</span>
@@ -586,8 +641,6 @@ function buildReceiptHTML(d) {
             </div>
             All prices are estimates and subject to change. Taxes are approximate. *Cancellation policy varies by provider.
         </div>
-
-        <!-- Footer -->
         <div style="padding:10px 30px;background:#3b1f2b;display:flex;justify-content:space-between;font-size:9px;color:#d4c4b0;">
             <span>Smart Booking AI · smartbooking.com</span>
             <span>Ref: ${dates.bookingRef}</span>
@@ -597,42 +650,46 @@ function buildReceiptHTML(d) {
 }
 
 function printReceipt() {
-    const html = document.getElementById('receiptContent').innerHTML;
-    const win  = window.open('', '_blank', 'width=820,height=1050');
-    win.document.write(`<!DOCTYPE html><html><head>
-        <title>Trip Receipt — Smart Booking</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-            *{box-sizing:border-box;margin:0;padding:0;}
-            body{font-family:'Georgia',serif;background:#f5f0eb;padding:24px;color:#2c2c2c;}
-            @media print{body{background:#fff;padding:0;}}
-        </style>
-    </head><body>${html}</body></html>`);
-    win.document.close();
-    win.focus();
-    setTimeout(() => { win.print(); win.close(); }, 500);
+    const receiptContent = document.getElementById('receiptContent');
+    if (!receiptContent) return;
+
+    const html = receiptContent.innerHTML;
+    const win = window.open('', '_blank', 'width=820,height=1050');
+    if (win) {
+        win.document.write(`<!DOCTYPE html><html><head>
+            <title>Trip Receipt — Smart Booking</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                *{box-sizing:border-box;margin:0;padding:0;}
+                body{font-family:'Georgia',serif;background:#f5f0eb;padding:24px;color:#2c2c2c;}
+                @media print{body{background:#fff;padding:0;}}
+            </style>
+        </head><body>${html}</body></html>`);
+        win.document.close();
+        win.focus();
+        setTimeout(() => { win.print(); win.close(); }, 500);
+    }
 }
 
 async function downloadReceiptPdf() {
     const { jsPDF } = window.jspdf;
     if (!selectedDest) return;
 
-    const d     = selectedDest;
-    const cost  = d.costBreakdown;
-    const bk    = cost.breakdown;
+    const d = selectedDest;
+    const cost = d.costBreakdown;
+    const bk = cost.breakdown;
     const dates = getFormattedDates();
 
-    const doc   = new jsPDF({ unit: 'mm', format: 'a4' });
-    const pW    = doc.internal.pageSize.getWidth();
-    const pH    = doc.internal.pageSize.getHeight();
-    const mg    = 18;
-    const cW    = pW - mg * 2;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pW = doc.internal.pageSize.getWidth();
+    const pH = doc.internal.pageSize.getHeight();
+    const mg = 18;
+    const cW = pW - mg * 2;
 
-    const deep  = [59, 31, 43];
-    const gold  = [201, 169, 110];
+    const deep = [59, 31, 43];
+    const gold = [201, 169, 110];
     const muted = [107, 91, 79];
     const cream = [248, 244, 240];
-    const white = [255, 255, 255];
     const green = [44, 94, 44];
     const lightGreen = [232, 244, 232];
 
@@ -640,24 +697,24 @@ async function downloadReceiptPdf() {
     try {
         const resp = await fetch('/img/travel-icon.png');
         const blob = await resp.blob();
-        const raw  = await new Promise(res => {
+        const raw = await new Promise(res => {
             const reader = new FileReader();
             reader.onloadend = () => res(reader.result);
             reader.readAsDataURL(blob);
         });
-        const img  = await new Promise((res, rej) => {
+        const img = await new Promise((res, rej) => {
             const el = new Image();
-            el.onload  = () => res(el);
+            el.onload = () => res(el);
             el.onerror = rej;
             el.src = raw;
         });
-        const canvas    = document.createElement('canvas');
-        canvas.width    = img.naturalWidth  || 256;
-        canvas.height   = img.naturalHeight || 256;
-        const ctx       = canvas.getContext('2d');
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || 256;
+        canvas.height = img.naturalHeight || 256;
+        const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data      = imageData.data;
+        const data = imageData.data;
         for (let i = 0; i < data.length; i += 4) {
             if (data[i + 3] > 0) {
                 data[i] = data[i + 1] = data[i + 2] = 255;
@@ -671,8 +728,9 @@ async function downloadReceiptPdf() {
 
     function wrap(text, maxW, size) {
         doc.setFontSize(size);
-        return doc.splitTextToSize(String(text ?? ''), maxW);
+        return doc.splitTextToSize(String(text || ''), maxW);
     }
+
     function newPageIfNeeded(needed) {
         if (y + needed > pH - 16) {
             doc.addPage();
@@ -680,6 +738,7 @@ async function downloadReceiptPdf() {
             y = 14;
         }
     }
+
     function addPageFooter() {
         doc.setFillColor(...deep);
         doc.rect(0, pH - 10, pW, 10, 'F');
@@ -703,7 +762,6 @@ async function downloadReceiptPdf() {
     doc.text('AI-Powered Travel Planning  ·  smartbooking.com', mg + 30, 23);
     y = 34;
 
-    doc.setFillColor(255, 255, 255, 0.08);
     doc.setFillColor(70, 40, 55);
     doc.rect(0, y, pW, 14, 'F');
     doc.setFont('helvetica', 'bold');
@@ -727,16 +785,16 @@ async function downloadReceiptPdf() {
     doc.text(String(d.country).toUpperCase() + '  ·  ' + generateAirportCode(d.destination), pW - mg, y + 13, { align: 'right' });
     y += 20;
 
-    const mood = (lastPayload.mood||'').charAt(0).toUpperCase()+(lastPayload.mood||'').slice(1);
+    const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
     const cards = [
         ['Mood',      mood],
         ['Duration',  (durLabels[lastPayload.duration] || lastPayload.duration || '—') + ` (${bk.accommodation.nights}n)`],
         ['Companion', compLabels[lastPayload.companion] || lastPayload.companion || '—'],
-        ['Budget',    budgetLabels[lastPayload.budget]  || lastPayload.budget   || '—'],
+        ['Budget',    budgetLabels[lastPayload.budget] || lastPayload.budget || '—'],
     ];
     const cardW = cW / 4 - 2;
     y += 5;
-    cards.forEach(([ label, val ], i) => {
+    cards.forEach(([label, val], i) => {
         const cx = mg + i * (cardW + 2.7);
         doc.setFillColor(...cream);
         doc.roundedRect(cx, y, cardW, 18, 2, 2, 'F');
@@ -748,7 +806,7 @@ async function downloadReceiptPdf() {
         doc.setFontSize(8);
         doc.setTextColor(...deep);
         const vlines = wrap(val, cardW - 4, 8);
-        doc.text(vlines[0] || '', cx + cardW / 2, y + 13, { align: 'center' });
+        if (vlines[0]) doc.text(vlines[0], cx + cardW / 2, y + 13, { align: 'center' });
     });
     y += 24;
 
@@ -779,7 +837,7 @@ async function downloadReceiptPdf() {
         doc.text(String(desc), mg + 6, y + 12.5);
         doc.setTextColor(...gold);
         const detailLines = wrap(detail, cW - 14, 7.5);
-        doc.text(detailLines[0] || '', mg + 6, y + 16.5);
+        if (detailLines[0]) doc.text(detailLines[0], mg + 6, y + 16.5);
         y += rH + 3;
     }
 
@@ -893,7 +951,7 @@ async function downloadReceiptPdf() {
     newPageIfNeeded(22);
     doc.setFillColor(253, 240, 220);
     const tipLines = wrap(d.travel_tip, cW - 14, 9);
-    const tipH     = tipLines.length * 5 + 10;
+    const tipH = tipLines.length * 5 + 10;
     doc.roundedRect(mg, y, cW, tipH, 2, 2, 'F');
     doc.setDrawColor(...gold);
     doc.setLineWidth(0.4);
@@ -923,15 +981,18 @@ async function downloadReceiptPdf() {
 }
 
 function esc(str) {
-    return String(str ?? '')
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
-window.selectMood          = selectMood;
-window.goStep              = goStep;
+window.selectMood = selectMood;
+window.goStep = goStep;
 window.generateSuggestions = generateSuggestions;
-window.openReceipt         = openReceipt;
-window.closeReceipt        = closeReceipt;
-window.printReceipt        = printReceipt;
-window.downloadReceiptPdf  = downloadReceiptPdf;
+window.openReceipt = openReceipt;
+window.closeReceipt = closeReceipt;
+window.printReceipt = printReceipt;
+window.downloadReceiptPdf = downloadReceiptPdf;

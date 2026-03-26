@@ -4,32 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Smart Booking')</title>
+    <title>@yield('title', config('app.name', 'Smart Booking'))</title>
 
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Vite Assets -->
     @vite([
+        'resources/css/app.css',
+        'resources/js/app.js',
         'resources/css/blade/base.css',
-        'resources/js/blade/base.js',
         'resources/js/blade/base.js'
     ])
 
     @stack('styles')
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     @include('partials.public-navigation')
 
-    <main class="public-content">
+    <main>
         @yield('content')
     </main>
 
     @include('partials.public-footer')
 
-    <button class="public-nav-toggle" type="button" onclick="togglePublicNav()">
-        <i class="fas fa-bars"></i>
-    </button>
-
     @stack('scripts')
+    @stack('modals')
 </body>
 </html>
