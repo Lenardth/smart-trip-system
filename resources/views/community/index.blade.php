@@ -1,21 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Community — Smart Booking</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite([
-        'resources/css/blade/base.css',
-        'resources/css/blade/community/index.css',
-        'resources/js/blade/base.js',
-        'resources/js/blade/community/index.js'
-    ])
-</head>
-<body>
+@extends('layouts.public')
 
-@include('partials.public-navigation')
+@section('title', 'Community — Smart Booking')
 
+@push('styles')
+    @vite(['resources/css/blade/community/index.css'])
+@endpush
+
+@push('scripts_body')
+    @vite(['resources/js/blade/community/index.js'])
+@endpush
+
+@section('content')
 <section class="page-hero" style="background:linear-gradient(rgba(20,8,14,.55),rgba(20,8,14,.65)),url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&q=80&fit=crop') center/cover no-repeat;">
     <div>
         <h1><i class="fas fa-users"></i> Community</h1>
@@ -24,7 +19,6 @@
 </section>
 
 <div class="community-wrap">
-
     <div class="community-stats">
         <div class="comm-stat">
             <div class="cs-num" id="stat-members"><span class="sk-line medium skeleton" style="display:inline-block;width:80px;height:32px;"></span></div>
@@ -45,7 +39,6 @@
     </div>
 
     <div class="comm-grid">
-
         <div class="forum-section">
             <h3>
                 <span>
@@ -111,7 +104,6 @@
         <div class="traveler-card skeleton" style="height:200px;"></div>
         @endfor
     </div>
-
 </div>
 
 <!-- New Topic Modal -->
@@ -219,8 +211,4 @@
     <i class="fas fa-check-circle"></i>
     <span id="toastMsg"></span>
 </div>
-
-@include('partials.public-footer')
-
-</body>
-</html>
+@endsection

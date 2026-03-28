@@ -1,21 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>My Wishlist — Smart Booking</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite([
-    'resources/css/blade/wishlist/index.css',
-    'resources/css/blade/base.css',
-    'resources/js/blade/base.js',
-])
+@extends('layouts.public')
 
-</head>
-<body>
+@section('title', 'My Wishlist — Smart Booking')
 
-@include('partials.public-navigation')
+@push('styles')
+    @vite(['resources/css/blade/wishlist/index.css'])
+@endpush
 
+@push('scripts_body')
+    @vite(['resources/js/blade/wishlist/index.js'])
+@endpush
+
+@section('content')
 <section class="page-hero">
     <div>
         <h1><i class="fas fa-heart"></i> My Wishlist</h1>
@@ -24,9 +19,7 @@
 </section>
 
 <div class="wishlist-container">
-
     @if($wishlistItems->count() > 0)
-
     <div class="stats-card">
         <div class="stat-item">
             <div class="number">{{ $wishlistItems->count() }}</div>
@@ -78,14 +71,12 @@
              data-continent="{{ $item->destination->continent }}"
              data-category="{{ $item->destination->category }}"
              data-name="{{ strtolower($item->destination->name) }}">
-
             <div class="wishlist-image" style="background-image: url('{{ $item->destination->image ?? 'https://via.placeholder.com/400x300' }}')">
                 <span class="wishlist-badge">{{ $item->destination->category }}</span>
                 <button class="remove-btn" onclick="Wishlist.remove({{ $item->destination->id }}, '{{ $item->destination->name }}')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-
             <div class="wishlist-content">
                 <h3>{{ $item->destination->name }}</h3>
                 <div class="wishlist-location">
@@ -108,9 +99,7 @@
         </div>
         @endforeach
     </div>
-
     @else
-
     <div class="empty-state">
         <i class="fas fa-heart-broken"></i>
         <h3>Your Wishlist is Empty</h3>
@@ -119,12 +108,6 @@
             <i class="fas fa-compass"></i> Browse Destinations
         </a>
     </div>
-
     @endif
-
 </div>
-
-@include('partials.public-footer')
-
-</body>
-</html>
+@endsection

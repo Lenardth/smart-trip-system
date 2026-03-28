@@ -1,41 +1,86 @@
+{{-- partials/public-navigation.blade.php --}}
 <header class="main-header">
-    <a href="/" style="display:flex;align-items:center;gap:14px;text-decoration:none;">
-        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-        <span class="logo-text">Smart Booking</span>
-    </a>
+    <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
+    <div class="logo-text">Smart Booking</div>
     @auth
-    <div class="user-display">
-        <i class="fas fa-user-circle"></i>
-        <span>{{ Auth::user()->name }}</span>
-    </div>
+        <div class="user-display">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ Auth::user()->name }}</span>
+        </div>
     @endauth
 </header>
 
-<button class="public-nav-toggle" type="button" onclick="togglePublicNav()" aria-label="Toggle navigation">
+<nav class="nav-container" id="publicNav">
+    <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">
+        <i class="fas fa-home"></i> Home
+    </a>
+    @if(Route::has('discover'))
+        <a href="{{ route('discover') }}" class="{{ request()->routeIs('discover') ? 'active' : '' }}">
+            <i class="fas fa-compass"></i> Discover
+        </a>
+    @endif
+    @if(Route::has('destinations'))
+        <a href="{{ route('destinations') }}" class="{{ request()->routeIs('destinations') ? 'active' : '' }}">
+            <i class="fas fa-map-marker-alt"></i> Destinations
+        </a>
+    @endif
+    @if(Route::has('plan-trip'))
+        <a href="{{ route('plan-trip') }}" class="{{ request()->routeIs('plan-trip') ? 'active' : '' }}">
+            <i class="fas fa-map-marked-alt"></i> Plan Trip
+        </a>
+    @endif
+    @if(Route::has('community'))
+        <a href="{{ route('community') }}" class="{{ request()->routeIs('community') ? 'active' : '' }}">
+            <i class="fas fa-users"></i> Community
+        </a>
+    @endif
+    @if(Route::has('flights.index'))
+        <a href="{{ route('flights.index') }}" class="{{ request()->routeIs('flights.*') ? 'active' : '' }}">
+            <i class="fas fa-plane"></i> Flights
+        </a>
+    @endif
+    @if(Route::has('accommodations.index'))
+        <a href="{{ route('accommodations.index') }}" class="{{ request()->routeIs('accommodations.*') ? 'active' : '' }}">
+            <i class="fas fa-hotel"></i> Accommodations
+        </a>
+    @endif
+    @guest
+        @if(Route::has('login'))
+            <a href="{{ route('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+        @endif
+        @if(Route::has('register'))
+            <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i> Register</a>
+        @endif
+    @else
+        @if(Route::has('dashboard'))
+            <a href="{{ route('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        @endif
+        @if(Route::has('bookings.index'))
+            <a href="{{ route('bookings.index') }}"><i class="fas fa-ticket-alt"></i> My Bookings</a>
+        @endif
+        @if(Route::has('wishlist.index'))
+            <a href="{{ route('wishlist.index') }}"><i class="fas fa-heart"></i> Wishlist</a>
+        @endif
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    @endguest
+</nav>
+
+<button class="public-nav-toggle" id="navToggle" aria-label="Toggle menu">
     <i class="fas fa-bars"></i>
 </button>
 
-<nav class="nav-container" id="publicNav">
-    <a href="/" class="{{ request()->is('/') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-    @auth
-    <a href="/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    @endauth
-    <a href="/plan-trip" class="{{ request()->is('plan-trip') ? 'active' : '' }}"><i class="fas fa-route"></i> Plan Trip</a>
-    <a href="/flights" class="{{ request()->is('flights') ? 'active' : '' }}"><i class="fas fa-plane"></i> Book Flights</a>
-    <a href="/discover" class="{{ request()->is('discover') ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>
-    <a href="/destinations" class="{{ request()->is('destinations') ? 'active' : '' }}"><i class="fas fa-map-marked-alt"></i> Destinations</a>
-    <a href="/accommodations" class="{{ request()->is('accommodations') ? 'active' : '' }}"><i class="fas fa-hotel"></i> Accommodations</a>
-    <a href="/community" class="{{ request()->is('community') ? 'active' : '' }}"><i class="fas fa-users"></i> Community</a>
-    @auth
-    <a href="/wishlist" class="{{ request()->is('wishlist') ? 'active' : '' }}"><i class="fas fa-heart"></i> Wishlist <span class="nav-badge" id="wishlistCount">0</span></a>
-    @endauth
-    @guest
-    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
-    @endguest
-    @auth
-    <form method="POST" action="{{ route('logout') }}" style="display:inline;">
-        @csrf
-        <button type="submit" class="nav-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    </form>
-    @endauth
-</nav>
+<script>
+    const navToggle = document.getElementById('navToggle');
+    const publicNav = document.getElementById('publicNav');
+    if (navToggle && publicNav) {
+        navToggle.addEventListener('click', () => publicNav.classList.toggle('open'));
+        document.addEventListener('click', (e) => {
+            if (publicNav.classList.contains('open') && !publicNav.contains(e.target) && e.target !== navToggle) {
+                publicNav.classList.remove('open');
+            }
+        });
+    }
+</script>

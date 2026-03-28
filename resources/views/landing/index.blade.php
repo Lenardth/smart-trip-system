@@ -1,23 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Smart booking</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite([
-    'resources/css/blade/landing/index.css',
-    'resources/js/blade/landing/index.js',
-    'resources/css/blade/base.css',
-    'resources/js/blade/base.js',
+@extends('layouts.public')
 
-])
+@section('title', 'Smart booking')
 
-</head>
-<body>
+@push('styles')
+    @vite(['resources/css/blade/landing/index.css'])
+@endpush
 
-@include('partials.public-navigation')
+@push('scripts_body')
+    @vite(['resources/js/blade/landing/index.js'])
+@endpush
 
+@section('content')
 <section class="hero">
     <div class="hero-content">
         <h1>Plan Your Perfect Journey with AI</h1>
@@ -236,13 +229,7 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-plane-departure"></i> Flying From</label>
-                <input
-                    type="text"
-                    id="originInput"
-                    name="origin"
-                    placeholder="e.g. Johannesburg, London, New York, Dubai..."
-                    autocomplete="off"
-                >
+                <input type="text" id="originInput" name="origin" placeholder="e.g. Johannesburg, London, New York, Dubai..." autocomplete="off">
                 <small class="input-hint"><i class="fas fa-info-circle"></i> Enter any city or airport name</small>
             </div>
         </div>
@@ -257,7 +244,6 @@
     </div>
 </div>
 
-<!-- AI Recommendations Container -->
 <div id="aiRecommendations" class="ai-recommendations" style="display: none;">
     <div class="loading-spinner" id="loadingSpinner" style="display: none;">
         <i class="fas fa-spinner fa-spin"></i> AI is analyzing your preferences...
@@ -283,7 +269,6 @@
 <section class="slideshow-section">
     <h2 class="section-title">Featured Destinations</h2>
     <p class="section-subtitle">Discover handpicked destinations curated by our travel experts</p>
-
     <div class="slideshow-container">
         <div class="slides">
             <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1516496636080-14fb876e029d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
@@ -335,18 +320,11 @@
                 </div>
             </div>
         </div>
-
         <div class="slide-number">1 / 8</div>
-
         <div class="slide-controls">
-            <button class="slide-btn prev-btn">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="slide-btn next-btn">
-                <i class="fas fa-chevron-right"></i>
-            </button>
+            <button class="slide-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+            <button class="slide-btn next-btn"><i class="fas fa-chevron-right"></i></button>
         </div>
-
         <div class="slide-indicators">
             <span class="indicator active" data-slide="0"></span>
             <span class="indicator" data-slide="1"></span>
@@ -363,11 +341,8 @@
 <section class="discover-section">
     <div class="discover-header">
         <h2 class="section-title">Discover Trending Destinations</h2>
-        <button class="secondary-button" onclick="window.location.href='/discover'">
-            View All <i class="fas fa-arrow-right"></i>
-        </button>
+        <button class="secondary-button" onclick="window.location.href='/discover'">View All <i class="fas fa-arrow-right"></i></button>
     </div>
-
     <div class="filter-tags">
         <span class="filter-tag active" data-filter="all"><i class="fas fa-globe"></i> All</span>
         <span class="filter-tag" data-filter="trending"><i class="fas fa-fire"></i> Trending</span>
@@ -380,50 +355,37 @@
         <span class="filter-tag" data-filter="adventurous"><i class="fas fa-hiking"></i> Adventure</span>
         <span class="filter-tag" data-filter="hidden_gem"><i class="fas fa-gem"></i> Hidden Gems</span>
     </div>
-
-    <div id="destinationsLoading" style="text-align:center; padding: 60px 20px; color: var(--text-muted);">
-        <i class="fas fa-spinner fa-spin" style="font-size:28px; color:var(--deep);"></i>
-        <p style="margin-top:12px;">Loading destinations...</p>
+    <div id="destinationsLoading" style="text-align:center; padding: 60px 20px;">
+        <i class="fas fa-spinner fa-spin" style="font-size:28px;"></i>
+        <p>Loading destinations...</p>
     </div>
-
     <div class="destinations-grid" id="destinationsGrid" style="display:none;"></div>
-
-    <div id="destinationsEmpty" style="display:none; text-align:center; padding:60px 20px; color:var(--text-muted);">
+    <div id="destinationsEmpty" style="display:none; text-align:center; padding:60px 20px;">
         <i class="fas fa-map-marked-alt" style="font-size:40px; opacity:0.3;"></i>
-        <p style="margin-top:12px;">No destinations found for this filter.</p>
+        <p>No destinations found for this filter.</p>
     </div>
 </section>
 
-<div style="max-width: 1200px; margin: 60px auto; padding: 40px; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--border);">
+<div style="max-width: 1200px; margin: 60px auto; padding: 40px; background: #fff; border-radius: 6px; border: 1px solid #e0e0e0;">
     <h2 class="section-title">Ready to Fly?</h2>
     <p class="section-subtitle">Find and book flights to your dream destinations</p>
-
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px;">
-        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid var(--border); cursor: pointer;" onclick="window.location.href='/flights'">
-            <div style="font-size: 48px; color: var(--deep); margin-bottom: 20px;">
-                <i class="fas fa-search"></i>
-            </div>
-            <h3 style="color: var(--deep); margin-bottom: 10px;">Search Flights</h3>
-            <p style="color: var(--text-muted);">Find flights worldwide with flexible dates</p>
+        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.location.href='/flights'">
+            <div style="font-size: 48px; color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-search"></i></div>
+            <h3 style="color: #2c3e50; margin-bottom: 10px;">Search Flights</h3>
+            <p style="color: #666;">Find flights worldwide with flexible dates</p>
         </div>
-
-        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid var(--border); cursor: pointer;" onclick="window.location.href='/flights/create'">
-            <div style="font-size: 48px; color: var(--deep); margin-bottom: 20px;">
-                <i class="fas fa-plus-circle"></i>
-            </div>
-            <h3 style="color: var(--deep); margin-bottom: 10px;">Create Flight</h3>
-            <p style="color: var(--text-muted);">Add custom flight options</p>
+        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.location.href='/flights/create'">
+            <div style="font-size: 48px; color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-plus-circle"></i></div>
+            <h3 style="color: #2c3e50; margin-bottom: 10px;">Create Flight</h3>
+            <p style="color: #666;">Add custom flight options</p>
         </div>
-
-        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid var(--border); cursor: pointer;" onclick="window.location.href='/bookings'">
-            <div style="font-size: 48px; color: var(--deep); margin-bottom: 20px;">
-                <i class="fas fa-ticket-alt"></i>
-            </div>
-            <h3 style="color: var(--deep); margin-bottom: 10px;">My Bookings</h3>
-            <p style="color: var(--text-muted);">View and manage your bookings</p>
+        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.location.href='/bookings'">
+            <div style="font-size: 48px; color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-ticket-alt"></i></div>
+            <h3 style="color: #2c3e50; margin-bottom: 10px;">My Bookings</h3>
+            <p style="color: #666;">View and manage your bookings</p>
         </div>
     </div>
-
     <div style="text-align: center; margin-top: 40px;">
         <button class="primary-button" onclick="window.location.href='/flights'" style="padding: 15px 40px; font-size: 16px;">
             <i class="fas fa-plane"></i> Start Booking Flights Now
@@ -434,7 +396,6 @@
 <div style="max-width: 1200px; margin: 60px auto; padding: 0 20px;">
     <h2 class="section-title">Explore By Travel Style</h2>
     <p class="section-subtitle">Find destinations that match your preferred travel experience</p>
-
     <div class="explore-categories">
         <div class="category-card active-style" data-style="adventure" onclick="filterByStyle('adventure', this)">
             <div class="category-icon"><i class="fas fa-hiking"></i></div>
@@ -457,21 +418,17 @@
             <p>Foodie paradises and cooking experiences</p>
         </div>
     </div>
-
-    <div id="styleResultsHeader" style="display:none; margin: 30px 0 16px; display:none;">
+    <div id="styleResultsHeader" style="display:none; margin: 30px 0 16px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 id="styleResultsTitle" style="margin:0; color:var(--text); font-size:18px;"></h3>
-            <span id="styleResultsCount" style="font-size:13px; color:var(--text-muted);"></span>
+            <h3 id="styleResultsTitle" style="margin:0; font-size:18px;"></h3>
+            <span id="styleResultsCount" style="font-size:13px;"></span>
         </div>
     </div>
-
     <div class="destinations-grid" id="styleDestinationsGrid" style="display:none; margin-top:24px;"></div>
-
-    <div id="styleEmpty" style="display:none; text-align:center; padding:40px; color:var(--text-muted);">
+    <div id="styleEmpty" style="display:none; text-align:center; padding:40px;">
         <i class="fas fa-map-marked-alt" style="font-size:36px; opacity:0.3;"></i>
-        <p style="margin-top:12px;">No destinations found for this style.</p>
+        <p>No destinations found for this style.</p>
     </div>
-
     <div id="styleViewAll" style="display:none; text-align:center; margin-top:28px;">
         <a href="/destinations" class="secondary-button" style="text-decoration:none; padding:10px 28px;">
             <i class="fas fa-compass"></i> View All Destinations
@@ -528,7 +485,6 @@
 <div style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
     <h2 class="section-title">Advanced Smart Features</h2>
     <p class="section-subtitle">Experience the future of travel planning with our AI-powered tools</p>
-
     <div class="smart-features-grid">
         <div class="smart-feature-card">
             <i class="fas fa-plane feature-icon"></i>
@@ -538,27 +494,27 @@
         <div class="smart-feature-card">
             <i class="fas fa-robot feature-icon"></i>
             <h3>Predictive Weather Planning</h3>
-            <p>AI predicts optimal travel dates based on historical weather patterns and seasonal trends at your chosen destinations.</p>
+            <p>AI predicts optimal travel dates based on historical weather patterns and seasonal trends.</p>
         </div>
         <div class="smart-feature-card">
             <i class="fas fa-chart-pie feature-icon"></i>
             <h3>Real-Time Cost Analysis</h3>
-            <p>Live price tracking for flights, hotels, and activities with alerts for price drops and special deals.</p>
+            <p>Live price tracking for flights, hotels, and activities with alerts for price drops.</p>
         </div>
         <div class="smart-feature-card">
             <i class="fas fa-heartbeat feature-icon"></i>
             <h3>Mood &amp; Interest Matching</h3>
-            <p>Advanced personality profiling to match destinations with your emotional state and personal interests.</p>
+            <p>Advanced personality profiling to match destinations with your emotional state.</p>
         </div>
         <div class="smart-feature-card">
             <i class="fas fa-sync-alt feature-icon"></i>
             <h3>Dynamic Itinerary Adjuster</h3>
-            <p>Automatically suggests itinerary changes based on real-time factors like traffic, closures, or weather changes.</p>
+            <p>Automatically suggests itinerary changes based on real-time factors.</p>
         </div>
         <div class="smart-feature-card">
             <i class="fas fa-leaf feature-icon"></i>
             <h3>Sustainable Travel Options</h3>
-            <p>Highlights eco-friendly accommodations, low-carbon transportation, and sustainable tourism activities.</p>
+            <p>Highlights eco-friendly accommodations and sustainable tourism activities.</p>
         </div>
     </div>
 </div>
@@ -567,9 +523,7 @@
     <div class="testimonial-container">
         <h2 class="section-title">What Travelers Say</h2>
         <p class="section-subtitle">Join thousands of satisfied travelers who discovered their perfect trips</p>
-
-        <div class="testimonial-grid" id="testimonialsGrid">
-        </div>
+        <div class="testimonial-grid" id="testimonialsGrid"></div>
     </div>
 </section>
 
@@ -584,8 +538,4 @@
     </div>
     <p class="privacy">We respect your privacy. Unsubscribe at any time.</p>
 </div>
-
-@include('partials.public-footer')
-
-</body>
-</html>
+@endsection

@@ -56,6 +56,9 @@ body {
 }
 
 .logo {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
     height: 100px;
     width: auto;
     min-width: 100px;
@@ -520,6 +523,9 @@ body {
         padding: 15px 20px;
     }
     .logo {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
         height: 60px;
         min-width: 60px;
     }
@@ -551,5 +557,37 @@ body {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+    }
+}
+
+
+/* Add to your resources/css/app.css */
+
+.footer a {
+    color: var(--gold);
+    margin: 0 10px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.footer a:hover {
+    color: var(--text-light);
+    transform: translateY(-2px);
+}
+
+.footer i {
+    font-size: 20px;
+}
+
+@media (max-width: 768px) {
+    .footer div:first-child {
+        padding: 0 20px;
+    }
+    .footer a {
+        margin: 0 8px;
+    }
+    .footer i {
+        font-size: 18px;
     }
 }

@@ -1,23 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Book Flights — Smart Booking</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite([
-        'resources/css/blade/base.css',
-        'resources/css/blade/flights/index.css',
-        'resources/js/blade/base.js',
-        'resources/js/blade/flights/index.js'
-    ])
-</head>
-<body>
+@extends('layouts.public')
 
-<!-- Header -->
-@include('partials.public-navigation')
+@section('title', 'Book Flights — Smart Booking')
 
-<!-- Hero Section -->
+@push('styles')
+    @vite(['resources/css/blade/flights/index.css'])
+@endpush
+
+@push('scripts_body')
+    @vite(['resources/js/blade/flights/index.js'])
+@endpush
+
+@section('content')
 <section class="page-hero">
     <div>
         <h1><i class="fas fa-plane-departure"></i> Book Your Flight</h1>
@@ -25,14 +18,10 @@
     </div>
 </section>
 
-<!-- Main Container -->
 <div class="flights-container">
-
-    <!-- Search Card -->
     <div class="search-card">
         <h2><i class="fas fa-search"></i> Search Flights</h2>
 
-        <!-- Trip Type Tabs -->
         <div class="trip-type-tabs">
             <div class="trip-type-tab active" data-type="round-trip">
                 <i class="fas fa-exchange-alt"></i> Round Trip
@@ -45,7 +34,6 @@
             </div>
         </div>
 
-        <!-- Search Form -->
         <form id="flightSearchForm">
             <div class="search-grid search-grid-wide">
                 <div class="form-group">
@@ -92,7 +80,6 @@
         </form>
     </div>
 
-    <!-- Results Section -->
     <div class="results-section" id="resultsSection">
         <div class="results-header">
             <h3><span id="resultsCount">0</span> Flights Found</h3>
@@ -106,13 +93,9 @@
                 </select>
             </div>
         </div>
-
-        <div id="flightResults">
-            <!-- Flight cards will be inserted here -->
-        </div>
+        <div id="flightResults"></div>
     </div>
 
-    <!-- Popular Routes -->
     <div class="popular-routes">
         <h3>Popular Routes</h3>
         <div class="routes-grid">
@@ -148,11 +131,5 @@
             </div>
         </div>
     </div>
-
 </div>
-
-<!-- Footer -->
-@include('partials.public-footer')
-
-</body>
-</html>
+@endsection
