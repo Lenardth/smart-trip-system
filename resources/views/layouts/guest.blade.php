@@ -1,25 +1,16 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+{{-- resources/views/layouts/guest.blade.php --}}
+@extends('layouts.base')
 
-    <title>@yield('title', config('app.name', 'Smart Booking'))</title>
+@push('styles')
+    @vite(['resources/css/blade/layouts/guest.css', 'resources/css/blade/base.css'])
+@endpush
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-
-    @vite([
-        'resources/css/blade/layouts/guest.css',
-        'resources/css/blade/base.css'
-    ])
-    @stack('styles')
-</head>
-<body class="font-sans antialiased">
+@section('body')
     <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
         <div>
-            <a href="/">
-                <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+            <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+                <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" style="width:48px;height:48px;object-fit:contain;">
+                <span style="font-size:20px;font-weight:600;color:#1a1a1a;letter-spacing:-0.3px;">Smart Booking</span>
             </a>
         </div>
 
@@ -27,7 +18,4 @@
             {{ $slot }}
         </div>
     </div>
-
-    @stack('scripts')
-</body>
-</html>
+@endsection

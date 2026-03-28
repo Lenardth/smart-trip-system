@@ -1,35 +1,86 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Smart Booking')</title>
+{{-- partials/public-navigation.blade.php --}}
+<header class="main-header">
+    <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
+    <div class="logo-text">Smart Booking</div>
+    @auth
+        <div class="user-display">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ Auth::user()->name }}</span>
+        </div>
+    @endauth
+</header>
 
-    @vite([
-        'resources/css/blade/base.css',
-        'resources/js/blade/base.js',
-        'resources/js/blade/base.js'
-    ])
+<nav class="nav-container" id="publicNav">
+    <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">
+        <i class="fas fa-home"></i> Home
+    </a>
+    @if(Route::has('discover'))
+        <a href="{{ route('discover') }}" class="{{ request()->routeIs('discover') ? 'active' : '' }}">
+            <i class="fas fa-compass"></i> Discover
+        </a>
+    @endif
+    @if(Route::has('destinations'))
+        <a href="{{ route('destinations') }}" class="{{ request()->routeIs('destinations') ? 'active' : '' }}">
+            <i class="fas fa-map-marker-alt"></i> Destinations
+        </a>
+    @endif
+    @if(Route::has('plan-trip'))
+        <a href="{{ route('plan-trip') }}" class="{{ request()->routeIs('plan-trip') ? 'active' : '' }}">
+            <i class="fas fa-map-marked-alt"></i> Plan Trip
+        </a>
+    @endif
+    @if(Route::has('community'))
+        <a href="{{ route('community') }}" class="{{ request()->routeIs('community') ? 'active' : '' }}">
+            <i class="fas fa-users"></i> Community
+        </a>
+    @endif
+    @if(Route::has('flights.index'))
+        <a href="{{ route('flights.index') }}" class="{{ request()->routeIs('flights.*') ? 'active' : '' }}">
+            <i class="fas fa-plane"></i> Flights
+        </a>
+    @endif
+    @if(Route::has('accommodations.index'))
+        <a href="{{ route('accommodations.index') }}" class="{{ request()->routeIs('accommodations.*') ? 'active' : '' }}">
+            <i class="fas fa-hotel"></i> Accommodations
+        </a>
+    @endif
+    @guest
+        @if(Route::has('login'))
+            <a href="{{ route('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+        @endif
+        @if(Route::has('register'))
+            <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i> Register</a>
+        @endif
+    @else
+        @if(Route::has('dashboard'))
+            <a href="{{ route('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        @endif
+        @if(Route::has('bookings.index'))
+            <a href="{{ route('bookings.index') }}"><i class="fas fa-ticket-alt"></i> My Bookings</a>
+        @endif
+        @if(Route::has('wishlist.index'))
+            <a href="{{ route('wishlist.index') }}"><i class="fas fa-heart"></i> Wishlist</a>
+        @endif
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </form>
+    @endguest
+</nav>
 
-    @stack('styles')
+<button class="public-nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <i class="fas fa-bars"></i>
+</button>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    @include('partials.public-navigation')
-
-    <main class="public-content">
-        @yield('content')
-    </main>
-
-    @include('partials.public-footer')
-
-    <button class="public-nav-toggle" type="button" onclick="togglePublicNav()">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    @stack('scripts')
-</body>
-</html>
+<script>
+    const navToggle = document.getElementById('navToggle');
+    const publicNav = document.getElementById('publicNav');
+    if (navToggle && publicNav) {
+        navToggle.addEventListener('click', () => publicNav.classList.toggle('open'));
+        document.addEventListener('click', (e) => {
+            if (publicNav.classList.contains('open') && !publicNav.contains(e.target) && e.target !== navToggle) {
+                publicNav.classList.remove('open');
+            }
+        });
+    }
+</script>

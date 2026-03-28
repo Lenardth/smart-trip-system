@@ -2,23 +2,24 @@ import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    server: {
+        port: 5173,
+        strictPort: false,
+    },
     plugins: [
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/js/app.js',
-
-                // Base CSS
                 'resources/css/blade/base.css',
-
-                // Blade CSS files
-                'resources/css/blade/accommodations/index.css',
+                'resources/css/blade/layouts/app.css',
+                'resources/css/blade/layouts/guest.css',
                 'resources/css/blade/auth/confirm-password.css',
                 'resources/css/blade/auth/forgot-password.css',
                 'resources/css/blade/auth/login.css',
                 'resources/css/blade/auth/register.css',
                 'resources/css/blade/auth/reset-password.css',
                 'resources/css/blade/auth/verify-email.css',
+                'resources/css/blade/accommodations/index.css',
                 'resources/css/blade/chat/index.css',
                 'resources/css/blade/community/index.css',
                 'resources/css/blade/dashboard/index.css',
@@ -31,19 +32,14 @@ export default defineConfig({
                 'resources/css/blade/plan-trip/index.css',
                 'resources/css/blade/profile/edit.css',
                 'resources/css/blade/wishlist/index.css',
-
-                // Layout CSS
-                'resources/css/blade/layouts/app.css',
-                'resources/css/blade/layouts/guest.css',
-
-                // Base JS
                 'resources/js/app.js',
-                'resources/js/blade/base.js',
+                'resources/js/bootstrap.js',
                 'resources/js/session-timeout.js',
-
-                // Blade JS files
-                'resources/js/blade/accommodations/index.js',
+                'resources/js/blade/base.js',
+                'resources/js/blade/global.js',
+                'resources/js/blade/login.js',
                 'resources/js/blade/auth/register.js',
+                'resources/js/blade/accommodations/index.js',
                 'resources/js/blade/chat/index.js',
                 'resources/js/blade/community/index.js',
                 'resources/js/blade/dashboard/index.js',
@@ -51,13 +47,11 @@ export default defineConfig({
                 'resources/js/blade/discover/index.js',
                 'resources/js/blade/flights/index.js',
                 'resources/js/blade/landing/index.js',
-                'resources/js/blade/login.js',
                 'resources/js/blade/notifications/index.js',
                 'resources/js/blade/pdf/itinerary.js',
                 'resources/js/blade/plan-trip/index.js',
                 'resources/js/blade/profile/edit.js',
                 'resources/js/blade/wishlist/index.js',
-                'resources/js/blade/global.js'
             ],
             refresh: true,
         }),
