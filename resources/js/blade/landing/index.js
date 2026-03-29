@@ -1,49 +1,47 @@
 document.addEventListener('DOMContentLoaded', function () {
+
     const wrapper  = document.getElementById('moodSelectWrapper');
     const trigger  = document.getElementById('moodSelectTrigger');
     const dropdown = document.getElementById('moodDropdown');
     const hidden   = document.getElementById('moodSelect');
 
-    if (!wrapper || !trigger || !dropdown || !hidden) return;
+    if (wrapper && trigger && dropdown && hidden) {
+        const iconEl = trigger.querySelector('.custom-select-icon');
+        const textEl = trigger.querySelector('.custom-select-text');
 
-    const iconEl = trigger.querySelector('.custom-select-icon');
-    const textEl = trigger.querySelector('.custom-select-text');
-
-    trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        wrapper.classList.toggle('open');
-    });
-
-    dropdown.querySelectorAll('.custom-select-option').forEach(function (opt) {
-        opt.addEventListener('click', function (e) {
+        trigger.addEventListener('click', function (e) {
             e.stopPropagation();
-            dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
-            this.classList.add('selected');
+            wrapper.classList.toggle('open');
+        });
 
-            const iconTag = this.querySelector('i');
-            iconEl.innerHTML = iconTag ? iconTag.outerHTML : '';
-            textEl.textContent = this.textContent.trim();
-            hidden.value = this.dataset.value;
+        dropdown.querySelectorAll('.custom-select-option').forEach(function (opt) {
+            opt.addEventListener('click', function (e) {
+                e.stopPropagation();
+                dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                const iconTag = this.querySelector('i');
+                iconEl.innerHTML = iconTag ? iconTag.outerHTML : '';
+                textEl.textContent = this.textContent.trim();
+                hidden.value = this.dataset.value;
+                wrapper.classList.remove('open');
+            });
+        });
 
+        document.addEventListener('click', function () {
             wrapper.classList.remove('open');
         });
-    });
+    }
 
-    document.addEventListener('click', function () {
-        wrapper.classList.remove('open');
-    });
-});
-
-(function () {
     const grid       = document.getElementById('destinationsGrid');
     const loading    = document.getElementById('destinationsLoading');
     const empty      = document.getElementById('destinationsEmpty');
     const filterTags = document.querySelectorAll('.filter-tag');
 
     let allDestinations = [];
-    let activeFilter    = 'all';
 
     async function fetchDestinations() {
+        if (!grid || !loading || !empty) return;
+
         loading.style.display = 'block';
         grid.style.display    = 'none';
         empty.style.display   = 'none';
@@ -53,12 +51,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
             const data = await res.json();
-            console.log('[Destinations] Raw API response:', data);
 
             if (Array.isArray(data)) {
                 allDestinations = data;
@@ -68,22 +63,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 allDestinations = data.destinations;
             } else {
                 allDestinations = [];
-                console.warn('[Destinations] Unexpected response shape:', data);
             }
 
-            console.log('[Destinations] Loaded:', allDestinations.length, 'destinations');
             window._allDestinations = allDestinations;
             renderGrid(allDestinations.slice(0, 8));
 
         } catch (err) {
-            console.error('[Destinations] Fetch failed:', err);
             loading.style.display = 'block';
             loading.innerHTML = `
                 <div style="padding:40px;text-align:center;">
                     <i class="fas fa-exclamation-triangle" style="font-size:36px;color:var(--deep);opacity:0.7;"></i>
                     <p style="margin:12px 0 4px;font-size:15px;color:var(--text);">Could not load destinations</p>
                     <p style="font-size:12px;color:var(--text-muted);margin:0 0 16px;">${err.message}</p>
-                    <button class="secondary-button" onclick="initDestinations()" style="font-size:13px;">
+                    <button class="secondary-button" onclick="window.initDestinations()" style="font-size:13px;">
                         <i class="fas fa-redo"></i> Retry
                     </button>
                 </div>`;
@@ -91,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function applyFilter(filter) {
-        activeFilter = filter;
         let results;
         if (filter === 'all') {
             results = allDestinations;
@@ -109,13 +100,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderGrid(destinations) {
         loading.style.display = 'none';
-
         if (!destinations || destinations.length === 0) {
             grid.style.display  = 'none';
             empty.style.display = 'block';
             return;
         }
-
         empty.style.display = 'none';
         grid.style.display  = 'grid';
         grid.innerHTML      = destinations.map(d => buildCard(d)).join('');
@@ -130,8 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const matchScore  = d.match_score
             ? `<div class="match-score"><i class="fas fa-star"></i> ${d.match_score}% match</div>` : '';
         const description = d.description
-            ? (d.description.length > 110 ? d.description.substring(0, 110) + '…' : d.description)
-            : '';
+            ? (d.description.length > 110 ? d.description.substring(0, 110) + '…' : d.description) : '';
         const regionLabel = formatRegion(d.region);
         const moodIcon    = moodIconMap(d.mood);
 
@@ -139,9 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="destination-card" data-category="${d.category}" data-mood="${d.mood}" data-hidden="${d.is_hidden_gem}">
             <div class="destination-image" style="background-image:url('${image}');background-size:cover;background-position:center;height:200px;position:relative;border-radius:6px 6px 0 0;overflow:hidden;">
                 <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.6));"></div>
-                <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;">
-                    ${badge}${hiddenGem}
-                </div>
+                <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;">${badge}${hiddenGem}</div>
                 ${matchScore ? `<div style="position:absolute;top:12px;right:12px;">${matchScore}</div>` : ''}
                 <div style="position:absolute;bottom:12px;left:14px;right:14px;">
                     <h3 style="color:#fff;margin:0;font-size:17px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.7);">${d.name}</h3>
@@ -183,28 +169,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function moodIconMap(mood) {
         const icons = {
-            adventurous: '<i class="fas fa-hiking"></i>',
-            relaxed:     '<i class="fas fa-umbrella-beach"></i>',
-            cultural:    '<i class="fas fa-landmark"></i>',
-            romantic:    '<i class="fas fa-heart"></i>',
-            foodie:      '<i class="fas fa-utensils"></i>',
-            wellness:    '<i class="fas fa-spa"></i>',
-            eco:         '<i class="fas fa-leaf"></i>',
-            eco_tourism: '<i class="fas fa-leaf"></i>',
-            nature:      '<i class="fas fa-tree"></i>',
-            general:     '<i class="fas fa-globe"></i>',
-            beach:       '<i class="fas fa-umbrella-beach"></i>',
-            mountain:    '<i class="fas fa-mountain"></i>',
-            nightlife:   '<i class="fas fa-music"></i>',
-            spiritual:   '<i class="fas fa-place-of-worship"></i>',
-            wellness:    '<i class="fas fa-spa"></i>',
-            road_trip:   '<i class="fas fa-car"></i>',
-            backpacking: '<i class="fas fa-backpack"></i>',
-            city_break:  '<i class="fas fa-city"></i>',
-            safari:      '<i class="fas fa-paw"></i>',
-            cruise:      '<i class="fas fa-ship"></i>',
-            honeymoon:   '<i class="fas fa-ring"></i>',
-            photography: '<i class="fas fa-camera"></i>',
+            adventurous:  '<i class="fas fa-hiking"></i>',
+            relaxed:      '<i class="fas fa-umbrella-beach"></i>',
+            cultural:     '<i class="fas fa-landmark"></i>',
+            romantic:     '<i class="fas fa-heart"></i>',
+            foodie:       '<i class="fas fa-utensils"></i>',
+            wellness:     '<i class="fas fa-spa"></i>',
+            eco:          '<i class="fas fa-leaf"></i>',
+            eco_tourism:  '<i class="fas fa-leaf"></i>',
+            nature:       '<i class="fas fa-tree"></i>',
+            general:      '<i class="fas fa-globe"></i>',
+            beach:        '<i class="fas fa-umbrella-beach"></i>',
+            mountain:     '<i class="fas fa-mountain"></i>',
+            nightlife:    '<i class="fas fa-music"></i>',
+            spiritual:    '<i class="fas fa-place-of-worship"></i>',
+            road_trip:    '<i class="fas fa-car"></i>',
+            backpacking:  '<i class="fas fa-backpack"></i>',
+            city_break:   '<i class="fas fa-city"></i>',
+            safari:       '<i class="fas fa-paw"></i>',
+            cruise:       '<i class="fas fa-ship"></i>',
+            honeymoon:    '<i class="fas fa-ring"></i>',
+            photography:  '<i class="fas fa-camera"></i>',
         };
         return icons[mood] || '<i class="fas fa-map-marker-alt"></i>';
     }
@@ -219,14 +204,200 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.initDestinations = fetchDestinations;
     fetchDestinations();
-})();
 
-function filterByStyle(style, cardEl) {
+    const generateBtn = document.getElementById('generatePlanBtn');
+    if (generateBtn) generateBtn.addEventListener('click', window.generateQuickPlan);
+
+    document.querySelectorAll('.qb-next-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            showStep(parseInt(this.getAttribute('data-next')));
+        });
+    });
+
+    document.querySelectorAll('.qb-back-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            showStep(parseInt(this.getAttribute('data-back')));
+        });
+    });
+
+    function showStep(step) {
+        [1, 2, 3].forEach(n => {
+            const panel  = document.getElementById(`qbPanel${n}`);
+            const stepEl = document.querySelector(`.qb-step[data-step="${n}"]`);
+            const lines  = document.querySelectorAll('.qb-step-line');
+            if (panel)  panel.style.display = n === step ? 'block' : 'none';
+            if (stepEl) {
+                stepEl.classList.toggle('active', n === step);
+                stepEl.classList.toggle('done', n < step);
+            }
+            if (lines[n - 1]) lines[n - 1].classList.toggle('done', n < step);
+        });
+    }
+
+    const nextBtn            = document.querySelector('.next-btn');
+    const prevBtn            = document.querySelector('.prev-btn');
+    const slideshowContainer = document.querySelector('.slideshow-container');
+    const slides             = document.querySelectorAll('.slide');
+    const indicators         = document.querySelectorAll('.indicator');
+    const slideNumber        = document.querySelector('.slide-number');
+    const totalSlides        = slides.length;
+
+    if (totalSlides > 0 && nextBtn && prevBtn && slideshowContainer) {
+        let currentSlide       = 0;
+        let nextSlideIndex     = 0;
+        let isTransitioning    = false;
+        let slideInterval;
+        let slideshowDirection = 1;
+
+        function updateSlide(immediate = false) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            slides.forEach(s => s.classList.remove('active', 'exiting'));
+            if (!immediate && slides[currentSlide]) slides[currentSlide].classList.add('exiting');
+            indicators.forEach(ind => ind.classList.remove('active'));
+            setTimeout(() => {
+                if (slides[currentSlide]) slides[currentSlide].classList.remove('exiting');
+                slides[nextSlideIndex].classList.add('active');
+                if (indicators[nextSlideIndex]) indicators[nextSlideIndex].classList.add('active');
+                if (slideNumber) slideNumber.textContent = `${nextSlideIndex + 1} / ${totalSlides}`;
+                currentSlide = nextSlideIndex;
+                setTimeout(() => { isTransitioning = false; }, 1200);
+            }, immediate ? 0 : 300);
+        }
+
+        function nextSlide() {
+            if (isTransitioning) return;
+            slideshowDirection = 1;
+            nextSlideIndex = (currentSlide + 1) % totalSlides;
+            updateSlide();
+        }
+
+        function prevSlide() {
+            if (isTransitioning) return;
+            slideshowDirection = -1;
+            nextSlideIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlide();
+        }
+
+        function startAutoSlide() {
+            clearInterval(slideInterval);
+            slideInterval = setInterval(() => {
+                slideshowDirection === 1 ? nextSlide() : prevSlide();
+                if (Math.random() < 0.1) slideshowDirection *= -1;
+            }, 6000);
+        }
+
+        function stopAutoSlide() { clearInterval(slideInterval); }
+
+        function goToSlide(index) {
+            if (isTransitioning || index === currentSlide) return;
+            slideshowDirection = index > currentSlide ? 1 : -1;
+            nextSlideIndex = index;
+            updateSlide();
+        }
+
+        nextBtn.addEventListener('click', () => { slideshowDirection = 1;  nextSlide(); startAutoSlide(); });
+        prevBtn.addEventListener('click', () => { slideshowDirection = -1; prevSlide(); startAutoSlide(); });
+
+        indicators.forEach(indicator => {
+            indicator.addEventListener('click', function () {
+                goToSlide(parseInt(this.getAttribute('data-slide')));
+                startAutoSlide();
+            });
+        });
+
+        slideshowContainer.addEventListener('mouseenter', stopAutoSlide);
+        slideshowContainer.addEventListener('mouseleave', startAutoSlide);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft')  { prevSlide(); startAutoSlide(); }
+            if (e.key === 'ArrowRight') { nextSlide(); startAutoSlide(); }
+        });
+
+        updateSlide(true);
+        startAutoSlide();
+    }
+
+    document.querySelectorAll('.destination-card').forEach(card => {
+        card.addEventListener('mouseenter', function () { this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 22px rgba(59,31,43,0.15)'; });
+        card.addEventListener('mouseleave', function () { this.style.transform='translateY(0) scale(1)';       this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; });
+    });
+
+    document.querySelectorAll('.category-card').forEach(card => {
+        card.addEventListener('mouseenter', function () { this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 22px rgba(59,31,43,0.15)'; });
+        card.addEventListener('mouseleave', function () { this.style.transform='translateY(0)';    this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; });
+    });
+
+    document.querySelectorAll('.tile').forEach(tile => {
+        tile.addEventListener('mouseenter', function () { this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 18px rgba(59,31,43,0.13)'; });
+        tile.addEventListener('mouseleave', function () { this.style.transform='translateY(0)';    this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; });
+    });
+
+    document.querySelectorAll('.testimonial-card').forEach(card => {
+        card.addEventListener('click', function () {
+            this.style.transform = 'scale(1.02)';
+            this.style.boxShadow = '0 8px 25px rgba(59,31,43,0.15)';
+            setTimeout(() => { this.style.transform='scale(1)'; this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; }, 200);
+        });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                document.querySelectorAll('.stat-number').forEach((stat, i) => {
+                    setTimeout(() => {
+                        stat.style.transform = 'scale(1.1)';
+                        setTimeout(() => { stat.style.transform = 'scale(1)'; }, 300);
+                    }, i * 200);
+                });
+            }
+        });
+    }, { threshold: 0.5 });
+
+    const aiBanner = document.querySelector('.ai-features-banner');
+    if (aiBanner) observer.observe(aiBanner);
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            const target = document.querySelector(targetId);
+            if (target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+        });
+    });
+
+    const footerP = document.querySelector('.footer p');
+    if (footerP) footerP.innerHTML = footerP.innerHTML.replace('2026', new Date().getFullYear());
+});
+
+function getVal(id) {
+    const el = document.getElementById(id);
+    return el ? el.value : '';
+}
+
+function getMoodText(m) {
+    return { adventurous:'Adventurous 🏔️', relaxed:'Relaxed 🌴', cultural:'Cultural 🏛️', romantic:'Romantic 💖', foodie:'Foodie 🍽️', wellness:'Wellness 🧘', nightlife:'Nightlife 🎉', nature:'Nature 🌿' }[m] || m;
+}
+function getBudgetText(b) {
+    return { backpacker:'Backpacker 🎒', budget:'Budget 💰', mid:'Mid-range 💵', premium:'Premium 💳', luxury:'Luxury 💎' }[b] || b;
+}
+function getDurationText(d) {
+    return { weekend:'Long Weekend', week:'One Week', two_weeks:'Two Weeks', month:'One Month+', flexible:'Flexible' }[d] || d;
+}
+function getCompanionText(c) {
+    return { solo:'Solo 🧍', couple:'Couple 👫', family_young:'Family (young kids) 👨‍👩‍👧', family_teens:'Family (teens) 👨‍👩‍👦', friends_small:'Small group 👯', friends_large:'Large group 🎊', business:'Business 💼' }[c] || c;
+}
+function getRegionText(r) {
+    return { any:'Anywhere 🌍', europe:'Europe', southeast_asia:'Southeast Asia', east_asia:'East Asia', south_asia:'South Asia', middle_east:'Middle East', africa:'Africa', north_america:'North America', central_america:'Central America & Caribbean', south_america:'South America', oceania:'Oceania' }[r] || r;
+}
+
+window.filterByStyle = function (style, cardEl) {
     const styleMap = {
-        adventure: { moods: ['adventurous'], categories: ['adventurous', 'mountain'], label: 'Adventure Travel' },
-        beach:     { moods: ['relaxed', 'beach'], categories: ['beach'],              label: 'Beach & Relaxation' },
-        cultural:  { moods: ['cultural'],          categories: ['historical', 'food_culture', 'general'], label: 'Cultural Immersion' },
-        food:      { moods: ['foodie'],             categories: ['food_culture'],      label: 'Culinary Tours' },
+        adventure: { moods: ['adventurous'],      categories: ['adventurous', 'mountain'],               label: 'Adventure Travel' },
+        beach:     { moods: ['relaxed', 'beach'], categories: ['beach'],                                 label: 'Beach & Relaxation' },
+        cultural:  { moods: ['cultural'],         categories: ['historical', 'food_culture', 'general'], label: 'Cultural Immersion' },
+        food:      { moods: ['foodie'],           categories: ['food_culture'],                          label: 'Culinary Tours' },
     };
 
     const styleGrid    = document.getElementById('styleDestinationsGrid');
@@ -246,18 +417,16 @@ function filterByStyle(style, cardEl) {
         mapping.moods.includes(d.mood) || mapping.categories.includes(d.category)
     ).slice(0, 8);
 
-    styleHeader.style.display = 'block';
-    styleTitle.textContent    = mapping.label;
-    styleCount.textContent    = results.length + ' destinations';
-
-    styleGrid.style.display   = results.length ? 'grid' : 'none';
-    styleEmpty.style.display  = results.length ? 'none' : 'block';
+    styleHeader.style.display  = 'block';
+    styleTitle.textContent     = mapping.label;
+    styleCount.textContent     = results.length + ' destinations';
+    styleGrid.style.display    = results.length ? 'grid' : 'none';
+    styleEmpty.style.display   = results.length ? 'none' : 'block';
     styleViewAll.style.display = 'block';
 
     styleGrid.innerHTML = results.map(d => buildStyleCard(d)).join('');
-
     styleGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
+};
 
 function buildStyleCard(d) {
     const image       = d.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(d.name) + '/600/400';
@@ -289,47 +458,8 @@ function buildStyleCard(d) {
         '</div>' +
     '</div>';
 }
-function getMoodText(m) {
-    return {
-        adventurous:'Adventurous 🏔️', relaxed:'Relaxed 🌴', cultural:'Cultural 🏛️',
-        romantic:'Romantic 💖', foodie:'Foodie 🍽️', wellness:'Wellness 🧘',
-        nightlife:'Nightlife 🎉', nature:'Nature 🌿'
-    }[m] || m;
-}
-function getBudgetText(b) {
-    return {
-        backpacker:'Backpacker 🎒', budget:'Budget 💰', mid:'Mid-range 💵',
-        premium:'Premium 💳', luxury:'Luxury 💎'
-    }[b] || b;
-}
-function getDurationText(d) {
-    return {
-        weekend:'Long Weekend', week:'One Week', two_weeks:'Two Weeks',
-        month:'One Month+', flexible:'Flexible'
-    }[d] || d;
-}
-function getCompanionText(c) {
-    return {
-        solo:'Solo 🧍', couple:'Couple 👫', family_young:'Family (young kids) 👨‍👩‍👧',
-        family_teens:'Family (teens) 👨‍👩‍👦', friends_small:'Small group 👯',
-        friends_large:'Large group 🎊', business:'Business 💼'
-    }[c] || c;
-}
-function getRegionText(r) {
-    return {
-        any:'Anywhere 🌍', europe:'Europe', southeast_asia:'Southeast Asia',
-        east_asia:'East Asia', south_asia:'South Asia', middle_east:'Middle East',
-        africa:'Africa', north_america:'North America', central_america:'Central America & Caribbean',
-        south_america:'South America', oceania:'Oceania'
-    }[r] || r;
-}
 
-function getVal(id) {
-    const el = document.getElementById(id);
-    return el ? el.value : '';
-}
-
-async function generateQuickPlan(e) {
+window.generateQuickPlan = async function (e) {
     const mood          = getVal('moodSelect');
     const budget        = getVal('budgetSelect');
     const duration      = getVal('durationSelect');
@@ -475,220 +605,29 @@ async function generateQuickPlan(e) {
         button.innerHTML = originalHTML;
         button.disabled  = false;
     }
-}
+};
 
-function subscribeNewsletter() {
+window.subscribeNewsletter = function () {
     const emailInput = document.querySelector('.newsletter-input input');
     if (!emailInput) return;
     const email = emailInput.value;
     if (!email || !email.includes('@')) { alert('Please enter a valid email address'); return; }
 
-    const btn = document.querySelector('.newsletter-input button');
+    const btn          = document.querySelector('.newsletter-input button');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> Subscribed!';
+    btn.innerHTML        = '<i class="fas fa-check"></i> Subscribed!';
     btn.style.background = '#6b8f6b';
-    btn.disabled = true;
+    btn.disabled         = true;
 
     setTimeout(() => {
-        btn.innerHTML = originalText;
+        btn.innerHTML        = originalText;
         btn.style.background = '';
-        btn.disabled = false;
-        emailInput.value = '';
+        btn.disabled         = false;
+        emailInput.value     = '';
         const msg = document.createElement('div');
-        msg.textContent = 'Thank you for subscribing! Check your email for confirmation.';
+        msg.textContent   = 'Thank you for subscribing! Check your email for confirmation.';
         msg.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--deep);color:var(--text-light);padding:15px 25px;border-radius:5px;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
         document.body.appendChild(msg);
         setTimeout(() => msg.remove(), 3000);
     }, 3000);
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-
-    const generateBtn = document.getElementById('generatePlanBtn');
-    if (generateBtn) generateBtn.addEventListener('click', generateQuickPlan);
-
-    document.querySelectorAll('.qb-next-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const nextStep = parseInt(this.getAttribute('data-next'));
-            showStep(nextStep);
-        });
-    });
-
-    document.querySelectorAll('.qb-back-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const backStep = parseInt(this.getAttribute('data-back'));
-            showStep(backStep);
-        });
-    });
-
-    function showStep(step) {
-        [1, 2, 3].forEach(n => {
-            const panel = document.getElementById(`qbPanel${n}`);
-            const stepEl = document.querySelector(`.qb-step[data-step="${n}"]`);
-            const lines = document.querySelectorAll('.qb-step-line');
-            if (panel) panel.style.display = n === step ? 'block' : 'none';
-            if (stepEl) {
-                stepEl.classList.toggle('active', n === step);
-                stepEl.classList.toggle('done', n < step);
-            }
-            if (lines[n - 1]) lines[n - 1].classList.toggle('done', n < step);
-        });
-    }
-
-    const nextBtn = document.querySelector('.next-btn');
-    const prevBtn = document.querySelector('.prev-btn');
-    const slideshowContainer = document.querySelector('.slideshow-container');
-    const slides = document.querySelectorAll('.slide');
-    const indicators = document.querySelectorAll('.indicator');
-    const slideNumber = document.querySelector('.slide-number');
-    const totalSlides = slides.length;
-
-    if (totalSlides > 0 && nextBtn && prevBtn && slideshowContainer) {
-        let currentSlide = 0;
-        let nextSlideIndex = 0;
-        let isTransitioning = false;
-        let slideInterval;
-        let slideshowDirection = 1;
-
-        function updateSlide(immediate = false) {
-            if (isTransitioning) return;
-            isTransitioning = true;
-            slides.forEach(s => s.classList.remove('active', 'exiting'));
-            if (!immediate && slides[currentSlide]) slides[currentSlide].classList.add('exiting');
-            indicators.forEach(ind => ind.classList.remove('active'));
-            setTimeout(() => {
-                if (slides[currentSlide]) slides[currentSlide].classList.remove('exiting');
-                slides[nextSlideIndex].classList.add('active');
-                if (indicators[nextSlideIndex]) indicators[nextSlideIndex].classList.add('active');
-                if (slideNumber) slideNumber.textContent = `${nextSlideIndex + 1} / ${totalSlides}`;
-                currentSlide = nextSlideIndex;
-                setTimeout(() => { isTransitioning = false; }, 1200);
-            }, immediate ? 0 : 300);
-        }
-
-        function nextSlide() {
-            if (isTransitioning) return;
-            slideshowDirection = 1;
-            nextSlideIndex = (currentSlide + 1) % totalSlides;
-            updateSlide();
-        }
-
-        function prevSlide() {
-            if (isTransitioning) return;
-            slideshowDirection = -1;
-            nextSlideIndex = (currentSlide - 1 + totalSlides) % totalSlides;
-            updateSlide();
-        }
-
-        function startAutoSlide() {
-            clearInterval(slideInterval);
-            slideInterval = setInterval(() => {
-                slideshowDirection === 1 ? nextSlide() : prevSlide();
-                if (Math.random() < 0.1) slideshowDirection *= -1;
-            }, 6000);
-        }
-
-        function stopAutoSlide() { clearInterval(slideInterval); }
-
-        function goToSlide(index) {
-            if (isTransitioning || index === currentSlide) return;
-            slideshowDirection = index > currentSlide ? 1 : -1;
-            nextSlideIndex = index;
-            updateSlide();
-        }
-
-        nextBtn.addEventListener('click', () => { slideshowDirection = 1; nextSlide(); startAutoSlide(); });
-        prevBtn.addEventListener('click', () => { slideshowDirection = -1; prevSlide(); startAutoSlide(); });
-
-        indicators.forEach(indicator => {
-            indicator.addEventListener('click', function () {
-                goToSlide(parseInt(this.getAttribute('data-slide')));
-                startAutoSlide();
-            });
-        });
-
-        slideshowContainer.addEventListener('mouseenter', stopAutoSlide);
-        slideshowContainer.addEventListener('mouseleave', startAutoSlide);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft')  { prevSlide(); startAutoSlide(); }
-            if (e.key === 'ArrowRight') { nextSlide(); startAutoSlide(); }
-        });
-
-        updateSlide(true);
-        startAutoSlide();
-    }
-
-    document.querySelectorAll('.filter-tag').forEach(tag => {
-        tag.addEventListener('click', function () {
-            document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            const filter = this.textContent.trim().toLowerCase();
-            const cards = document.querySelectorAll('.destination-card');
-            cards.forEach(card => { card.style.opacity = '0.5'; card.style.transform = 'scale(0.95)'; });
-            setTimeout(() => {
-                cards.forEach(card => {
-                    const title = card.querySelector('h3')?.textContent.toLowerCase() ?? '';
-                    const mood  = card.querySelector('.mood-indicator')?.textContent.toLowerCase() ?? '';
-                    const price = card.querySelector('.price-tag')?.textContent.toLowerCase() ?? '';
-                    const ok = filter === 'all' || title.includes(filter) || mood.includes(filter) || price.includes(filter);
-                    card.style.display   = ok ? 'flex' : 'none';
-                    card.style.opacity   = ok ? '1' : '0.5';
-                    card.style.transform = ok ? 'scale(1)' : 'scale(0.95)';
-                });
-            }, 300);
-        });
-    });
-
-    document.querySelectorAll('.destination-card').forEach(card => {
-        card.addEventListener('mouseenter', function () { this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 22px rgba(59,31,43,0.15)'; });
-        card.addEventListener('mouseleave', function () { this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; });
-    });
-
-    document.querySelectorAll('.category-card').forEach(card => {
-        card.addEventListener('mouseenter', function () { this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 22px rgba(59,31,43,0.15)'; });
-        card.addEventListener('mouseleave', function () { this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; });
-    });
-
-    document.querySelectorAll('.tile').forEach(tile => {
-        tile.addEventListener('mouseenter', function () { this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 18px rgba(59,31,43,0.13)'; });
-        tile.addEventListener('mouseleave', function () { this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; });
-    });
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                document.querySelectorAll('.stat-number').forEach((stat, i) => {
-                    setTimeout(() => {
-                        stat.style.transform = 'scale(1.1)';
-                        setTimeout(() => { stat.style.transform = 'scale(1)'; }, 300);
-                    }, i * 200);
-                });
-            }
-        });
-    }, { threshold: 0.5 });
-
-    const aiBanner = document.querySelector('.ai-features-banner');
-    if (aiBanner) observer.observe(aiBanner);
-
-    document.querySelectorAll('.testimonial-card').forEach(card => {
-        card.addEventListener('click', function () {
-            this.style.transform = 'scale(1.02)';
-            this.style.boxShadow = '0 8px 25px rgba(59,31,43,0.15)';
-            setTimeout(() => { this.style.transform='scale(1)'; this.style.boxShadow='0 3px 10px rgba(59,31,43,0.08)'; }, 200);
-        });
-    });
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (ev) {
-            ev.preventDefault();
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            const target = document.querySelector(targetId);
-            if (target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
-        });
-    });
-
-    const footerP = document.querySelector('.footer p');
-    if (footerP) footerP.innerHTML = footerP.innerHTML.replace('2026', new Date().getFullYear());
-});
+};

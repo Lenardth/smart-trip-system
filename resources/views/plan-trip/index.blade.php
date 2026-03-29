@@ -1,3 +1,4 @@
+{{-- resources/views/plan-trip/index.blade.php --}}
 @extends('layouts.public')
 
 @section('title', 'Plan Trip — Smart Booking')
@@ -6,8 +7,9 @@
     @vite(['resources/css/blade/plan-trip/index.css'])
 @endpush
 
-@push('scripts_body')
+@push('scripts')
     @vite(['resources/js/blade/plan-trip/index.js'])
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 @endpush
 
 @section('content')

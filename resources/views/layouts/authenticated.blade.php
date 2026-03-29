@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/authenticated.blade.php --}}
 @extends('layouts.base')
 
 @push('styles')
@@ -8,6 +7,7 @@
 @push('scripts')
     @vite(['resources/js/blade/base.js'])
     @vite(['resources/js/session-timeout.js'])
+    @stack('scripts_body')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             window.userData = {
@@ -30,7 +30,6 @@
     @include('partials.dashboard-sidebar')
 
     <div class="@yield('page-class', 'main-content')" id="@yield('page-id', 'mainContent')">
-        {{-- Only show header if not on chat page or if explicitly enabled --}}
         @if(!isset($hideHeader) && ($withHeader ?? true))
             @include('partials.dashboard-header')
         @endif
