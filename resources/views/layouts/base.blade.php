@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/base.blade.php --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -20,5 +19,6 @@
 
     @stack('modals')
     @stack('scripts')
+    @stack('scripts_body')
 </body>
 </html>
