@@ -1,51 +1,87 @@
+{{-- resources/views/chat/index.blade.php --}}
 @extends('layouts.authenticated')
 
-@section('title', 'Notifications — Smart Booking')
+@section('title', 'Messages — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/notifications/index.css', 'resources/js/blade/notifications/index.js'])
+    @vite(['resources/css/blade/chat/index.css'])
 @endpush
 
-@section('page-class', 'notif-page')
-@section('page-id', 'notifPage')
+@push('scripts')
+    @vite(['resources/js/blade/chat/index.js'])
+@endpush
+
+@push('body-attrs')
+    data-chat-user-id="{{ Auth::id() }}"
+    data-chat-user-name="{{ Auth::user()->name ?? '' }}"
+    data-chat-user-avatar="{{ Auth::user()->avatar ?? '' }}"
+    data-chat-open-user-id="{{ isset($other) ? $other->id : '' }}"
+    data-chat-open-user-name="{{ isset($other) ? $other->name : '' }}"
+    data-chat-open-user-avatar="{{ isset($other) ? ($other->avatar ?? '') : '' }}"
+    data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
+    data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster') }}"
+@endpush
+
+@section('page-class', 'chat-page')
+@section('page-id', 'chatPage')
 
 @section('content')
 
-    <div class="notif-header">
-        <div class="notif-header-left">
-            <h1>
-                <i class="fas fa-bell" style="color:var(--gold);margin-right:10px;"></i>
-                Notifications
-            </h1>
-            <p id="notifSubtitle">Loading…</p>
+    {{-- Conversation list panel --}}
+    <div class="chat-sidebar" id="chatSidebar">
+        <div class="chat-sidebar-header">
+            <i class="fas fa-comment-dots" style="color:var(--gold);font-size:20px;"></i>
+            <h2>Messages</h2>
+            <a href="/dashboard" title="Back to Dashboard">
+                <i class="fas fa-arrow-left"></i>
+            </a>
         </div>
-        <div class="notif-header-actions">
-            <button class="btn-mark-all" onclick="markAllRead()">
-                <i class="fas fa-check-double"></i> Mark all as read
-            </button>
+
+        <div class="chat-sidebar-search">
+            <i class="fas fa-search chat-sidebar-search-icon"></i>
+            <input type="text" id="pageSearchInput" placeholder="Search people…"
+                oninput="ChatSystem.onSearchInput(event)" autocomplete="off">
+            <div id="pageSearchResults" class="search-results-dropdown" style="display:none;"></div>
+        </div>
+
+        <div class="conv-list" id="pageConvList">
+            <div class="conv-empty">
+                <i class="fas fa-comment-dots" style="font-size:32px;color:rgba(201,169,110,0.3);"></i>
+                <p>No conversations yet</p>
+            </div>
         </div>
     </div>
 
-    <div class="notif-tabs">
-        <div class="notif-tab active" data-tab="all" onclick="switchTab('all')">
-            <i class="fas fa-th-large"></i> All
-            <span class="tab-count" id="countAll">0</span>
-        </div>
-        <div class="notif-tab" data-tab="chat" onclick="switchTab('chat')">
-            <i class="fas fa-comments"></i> Messages
-            <span class="tab-count" id="countChat">0</span>
-        </div>
-        <div class="notif-tab" data-tab="activity" onclick="switchTab('activity')">
-            <i class="fas fa-bell"></i> Activity
-            <span class="tab-count" id="countActivity">0</span>
-        </div>
-    </div>
+    {{-- Thread / message panel --}}
+    <div class="chat-thread" id="chatThread">
 
-    <div class="notif-list" id="notifList">
-        <div class="notif-loading">
-            <i class="fas fa-spinner fa-spin"></i>
-            Loading notifications…
+        <div class="thread-empty-state" id="threadEmptyState">
+            <i class="fas fa-comment-dots"></i>
+            <h3>Your Messages</h3>
+            <p>Select a conversation or search for someone to start chatting.</p>
         </div>
+
+        <div id="threadView">
+            <div class="thread-header">
+                <div class="thread-header-avatar" id="threadAvatar"></div>
+                <div class="thread-header-info">
+                    <strong id="threadName"></strong>
+                    <small id="threadSub"></small>
+                </div>
+            </div>
+
+            <div class="thread-messages" id="threadMessages"></div>
+
+            <div class="thread-input-area">
+                <textarea id="threadInput" rows="1" placeholder="Type a message… (Enter to send)"
+                    oninput="ChatSystem.autoResize(this)"
+                    onkeydown="ChatSystem.handleKey(event)"></textarea>
+                <button class="thread-send-btn" id="threadSendBtn" onclick="ChatSystem.send()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
     </div>
 
 @endsection

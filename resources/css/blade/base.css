@@ -523,9 +523,9 @@ body {
         padding: 15px 20px;
     }
     .logo {
-    height: 80px;
-    width: auto;
-    object-fit: contain;
+        height: 80px;
+        width: auto;
+        object-fit: contain;
         height: 60px;
         min-width: 60px;
     }
@@ -590,4 +590,60 @@ body {
     .footer i {
         font-size: 18px;
     }
+}
+
+
+/* Notifications */
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    padding: 12px 20px;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 350px;
+    border-left: 4px solid var(--gold);
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification-content i {
+    font-size: 20px;
+}
+
+.notification-error {
+    border-left-color: #dc3545;
+}
+
+.notification-error i {
+    color: #dc3545;
+}
+
+.notification-success {
+    border-left-color: #28a745;
+}
+
+.notification-success i {
+    color: #28a745;
+}
+
+.notification-info {
+    border-left-color: #17a2b8;
+}
+
+.notification-info i {
+    color: #17a2b8;
 }

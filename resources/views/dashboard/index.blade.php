@@ -1,9 +1,17 @@
+{{-- resources/views/dashboard/index.blade.php --}}
+{{-- Top-nav (search, notifications, profile pic) is rendered by
+     partials/dashboard-header, included automatically by layouts/authenticated.
+     Do NOT duplicate it here. --}}
 @extends('layouts.authenticated')
 
 @section('title', 'Dashboard — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/dashboard/index.css', 'resources/js/blade/dashboard/index.js'])
+    @vite(['resources/css/blade/dashboard/index.css'])
+@endpush
+
+@push('scripts')
+    @vite(['resources/js/blade/dashboard/index.js'])
 @endpush
 
 @push('body-attrs')
@@ -11,7 +19,7 @@
     data-dashboard-user-name="{{ Auth::user()->name ?? '' }}"
     data-dashboard-user-avatar="{{ Auth::user()->avatar ?? '' }}"
     data-dashboard-user-type="{{ Auth::user()->type ?? '' }}"
-    data-dashboard-user-verified="{{ Auth::user()->verified ? '1' : '0' }}"
+    data-dashboard-user-verified="{{ (Auth::user()->verified ?? false) ? '1' : '0' }}"
 @endpush
 
 @section('page-class', 'main-content')
@@ -22,8 +30,8 @@
     {{-- Config available to JS --}}
     <script>
         window.__dashboardConfig = {
-            pusherKey:    "{{ config('broadcasting.connections.pusher.key') }}",
-            pusherCluster:"{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}",
+            pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
+            pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}",
             userId: {{ Auth::id() ?? 'null' }},
             user: {
                 id:        {{ Auth::id() ?? 'null' }},
@@ -31,70 +39,10 @@
                 firstName: @json(Auth::check() ? explode(' ', Auth::user()->name)[0] : ''),
                 avatar:    @json(Auth::user()->avatar ?? ''),
                 type:      @json(Auth::user()->type ?? ''),
-                verified:  {{ Auth::user()->verified ? 'true' : 'false' }}
+                verified:  {{ (Auth::user()->verified ?? false) ? 'true' : 'false' }}
             }
         };
     </script>
-
-    {{-- Top nav --}}
-    <div class="top-nav">
-        <div class="nav-left">
-            <h1 id="welcomeMessage">Welcome Back!</h1>
-            <p>Here's what's happening with your trips today</p>
-        </div>
-        <div class="nav-right">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search destinations, hotels, flights…">
-            </div>
-
-            <button class="notification-btn" onclick="toggleNotifications()">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge" id="notificationCount" style="display:none;">0</span>
-            </button>
-
-            <div class="notification-dropdown" id="notificationDropdown">
-                <div class="notification-header">
-                    <h3><i class="fas fa-bell"></i> Notifications</h3>
-                    <div style="display:flex;gap:10px;">
-                        <button class="compose-message-btn" onclick="openComposeMessage()" title="Send a message">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                        <button class="mark-all-read" onclick="markAllRead()">Mark all as read</button>
-                    </div>
-                </div>
-                <div class="notification-tabs">
-                    <div class="notification-tab active" data-tab="all" onclick="switchNotificationTab('all')">
-                        <i class="fas fa-th-large"></i> All
-                    </div>
-                    <div class="notification-tab" data-tab="chat" onclick="switchNotificationTab('chat')">
-                        <i class="fas fa-comments"></i> Chat
-                    </div>
-                    <div class="notification-tab" data-tab="activity" onclick="switchNotificationTab('activity')">
-                        <i class="fas fa-bell"></i> Activity
-                    </div>
-                </div>
-                <div class="notification-list" id="notificationList"></div>
-                <div class="notification-footer">
-                    <a href="/notifications" class="view-all-notifications">View All Notifications</a>
-                </div>
-            </div>
-
-            <div class="nav-profile-pic" onclick="viewProfile()">
-                @if(Auth::check() && Auth::user()->avatar)
-                    <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}">
-                @else
-                    <div class="placeholder">
-                        {{ Auth::check()
-                            ? strtoupper(substr(Auth::user()->name, 0, 1) . (str_contains(Auth::user()->name, ' ')
-                                ? substr(Auth::user()->name, strpos(Auth::user()->name, ' ') + 1, 1)
-                                : ''))
-                            : 'U' }}
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
 
     {{-- Stats --}}
     <div class="stats-grid">

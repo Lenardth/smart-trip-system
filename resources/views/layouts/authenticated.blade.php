@@ -3,23 +3,23 @@
 
 @push('styles')
     @vite(['resources/css/blade/base.css'])
-    @vite(['resources/js/blade/base.js'])
 @endpush
 
 @push('scripts')
+    @vite(['resources/js/blade/base.js'])
     @vite(['resources/js/session-timeout.js'])
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             window.userData = {
-                id: '{{ Auth::id() }}',
-                name: '{{ Auth::user()->name ?? '' }}',
-                avatar: '{{ Auth::user()->avatar ?? '' }}',
-                type: '{{ Auth::user()->type ?? '' }}',
-                verified: '{{ Auth::user()->verified ? '1' : '0' }}'
+                id:       '{{ Auth::id() }}',
+                name:     '{{ Auth::user()->name ?? '' }}',
+                avatar:   '{{ Auth::user()->avatar ?? '' }}',
+                type:     '{{ Auth::user()->type ?? '' }}',
+                verified: '{{ (Auth::user()->verified ?? false) ? '1' : '0' }}'
             };
 
             window.pusherConfig = {
-                key: '{{ config('broadcasting.connections.pusher.key') }}',
+                key:     '{{ config('broadcasting.connections.pusher.key') }}',
                 cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}'
             };
         });
@@ -30,11 +30,12 @@
     @include('partials.dashboard-sidebar')
 
     <div class="@yield('page-class', 'main-content')" id="@yield('page-id', 'mainContent')">
-        @if($withHeader ?? true)
+        {{-- Only show header if not on chat page or if explicitly enabled --}}
+        @if(!isset($hideHeader) && ($withHeader ?? true))
             @include('partials.dashboard-header')
         @endif
 
-        <main>
+        <main @if(isset($fullPage) && $fullPage) style="padding: 0; height: 100%;" @endif>
             @yield('content')
         </main>
     </div>
