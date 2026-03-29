@@ -1,9 +1,5 @@
-{{-- resources/views/layouts/app.blade.php --}}
-@extends('layouts.authenticated')
 
-@push('styles')
-    @vite(['resources/css/app.css'])
-@endpush
+@extends('layouts.authenticated')
 
 @push('scripts')
     @vite(['resources/js/app.js'])
