@@ -6,6 +6,12 @@ error_reporting(E_ALL);
 try {
     define('LARAVEL_START', microtime(true));
 
+    putenv('APP_CONFIG_CACHE=/tmp/config.php');
+    putenv('CACHE_STORE=array');
+    putenv('CACHE_DRIVER=array');
+    putenv('SESSION_DRIVER=cookie');
+    putenv('QUEUE_CONNECTION=sync');
+
     if ($dbUrl = getenv('DATABASE_URL')) {
         $url = parse_url($dbUrl);
         parse_str($url['query'] ?? '', $query);
