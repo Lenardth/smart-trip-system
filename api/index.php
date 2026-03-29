@@ -1,4 +1,5 @@
 <?php
+
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 
@@ -7,6 +8,8 @@ try {
 
     if ($dbUrl = getenv('DATABASE_URL')) {
         $url = parse_url($dbUrl);
+        parse_str($url['query'] ?? '', $query);
+
         $vars = [
             'DB_CONNECTION' => 'pgsql',
             'DB_HOST'       => $url['host'],
@@ -14,8 +17,9 @@ try {
             'DB_DATABASE'   => ltrim($url['path'], '/'),
             'DB_USERNAME'   => $url['user'],
             'DB_PASSWORD'   => $url['pass'],
-            'DB_SSLMODE'    => 'require',
+            'DB_SSLMODE'    => $query['sslmode'] ?? 'require',
         ];
+
         foreach ($vars as $key => $value) {
             putenv("$key=$value");
             $_ENV[$key] = $value;
@@ -31,8 +35,11 @@ try {
         '/tmp/storage/app/public',
         '/tmp/bootstrap/cache',
     ];
+
     foreach ($dirs as $dir) {
-        if (!is_dir($dir)) mkdir($dir, 0777, true);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
     }
 
     putenv('APP_SERVICES_CACHE=/tmp/bootstrap/cache/services.php');
@@ -42,37 +49,33 @@ try {
     putenv('APP_EVENTS_CACHE=/tmp/bootstrap/cache/events.php');
 
     require __DIR__ . '/../vendor/autoload.php';
+
     $app = require __DIR__ . '/../bootstrap/app.php';
     $app->useStoragePath('/tmp/storage');
 
-    $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
-
-    try {
-        $artisan->call('migrate', ['--force' => true]);
-    } catch (\Throwable $e) {
-        error_log('Migration failed: ' . $e->getMessage());
-    }
-
-    if (getenv('RUN_SEEDS_ONCE') === 'true') {
-        $artisan->call('db:seed', ['--class' => 'DestinationSeeder', '--force' => true]);
-        $artisan->call('db:seed', ['--class' => 'CommunitySeeder',   '--force' => true]);
-    }
-
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-    $response = $kernel->handle(
-        $request = Illuminate\Http\Request::capture()
-    )->send();
+
+    $request = Illuminate\Http\Request::capture();
+    $response = $kernel->handle($request);
+
+    $response->send();
+
     $kernel->terminate($request, $response);
 
 } catch (\Throwable $e) {
     http_response_code(500);
+
     echo '<pre>';
+
     $current = $e;
     while ($current) {
         echo get_class($current) . ': ' . $current->getMessage() . "\n";
         echo 'in ' . $current->getFile() . ':' . $current->getLine() . "\n\n";
         $current = $current->getPrevious();
     }
+
+    echo "\nTRACE:\n";
     echo $e->getTraceAsString();
+
     echo '</pre>';
 }
