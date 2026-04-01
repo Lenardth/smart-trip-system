@@ -1,4 +1,3 @@
-{{-- partials/public-navigation.blade.php --}}
 <header class="main-header">
     <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
     <div class="logo-text">Smart Booking</div>
@@ -72,15 +71,24 @@
     <i class="fas fa-bars"></i>
 </button>
 
+@push('scripts')
 <script>
-    const navToggle = document.getElementById('navToggle');
-    const publicNav = document.getElementById('publicNav');
-    if (navToggle && publicNav) {
-        navToggle.addEventListener('click', () => publicNav.classList.toggle('open'));
-        document.addEventListener('click', (e) => {
-            if (publicNav.classList.contains('open') && !publicNav.contains(e.target) && e.target !== navToggle) {
+    (function () {
+        const navToggle = document.getElementById('navToggle');
+        const publicNav = document.getElementById('publicNav');
+        if (!navToggle || !publicNav) return;
+
+        navToggle.addEventListener('click', function () {
+            publicNav.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (publicNav.classList.contains('open')
+                && !publicNav.contains(e.target)
+                && e.target !== navToggle) {
                 publicNav.classList.remove('open');
             }
         });
-    }
+    })();
 </script>
+@endpush

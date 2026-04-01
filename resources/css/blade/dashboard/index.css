@@ -358,12 +358,15 @@ body {
 
 .main-content {
     flex: 1;
+    background: var(--cream);
+    min-height: 100vh;
+}
+
+.sidebar~.main-content {
     margin-left: 260px;
     padding: 25px;
     transition: all .3s ease;
     max-width: calc(100% - 260px);
-    background: var(--cream);
-    min-height: 100vh;
 }
 
 .top-nav {
@@ -1361,7 +1364,7 @@ input[type="file"] {
     .sidebar.active {
         transform: translateX(0);
     }
-    .main-content {
+    .sidebar~.main-content {
         margin-left: 0;
         max-width: 100%;
     }

@@ -12,7 +12,7 @@
         <div class="notification-wrapper">
             <button class="notification-btn" onclick="toggleNotifications()">
                 <i class="fas fa-bell"></i>
-                <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                <span class="notification-badge" id="notificationCount" style="display:none;">0</span>
             </button>
 
             <div class="notification-dropdown" id="notificationDropdown">
@@ -38,9 +38,7 @@
                     </div>
                 </div>
 
-                <div class="notification-list" id="notificationList">
-                    <!-- Notifications will be loaded here -->
-                </div>
+                <div class="notification-list" id="notificationList"></div>
 
                 <div class="notification-footer">
                     <a href="{{ route('notifications.index') }}" class="view-all-notifications">View All Notifications</a>
@@ -53,9 +51,7 @@
                 @if(Auth::user()->avatar)
                     <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}">
                 @else
-                    <div class="placeholder">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </div>
+                    <div class="placeholder">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</div>
                 @endif
             @endauth
         </div>

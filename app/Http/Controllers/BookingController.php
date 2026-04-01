@@ -42,7 +42,7 @@ class BookingController extends Controller
             return back()->with('error', 'Booking already cancelled.');
         }
 
-        $booking->flight->increment('seats_available', $booking->passenger_count);
+        $booking->flight->increment('seats_available', $booking->seats_booked);
 
         $booking->update(['status' => 'cancelled']);
 
@@ -51,7 +51,7 @@ class BookingController extends Controller
 
     public function agencyBookings()
     {
-        if (!Auth::user()->isAgency()) {
+        if (! Auth::user()->isAgency()) {
             return redirect()->route('dashboard');
         }
 

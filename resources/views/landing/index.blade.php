@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<section class="hero">
+<section class="hero" style="background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)), url('https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg'); background-size: cover; background-position: center;">
     <div class="hero-content">
         <h1>Plan Your Perfect Journey with AI</h1>
         <p>Personalized travel recommendations based on your mood, preferences, and budget. Discover destinations you'll love.</p>

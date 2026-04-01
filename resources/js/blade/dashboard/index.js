@@ -37,6 +37,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         initializeRealTimeChat();
         initNotificationListDelegate();
         initTripSavedListener();
+        initWishlistUpdateListener();
         consumePendingTripSave();
     });
 
@@ -71,6 +72,24 @@ window.__dashboardConfig = window.__dashboardConfig || {
                 loadUserStatistics();
                 showTripSavedToast(payload.destination || 'Your trip');
             } catch (_) {}
+        });
+    }
+
+    /**
+     * Listen for wishlist updates made in other tabs. When a tab modifies
+     * the wishlist (add/remove), it sets a timestamp in
+     * localStorage under the key `smartBookingWishlistUpdated`. The
+     * storage event fires in other windows, allowing us to refresh
+     * the saved count displayed on the dashboard without requiring a full
+     * page reload.
+     */
+    function initWishlistUpdateListener() {
+        window.addEventListener('storage', function (e) {
+            if (e.key !== 'smartBookingWishlistUpdated' || !e.newValue) return;
+            // Remove the key so subsequent updates trigger again
+            try { localStorage.removeItem('smartBookingWishlistUpdated'); } catch (_) {}
+            // Re-fetch user statistics to update the saved count
+            loadUserStatistics();
         });
     }
 

@@ -7,7 +7,6 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class FlightController extends Controller
 {
@@ -56,11 +55,12 @@ class FlightController extends Controller
         return response()->json([
             'success' => true,
             'flights' => $flights->map(function ($f) {
-                $fromCode = strtoupper(substr((string) $f->departure_city, 0, 3));
-                $toCode   = strtoupper(substr((string) $f->arrival_city, 0, 3));
+                $fromCode        = strtoupper(substr((string) $f->departure_city, 0, 3));
+                $toCode          = strtoupper(substr((string) $f->arrival_city, 0, 3));
                 $durationMinutes = $f->arrival_time && $f->departure_time
                     ? $f->arrival_time->diffInMinutes($f->departure_time)
                     : null;
+
                 return [
                     'id'              => $f->id,
                     'airline'         => $f->airline,
@@ -72,7 +72,9 @@ class FlightController extends Controller
                     'to_code'         => $toCode,
                     'departure_time'  => optional($f->departure_time)->format('H:i'),
                     'arrival_time'    => optional($f->arrival_time)->format('H:i'),
-                    'duration'        => $durationMinutes ? floor($durationMinutes / 60) . 'h ' . ($durationMinutes % 60) . 'm' : '—',
+                    'duration'        => $durationMinutes
+                        ? floor($durationMinutes / 60) . 'h ' . ($durationMinutes % 60) . 'm'
+                        : '—',
                     'stops'           => 0,
                     'price'           => (float) $f->price,
                     'class'           => $f->class,
@@ -81,7 +83,7 @@ class FlightController extends Controller
                     'amenities'       => ['Meals', 'Entertainment'],
                 ];
             }),
-            'count'   => $flights->count(),
+            'count' => $flights->count(),
         ]);
     }
 
@@ -93,16 +95,17 @@ class FlightController extends Controller
 
     public function create()
     {
-        if (!Auth::user()->isAgency()) {
+        if (! Auth::user()->isAgency()) {
             return redirect()->route('flights.index')
                 ->with('error', 'Only travel agencies can create flights.');
         }
+
         return view('flights.create');
     }
 
     public function store(Request $request)
     {
-        if (!Auth::user()->isAgency()) {
+        if (! Auth::user()->isAgency()) {
             return redirect()->route('flights.index')
                 ->with('error', 'Only travel agencies can create flights.');
         }
@@ -132,7 +135,7 @@ class FlightController extends Controller
 
     public function myFlights()
     {
-        if (!Auth::user()->isAgency()) {
+        if (! Auth::user()->isAgency()) {
             return redirect()->route('dashboard');
         }
 
@@ -161,12 +164,11 @@ class FlightController extends Controller
         DB::beginTransaction();
         try {
             $booking = Booking::create([
-                'user_id'           => Auth::id(),
-                'flight_id'         => $flight->id,
-                'passenger_count'   => $validated['seats'],
-                'total_price'       => $flight->price * $validated['seats'],
-                'status'            => 'confirmed',
-                'booking_reference' => strtoupper(Str::random(8)),
+                'user_id'     => Auth::id(),
+                'flight_id'   => $flight->id,
+                'seats_booked' => $validated['seats'],
+                'total_price' => $flight->price * $validated['seats'],
+                'status'      => 'confirmed',
             ]);
 
             $flight->decrement('seats_available', $validated['seats']);
@@ -182,10 +184,12 @@ class FlightController extends Controller
                 ]);
             }
 
-            return redirect()->route('bookings.show', $booking)->with('success', 'Flight booked successfully!');
+            return redirect()->route('bookings.show', $booking)
+                ->with('success', 'Flight booked successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -204,6 +208,7 @@ class FlightController extends Controller
         }
 
         $flight->update(['is_active' => false]);
+
         return back()->with('success', 'Flight cancelled successfully.');
     }
 }

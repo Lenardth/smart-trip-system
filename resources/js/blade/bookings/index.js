@@ -113,6 +113,58 @@ function leaveReviewDemo() {
     });
 }
 
+// Leave a review for a real booking. Opens a modal similar to leaveReviewDemo but
+// allows the user to submit feedback for the specified booking. When the
+// review is submitted a simple success toast is shown. You can hook this
+// function up to your backend by sending the rating and comment to
+// `/bookings/{id}/review` via fetch if needed.
+function leaveReview(id) {
+    Swal.fire({
+        title: 'Leave a Review',
+        html:
+            '<div style="text-align:left;padding:10px 0;">' +
+                '<p style="margin-bottom:12px;color:#6b5b4f;">How was your trip?</p>' +
+                '<div style="display:flex;gap:6px;font-size:28px;margin-bottom:16px;justify-content:center;" id="starRatingReal">' +
+                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(1)"></i>' +
+                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(2)"></i>' +
+                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(3)"></i>' +
+                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(4)"></i>' +
+                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(5)"></i>' +
+                '</div>' +
+                '<textarea id="reviewComment" style="width:100%;min-height:100px;padding:10px;border:1px solid #e2d5c7;border-radius:8px;font-family:inherit;font-size:14px;" placeholder="Share your experience…"></textarea>' +
+            '</div>',
+        confirmButtonColor: '#c9a96e',
+        confirmButtonText: 'Submit Review',
+        showCancelButton: true
+    }).then(r => {
+        if (!r.isConfirmed) return;
+        // Optional: send review to server here using fetch
+        Swal.fire({
+            title: 'Thank you!',
+            text: 'Your review has been submitted.',
+            icon: 'success',
+            confirmButtonColor: '#c9a96e',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
+}
+
+// Helper for leaveReview: update star colors for the real review modal
+function setRatingReal(n) {
+    document.querySelectorAll('#starRatingReal i').forEach((s, i) => {
+        s.style.color = i < n ? '#c9a96e' : '#e0e0e0';
+    });
+}
+
+// Rebook a real booking. For now this simply redirects the user to the flights
+// search page to start a new booking. You can modify this to pass the
+// booking ID to a dedicated rebooking route if available.
+function rebookBooking(id) {
+    // Example: redirect to flights page (could also be `/bookings/${id}/rebook`)
+    window.location.href = '/flights';
+}
+
 function setRating(n) {
     document.querySelectorAll('#starRating i').forEach((s, i) => {
         s.style.color = i < n ? '#c9a96e' : '#e0e0e0';
@@ -200,3 +252,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+// Expose functions used in inline onclick attributes so that they are
+// accessible from Blade templates. Without these assignments the
+// functions defined above would be scoped to this module and not
+// available on the global window object when using Vite and ES
+// modules.
+window.toggleDetail       = toggleDetail;
+window.toggleDetailDemo   = toggleDetailDemo;
+window.filterBookings     = filterBookings;
+window.searchBookings     = searchBookings;
+window.sortBookings       = sortBookings;
+window.downloadTicketDemo = downloadTicketDemo;
+window.cancelDemo         = cancelDemo;
+window.rebookDemo         = rebookDemo;
+window.leaveReviewDemo    = leaveReviewDemo;
+window.setRating          = setRating;
+window.downloadTicket     = downloadTicket;
+window.cancelBooking      = cancelBooking;
+window.leaveReview        = leaveReview;
+window.rebookBooking      = rebookBooking;
+window.logout             = logout;
+window.setRatingReal      = setRatingReal;

@@ -5,7 +5,7 @@
 @endpush
 
 @push('scripts')
-    @stack('scripts_body')  {{-- ADD THIS --}}
+    @stack('scripts_body')
 @endpush
 
 @section('body')

@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<section class="page-hero">
+<section class="page-hero" style="background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)), url('https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-heart"></i> My Wishlist</h1>
         <p>Your dream destinations await</p>

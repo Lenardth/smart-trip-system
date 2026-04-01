@@ -44,4 +44,15 @@
     window.togglePublicNav = togglePublicNav;
     window.toggleSidebar = window.toggleSidebar || toggleSidebar;
     document.addEventListener('DOMContentLoaded', loadWishlistCount);
+
+    // Listen for wishlist updates from other tabs. When a destination is added
+    // or removed from the wishlist in another tab, that tab will set the
+    // `smartBookingWishlistUpdated` key in localStorage with a timestamp.
+    // The `storage` event only fires in other windows, so this listener
+    // refreshes the wishlist badge count accordingly. We do not remove the
+    // key here; the originating tab typically cleans up after itself.
+    window.addEventListener('storage', function (e) {
+        if (e.key !== 'smartBookingWishlistUpdated' || !e.newValue) return;
+        loadWishlistCount();
+    });
 })();

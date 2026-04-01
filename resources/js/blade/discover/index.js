@@ -95,6 +95,13 @@ const Discover = (() => {
                     icon.className = 'far fa-heart';
                     btn.title = 'Save to Wishlist';
                     showToast('Removed from wishlist', 'fa-heart-broken');
+                    // Notify other tabs that the wishlist has been updated. When a user
+                    // removes a destination from their wishlist on the discover page,
+                    // we set a timestamp in localStorage. Other open tabs listen for
+                    // this key and refresh their wishlist counts accordingly.
+                    try {
+                        localStorage.setItem('smartBookingWishlistUpdated', String(Date.now()));
+                    } catch (_) {}
                 })
                 .catch(() => showToast('Could not remove', 'fa-exclamation-circle'));
         } else {
@@ -113,6 +120,10 @@ const Discover = (() => {
                     icon.className = 'fas fa-heart';
                     btn.title = 'Remove from Wishlist';
                     showToast('Saved to Wishlist!', 'fa-heart');
+                    // Notify other tabs of wishlist update when adding a destination
+                    try {
+                        localStorage.setItem('smartBookingWishlistUpdated', String(Date.now()));
+                    } catch (_) {}
                 })
                 .catch(() => showToast('Could not save', 'fa-exclamation-circle'));
         }

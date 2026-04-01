@@ -76,6 +76,15 @@ const Wishlist = (() => {
                 confirmButtonColor: '#c9a96e',
                 timer: 2000
             });
+            // Notify other tabs that the wishlist has been updated. This allows
+            // the dashboard page to refresh its saved count when an item is
+            // removed from the wishlist in another tab. The storage event will
+            // trigger on other windows but not this one. After setting the
+            // key we remove it to avoid cluttering localStorage.
+            try {
+                localStorage.setItem('smartBookingWishlistUpdated', String(Date.now()));
+            } catch (_) {}
+            // Reload the page to reflect the removal on this wishlist page.
             window.location.reload();
         } catch {
             Swal.fire({

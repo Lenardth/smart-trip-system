@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<section class="page-hero accommodations-hero">
+<section class="page-hero accommodations-hero" style="background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)), url('https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-hotel"></i> Find Accommodation</h1>
         <p>Browse accommodation options and match your trip style.</p>

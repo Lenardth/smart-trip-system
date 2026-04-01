@@ -13,7 +13,7 @@
 @endpush
 
 @section('content')
-<section class="page-hero">
+<section class="page-hero" style="background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)), url('https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-route"></i> Plan Your Trip</h1>
         <p>Let AI build the perfect itinerary tailored to your mood, budget, and style.</p>
