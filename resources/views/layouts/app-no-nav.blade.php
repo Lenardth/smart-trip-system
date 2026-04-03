@@ -1,7 +1,7 @@
 @extends('layouts.base')
 
 @push('styles')
-    @vite(['resources/css/blade/base.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @push('scripts')

@@ -9,7 +9,7 @@
 @section('page-id', 'mainContent')
 
 @push('styles')
-    @vite(['resources/css/blade/dashboard/index.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @push('body-attrs')
@@ -21,7 +21,7 @@
 @endpush
 
 @push('scripts')
-    @vite(['resources/js/blade/dashboard/index.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.__dashboardConfig = {

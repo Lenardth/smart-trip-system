@@ -1,46 +1,31 @@
-@extends('layouts.base')
+<x-guest-layout>
+    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
+    </div>
 
-@section('title', 'Verify Email — Smart Booking')
-
-@push('styles')
-    @vite(['resources/css/blade/base.css', 'resources/css/blade/auth/verify-email.css'])
-@endpush
-
-@section('body')
-<div class="auth-page">
-    <div class="auth-card">
-        <div class="auth-logo">
-            <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking">
+    @if (session('status') == 'verification-link-sent')
+        <div class="mb-4 font-medium text-sm text-green-600 dark:text-green-400">
+            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
         </div>
-        <h1 class="auth-title">Verify Your Email</h1>
-        <p class="auth-subtitle">Thanks for signing up! Please verify your email address by clicking the link we sent to your inbox.</p>
+    @endif
 
-        @if(session('status') == 'verification-link-sent')
-            <div class="success-message">
-                A new verification link has been sent to your email address!
-            </div>
-        @endif
-
-        <div class="info-box">
-            <i class="fas fa-envelope-open"></i>
-            Check your email inbox for the verification link. Don't forget to check your spam folder!
-        </div>
-
+    <div class="mt-4 flex items-center justify-between">
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
-            <button type="submit" class="auth-btn">
-                <i class="fas fa-paper-plane"></i> Resend Verification Email
-            </button>
-        </form>
 
-        <div class="auth-divider"><span>Or</span></div>
+            <div>
+                <x-primary-button>
+                    {{ __('Resend Verification Email') }}
+                </x-primary-button>
+            </div>
+        </form>
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="auth-link" style="border:none;background:transparent;width:100%;cursor:pointer;">
-                <i class="fas fa-sign-out-alt"></i> Log Out
+
+            <button type="submit" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
+                {{ __('Log Out') }}
             </button>
         </form>
     </div>
-</div>
-@endsection
+</x-guest-layout>

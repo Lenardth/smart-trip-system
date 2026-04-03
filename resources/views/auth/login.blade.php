@@ -1,75 +1,47 @@
-@extends('layouts.base')
+<x-guest-layout>
+    <!-- Session Status -->
+    <x-auth-session-status class="mb-4" :status="session('status')" />
 
-@section('title', 'Login — Smart Booking')
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
 
-@push('styles')
-    @vite(['resources/css/blade/base.css', 'resources/css/blade/auth/login.css'])
-@endpush
-
-@push('scripts')
-    @vite(['resources/js/blade/login.js'])
-@endpush
-
-@section('body')
-<div class="auth-page">
-    <div class="auth-card">
-        <div class="auth-logo">
-            <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking">
+        <!-- Email Address -->
+        <div>
+            <x-input-label for="email" :value="__('Email')" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
-        <h1 class="auth-title">Welcome Back</h1>
 
-        @if(session('success'))
-            <div class="success-message">{{ session('success') }}</div>
-        @endif
+        <!-- Password -->
+        <div class="mt-4">
+            <x-input-label for="password" :value="__('Password')" />
 
-        @if($errors->any())
-            <div class="error-message">
-                @foreach($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
+            <x-text-input id="password" class="block mt-1 w-full"
+                            type="password"
+                            name="password"
+                            required autocomplete="current-password" />
 
-        <form method="POST" action="{{ route('login') }}" id="loginForm">
-            @csrf
-            <div class="input-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email"
-                    class="auth-input @error('email') is-invalid @enderror"
-                    value="{{ old('email') }}" required autofocus placeholder="your@email.com">
-                @error('email')
-                    <div class="input-error">{{ $message }}</div>
-                @enderror
-            </div>
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        </div>
 
-            <div class="input-group">
-                <label for="password">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" name="password"
-                        class="auth-input @error('password') is-invalid @enderror"
-                        required placeholder="Enter your password">
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
-                        <i id="toggleIcon" class="fas fa-eye-slash"></i>
-                    </button>
-                </div>
-                @error('password')
-                    <div class="input-error">{{ $message }}</div>
-                @enderror
-            </div>
+        <!-- Remember Me -->
+        <div class="block mt-4">
+            <label for="remember_me" class="inline-flex items-center">
+                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
+                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+            </label>
+        </div>
 
-            <div class="remember-me">
-                <input type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
-                <label for="remember" style="margin:0;font-weight:normal;cursor:pointer;">Remember me</label>
-            </div>
+        <div class="flex items-center justify-end mt-4">
+            @if (Route::has('password.request'))
+                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
+                    {{ __('Forgot your password?') }}
+                </a>
+            @endif
 
-            <button type="submit" class="auth-btn" id="loginBtn">
-                <i class="fas fa-sign-in-alt"></i> Log In
-            </button>
-        </form>
-
-        <div class="auth-divider"><span>Don't have an account?</span></div>
-        <a href="{{ route('register') }}" class="auth-link"><i class="fas fa-user-plus"></i> Create New Account</a>
-        <a href="/" class="auth-link" style="margin-top:10px;"><i class="fas fa-home"></i> Back to Home</a>
-    </div>
-</div>
-@endsection
+            <x-primary-button class="ms-3">
+                {{ __('Log in') }}
+            </x-primary-button>
+        </div>
+    </form>
+</x-guest-layout>

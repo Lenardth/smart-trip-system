@@ -6,7 +6,7 @@
 @section('page-id', 'notificationsPage')
 
 @push('styles')
-    @vite(['resources/css/blade/notifications/index.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @push('body-attrs')
@@ -16,7 +16,7 @@
 @endpush
 
 @push('scripts')
-    @vite(['resources/js/blade/notifications/index.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @section('content')

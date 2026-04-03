@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @push('styles')
-    @vite(['resources/css/blade/bookings/index.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @section('content')

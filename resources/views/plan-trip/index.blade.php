@@ -4,7 +4,7 @@
 @section('title', 'Plan Trip — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/plan-trip/index.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .mood-section-label {
             font-size: 13px;
@@ -158,7 +158,7 @@
 @endpush
 
 @push('scripts')
-    @vite(['resources/js/blade/plan-trip/index.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 @endpush
 

@@ -3,7 +3,7 @@
 @section('title', 'Contact — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/base.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .static-hero {
             padding: 5rem 2rem 3.5rem;

@@ -5,12 +5,12 @@ class="dashboard-page"
 @endpush
 
 @push('styles')
-    @vite(['resources/css/blade/base.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @push('scripts')
-    @vite(['resources/js/blade/base.js'])
-    @vite(['resources/js/session-timeout.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.userData = {

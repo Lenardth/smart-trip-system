@@ -3,11 +3,11 @@
 @section('title', 'My Wishlist — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/wishlist/index.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @push('scripts_body')
-    @vite(['resources/js/blade/wishlist/index.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @section('content')

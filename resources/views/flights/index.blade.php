@@ -3,11 +3,11 @@
 @section('title', 'Book Flights — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/flights/index.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @push('scripts_body')
-    @vite(['resources/js/blade/flights/index.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @section('content')

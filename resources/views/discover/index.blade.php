@@ -3,11 +3,11 @@
 @section('title', 'Discover — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/discover/index.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @push('scripts_body')
-    @vite(['resources/js/blade/discover/index.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @section('content')
