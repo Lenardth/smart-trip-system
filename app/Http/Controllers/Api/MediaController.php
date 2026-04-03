@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -63,7 +64,7 @@ class MediaController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
-            \Log::error('Media upload error: ' . $e->getMessage());
+            Log::error('Media upload error: ' . $e->getMessage());
             
             return response()->json([
                 'success' => false,

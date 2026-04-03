@@ -1,270 +1,345 @@
-// Set minimum date to today
+// Flight Search Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const form = document.getElementById('flightSearchForm');
+    const fromInput = document.getElementById('from');
+    const toInput = document.getElementById('to');
+    const departureDateInput = document.getElementById('departure_date');
+    const returnDateInput = document.getElementById('return_date');
+    const passengersInput = document.getElementById('passengers');
+    const classSelect = document.getElementById('class');
+    const resultsSection = document.getElementById('resultsSection');
+    const flightResults = document.getElementById('flightResults');
+    const resultsCountSpan = document.getElementById('resultsCount');
+    const sortBySelect = document.getElementById('sortBy');
+    const searchBtn = document.querySelector('.search-btn');
+
+    let currentFlights = [];
+
+    // Set minimum date to today
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('departure_date').setAttribute('min', today);
-    document.getElementById('return_date').setAttribute('min', today);
-
-    // Trip type tabs
-    document.querySelectorAll('.trip-type-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.trip-type-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-
-            const type = this.dataset.type;
-            const returnDateGroup = document.getElementById('returnDateGroup');
-            const returnDateInput = document.getElementById('return_date');
-
-            if (type === 'one-way') {
-                returnDateGroup.style.display = 'none';
-                returnDateInput.removeAttribute('required');
-            } else if (type === 'round-trip') {
-                returnDateGroup.style.display = 'block';
-                returnDateInput.setAttribute('required', 'required');
-            } else if (type === 'multi-city') {
-                Swal.fire({
-                    title: 'Multi-City Flights',
-                    text: 'Multi-city flight search is coming soon!',
-                    icon: 'info',
-                    confirmButtonColor: '#c9a96e'
-                });
-            }
-        });
-    });
-
-    // Departure date change - update return date minimum
-    document.getElementById('departure_date').addEventListener('change', function() {
-        const departureDate = this.value;
-        document.getElementById('return_date').setAttribute('min', departureDate);
-    });
-
-    // Fill route from popular routes
-    function fillRoute(from, to) {
-        document.getElementById('from').value = from;
-        document.getElementById('to').value = to;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    departureDateInput.min = today;
+    if (returnDateInput) {
+        returnDateInput.min = today;
     }
 
-    // Flight search form submission
-    document.getElementById('flightSearchForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+    // Trip type functionality (if you have trip type tabs)
+    const tripTabs = document.querySelectorAll('.trip-type-tab');
+    let currentTripType = 'round-trip';
 
-        const searchBtn = document.querySelector('.search-btn');
-        searchBtn.classList.add('loading');
+    if (tripTabs.length > 0) {
+        tripTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tripTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentTripType = this.dataset.type;
 
-        const formData = {
-            from: document.getElementById('from').value,
-            to: document.getElementById('to').value,
-            departure_date: document.getElementById('departure_date').value,
-            return_date: document.getElementById('return_date').value,
-            passengers: document.getElementById('passengers').value,
-            class: document.getElementById('class').value,
+                // Handle return date field visibility
+                const returnDateGroup = document.getElementById('returnDateGroup');
+                if (currentTripType === 'one-way') {
+                    if (returnDateGroup) returnDateGroup.style.display = 'none';
+                } else {
+                    if (returnDateGroup) returnDateGroup.style.display = 'block';
+                }
+            });
+        });
+    }
+
+    // Handle form submission
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await searchFlights();
+        });
+    }
+
+    // Handle sort functionality
+    if (sortBySelect) {
+        sortBySelect.addEventListener('change', function() {
+            if (currentFlights.length > 0) {
+                displayFlights(currentFlights);
+            }
+        });
+    }
+
+    // Auto-complete/popular routes function (make it global)
+    window.fillRoute = function(from, to) {
+        if (fromInput) fromInput.value = from;
+        if (toInput) toInput.value = to;
+        // Auto search after filling
+        setTimeout(() => searchFlights(), 100);
+    };
+
+    // Search flights function
+    async function searchFlights() {
+        // Validate inputs
+        if (!fromInput.value.trim()) {
+            showError('Please enter departure city or airport');
+            fromInput.focus();
+            return;
+        }
+
+        if (!toInput.value.trim()) {
+            showError('Please enter arrival city or airport');
+            toInput.focus();
+            return;
+        }
+
+        if (!departureDateInput.value) {
+            showError('Please select departure date');
+            departureDateInput.focus();
+            return;
+        }
+
+        // Prepare request data
+        const requestData = {
+            from: fromInput.value.trim(),
+            to: toInput.value.trim(),
+            departure_date: departureDateInput.value,
+            adults: parseInt(passengersInput.value) || 1,
+            travel_class: classSelect.value.toUpperCase()
         };
+
+        // Add return date for round trips
+        if (currentTripType === 'round-trip' && returnDateInput && returnDateInput.value) {
+            requestData.return_date = returnDateInput.value;
+        }
+
+        // Show loading state
+        setLoading(true);
 
         try {
             const response = await fetch('/flights/search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(requestData)
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            searchBtn.classList.remove('loading');
-
-            if (data.success) {
-                displayFlights(data.flights || []);
+            if (result.success) {
+                if (result.flights && result.flights.length > 0) {
+                    currentFlights = result.flights;
+                    displayFlights(currentFlights);
+                    showResultsSection(true);
+                } else {
+                    showNoResults(result.message || 'No flights found for this route and date. Try different dates or destinations.');
+                }
             } else {
-                Swal.fire({
-                    title: 'Search Error',
-                    text: data.message || 'Unable to search flights',
-                    icon: 'error',
-                    confirmButtonColor: '#c9a96e'
-                });
+                showError(result.message || 'Failed to search flights. Please try again.');
             }
         } catch (error) {
-            searchBtn.classList.remove('loading');
             console.error('Search error:', error);
-            Swal.fire({
-                title: 'Network Error',
-                text: 'Could not load flights. Please try again.',
-                icon: 'error',
-                confirmButtonColor: '#c9a96e'
-            });
+            showError('Network error. Please check your connection and try again.');
+        } finally {
+            setLoading(false);
         }
-    });
+    }
 
-    // Display flights
+    // Display flights function
     function displayFlights(flights) {
-        const resultsSection = document.getElementById('resultsSection');
-        const flightResults = document.getElementById('flightResults');
-        const resultsCount = document.getElementById('resultsCount');
+        if (!flightResults) return;
 
-        resultsSection.classList.add('active');
-        resultsCount.textContent = flights.length;
+        // Sort flights
+        const sortBy = sortBySelect ? sortBySelect.value : 'price';
+        const sortedFlights = [...flights].sort((a, b) => {
+            switch(sortBy) {
+                case 'price':
+                    return (a.price || 0) - (b.price || 0);
+                case 'duration':
+                    return getDurationMinutes(a.duration) - getDurationMinutes(b.duration);
+                case 'departure':
+                    return (a.departure_time || '').localeCompare(b.departure_time || '');
+                case 'arrival':
+                    return (a.arrival_time || '').localeCompare(b.arrival_time || '');
+                default:
+                    return 0;
+            }
+        });
 
-        if (flights.length === 0) {
-            flightResults.innerHTML = `
-                <div class="no-results">
-                    <i class="fas fa-plane-slash"></i>
-                    <h3>No Flights Found</h3>
-                    <p>Try adjusting your search criteria</p>
+        // Update results count
+        if (resultsCountSpan) {
+            resultsCountSpan.textContent = sortedFlights.length;
+        }
+
+        // Generate HTML for flights
+        let html = '<div class="flights-list">';
+
+        sortedFlights.forEach((flight, index) => {
+            html += `
+                <div class="flight-card" data-flight-index="${index}">
+                    <div class="flight-header">
+                        <div class="airline-info">
+                            <div class="airline-name">${escapeHtml(flight.airline || 'Airline')}</div>
+                            <div class="flight-number">Flight ${escapeHtml(flight.flight_number || 'N/A')}</div>
+                        </div>
+                        <div class="flight-price">
+                            $${flight.price ? flight.price.toLocaleString() : 'N/A'}
+                            <span class="price-per-person">per person</span>
+                        </div>
+                    </div>
+
+                    <div class="flight-body">
+                        <div class="flight-route">
+                            <div class="departure-info">
+                                <div class="time">${escapeHtml(flight.departure_time || '--:--')}</div>
+                                <div class="airport">${escapeHtml(flight.departure_airport || flight.origin || 'Departure')}</div>
+                                <div class="date">${formatDate(flight.departure_date || departureDateInput.value)}</div>
+                            </div>
+
+                            <div class="flight-duration">
+                                <div class="duration-line"></div>
+                                <div class="duration-text">
+                                    <i class="fas fa-plane"></i>
+                                    ${escapeHtml(flight.duration || '--h --m')}
+                                </div>
+                                <div class="stops-info">${flight.stops ? flight.stops + ' stop(s)' : 'Direct'}</div>
+                            </div>
+
+                            <div class="arrival-info">
+                                <div class="time">${escapeHtml(flight.arrival_time || '--:--')}</div>
+                                <div class="airport">${escapeHtml(flight.arrival_airport || flight.destination || 'Arrival')}</div>
+                                <div class="date">${formatDate(flight.arrival_date || departureDateInput.value)}</div>
+                            </div>
+                        </div>
+
+                        <div class="flight-footer">
+                            <div class="baggage-info">
+                                <i class="fas fa-suitcase"></i> ${flight.baggage || '1 bag included'}
+                            </div>
+                            <button class="book-flight-btn" onclick="bookFlight(${index})">
+                                <i class="fas fa-ticket-alt"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `;
-            return;
-        }
+        });
 
-        flightResults.innerHTML = flights.map(flight => `
-            <div class="flight-card">
-                <div class="flight-header">
-                    <div class="airline-info">
-                        <div class="airline-logo">${flight.airline_logo}</div>
-                        <div class="airline-details">
-                            <h4>${flight.airline}</h4>
-                            <p>${flight.flight_number} • ${flight.class.replace('_', ' ').toUpperCase()}</p>
-                        </div>
-                    </div>
-                    <div class="flight-price">
-                        <div class="price">$${flight.price}</div>
-                        <div class="price-label">per person</div>
-                    </div>
-                </div>
-
-                <div class="flight-route">
-                    <div class="route-point">
-                        <div class="time">${flight.departure_time}</div>
-                        <div class="airport-code">${(flight.from_code || flight.from.substring(0, 3)).toUpperCase()}</div>
-                        <div class="location">${flight.from}</div>
-                    </div>
-                    <div class="route-divider">
-                        <div class="route-line"></div>
-                        <div class="route-icon"><i class="fas fa-plane"></i></div>
-                        <div class="route-duration">${flight.duration} ${flight.stops === 0 ? '• Direct' : '• ' + flight.stops + ' stop'}</div>
-                    </div>
-                    <div class="route-point">
-                        <div class="time">${flight.arrival_time}</div>
-                        <div class="airport-code">${(flight.to_code || flight.to.substring(0, 3)).toUpperCase()}</div>
-                        <div class="location">${flight.to}</div>
-                    </div>
-                </div>
-
-                <div class="flight-details">
-                    <div class="detail-item">
-                        <i class="fas fa-suitcase"></i>
-                        <span><strong>Baggage:</strong> ${flight.baggage}</span>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-chair"></i>
-                        <span><strong>Seats:</strong> ${flight.seats_available} available</span>
-                    </div>
-                    ${flight.amenities ? flight.amenities.map(a => `
-                        <div class="detail-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>${a}</span>
-                        </div>
-                    `).join('') : ''}
-                </div>
-
-                <div class="flight-tags">
-                    ${flight.stops === 0 ? '<span class="flight-tag">Direct Flight</span>' : ''}
-                    ${flight.seats_available < 5 ? '<span class="flight-tag warning">Only ' + flight.seats_available + ' seats left</span>' : ''}
-                    ${flight.amenities && flight.amenities.includes('WiFi') ? '<span class="flight-tag info">WiFi Available</span>' : ''}
-                </div>
-
-                <button class="book-btn" onclick="bookFlight('${flight.id}', '${flight.airline}', ${flight.price})">
-                    <i class="fas fa-ticket-alt"></i> Book Now - $${flight.price}
-                </button>
-            </div>
-        `).join('');
+        html += '</div>';
+        flightResults.innerHTML = html;
 
         // Scroll to results
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // Book flight
-    async function bookFlight(flightId, airline, price) {
-        const result = await Swal.fire({
-            title: 'Book Flight',
-            html: `
-                <div style="text-align: left; padding: 20px;">
-                    <h4 style="margin-bottom: 15px;">Flight Details</h4>
-                    <p><strong>Airline:</strong> ${airline}</p>
-                    <p><strong>Flight ID:</strong> ${flightId}</p>
-                    <p><strong>Total Price:</strong> $${price}</p>
-                    <hr style="margin: 20px 0;">
-                    <p style="color: #6b5b4f; font-size: 14px;">
-                        <i class="fas fa-info-circle"></i>
-                        You will be redirected to complete passenger details and payment.
-                    </p>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonColor: '#c9a96e',
-            cancelButtonColor: '#6b5b4f',
-            confirmButtonText: 'Continue to Booking',
-            cancelButtonText: 'Cancel'
-        });
-        if (!result.isConfirmed) return;
-        try {
-            const response = await fetch(`/flights/${flightId}/book`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ seats: 1 })
-            });
-            const data = await response.json();
-            if (!response.ok || !data.success) {
-                throw new Error(data.message || 'Could not complete booking.');
-            }
-            await Swal.fire({
-                title: 'Booked!',
-                text: data.message || 'Your flight is booked.',
-                icon: 'success',
-                confirmButtonColor: '#c9a96e'
-            });
-            if (data.redirect) {
-                window.location.href = data.redirect;
-            }
-        } catch (err) {
-            Swal.fire({
-                title: 'Booking Error',
-                text: err.message || 'Unable to book this flight now.',
-                icon: 'error',
-                confirmButtonColor: '#c9a96e'
-            });
+        if (resultsSection) {
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
-    // Sort flights
-    document.getElementById('sortBy').addEventListener('change', function() {
-        Swal.fire({
-            title: 'Sorting...',
-            text: 'Reordering flights by ' + this.options[this.selectedIndex].text,
-            icon: 'info',
-            confirmButtonColor: '#c9a96e',
-            timer: 1500,
-            showConfirmButton: false
-        });
-    });
-
-(function () {
-    function updateWishlistBadge(count) {
-        document.querySelectorAll('#wishlistCount').forEach(el => {
-            el.textContent = count;
-        });
+    // Helper function to get duration in minutes
+    function getDurationMinutes(duration) {
+        if (!duration) return 999999;
+        const match = duration.match(/(\d+)\s*h(?:\s*(\d+)\s*m)?/i);
+        if (match) {
+            const hours = parseInt(match[1]) || 0;
+            const minutes = parseInt(match[2]) || 0;
+            return hours * 60 + minutes;
+        }
+        return 999999;
     }
-    document.addEventListener('DOMContentLoaded', function () {
-        fetch('/api/wishlist/count', { headers: { 'Accept': 'application/json' } })
-            .then(r => r.ok ? r.json() : null)
-            .then(data => { if (data) updateWishlistBadge(data.count ?? 0); })
-            .catch(() => {});
-    });
-})();
 
-// Expose handlers for Blade inline onclick attributes.
-window.fillRoute = fillRoute;
-window.bookFlight = bookFlight;
+    // Helper function to format date
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // Show no results message
+    function showNoResults(message) {
+        if (!flightResults) return;
+        flightResults.innerHTML = `
+            <div class="no-results">
+                <i class="fas fa-plane-slash"></i>
+                <h3>No Flights Found</h3>
+                <p>${escapeHtml(message)}</p>
+                <button class="try-again-btn" onclick="document.getElementById('flightSearchForm').reset()">
+                    <i class="fas fa-redo"></i> Reset Search
+                </button>
+            </div>
+        `;
+        if (resultsCountSpan) resultsCountSpan.textContent = '0';
+        showResultsSection(true);
+    }
+
+    // Show error message
+    function showError(message) {
+        if (!flightResults) return;
+        flightResults.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error</h3>
+                <p>${escapeHtml(message)}</p>
+                <button class="try-again-btn" onclick="searchFlights()">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+        `;
+        showResultsSection(true);
+    }
+
+    // Set loading state
+    function setLoading(loading) {
+        if (!searchBtn) return;
+        if (loading) {
+            searchBtn.classList.add('loading');
+            searchBtn.disabled = true;
+        } else {
+            searchBtn.classList.remove('loading');
+            searchBtn.disabled = false;
+        }
+    }
+
+    // Show/hide results section
+    function showResultsSection(show) {
+        if (resultsSection) {
+            resultsSection.style.display = show ? 'block' : 'none';
+        }
+    }
+
+    // Get CSRF token
+    function getCsrfToken() {
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        if (tokenMeta) {
+            return tokenMeta.content;
+        }
+        return document.querySelector('input[name="_token"]')?.value || '';
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Make bookFlight function global
+    window.bookFlight = function(flightIndex) {
+        const flight = currentFlights[flightIndex];
+        if (flight) {
+            // Show booking modal or redirect to booking page
+            alert(`Booking flight: ${flight.airline} - Flight ${flight.flight_number}\nPrice: $${flight.price}\n\nBooking functionality will be implemented soon.`);
+            // You can redirect to booking page:
+            // window.location.href = `/flights/${flight.id}/book`;
+        }
+    };
+
+    // Make searchFlights function global for retry buttons
+    window.searchFlights = searchFlights;
+
+    // Auto-search if URL has query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('from') && urlParams.has('to')) {
+        fromInput.value = urlParams.get('from');
+        toInput.value = urlParams.get('to');
+        departureDateInput.value = urlParams.get('departure_date') || today;
+        if (returnDateInput && urlParams.has('return_date')) {
+            returnDateInput.value = urlParams.get('return_date');
+        }
+        setTimeout(() => searchFlights(), 500);
+    }
+});

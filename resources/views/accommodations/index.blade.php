@@ -4,14 +4,16 @@
 
 @push('styles')
     @vite(['resources/css/blade/accommodations/index.css'])
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 @endpush
 
 @push('scripts_body')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     @vite(['resources/js/blade/accommodations/index.js'])
 @endpush
 
 @section('content')
-<section class="page-hero accommodations-hero" style="background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)), url('https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg'); background-size: cover; background-position: center;">
+<section class="page-hero accommodations-hero" style="background: linear-gradient(160deg, rgba(80, 40, 10, 0.7) 0%, rgba(20, 10, 5, 0.5) 100%), url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1800&q=80'); background-size: cover; background-position: center top;">
     <div>
         <h1><i class="fas fa-hotel"></i> Find Accommodation</h1>
         <p>Browse accommodation options and match your trip style.</p>
@@ -19,6 +21,7 @@
 </section>
 
 <main class="accommodations-wrap">
+
     <section class="filters">
         <input id="searchInput" type="text" placeholder="Search by city, country, or name">
         <select id="styleSelect">
@@ -47,7 +50,62 @@
         <p id="aiMatchSummary"></p>
     </section>
 
+    <section id="locationPanel" class="location-panel" style="display:none;">
+
+        <div class="location-map-wrap">
+            <div class="location-panel-header">
+                <i class="fas fa-map-marked-alt"></i>
+                <span id="mapCityLabel">Location Map</span>
+                <span class="location-panel-sub" id="mapAccomCount"></span>
+            </div>
+            <div id="accommodationsMap"></div>
+            <p class="map-hint"><i class="fas fa-info-circle"></i> Pins show accommodations from your search. Click a pin for details.</p>
+        </div>
+
+        <div class="location-news-wrap classic-news">
+            <div class="classic-news-header">
+                <div class="classic-news-rule"></div>
+                <div class="classic-news-title-row">
+                    <i class="fas fa-newspaper"></i>
+                    <span id="newsCityLabel">Local Dispatch</span>
+                </div>
+                <div class="classic-news-rule"></div>
+                <div class="classic-news-dateline">
+                    <span id="newsDateline"></span>
+                    <a id="newsMoreLink" href="#" target="_blank" rel="noopener" class="classic-more-link" style="display:none;">
+                        Full Coverage <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div id="newsLoading" class="news-loading" style="display:none;">
+                <div class="news-spinner"></div>
+                <span>Fetching latest dispatches…</span>
+            </div>
+
+            <div id="newsError" class="news-error" style="display:none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="newsErrorMsg">Could not load news.</span>
+            </div>
+
+            <div id="newsFeed" class="news-feed"></div>
+
+            <div id="newsEmpty" class="news-empty" style="display:none;">
+                <i class="fas fa-satellite-dish"></i>
+                <p>No recent dispatches found for this location.</p>
+            </div>
+
+            <p class="classic-news-footer">
+                <span class="classic-rule-short"></span>
+                Sourced from GNews &mdash; real-time headlines
+                <span class="classic-rule-short"></span>
+            </p>
+        </div>
+
+    </section>
+
     <section id="accommodationsGrid" class="grid"></section>
     <div id="emptyState" class="empty" style="display:none;">No accommodations found.</div>
+
 </main>
 @endsection

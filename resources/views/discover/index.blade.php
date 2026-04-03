@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)), url('https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg'); background-size: cover; background-position: center;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(60, 20, 80, 0.70) 0%, rgba(180, 80, 20, 0.40) 100%), url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1800&q=80'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-compass"></i> Discover</h1>
         <p>Explore trending destinations, hidden gems, and AI-curated picks.</p>

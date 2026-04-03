@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Support\Str;
 
 class Booking extends Model
@@ -13,6 +14,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'flight_id',
+        'hotel_id',
         'trip_id',
         'booking_reference',
         'seats_booked',
@@ -22,48 +24,55 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'total_price' => 'decimal:2',
-        'passenger_details' => 'array',
+        'total_price'       => 'decimal:2',
+        'passenger_details' => AsArrayObject::class,
     ];
 
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function ($booking) {
-            if (! $booking->booking_reference) {
-                $booking->booking_reference = 'SB-' . strtoupper(Str::random(8));
-            }
+            $booking->booking_reference ??= 'SB-' . strtoupper(Str::random(8));
         });
     }
 
-    public function user()
+    public function user()   { return $this->belongsTo(User::class);   }
+    public function flight() { return $this->belongsTo(Flight::class); }
+    public function hotel()  { return $this->belongsTo(Hotel::class);  }
+    public function trip()   { return $this->belongsTo(Trip::class);   }
+
+    public function getTypeAttribute(): string
     {
-        return $this->belongsTo(User::class);
+        if ($this->flight_id) return 'flights';
+        if ($this->trip_id)   return 'trips';
+        if ($this->hotel_id)  return 'hotels';
+        return 'unknown';
     }
 
-    public function flight()
+    public function getTitleAttribute(): string
     {
-        return $this->belongsTo(Flight::class);
+        if ($this->flight) {
+            $from = $this->flight->departure_city;
+            $to   = $this->flight->arrival_city;
+            return "{$from} (" . strtoupper(substr($from, 0, 3)) . ") → "
+                 . "{$to} ("   . strtoupper(substr($to,   0, 3)) . ")";
+        }
+        if ($this->hotel) return $this->hotel->name;
+        if ($this->trip)  return $this->trip->name;
+        return 'Booking #' . $this->booking_reference;
     }
 
-    public function trip()
-    {
-        return $this->belongsTo(Trip::class);
-    }
+    public function isConfirmed(): bool  { return $this->status === 'confirmed'; }
+    public function isPending(): bool    { return $this->status === 'pending';   }
+    public function isCancelled(): bool  { return $this->status === 'cancelled'; }
+    public function isCompleted(): bool  { return $this->status === 'completed'; }
+    public function isActive(): bool     { return in_array($this->status, ['confirmed', 'pending']); }
 
-    public function isConfirmed()
-    {
-        return $this->status === 'confirmed';
-    }
-
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', 'confirmed');
-    }
-
-    public function scopeByUser($query, $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
+    public function scopeConfirmed($query)       { return $query->where('status', 'confirmed'); }
+    public function scopePending($query)         { return $query->where('status', 'pending');   }
+    public function scopeCancelled($query)       { return $query->where('status', 'cancelled'); }
+    public function scopeCompleted($query)       { return $query->where('status', 'completed'); }
+    public function scopeActive($query)          { return $query->whereIn('status', ['confirmed', 'pending']); }
+    public function scopeByUser($query, $userId) { return $query->where('user_id', $userId); }
 }

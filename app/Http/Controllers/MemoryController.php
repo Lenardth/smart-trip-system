@@ -34,11 +34,9 @@ class MemoryController extends Controller
             'is_public' => 'boolean',
         ]);
 
-        // Upload file
         $file = $request->file('file');
         $path = $file->store('memories/' . Auth::id(), 'public');
 
-        // Create memory record
         $memory = Memory::create([
             'user_id' => Auth::id(),
             'title' => $request->title,
@@ -48,7 +46,6 @@ class MemoryController extends Controller
             'is_public' => $request->is_public ?? false,
         ]);
 
-        // For photos, create a thumbnail
         if ($request->type === 'photo') {
             $this->createThumbnail($memory, $file);
         }
@@ -59,7 +56,6 @@ class MemoryController extends Controller
 
     public function show(Memory $memory)
     {
-        // Check if user can view this memory
         if ($memory->user_id !== Auth::id() && !$memory->is_public) {
             abort(403, 'This memory is private.');
         }
@@ -75,7 +71,6 @@ class MemoryController extends Controller
             'frame_type' => 'required|in:polaroid,modern,vintage',
         ]);
 
-        // Create frame
         $frame = MemoryFrame::create([
             'memory_id' => $memory->id,
             'user_id' => Auth::id(),
@@ -92,12 +87,10 @@ class MemoryController extends Controller
 
     public function destroy(Memory $memory)
     {
-        // Check if user owns this memory
         if ($memory->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Delete file from storage
         Storage::disk('public')->delete($memory->file_path);
         if ($memory->thumbnail_path) {
             Storage::disk('public')->delete($memory->thumbnail_path);
@@ -109,16 +102,11 @@ class MemoryController extends Controller
             ->with('success', 'Memory deleted successfully!');
     }
 
-    private function createThumbnail($memory, $file)
+    private function createThumbnail($memory, $file): void
     {
-        // This is a simplified version - in production you'd use Intervention Image
-        // For now, we'll just copy the original as thumbnail
         $thumbnailPath = 'memories/' . Auth::id() . '/thumbnails/' . $file->hashName();
 
-        // Create directory if it doesn't exist
         Storage::disk('public')->makeDirectory(dirname($thumbnailPath));
-
-        // Copy file as thumbnail (in real app, resize it)
         Storage::disk('public')->copy($memory->file_path, $thumbnailPath);
 
         $memory->update(['thumbnail_path' => $thumbnailPath]);

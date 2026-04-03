@@ -140,17 +140,16 @@ class CommunityController extends Controller
             ->take(6)
             ->get()
             ->map(fn($g) => [
-                'id'              => $g->id,
-                'name'            => $g->name,
-                'destination'     => $g->destination,
-                'date'            => $g->date,
-                'organizer'       => $g->user?->name ?? $g->organizer,
-                'user_id'         => $g->user_id,
-                'spots_left'      => $g->spots_left,
-                'spots_available' => $g->spots_left,
-                'spots_taken'     => 0,
-                'spots_total'     => $g->spots_left,
-                'status'          => $g->status,
+                'id'          => $g->id,
+                'name'        => $g->name,
+                'destination' => $g->destination,
+                'date'        => $g->date,
+                'organizer'   => $g->user?->name ?? $g->organizer,
+                'user_id'     => $g->user_id,
+                'spots_left'  => $g->spots_left,
+                'spots_taken' => 0,
+                'spots_total' => $g->spots_left,
+                'status'      => $g->status,
             ]);
 
         return response()->json($groups);

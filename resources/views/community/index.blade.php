@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)), url('https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg'); background-size: cover; background-position: center;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(140, 30, 30, 0.65) 0%, rgba(20, 15, 10, 0.50) 100%), url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1800&q=80'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-users"></i> Community</h1>
         <p>Connect with fellow travelers, share stories, and join group adventures.</p>

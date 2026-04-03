@@ -2,213 +2,101 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Flight;
-use App\Models\Booking;
+use App\Services\AviationstackService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class FlightController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = Flight::query();
-
-        if ($request->filled('from')) {
-            $query->where('departure_city', 'like', '%' . $request->from . '%');
-        }
-        if ($request->filled('to')) {
-            $query->where('arrival_city', 'like', '%' . $request->to . '%');
-        }
-        if ($request->filled('date')) {
-            $query->whereDate('departure_time', $request->date);
-        }
-        if ($request->filled('class')) {
-            $query->where('class', $request->class);
-        }
-
-        $flights = $query->orderBy('departure_time')->paginate(12);
-
-        return view('flights.index', compact('flights'));
+    public function __construct(
+        private readonly AviationstackService $aviationstack
+    ) {
     }
 
-    public function search(Request $request)
+    public function index()
     {
-        $request->validate([
-            'from'           => 'required|string',
-            'to'             => 'required|string',
-            'departure_date' => 'required|date',
-            'return_date'    => 'nullable|date|after:departure_date',
-            'passengers'     => 'required|integer|min:1',
-            'class'          => 'required|in:economy,premium_economy,business,first',
-        ]);
-
-        $flights = Flight::where('departure_city', 'like', '%' . $request->from . '%')
-            ->where('arrival_city', 'like', '%' . $request->to . '%')
-            ->whereDate('departure_time', $request->departure_date)
-            ->where('class', $request->class)
-            ->where('seats_available', '>=', $request->passengers)
-            ->where('is_active', true)
-            ->orderBy('departure_time')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'flights' => $flights->map(function ($f) {
-                $fromCode        = strtoupper(substr((string) $f->departure_city, 0, 3));
-                $toCode          = strtoupper(substr((string) $f->arrival_city, 0, 3));
-                $durationMinutes = $f->arrival_time && $f->departure_time
-                    ? $f->arrival_time->diffInMinutes($f->departure_time)
-                    : null;
-
-                return [
-                    'id'              => $f->id,
-                    'airline'         => $f->airline,
-                    'airline_logo'    => '✈️',
-                    'flight_number'   => $f->flight_number,
-                    'from'            => $f->departure_city,
-                    'to'              => $f->arrival_city,
-                    'from_code'       => $fromCode,
-                    'to_code'         => $toCode,
-                    'departure_time'  => optional($f->departure_time)->format('H:i'),
-                    'arrival_time'    => optional($f->arrival_time)->format('H:i'),
-                    'duration'        => $durationMinutes
-                        ? floor($durationMinutes / 60) . 'h ' . ($durationMinutes % 60) . 'm'
-                        : '—',
-                    'stops'           => 0,
-                    'price'           => (float) $f->price,
-                    'class'           => $f->class,
-                    'seats_available' => (int) $f->seats_available,
-                    'baggage'         => '1 x 23kg',
-                    'amenities'       => ['Meals', 'Entertainment'],
-                ];
-            }),
-            'count' => $flights->count(),
-        ]);
+        return view('flights.index');
     }
 
-    public function show(Flight $flight)
+    public function search(Request $request): JsonResponse
     {
-        $flight->load('user', 'bookings');
-        return view('flights.show', compact('flight'));
-    }
-
-    public function create()
-    {
-        if (! Auth::user()->isAgency()) {
-            return redirect()->route('flights.index')
-                ->with('error', 'Only travel agencies can create flights.');
-        }
-
-        return view('flights.create');
-    }
-
-    public function store(Request $request)
-    {
-        if (! Auth::user()->isAgency()) {
-            return redirect()->route('flights.index')
-                ->with('error', 'Only travel agencies can create flights.');
-        }
-
         $validated = $request->validate([
-            'flight_number'  => 'required|unique:flights|max:20',
-            'airline'        => 'required|max:100',
-            'departure_city' => 'required|max:100',
-            'arrival_city'   => 'required|max:100',
-            'departure_time' => 'required|date|after:now',
-            'arrival_time'   => 'required|date|after:departure_time',
-            'price'          => 'required|numeric|min:0',
-            'total_seats'    => 'required|integer|min:1',
-            'aircraft_type'  => 'nullable|max:50',
-            'class'          => 'required|in:economy,business,first',
+            'from'           => ['required', 'string', 'max:100'],
+            'to'             => ['required', 'string', 'max:100'],
+            'departure_date' => ['required', 'date_format:Y-m-d'],
+            'return_date'    => ['nullable', 'date_format:Y-m-d'],
+            'adults'         => ['nullable', 'integer', 'min:1', 'max:9'],
+            'travel_class'   => ['nullable', 'string'],
         ]);
 
-        $validated['user_id']         = Auth::id();
-        $validated['seats_available'] = $validated['total_seats'];
-        $validated['is_active']       = true;
-
-        $flight = Flight::create($validated);
-
-        return redirect()->route('flights.index')
-            ->with('success', 'Flight created successfully! Flight Number: ' . $flight->flight_number);
-    }
-
-    public function myFlights()
-    {
-        if (! Auth::user()->isAgency()) {
-            return redirect()->route('dashboard');
-        }
-
-        $flights = Flight::where('user_id', Auth::id())
-            ->with('bookings')
-            ->orderBy('departure_time', 'desc')
-            ->paginate(10);
-
-        return view('flights.my-flights', compact('flights'));
-    }
-
-    public function book(Request $request, Flight $flight)
-    {
-        if (Auth::user()->isAgency()) {
-            return back()->with('error', 'Agencies cannot book flights.');
-        }
-
-        $validated = $request->validate([
-            'seats' => 'required|integer|min:1|max:9',
-        ]);
-
-        if ($flight->seats_available < $validated['seats']) {
-            return back()->with('error', 'Not enough seats available.');
-        }
-
-        DB::beginTransaction();
         try {
-            $booking = Booking::create([
-                'user_id'     => Auth::id(),
-                'flight_id'   => $flight->id,
-                'seats_booked' => $validated['seats'],
-                'total_price' => $flight->price * $validated['seats'],
-                'status'      => 'confirmed',
-            ]);
+            Log::info('Flight search request', $validated);
 
-            $flight->decrement('seats_available', $validated['seats']);
+            $fromCode = $this->aviationstack->resolveIataCode($validated['from']);
+            $toCode   = $this->aviationstack->resolveIataCode($validated['to']);
 
-            DB::commit();
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success'  => true,
-                    'message'  => 'Flight booked successfully!',
-                    'redirect' => route('bookings.show', $booking),
-                    'booking'  => $booking->id,
-                ]);
-            }
-
-            return redirect()->route('bookings.show', $booking)
-                ->with('success', 'Flight booked successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            if ($request->expectsJson()) {
+            if (!$fromCode || !$toCode) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Booking failed. Please try again.',
+                    'message' => 'Could not find airport codes. Please use valid city names or IATA codes (e.g., BUD, LHR, JFK).',
+                    'flights' => [],
                 ], 422);
             }
 
-            return back()->with('error', 'Booking failed. Please try again.');
+            usleep(1000000); // 1s before flight search to respect rate limit
+            $flights = $this->aviationstack->searchFlights(
+                $fromCode,
+                $toCode,
+                $validated['departure_date'],
+                (int) ($validated['adults'] ?? 1),
+                strtoupper($validated['travel_class'] ?? 'ECONOMY'),
+                $validated['return_date'] ?? null
+            );
+
+            return response()->json([
+                'success'   => true,
+                'from_code' => $fromCode,
+                'to_code'   => $toCode,
+                'flights'   => $flights,
+                'count'     => count($flights),
+                'message'   => empty($flights)
+                    ? 'No flights found for this route on the selected date. Try different dates or destinations.'
+                    : null,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Flight search failed', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'flights' => [],
+            ], 500);
         }
     }
 
-    public function cancel(Flight $flight)
+    public function airports(Request $request): JsonResponse
     {
-        if ($flight->user_id !== Auth::id()) {
-            return back()->with('error', 'Unauthorized.');
+        $validated = $request->validate([
+            'keyword' => ['required', 'string', 'min:1', 'max:100'],
+        ]);
+
+        try {
+            $results = $this->aviationstack->searchAirports($validated['keyword']);
+
+            return response()->json([
+                'success' => true,
+                'results' => $results,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'results' => [],
+            ], 500);
         }
-
-        $flight->update(['is_active' => false]);
-
-        return back()->with('success', 'Flight cancelled successfully.');
     }
 }

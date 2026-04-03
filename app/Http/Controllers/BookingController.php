@@ -10,7 +10,7 @@ class BookingController extends Controller
 {
     public function index()
     {
-        $bookings = Booking::with(['flight', 'flight.user'])
+        $bookings = Booking::with(['flight', 'flight.user', 'hotel', 'trip'])
             ->byUser(Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);

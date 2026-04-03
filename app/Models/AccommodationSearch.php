@@ -5,16 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CommunityGroup extends Model
+class AccommodationSearch extends Model
 {
     protected $fillable = [
         'user_id',
-        'organizer',
-        'name',
-        'destination',
-        'date',
-        'spots_left',
-        'status',
+        'query',
+        'style',
+        'budget_tier',
+        'results_count',
+        'ip_address',
     ];
 
     public function user(): BelongsTo
