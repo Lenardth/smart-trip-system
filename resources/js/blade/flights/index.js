@@ -6,7 +6,8 @@ function ready(fn) {
 }
 
 function getCsrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.content : '';
 }
 
 function escapeHtml(text) {
@@ -29,7 +30,7 @@ function getDurationMinutes(duration) {
 }
 
 function fmt(n) {
-    return Number(n).toLocaleString();
+    return '$' + Number(n).toLocaleString();
 }
 
 ready(function () {
@@ -78,7 +79,7 @@ ready(function () {
     window.fillRoute = function (from, to) {
         if (fromInput) fromInput.value = from;
         if (toInput)   toInput.value   = to;
-        setTimeout(() => searchFlights(), 100);
+        setTimeout(function() { searchFlights(); }, 100);
     };
 
     async function searchFlights() {
@@ -101,7 +102,11 @@ ready(function () {
         try {
             const response = await fetch('/flights/search', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(requestData),
             });
             const result = await response.json();
@@ -126,7 +131,7 @@ ready(function () {
     function displayFlights(flights) {
         if (!flightResults) return;
         const sortBy = sortBySelect ? sortBySelect.value : 'price';
-        const sorted = [...flights].sort((a, b) => {
+        const sorted = [...flights].sort(function(a, b) {
             if (sortBy === 'price')     return (a.price || 0) - (b.price || 0);
             if (sortBy === 'duration')  return getDurationMinutes(a.duration) - getDurationMinutes(b.duration);
             if (sortBy === 'departure') return (a.departure_time || '').localeCompare(b.departure_time || '');
@@ -136,8 +141,8 @@ ready(function () {
 
         if (resultsCountSpan) resultsCountSpan.textContent = sorted.length;
 
-        const cards = sorted.map((flight, index) => {
-            const price = flight.price ? '$' + fmt(flight.price) : 'N/A';
+        const cards = sorted.map(function(flight, index) {
+            const price = flight.price ? fmt(flight.price) : 'N/A';
             return '<div class="flight-card" data-flight-index="' + index + '">' +
                 '<div class="flight-header">' +
                     '<div class="airline-info">' +
@@ -185,13 +190,13 @@ ready(function () {
 
         if (typeof Swal === 'undefined') {
             if (!confirm('Book ' + (flight.airline || 'this flight') + '?')) return;
-            submitBooking(flight).then(d => {
+            submitBooking(flight).then(function(d) {
                 if (d && d.success) alert('Booked! Reference: ' + d.booking_reference);
-            }).catch(e => alert(e.message));
+            }).catch(function(e) { alert(e.message); });
             return;
         }
 
-        const price = flight.price ? '$' + fmt(flight.price) : 'Price TBD';
+        const price = flight.price ? fmt(flight.price) : 'Price TBD';
         Swal.fire({
             title: 'Confirm Booking',
             html: '<div style="text-align:left;padding:8px 0;">' +
@@ -208,8 +213,12 @@ ready(function () {
             confirmButtonText: '<i class="fas fa-ticket-alt"></i> Confirm Booking',
             cancelButtonText: 'Cancel',
             showLoaderOnConfirm: true,
-            preConfirm: () => submitBooking(flight).catch(err => { Swal.showValidationMessage(err.message); }),
-        }).then(result => {
+            preConfirm: function() {
+                return submitBooking(flight).catch(function(err) {
+                    Swal.showValidationMessage(err.message);
+                });
+            },
+        }).then(function(result) {
             if (result.isConfirmed && result.value && result.value.success) {
                 Swal.fire({
                     title: 'Booking Confirmed!',
@@ -219,7 +228,7 @@ ready(function () {
                     confirmButtonText: 'View Bookings',
                     showCancelButton: true,
                     cancelButtonText: 'Stay Here',
-                }).then(r => { if (r.isConfirmed) window.location.href = '/bookings'; });
+                }).then(function(r) { if (r.isConfirmed) window.location.href = '/bookings'; });
             }
         });
     };
@@ -227,7 +236,11 @@ ready(function () {
     async function submitBooking(flight) {
         const res = await fetch('/api/bookings/flight', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken(), 'Accept': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'Accept': 'application/json'
+            },
             body: JSON.stringify({
                 airline:           flight.airline           || '',
                 flight_number:     flight.flight_number     || '',
@@ -279,6 +292,6 @@ ready(function () {
         if (toInput)   toInput.value   = urlParams.get('to');
         if (departureDateInput) departureDateInput.value = urlParams.get('departure_date') || today;
         if (returnDateInput && urlParams.has('return_date')) returnDateInput.value = urlParams.get('return_date');
-        setTimeout(() => searchFlights(), 500);
+        setTimeout(function() { searchFlights(); }, 500);
     }
 });
