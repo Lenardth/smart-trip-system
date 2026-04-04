@@ -119,7 +119,7 @@ function selectMood(el) {
     document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     selectedMood = el.dataset.mood;
-    /* Keep hidden input + global bridge in sync so community/custom moods also work */
+    
     const hiddenInput = document.getElementById('selectedMoodValue');
     if (hiddenInput) hiddenInput.value = selectedMood;
     window.__planTripMood = selectedMood;
@@ -144,8 +144,7 @@ function goStep(n) {
 }
 
 async function generateSuggestions() {
-    /* Hidden input is the single source of truth — written by card clicks,
-       community pill clicks, and custom mood add (all three paths). */
+    
     const hiddenInput = document.getElementById('selectedMoodValue');
     selectedMood = (hiddenInput && hiddenInput.value.trim()) ? hiddenInput.value.trim() : selectedMood;
 

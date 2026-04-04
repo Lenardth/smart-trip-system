@@ -1,5 +1,4 @@
-// Filter wishlist
-  function filterWishlist() {
+function filterWishlist() {
       const continent = document.getElementById('filterContinent').value;
       const category = document.getElementById('filterCategory').value;
       const search = document.getElementById('searchWishlist').value.toLowerCase();
@@ -34,7 +33,7 @@
       }
   }
 
-  // Remove from wishlist
+  
   async function removeFromWishlist(destinationId, destinationName) {
       const result = await Swal.fire({
           title: 'Remove from Wishlist?',
@@ -83,7 +82,7 @@
       }
   }
 
-  // Clear all wishlist
+  
   async function clearAllWishlist() {
       const result = await Swal.fire({
           title: 'Clear All?',
@@ -97,7 +96,7 @@
       });
 
       if (result.isConfirmed) {
-          // In production, make API call to clear all
+          
           Swal.fire({
               title: 'Feature Coming Soon',
               text: 'Bulk remove functionality will be available soon',
@@ -107,7 +106,7 @@
       }
   }
 
-  // Plan trip
+  
   function planTrip(destinationId, destinationName) {
       Swal.fire({
           title: 'Plan Your Trip',

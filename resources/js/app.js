@@ -1,4 +1,6 @@
 import Alpine from 'alpinejs';
+import './blade/base';
+import './blade/global';
 import './bootstrap';
 
 window.Alpine = Alpine;

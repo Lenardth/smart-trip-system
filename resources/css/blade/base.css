@@ -2,12 +2,15 @@
     --deep: #3b1f2b;
     --deep-alt: #4d2a3a;
     --deep-soft: #5a3040;
+    --deep-hover: #5c3349;
     --gold: #c9a96e;
     --gold-hover: #b8955a;
+    --gold-dim: rgba(201, 169, 110, .18);
     --cream: #f5f0eb;
     --card-bg: #fff8f2;
     --border: #e2d5c7;
     --border-soft: #d4c4b0;
+    --text: #2c2c2c;
     --text-light: #f5e6d3;
     --text-muted: #6b5b4f;
     --text-sub: #d4c4b0;
@@ -22,6 +25,18 @@
     --green-bg: var(--success-bg);
     --orange: #e65100;
     --orange-bg: var(--warning-bg);
+    --sidebar-bg: #2a1721;
+    --sidebar-hover: #3b1f2b;
+    --iphone-bg: #000;
+    --iphone-header: #1c1c1e;
+    --iphone-toolbar: #2c2c2e;
+    --sidebar-w: 260px;
+    --sidebar-w-sm: 72px;
+    --header-h: 70px;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(59, 31, 43, .13);
+    --shadow-lg: 0 8px 40px rgba(59, 31, 43, .22);
+    --transition: .25s cubic-bezier(.4, 0, .2, 1);
 }
 
 *,
@@ -58,9 +73,6 @@ body {
 }
 
 .logo {
-    height: 80px;
-    width: auto;
-    object-fit: contain;
     height: 100px;
     width: auto;
     min-width: 100px;
@@ -525,11 +537,10 @@ body {
         padding: 15px 20px;
     }
     .logo {
-        height: 80px;
-        width: auto;
-        object-fit: contain;
         height: 60px;
+        width: auto;
         min-width: 60px;
+        object-fit: contain;
     }
     .logo-text {
         font-size: 24px;
@@ -563,7 +574,7 @@ body {
 }
 
 
-/* Add to your resources/css/app.css */
+
 
 .footer a {
     color: var(--gold);
@@ -595,7 +606,7 @@ body {
 }
 
 
-/* Notifications */
+
 
 .notification {
     position: fixed;

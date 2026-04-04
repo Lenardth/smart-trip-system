@@ -4,13 +4,7 @@
 class="dashboard-page"
 @endpush
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
-
 @push('scripts')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.userData = {

@@ -1,10 +1,9 @@
-{{-- resources/views/plan-trip/index.blade.php --}}
+
 @extends('layouts.public')
 
 @section('title', 'Plan Trip — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .mood-section-label {
             font-size: 13px;
@@ -158,7 +157,6 @@
 @endpush
 
 @push('scripts')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 @endpush
 
@@ -178,7 +176,7 @@
         <div class="step" id="si4"><div class="step-circle">4</div><div class="step-label">Results</div></div>
     </div>
 
-    {{-- ── Step 1: Mood & Style ────────────────────────────── --}}
+    
     <div class="planner-card" id="step1">
         <h3><i class="fas fa-heart" style="color:var(--gold);margin-right:8px;"></i>How are you feeling?</h3>
         <p style="color:var(--text-muted);text-align:left;margin-top:0;">Choose a quick mood, pick one from the community, or describe your own feeling below.</p>
@@ -247,7 +245,7 @@
         <div class="btn-row"><button class="primary-button" onclick="goStep(2)">Next <i class="fas fa-arrow-right"></i></button></div>
     </div>
 
-    {{-- ── Step 2 ───────────────────────────────────────────── --}}
+    
     <div class="planner-card" id="step2" style="display:none;">
         <h3><i class="fas fa-suitcase" style="color:var(--gold);margin-right:8px;"></i>Trip Details</h3>
         <div class="form-row">
@@ -302,7 +300,7 @@
         </div>
     </div>
 
-    {{-- ── Step 3 ───────────────────────────────────────────── --}}
+    
     <div class="planner-card" id="step3" style="display:none;">
         <h3><i class="fas fa-sliders-h" style="color:var(--gold);margin-right:8px;"></i>Preferences</h3>
         <div class="form-row">
@@ -360,7 +358,7 @@
         </div>
     </div>
 
-    {{-- ── Step 4: Results ─────────────────────────────────── --}}
+    
     <div id="step4" style="display:none;">
         <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
@@ -382,7 +380,7 @@
     </div>
 </div>
 
-{{-- Receipt Modal --}}
+
 <div class="modal-overlay" id="receiptModal">
     <div class="modal">
         <div class="modal-header">
@@ -400,7 +398,7 @@
     </div>
 </div>
 
-{{-- Community Mood JS --}}
+
 <script>
 (function () {
     /* FA icon map — keyword → icon class, matching the project's FA style */

@@ -1,0 +1,19 @@
+/* resources/css/blade/index.css */
+
+@import './layouts/app.css';
+@import './layouts/guest.css';
+@import './auth/login.css';
+@import './auth/register.css';
+@import './dashboard/index.css';
+@import './destinations/index.css';
+@import './discover/index.css';
+@import './flights/index.css';
+@import './accommodations/index.css';
+@import './bookings/index.css';
+@import './plan-trip/index.css';
+@import './community/index.css';
+@import './chat/index.css';
+@import './wishlist/index.css';
+@import './profile/edit.css';
+@import './pdf/itinerary.css';
+@import './landing/index.css';

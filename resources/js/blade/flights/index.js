@@ -1,6 +1,5 @@
-// Flight Search Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
+    
     const form = document.getElementById('flightSearchForm');
     const fromInput = document.getElementById('from');
     const toInput = document.getElementById('to');
@@ -16,14 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentFlights = [];
 
-    // Set minimum date to today
+    
     const today = new Date().toISOString().split('T')[0];
     departureDateInput.min = today;
     if (returnDateInput) {
         returnDateInput.min = today;
     }
 
-    // Trip type functionality (if you have trip type tabs)
+    
     const tripTabs = document.querySelectorAll('.trip-type-tab');
     let currentTripType = 'round-trip';
 
@@ -34,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.add('active');
                 currentTripType = this.dataset.type;
 
-                // Handle return date field visibility
+                
                 const returnDateGroup = document.getElementById('returnDateGroup');
                 if (currentTripType === 'one-way') {
                     if (returnDateGroup) returnDateGroup.style.display = 'none';
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle form submission
+    
     if (form) {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -53,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle sort functionality
+    
     if (sortBySelect) {
         sortBySelect.addEventListener('change', function() {
             if (currentFlights.length > 0) {
@@ -62,17 +61,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Auto-complete/popular routes function (make it global)
+    
     window.fillRoute = function(from, to) {
         if (fromInput) fromInput.value = from;
         if (toInput) toInput.value = to;
-        // Auto search after filling
+        
         setTimeout(() => searchFlights(), 100);
     };
 
-    // Search flights function
+    
     async function searchFlights() {
-        // Validate inputs
+        
         if (!fromInput.value.trim()) {
             showError('Please enter departure city or airport');
             fromInput.focus();
@@ -91,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Prepare request data
+        
         const requestData = {
             from: fromInput.value.trim(),
             to: toInput.value.trim(),
@@ -100,12 +99,12 @@ document.addEventListener('DOMContentLoaded', function() {
             travel_class: classSelect.value.toUpperCase()
         };
 
-        // Add return date for round trips
+        
         if (currentTripType === 'round-trip' && returnDateInput && returnDateInput.value) {
             requestData.return_date = returnDateInput.value;
         }
 
-        // Show loading state
+        
         setLoading(true);
 
         try {
@@ -140,11 +139,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Display flights function
+    
     function displayFlights(flights) {
         if (!flightResults) return;
 
-        // Sort flights
+        
         const sortBy = sortBySelect ? sortBySelect.value : 'price';
         const sortedFlights = [...flights].sort((a, b) => {
             switch(sortBy) {
@@ -161,12 +160,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Update results count
+        
         if (resultsCountSpan) {
             resultsCountSpan.textContent = sortedFlights.length;
         }
 
-        // Generate HTML for flights
+        
         let html = '<div class="flights-list">';
 
         sortedFlights.forEach((flight, index) => {
@@ -223,13 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '</div>';
         flightResults.innerHTML = html;
 
-        // Scroll to results
+        
         if (resultsSection) {
             resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
-    // Helper function to get duration in minutes
+    
     function getDurationMinutes(duration) {
         if (!duration) return 999999;
         const match = duration.match(/(\d+)\s*h(?:\s*(\d+)\s*m)?/i);
@@ -241,14 +240,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return 999999;
     }
 
-    // Helper function to format date
+    
     function formatDate(dateString) {
         if (!dateString) return '';
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    // Show no results message
+    
     function showNoResults(message) {
         if (!flightResults) return;
         flightResults.innerHTML = `
@@ -265,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showResultsSection(true);
     }
 
-    // Show error message
+    
     function showError(message) {
         if (!flightResults) return;
         flightResults.innerHTML = `
@@ -281,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showResultsSection(true);
     }
 
-    // Set loading state
+    
     function setLoading(loading) {
         if (!searchBtn) return;
         if (loading) {
@@ -293,14 +292,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Show/hide results section
+    
     function showResultsSection(show) {
         if (resultsSection) {
             resultsSection.style.display = show ? 'block' : 'none';
         }
     }
 
-    // Get CSRF token
+    
     function getCsrfToken() {
         const tokenMeta = document.querySelector('meta[name="csrf-token"]');
         if (tokenMeta) {
@@ -309,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return document.querySelector('input[name="_token"]')?.value || '';
     }
 
-    // Escape HTML to prevent XSS
+    
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -317,21 +316,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return div.innerHTML;
     }
 
-    // Make bookFlight function global
+    
     window.bookFlight = function(flightIndex) {
         const flight = currentFlights[flightIndex];
         if (flight) {
-            // Show booking modal or redirect to booking page
+            
             alert(`Booking flight: ${flight.airline} - Flight ${flight.flight_number}\nPrice: $${flight.price}\n\nBooking functionality will be implemented soon.`);
-            // You can redirect to booking page:
-            // window.location.href = `/flights/${flight.id}/book`;
+            
+            
         }
     };
 
-    // Make searchFlights function global for retry buttons
+    
     window.searchFlights = searchFlights;
 
-    // Auto-search if URL has query parameters
+    
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('from') && urlParams.has('to')) {
         fromInput.value = urlParams.get('from');

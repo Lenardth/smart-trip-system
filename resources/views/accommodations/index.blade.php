@@ -3,13 +3,11 @@
 @section('title', 'Accommodations — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 @endpush
 
 @push('scripts_body')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush
 
 @section('content')

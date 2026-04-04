@@ -113,11 +113,11 @@ function leaveReviewDemo() {
     });
 }
 
-// Leave a review for a real booking. Opens a modal similar to leaveReviewDemo but
-// allows the user to submit feedback for the specified booking. When the
-// review is submitted a simple success toast is shown. You can hook this
-// function up to your backend by sending the rating and comment to
-// `/bookings/{id}/review` via fetch if needed.
+
+
+
+
+
 function leaveReview(id) {
     Swal.fire({
         title: 'Leave a Review',
@@ -138,7 +138,7 @@ function leaveReview(id) {
         showCancelButton: true
     }).then(r => {
         if (!r.isConfirmed) return;
-        // Optional: send review to server here using fetch
+        
         Swal.fire({
             title: 'Thank you!',
             text: 'Your review has been submitted.',
@@ -150,18 +150,18 @@ function leaveReview(id) {
     });
 }
 
-// Helper for leaveReview: update star colors for the real review modal
+
 function setRatingReal(n) {
     document.querySelectorAll('#starRatingReal i').forEach((s, i) => {
         s.style.color = i < n ? '#c9a96e' : '#e0e0e0';
     });
 }
 
-// Rebook a real booking. For now this simply redirects the user to the flights
-// search page to start a new booking. You can modify this to pass the
-// booking ID to a dedicated rebooking route if available.
+
+
+
 function rebookBooking(id) {
-    // Example: redirect to flights page (could also be `/bookings/${id}/rebook`)
+    
     window.location.href = '/flights';
 }
 
@@ -253,11 +253,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Expose functions used in inline onclick attributes so that they are
-// accessible from Blade templates. Without these assignments the
-// functions defined above would be scoped to this module and not
-// available on the global window object when using Vite and ES
-// modules.
+
+
+
+
+
 window.toggleDetail       = toggleDetail;
 window.toggleDetailDemo   = toggleDetailDemo;
 window.filterBookings     = filterBookings;

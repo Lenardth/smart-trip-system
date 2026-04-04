@@ -1,16 +1,11 @@
-{{-- resources/views/dashboard/index.blade.php --}}
-{{-- Top-nav (search, notifications, profile pic) is rendered by
-     partials/dashboard-header, included automatically by layouts/authenticated.
-     Do NOT duplicate it here. --}}
+
+
 @extends('layouts.authenticated')
 
 @section('title', 'Dashboard — Smart Booking')
 @section('page-class', 'main-content')
 @section('page-id', 'mainContent')
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @push('body-attrs')
     data-dashboard-user-id="{{ Auth::id() }}"
@@ -21,7 +16,6 @@
 @endpush
 
 @push('scripts')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             window.__dashboardConfig = {
@@ -43,7 +37,7 @@
 
 @section('content')
 
-    {{-- Stats --}}
+    
     <div class="stats-grid">
         <div class="stat-card" onclick="openGallery()">
             <div class="stat-icon photos"><i class="fas fa-images"></i></div>
@@ -79,7 +73,7 @@
         </div>
     </div>
 
-    {{-- Quick actions --}}
+    
     <div class="actions-grid">
         <div class="action-btn" onclick="uploadPhotos()">
             <i class="fas fa-upload"></i><span>Upload Photos</span>
@@ -101,7 +95,7 @@
         </div>
     </div>
 
-    {{-- Trips & Activity --}}
+    
     <div class="dashboard-grid">
         <div class="dashboard-section">
             <div class="section-header">
@@ -140,7 +134,7 @@
 
 @push('modals')
 
-    {{-- Photo Gallery Modal --}}
+    
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-header">
             <h3><i class="fas fa-images"></i> My Photos &amp; Videos</h3>
@@ -164,7 +158,7 @@
         </div>
     </div>
 
-    {{-- Media Viewer --}}
+    
     <div class="media-viewer" id="mediaViewer">
         <div class="viewer-header">
             <button class="gallery-close" onclick="closeViewer()">

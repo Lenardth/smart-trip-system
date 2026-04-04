@@ -2,13 +2,7 @@
 
 @section('title', 'My Wishlist — Smart Booking')
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
-@push('scripts_body')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @section('content')
 <section class="page-hero" style="background: linear-gradient(160deg, rgba(180, 80, 0, 0.60) 0%, rgba(10, 20, 40, 0.55) 100%), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1800&q=80'); background-size: cover; background-position: center bottom;">

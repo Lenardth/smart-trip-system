@@ -143,11 +143,11 @@ window.__dashboardConfig = {
 
         document.addEventListener('DOMContentLoaded', loadNotifications);
 
-        // Expose handlers for Blade inline onclick attributes (Vite bundles as modules).
+        
         window.switchTab = switchTab;
         window.markAllRead = markAllRead;
 
-        // Sidebar inline handlers
+        
         if (typeof window.viewProfile !== 'function') {
             window.viewProfile = function () {
                 window.location.href = '/profile/edit';
@@ -165,7 +165,7 @@ window.__dashboardConfig = {
                         },
                     });
                 } catch (_) {
-                    // ignore; navigation will happen anyway
+                    
                 }
                 window.location.href = '/login';
             };

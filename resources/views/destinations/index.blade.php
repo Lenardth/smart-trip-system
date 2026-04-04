@@ -2,13 +2,7 @@
 
 @section('title', 'Destinations — Smart Booking')
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
-@push('scripts_body')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @section('content')
 <section class="page-hero" style="background: linear-gradient(160deg, rgba(5, 50, 80, 0.72) 0%, rgba(10, 20, 30, 0.5) 100%), url('https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=1800&q=80'); background-size: cover; background-position: center;">

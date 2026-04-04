@@ -2,13 +2,7 @@
 
 @section('title', 'Community — Smart Booking')
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
-@push('scripts_body')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @section('content')
 <section class="page-hero" style="background: linear-gradient(160deg, rgba(140, 30, 30, 0.65) 0%, rgba(20, 15, 10, 0.50) 100%), url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1800&q=80'); background-size: cover; background-position: center;">
@@ -106,7 +100,7 @@
     </div>
 </div>
 
-<!-- New Topic Modal -->
+
 <div class="modal-overlay" id="topicModal">
     <div class="modal">
         <div class="modal-header">
@@ -140,7 +134,7 @@
     </div>
 </div>
 
-<!-- Create Group Modal -->
+
 <div class="modal-overlay" id="groupModal">
     <div class="modal">
         <div class="modal-header">
@@ -178,7 +172,7 @@
     </div>
 </div>
 
-<!-- Invite to Chat Modal -->
+
 <div class="modal-overlay" id="inviteModal">
     <div class="modal">
         <div class="modal-header">

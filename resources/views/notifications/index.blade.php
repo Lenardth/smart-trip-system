@@ -1,13 +1,10 @@
-{{-- resources/views/notifications/index.blade.php --}}
+
 @extends('layouts.authenticated')
 
 @section('title', 'Notifications — Smart Booking')
 @section('page-class', 'main-content')
 @section('page-id', 'notificationsPage')
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @push('body-attrs')
     data-user-id="{{ Auth::id() }}"
@@ -15,9 +12,6 @@
     data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster') }}"
 @endpush
 
-@push('scripts')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @section('content')
 

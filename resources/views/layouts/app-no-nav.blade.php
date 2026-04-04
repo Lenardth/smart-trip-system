@@ -1,9 +1,5 @@
 @extends('layouts.base')
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
-
 @push('scripts')
     @stack('scripts_body')
 @endpush

@@ -1,24 +1,20 @@
-{{-- resources/views/chat/index.blade.php --}}
+
 @extends('layouts.authenticated')
 
 @section('title', 'Messages — Smart Booking')
 
-{{-- Set page class for chat styling --}}
+
 @section('page-class', 'chat-page')
 @section('page-id', 'chatPage')
 
-{{-- Hide the header and make it full page --}}
+
 @php
     $hideHeader = true;
     $fullPage = true;
 @endphp
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @push('scripts')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -69,7 +65,7 @@
 
 @section('content')
     <div class="chat-container">
-        {{-- Conversation list panel --}}
+        
         <div class="chat-sidebar" id="chatSidebar">
             <div class="chat-sidebar-header">
                 <div class="header-title">
@@ -101,7 +97,7 @@
             </div>
         </div>
 
-        {{-- Thread / message panel --}}
+        
         <div class="chat-thread" id="chatThread">
             <div class="thread-empty-state" id="threadEmptyState">
                 <i class="fas fa-comment-dots"></i>

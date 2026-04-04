@@ -1,38 +1,4 @@
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-
-:root {
-            --deep: #3b1f2b;
-            --deep-alt: #4d2a3a;
-            --gold: #c9a96e;
-            --gold-hover: #b8955a;
-            --cream: #f5f0eb;
-            --card-bg: #fff8f2;
-            --border: #e2d5c7;
-            --border-soft: #d4c4b0;
-            --text-light: #f5e6d3;
-            --text-muted: #6b5b4f;
-            --text-sub: #d4c4b0;
-            --success: #2ecc71;
-            --error: #e74c3c;
-            --info: #3498db;
-            --warning: #f39c12;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Georgia', serif;
-            background: var(--cream);
-            color: #2c2c2c;
-            line-height: 1.6;
-        }
-
-        /* Header */
-        .main-header {
+.main-header {
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -67,7 +33,7 @@
             gap: 8px;
         }
 
-        /* Navigation */
+        
         .nav-container {
             display: flex;
             justify-content: center;
@@ -103,7 +69,7 @@
             transform: translateY(-2px);
         }
 
-        /* Hero Section */
+        
         .page-hero {
             background: linear-gradient(rgba(30,15,20,0.7), rgba(30,15,20,0.7)),
                         url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200');
@@ -131,14 +97,14 @@
             margin: 0;
         }
 
-        /* Main Container */
+        
         .flights-container {
             max-width: 1400px;
             margin: -50px auto 60px;
             padding: 0 20px;
         }
 
-        /* Search Card */
+        
         .search-card {
             background: var(--card-bg);
             border-radius: 8px;
@@ -162,7 +128,7 @@
             color: var(--gold);
         }
 
-        /* Trip Type Tabs */
+        
         .trip-type-tabs {
             display: flex;
             gap: 10px;
@@ -194,7 +160,7 @@
             border-color: var(--deep);
         }
 
-        /* Form Grid */
+        
         .search-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -248,14 +214,14 @@
             opacity: 0.6;
         }
 
-        /* Passenger & Class Grid */
+        
         .passenger-class-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
 
-        /* Search Button */
+        
         .search-btn {
             width: 100%;
             padding: 16px;
@@ -287,7 +253,7 @@
             transform: translateY(0);
         }
 
-        /* Loading Spinner */
+        
         .spinner {
             border: 3px solid var(--border);
             border-top: 3px solid var(--deep);
@@ -311,7 +277,7 @@
             display: none;
         }
 
-        /* Results Section */
+        
         .results-section {
             display: none;
         }
@@ -355,7 +321,7 @@
             cursor: pointer;
         }
 
-        /* Flight Cards */
+        
         .flight-card {
             background: var(--card-bg);
             border-radius: 6px;
@@ -428,7 +394,7 @@
             margin-top: 4px;
         }
 
-        /* Flight Route */
+        
         .flight-route {
             display: flex;
             align-items: center;
@@ -498,7 +464,7 @@
             margin-top: 8px;
         }
 
-        /* Flight Details */
+        
         .flight-details {
             display: flex;
             gap: 30px;
@@ -522,7 +488,7 @@
             color: var(--deep);
         }
 
-        /* Flight Tags */
+        
         .flight-tags {
             display: flex;
             gap: 8px;
@@ -549,7 +515,7 @@
             color: #1565c0;
         }
 
-        /* Book Button */
+        
         .book-btn {
             width: 100%;
             padding: 14px;
@@ -573,7 +539,7 @@
             transform: translateY(-1px);
         }
 
-        /* No Results */
+        
         .no-results {
             text-align: center;
             padding: 60px 20px;
@@ -600,7 +566,7 @@
             font-size: 16px;
         }
 
-        /* Popular Routes */
+        
         .popular-routes {
             margin-top: 50px;
         }
@@ -653,7 +619,7 @@
             color: var(--text-muted);
         }
 
-        /* Footer */
+        
         .footer {
             background: var(--deep);
             color: var(--text-sub);
@@ -673,7 +639,7 @@
             color: var(--text-light);
         }
 
-        /* Responsive */
+        
         @media (max-width: 768px) {
             .main-header {
                 justify-content: center;
@@ -759,15 +725,7 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Georgia', serif;
-    background: var(--cream);
-    color: #2c2c2c;
-    line-height: 1.6;
-}
 
-
-/* Header */
 
 .main-header {
     display: flex;
@@ -805,7 +763,7 @@ body {
 }
 
 
-/* Navigation */
+
 
 .nav-container {
     display: flex;
@@ -843,7 +801,7 @@ body {
 }
 
 
-/* Hero Section */
+
 
 .page-hero {
     background: linear-gradient(rgba(30, 15, 20, 0.7), rgba(30, 15, 20, 0.7)), url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200');
@@ -872,7 +830,7 @@ body {
 }
 
 
-/* Main Container */
+
 
 .flights-container {
     max-width: 1400px;
@@ -881,7 +839,7 @@ body {
 }
 
 
-/* Search Card */
+
 
 .search-card {
     background: var(--card-bg);
@@ -907,7 +865,7 @@ body {
 }
 
 
-/* Trip Type Tabs */
+
 
 .trip-type-tabs {
     display: flex;
@@ -941,7 +899,7 @@ body {
 }
 
 
-/* Form Grid */
+
 
 .search-grid {
     display: grid;
@@ -997,7 +955,7 @@ body {
 }
 
 
-/* Passenger & Class Grid */
+
 
 .passenger-class-grid {
     display: grid;
@@ -1006,7 +964,7 @@ body {
 }
 
 
-/* Search Button */
+
 
 .search-btn {
     width: 100%;
@@ -1040,7 +998,7 @@ body {
 }
 
 
-/* Loading Spinner */
+
 
 .spinner {
     border: 3px solid var(--border);
@@ -1070,7 +1028,7 @@ body {
 }
 
 
-/* Results Section */
+
 
 .results-section {
     display: none;
@@ -1116,7 +1074,7 @@ body {
 }
 
 
-/* Flight Cards */
+
 
 .flight-card {
     background: var(--card-bg);
@@ -1191,7 +1149,7 @@ body {
 }
 
 
-/* Flight Route */
+
 
 .flight-route {
     display: flex;
@@ -1263,7 +1221,7 @@ body {
 }
 
 
-/* Flight Details */
+
 
 .flight-details {
     display: flex;
@@ -1289,7 +1247,7 @@ body {
 }
 
 
-/* Flight Tags */
+
 
 .flight-tags {
     display: flex;
@@ -1318,7 +1276,7 @@ body {
 }
 
 
-/* Book Button */
+
 
 .book-btn {
     width: 100%;
@@ -1344,7 +1302,7 @@ body {
 }
 
 
-/* No Results */
+
 
 .no-results {
     text-align: center;
@@ -1373,7 +1331,7 @@ body {
 }
 
 
-/* Popular Routes */
+
 
 .popular-routes {
     margin-top: 50px;
@@ -1428,7 +1386,7 @@ body {
 }
 
 
-/* Footer */
+
 
 .footer {
     background: var(--deep);
@@ -1450,7 +1408,7 @@ body {
 }
 
 
-/* Responsive */
+
 
 @media (max-width: 768px) {
     .main-header {

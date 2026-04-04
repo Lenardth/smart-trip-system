@@ -2,13 +2,7 @@
 
 @section('title', 'Itinerary — Smart Booking')
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
-@push('scripts_body')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
 
 @section('content')
 <div class="cover">

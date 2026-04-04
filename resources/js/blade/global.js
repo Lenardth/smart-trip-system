@@ -1,4 +1,3 @@
-// Global App Configuration
 window.App = {
     userId: null,
     userName: '',
@@ -175,7 +174,7 @@ window.App = {
     }
 };
 
-// Global Functions
+
 window.toggleSidebar = () => {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('mobile-open');
@@ -280,7 +279,7 @@ window.logout = () => {
     }
 };
 
-// Initialize when DOM is ready
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => App.init());
 } else {
