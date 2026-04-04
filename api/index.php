@@ -2,39 +2,44 @@
 
 define('LARAVEL_START', microtime(true));
 
-// ── Tmp directories (Vercel serverless has no writable disk except /tmp) ──────
-$dirs = [
+// ── Tmp directories ───────────────────────────────────────────────────────────
+foreach ([
     '/tmp/storage/logs',
     '/tmp/storage/framework/cache/data',
     '/tmp/storage/framework/sessions',
     '/tmp/storage/framework/views',
     '/tmp/storage/app/public',
     '/tmp/bootstrap/cache',
-];
-foreach ($dirs as $dir) {
+] as $dir) {
     if (!is_dir($dir)) mkdir($dir, 0777, true);
 }
 
-// ── Environment overrides for serverless ─────────────────────────────────────
-putenv('APP_CONFIG_CACHE=/tmp/bootstrap/cache/config.php');
-putenv('APP_SERVICES_CACHE=/tmp/bootstrap/cache/services.php');
-putenv('APP_PACKAGES_CACHE=/tmp/bootstrap/cache/packages.php');
-putenv('APP_ROUTES_CACHE=/tmp/bootstrap/cache/routes-v7.php');
-putenv('APP_EVENTS_CACHE=/tmp/bootstrap/cache/events.php');
-putenv('CACHE_STORE=array');
-putenv('CACHE_DRIVER=array');
-putenv('SESSION_DRIVER=cookie');
-putenv('QUEUE_CONNECTION=sync');
-putenv('FILESYSTEM_DISK=local');
-putenv('LOG_CHANNEL=stderr');
+// ── Serverless env overrides ──────────────────────────────────────────────────
+$envOverrides = [
+    'APP_CONFIG_CACHE'    => '/tmp/bootstrap/cache/config.php',
+    'APP_SERVICES_CACHE'  => '/tmp/bootstrap/cache/services.php',
+    'APP_PACKAGES_CACHE'  => '/tmp/bootstrap/cache/packages.php',
+    'APP_ROUTES_CACHE'    => '/tmp/bootstrap/cache/routes-v7.php',
+    'APP_EVENTS_CACHE'    => '/tmp/bootstrap/cache/events.php',
+    'CACHE_STORE'         => 'array',
+    'CACHE_DRIVER'        => 'array',
+    'SESSION_DRIVER'      => 'cookie',
+    'QUEUE_CONNECTION'    => 'sync',
+    'FILESYSTEM_DISK'     => 'local',
+    'LOG_CHANNEL'         => 'stderr',
+];
+foreach ($envOverrides as $k => $v) {
+    putenv("$k=$v");
+    $_ENV[$k] = $_SERVER[$k] = $v;
+}
 
-// ── Parse DATABASE_URL (Neon / Supabase / Railway Postgres) ──────────────────
+// ── Parse DATABASE_URL (Neon / Supabase / Railway) ────────────────────────────
 if ($dbUrl = getenv('DATABASE_URL')) {
     $url = parse_url($dbUrl);
     parse_str($url['query'] ?? '', $query);
     $vars = [
         'DB_CONNECTION' => 'pgsql',
-        'DB_HOST'       => $url['host'],
+        'DB_HOST'       => $url['host'] ?? '',
         'DB_PORT'       => $url['port'] ?? 5432,
         'DB_DATABASE'   => ltrim($url['path'] ?? '', '/'),
         'DB_USERNAME'   => $url['user'] ?? '',
@@ -48,10 +53,12 @@ if ($dbUrl = getenv('DATABASE_URL')) {
 }
 
 // ── Forward other env vars ────────────────────────────────────────────────────
-foreach (['GROQ_API_KEY', 'APP_KEY', 'APP_ENV', 'APP_DEBUG', 'APP_URL',
-          'PUSHER_APP_ID', 'PUSHER_APP_KEY', 'PUSHER_APP_SECRET', 'PUSHER_APP_CLUSTER',
-          'MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD',
-          'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME'] as $var) {
+foreach ([
+    'GROQ_API_KEY', 'APP_KEY', 'APP_ENV', 'APP_DEBUG', 'APP_URL',
+    'PUSHER_APP_ID', 'PUSHER_APP_KEY', 'PUSHER_APP_SECRET', 'PUSHER_APP_CLUSTER',
+    'MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD',
+    'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME',
+] as $var) {
     if ($val = getenv($var)) {
         $_ENV[$var] = $_SERVER[$var] = $val;
     }
@@ -63,43 +70,89 @@ try {
     $app = require __DIR__ . '/../bootstrap/app.php';
     $app->useStoragePath('/tmp/storage');
 
-    // ── Run migrations (idempotent — safe on every cold start) ───────────────
     $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
-    $artisan->call('migrate', ['--force' => true]);
+    $db      = $app->make('db');
 
-    // ── Seed only if tables are empty (first deploy) ─────────────────────────
+    // ── Smart migration: detect state and act accordingly ────────────────────
     try {
-        $db = $app->make('db');
-        $destinationCount = $db->table('destinations')->count();
-        if ($destinationCount === 0) {
+        $hasMigrationsTable = $db->getSchemaBuilder()->hasTable('migrations');
+        $hasUsersTable      = $db->getSchemaBuilder()->hasTable('users');
+
+        if (!$hasMigrationsTable && $hasUsersTable) {
+            // Tables exist but migrations table is missing — database was set up
+            // outside of Laravel. Create the migrations table and mark all as run.
+            $artisan->call('migrate:install');
+            // Mark all migrations as run without executing them
+            $artisan->call('migrate', [
+                '--force'   => true,
+                '--pretend' => true,
+            ]);
+            // Actually just record them as done
+            $migrationFiles = glob(__DIR__ . '/../database/migrations/*.php');
+            foreach ($migrationFiles as $file) {
+                $name = pathinfo($file, PATHINFO_FILENAME);
+                $exists = $db->table('migrations')->where('migration', $name)->exists();
+                if (!$exists) {
+                    $db->table('migrations')->insert([
+                        'migration' => $name,
+                        'batch'     => 1,
+                    ]);
+                }
+            }
+        } elseif (!$hasMigrationsTable && !$hasUsersTable) {
+            // Completely fresh database — run all migrations
+            $artisan->call('migrate', ['--force' => true]);
+        } else {
+            // Normal case — run only pending migrations
+            $artisan->call('migrate', ['--force' => true]);
+        }
+    } catch (\Throwable $migrateErr) {
+        // If it's a "duplicate table" error, the DB is already set up — continue
+        if (str_contains($migrateErr->getMessage(), 'already exists')
+         || str_contains($migrateErr->getMessage(), 'Duplicate table')) {
+            error_log('[SmartBooking] Tables already exist, skipping migration.');
+        } else {
+            throw $migrateErr;
+        }
+    }
+
+    // ── Seed only on first deploy (when destinations table is empty) ──────────
+    try {
+        $seeded = $db->getSchemaBuilder()->hasTable('destinations')
+            && $db->table('destinations')->count() > 0;
+
+        if (!$seeded) {
             $artisan->call('db:seed', ['--force' => true]);
         }
     } catch (\Throwable $seedErr) {
-        // Seeding failure should not block the app
-        error_log('[SmartBooking] Seed error: ' . $seedErr->getMessage());
+        error_log('[SmartBooking] seed warning: ' . $seedErr->getMessage());
     }
 
     // ── Handle HTTP request ───────────────────────────────────────────────────
-    $kernel  = $app->make(Illuminate\Contracts\Http\Kernel::class);
-    $request = Illuminate\Http\Request::capture();
+    $kernel   = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    $request  = Illuminate\Http\Request::capture();
     $response = $kernel->handle($request);
     $response->send();
     $kernel->terminate($request, $response);
 
 } catch (\Throwable $e) {
     http_response_code(500);
-    $debug = getenv('APP_DEBUG') === 'true' || getenv('APP_ENV') === 'local';
+    $debug = in_array(getenv('APP_ENV'), ['local', 'development'])
+          || getenv('APP_DEBUG') === 'true';
+
     if ($debug) {
-        echo '<pre style="font-family:monospace;padding:20px;">';
+        echo '<pre style="font-family:monospace;padding:20px;background:#1a0a00;color:#f5e6d3;">';
         $cur = $e;
         while ($cur) {
-            echo '<strong>' . get_class($cur) . '</strong>: ' . htmlspecialchars($cur->getMessage()) . "\n";
-            echo 'in ' . $cur->getFile() . ':' . $cur->getLine() . "\n\n";
+            echo '<strong style="color:#c9a96e;">' . get_class($cur) . '</strong>: '
+               . htmlspecialchars($cur->getMessage()) . "\n"
+               . 'in ' . $cur->getFile() . ':' . $cur->getLine() . "\n\n";
             $cur = $cur->getPrevious();
         }
         echo htmlspecialchars($e->getTraceAsString());
         echo '</pre>';
     } else {
-        echo json_encode(['error' => 'Internal Server Error', 'message' => $e->getMessage()]);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Internal Server Error']);
     }
 }
