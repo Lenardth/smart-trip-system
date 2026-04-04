@@ -70,33 +70,30 @@ try {
     $app = require __DIR__ . '/../bootstrap/app.php';
     $app->useStoragePath('/tmp/storage');
 
+    // Boot the console kernel so all service providers are registered
     $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
-    $db      = $app->make('db');
+    $artisan->bootstrap();
+
+    // Now the 'db' binding exists
+    $db = $app->make(Illuminate\Database\DatabaseManager::class);
 
     // ── Smart migration: detect state and act accordingly ────────────────────
     try {
-        $hasMigrationsTable = $db->getSchemaBuilder()->hasTable('migrations');
-        $hasUsersTable      = $db->getSchemaBuilder()->hasTable('users');
+        $schema = $db->connection()->getSchemaBuilder();
+        $hasMigrationsTable = $schema->hasTable('migrations');
+        $hasUsersTable      = $schema->hasTable('users');
 
         if (!$hasMigrationsTable && $hasUsersTable) {
-            // Tables exist but migrations table is missing — database was set up
-            // outside of Laravel. Create the migrations table and mark all as run.
+            // Tables exist but migrations table is missing — DB was set up outside Laravel.
+            // Install the migrations table, then record all files as already run.
             $artisan->call('migrate:install');
-            // Mark all migrations as run without executing them
-            $artisan->call('migrate', [
-                '--force'   => true,
-                '--pretend' => true,
-            ]);
-            // Actually just record them as done
             $migrationFiles = glob(__DIR__ . '/../database/migrations/*.php');
+            sort($migrationFiles);
             foreach ($migrationFiles as $file) {
                 $name = pathinfo($file, PATHINFO_FILENAME);
                 $exists = $db->table('migrations')->where('migration', $name)->exists();
                 if (!$exists) {
-                    $db->table('migrations')->insert([
-                        'migration' => $name,
-                        'batch'     => 1,
-                    ]);
+                    $db->table('migrations')->insert(['migration' => $name, 'batch' => 1]);
                 }
             }
         } elseif (!$hasMigrationsTable && !$hasUsersTable) {
@@ -107,7 +104,6 @@ try {
             $artisan->call('migrate', ['--force' => true]);
         }
     } catch (\Throwable $migrateErr) {
-        // If it's a "duplicate table" error, the DB is already set up — continue
         if (str_contains($migrateErr->getMessage(), 'already exists')
          || str_contains($migrateErr->getMessage(), 'Duplicate table')) {
             error_log('[SmartBooking] Tables already exist, skipping migration.');
@@ -118,8 +114,9 @@ try {
 
     // ── Seed only on first deploy (when destinations table is empty) ──────────
     try {
-        $seeded = $db->getSchemaBuilder()->hasTable('destinations')
-            && $db->table('destinations')->count() > 0;
+        $schema2 = $db->connection()->getSchemaBuilder();
+        $seeded  = $schema2->hasTable('destinations')
+                && $db->table('destinations')->count() > 0;
 
         if (!$seeded) {
             $artisan->call('db:seed', ['--force' => true]);
@@ -129,7 +126,7 @@ try {
     }
 
     // ── Handle HTTP request ───────────────────────────────────────────────────
-    $kernel   = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
     $request  = Illuminate\Http\Request::capture();
     $response = $kernel->handle($request);
     $response->send();
