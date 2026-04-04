@@ -1,7 +1,9 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo">
-        <div class="logo-text">Smart Booking</div>
+        <a href="{{ route('dashboard') }}" class="sidebar-brand">
+            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="sidebar-logo-img">
+            <span class="sidebar-brand-text">Smart <span>Booking</span></span>
+        </a>
     </div>
 
     <nav class="sidebar-menu">
@@ -15,7 +17,7 @@
                 ['href' => '/discover',      'icon' => 'fa-compass',        'label' => 'Discover'],
                 ['href' => '/destinations',  'icon' => 'fa-map-marked-alt', 'label' => 'Destinations'],
                 ['href' => '/community',     'icon' => 'fa-users',          'label' => 'Community'],
-                ['href' => '/wishlist',      'icon' => 'fa-heart',          'label' => 'Wishlist',    'badge' => 'savedCount'],
+                ['href' => '/wishlist',      'icon' => 'fa-heart',          'label' => 'Wishlist', 'badge' => 'savedCount'],
                 ['href' => '/chat',          'icon' => 'fa-comment-dots',   'label' => 'Messages'],
                 ['href' => '/notifications', 'icon' => 'fa-bell',           'label' => 'Notifications'],
             ];
@@ -40,8 +42,13 @@
     <div class="sidebar-footer">
         <div class="user-profile">
             <div class="user-avatar" onclick="viewProfile()">
-                @if(Auth::check() && Auth::user()->avatar)
-                    <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}">
+                @if(Auth::check() && Auth::user()->profile_picture)
+                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}"
+                         alt="{{ Auth::user()->name }}"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="avatar-placeholder" style="display:none;">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </div>
                 @else
                     <div class="avatar-placeholder">
                         {{ Auth::check() ? strtoupper(substr(Auth::user()->name, 0, 1)) : 'U' }}
@@ -50,6 +57,7 @@
             </div>
             <div class="user-info">
                 <h4>{{ Auth::user()->name ?? 'User' }}</h4>
+                <span style="font-size:11px;color:var(--text-sub);text-transform:capitalize;">{{ Auth::user()->user_type ?? 'traveler' }}</span>
             </div>
             <button class="logout-btn" onclick="logout()" title="Logout">
                 <i class="fas fa-sign-out-alt"></i>

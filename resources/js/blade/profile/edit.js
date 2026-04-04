@@ -1,11 +1,6 @@
-const userData = {
-            name: "null",
-            firstName: "null",
-            avatar: "null",
-            type: "null",
-            verified: null,
-            id: "null"
-        };
+const userData = (window.__dashboardConfig && window.__dashboardConfig.user)
+            ? window.__dashboardConfig.user
+            : { name: '', firstName: '', avatar: '', type: '', verified: false, id: null };
 
         
         function initializeUserData() {
@@ -130,28 +125,33 @@ const userData = {
 
         
         function initializeRealTimeChat() {
-            
+            const pusherKey = (window.__dashboardConfig && window.__dashboardConfig.pusherKey) || '';
+            const pusherCluster = (window.__dashboardConfig && window.__dashboardConfig.pusherCluster) || 'mt1';
+            const userId = (window.__dashboardConfig && window.__dashboardConfig.userId) || null;
+
+            if (!pusherKey || !userId) {
+                startChatPolling();
+                return;
+            }
+
             if (typeof Pusher !== 'undefined') {
                 try {
-                    const pusher = new Pusher('null', {
-                        cluster: 'null',
+                    const pusher = new Pusher(pusherKey, {
+                        cluster: pusherCluster,
                         encrypted: true
                     });
 
-                    
-                    pusherChannel = pusher.subscribe('private-user.null');
+                    pusherChannel = pusher.subscribe('private-user.' + userId);
 
-                    
                     pusherChannel.bind('new-chat-message', function(data) {
                         handleRealTimeChatMessage(data);
                     });
 
-                    
                     pusherChannel.bind('notification', function(data) {
                         handleRealTimeNotification(data);
                     });
 
-                    console.log('✅ Real-time chat initialized with Pusher');
+                    console.log('Real-time chat initialized with Pusher');
                 } catch (error) {
                     console.log('Pusher not available, using polling fallback');
                     startChatPolling();
@@ -278,25 +278,13 @@ const userData = {
         
         const style = document.createElement('style');
         style.textContent = `
-
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
+            @keyframes slideInRight {
+                from { transform: translateX(400px); opacity: 0; }
+                to   { transform: translateX(0);     opacity: 1; }
             }
-
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
+            @keyframes slideOutRight {
+                from { transform: translateX(0);     opacity: 1; }
+                to   { transform: translateX(400px); opacity: 0; }
             }
         `;
         document.head.appendChild(style);

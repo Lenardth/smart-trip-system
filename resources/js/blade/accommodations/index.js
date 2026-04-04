@@ -8,7 +8,13 @@ let accommodationsGrid, emptyState, aiMatchPanel, aiMatchSummary;
 let locationPanel, mapCityLabel, mapAccomCount, newsCityLabel, newsDateline;
 let newsLoading, newsError, newsErrorMsg, newsFeed, newsEmpty, newsMoreLink;
 
-document.addEventListener('DOMContentLoaded', () => {
+// Run immediately if DOM ready, otherwise wait
+function ready(fn) {
+    if (document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+}
+
+ready(() => {
     searchInput        = document.getElementById('searchInput');
     styleSelect        = document.getElementById('styleSelect');
     budgetSelect       = document.getElementById('budgetSelect');
@@ -29,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     newsEmpty          = document.getElementById('newsEmpty');
     newsMoreLink       = document.getElementById('newsMoreLink');
 
-    reloadBtn.addEventListener('click', doSearch);
-    searchInput.addEventListener('keydown', (e) => {
+    if (reloadBtn) reloadBtn.addEventListener('click', doSearch);
+    if (searchInput) searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') doSearch();
     });
 

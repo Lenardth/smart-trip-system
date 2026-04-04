@@ -18,7 +18,7 @@
             max-width: 860px;
             margin: 0 auto;
             padding: 3.5rem 1.5rem 5rem;
-            color: var(--text-sub, #333);
+            color: #2c2c2c;
             line-height: 1.8;
         }
 
@@ -40,6 +40,7 @@
         .about-section p {
             margin: 0 0 .9rem;
             font-size: .97rem;
+            color: #2c2c2c;
         }
 
         .about-pillars {

@@ -2,6 +2,16 @@
 
 @section('title', 'Discover — Smart Booking')
 
+@push('styles')
+<script>
+window.__dashboardConfig = window.__dashboardConfig || {};
+@auth
+window.__dashboardConfig.userId = {{ Auth::id() }};
+window.__dashboardConfig.user   = { id: {{ Auth::id() }}, name: @json(Auth::user()->name), avatar: @json(Auth::user()->avatar ?? '') };
+@endauth
+</script>
+@endpush
+
 
 
 @section('content')

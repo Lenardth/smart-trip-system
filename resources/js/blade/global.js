@@ -1,284 +1,103 @@
 window.App = {
-    userId: null,
-    userName: '',
-    userAvatar: '',
-    userType: '',
-    userVerified: false,
-    pusherKey: '',
-    pusherCluster: '',
-    csrfToken: '',
-
     init() {
-        const body = document.body;
-        this.userId = body.dataset.userId || null;
-        this.userName = body.dataset.userName || '';
-        this.userAvatar = body.dataset.userAvatar || '';
-        this.userType = body.dataset.userType || '';
-        this.userVerified = body.dataset.userVerified === '1';
-        this.pusherKey = body.dataset.pusherKey || '';
-        this.pusherCluster = body.dataset.pusherCluster || '';
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
-        this.initMobileMenu();
-        this.initNotifications();
-
-        console.log('Smart Booking App Initialized');
     },
-
-    initMobileMenu() {
-        const toggleBtn = document.querySelector('.mobile-toggle');
-        const sidebar = document.getElementById('sidebar');
-
-        if (toggleBtn && sidebar) {
-            toggleBtn.onclick = (e) => {
-                e.stopPropagation();
-                sidebar.classList.toggle('mobile-open');
-            };
-
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768 &&
-                    sidebar.classList.contains('mobile-open') &&
-                    !sidebar.contains(e.target) &&
-                    !toggleBtn.contains(e.target)) {
-                    sidebar.classList.remove('mobile-open');
-                }
-            });
-        }
-    },
-
-    initNotifications() {
-        const notifBtn = document.querySelector('.notification-btn');
-        const dropdown = document.getElementById('notificationDropdown');
-
-        if (notifBtn && dropdown) {
-            notifBtn.onclick = (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-                if (dropdown.classList.contains('show')) {
-                    this.loadNotifications();
-                }
-            };
-
-            document.addEventListener('click', (e) => {
-                if (!notifBtn.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                }
-            });
-        }
-    },
-
-    async loadNotifications(tab = 'all') {
-        const listContainer = document.getElementById('notificationList');
-        if (!listContainer) return;
-
-        try {
-            const response = await fetch(`/api/notifications?tab=${tab}`);
-            const data = await response.json();
-
-            if (data.notifications && data.notifications.length > 0) {
-                listContainer.innerHTML = data.notifications.map(notif => `
-                    <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="handleNotificationClick(${notif.id})">
-                        <div class="notification-icon ${notif.type}">
-                            <i class="fas ${this.getNotificationIcon(notif.type)}"></i>
-                        </div>
-                        <div class="notification-content">
-                            <p>${notif.message}</p>
-                            <span class="notification-time">${this.formatDate(notif.created_at)}</span>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                listContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-bell-slash"></i>
-                        <p>No notifications</p>
-                    </div>
-                `;
-            }
-
-            const badge = document.getElementById('notificationCount');
-            if (badge && data.unread_count > 0) {
-                badge.textContent = data.unread_count;
-                badge.style.display = 'block';
-            } else if (badge) {
-                badge.style.display = 'none';
-            }
-        } catch (error) {
-            console.error('Error loading notifications:', error);
-        }
-    },
-
-    getNotificationIcon(type) {
-        const icons = {
-            chat: 'fa-comment',
-            activity: 'fa-bell',
-            booking: 'fa-ticket-alt',
-            system: 'fa-cog'
-        };
-        return icons[type] || 'fa-bell';
-    },
-
-    formatDate(date, format = 'relative') {
-        const d = new Date(date);
-        const now = new Date();
-        const diff = now - d;
-
-        if (format === 'relative') {
-            const seconds = Math.floor(diff / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-
-            if (days > 7) return d.toLocaleDateString();
-            if (days > 0) return `${days}d ago`;
-            if (hours > 0) return `${hours}h ago`;
-            if (minutes > 0) return `${minutes}m ago`;
-            return 'Just now';
-        }
-
-        return d.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    },
-
     showToast(message, type = 'info') {
-        const existingToast = document.querySelector('.toast');
-        if (existingToast) existingToast.remove();
-
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+        document.querySelector('.app-toast')?.remove();
         const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <i class="fas ${this.getToastIcon(type)}"></i>
-            <span>${message}</span>
-        `;
+        toast.className = 'app-toast';
+        toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#3b1f2b;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;display:flex;align-items:center;gap:10px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.25);';
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
         document.body.appendChild(toast);
-
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    },
-
-    getToastIcon(type) {
-        const icons = {
-            success: 'fa-check-circle',
-            error: 'fa-exclamation-circle',
-            warning: 'fa-exclamation-triangle',
-            info: 'fa-info-circle'
-        };
-        return icons[type] || icons.info;
+        setTimeout(() => toast.remove(), 3000);
     }
 };
 
-
-window.toggleSidebar = () => {
+window.toggleSidebar = function () {
     const sidebar = document.getElementById('sidebar');
-    if (sidebar) sidebar.classList.toggle('mobile-open');
+    if (sidebar) sidebar.classList.toggle('active');
 };
 
-window.viewProfile = () => {
+window.viewProfile = function () {
     window.location.href = '/profile';
 };
 
-window.openSettings = () => {
+window.openSettings = function () {
     window.location.href = '/settings';
 };
 
-window.openGallery = () => {
-    const modal = document.getElementById('galleryModal');
-    if (modal) modal.style.display = 'flex';
+window.togglePublicNav = function () {
+    document.getElementById('publicNav')?.classList.toggle('open');
 };
 
-window.closeGallery = () => {
-    const modal = document.getElementById('galleryModal');
-    if (modal) modal.style.display = 'none';
+window.logout = function () {
+    const existing = document.querySelector('.logout-form');
+    if (existing) { existing.submit(); return; }
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/logout';
+    form.innerHTML = `<input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.content || ''}">`;
+    document.body.appendChild(form);
+    form.submit();
 };
 
-window.uploadPhotos = () => {
-    window.openGallery();
-    setTimeout(() => {
-        const fileInput = document.getElementById('mediaInput');
-        if (fileInput) fileInput.click();
-    }, 100);
+window.toggleNotifications = function () {
+    document.getElementById('notificationDropdown')?.classList.toggle('active');
 };
 
-window.toggleNotifications = () => {
-    const dropdown = document.getElementById('notificationDropdown');
-    if (dropdown) dropdown.classList.toggle('show');
-    if (dropdown?.classList.contains('show')) {
-        App.loadNotifications();
-    }
-};
-
-window.switchNotificationTab = async (tab) => {
+window.switchNotificationTab = function (tab) {
     document.querySelectorAll('.notification-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.notification-tab[data-tab="${tab}"]`).classList.add('active');
-    await App.loadNotifications(tab);
+    document.querySelector(`.notification-tab[data-tab="${tab}"]`)?.classList.add('active');
 };
 
-window.markAllRead = async () => {
-    try {
-        const response = await fetch('/api/notifications/mark-all-read', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            }
-        });
-
-        if (response.ok) {
-            App.showToast('All notifications marked as read', 'success');
-            await App.loadNotifications();
+window.markAllRead = function () {
+    fetch('/api/notifications/mark-all-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+    }).then(() => {
+        document.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
+        const badge = document.getElementById('notificationCount');
+        if (badge) badge.style.display = 'none';
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ title: 'All marked as read', icon: 'success', timer: 1500, showConfirmButton: false, confirmButtonColor: '#c9a96e' });
         }
-    } catch (error) {
-        console.error('Error marking all read:', error);
-    }
+    }).catch(console.error);
 };
 
-window.openComposeMessage = () => {
-    window.location.href = '/chat?compose=true';
+window.openComposeMessage = function () {
+    window.location.href = '/chat';
 };
 
-window.handleNotificationClick = (id) => {
+window.handleNotificationClick = function (id) {
     fetch(`/api/notifications/${id}/read`, {
         method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-            'Content-Type': 'application/json'
-        }
-    });
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '', 'Content-Type': 'application/json' }
+    }).catch(() => {});
 };
 
-window.autoResize = (textarea) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+window.openGallery = window.openGallery || function () {
+    const modal = document.getElementById('galleryModal');
+    if (modal) { modal.style.display = 'flex'; modal.classList.add('active'); }
 };
 
-window.togglePublicNav = () => {
-    const nav = document.getElementById('publicNav');
-    if (nav) nav.classList.toggle('open');
+window.closeGallery = window.closeGallery || function () {
+    const modal = document.getElementById('galleryModal');
+    if (modal) { modal.style.display = 'none'; modal.classList.remove('active'); }
 };
 
-window.logout = () => {
-    const form = document.querySelector('.logout-form');
-    if (form) {
-        form.submit();
-    } else {
-        const logoutForm = document.createElement('form');
-        logoutForm.method = 'POST';
-        logoutForm.action = '/logout';
-        logoutForm.innerHTML = `
-            <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.content || ''}">
-        `;
-        document.body.appendChild(logoutForm);
-        logoutForm.submit();
+window.uploadPhotos = window.uploadPhotos || function () {
+    window.openGallery();
+    setTimeout(() => document.getElementById('mediaInput')?.click(), 100);
+};
+
+document.addEventListener('click', function (e) {
+    const dropdown = document.getElementById('notificationDropdown');
+    const btn = document.querySelector('.notification-btn');
+    if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.remove('active');
     }
-};
-
+});
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => App.init());

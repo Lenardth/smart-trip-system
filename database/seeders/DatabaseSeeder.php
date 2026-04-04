@@ -2,38 +2,42 @@
 
 namespace Database\Seeders;
 
-use App\Models\Booking;
-use App\Models\Flight;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     public function run(): void
     {
-        $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            ['name'  => 'Test User', 'password' => bcrypt('password')]
-        );
+        $users = [
+            ['name' => 'Lenard Hlabangwana', 'email' => 'admin@smartbooking.app',  'user_type' => 'agency'],
+            ['name' => 'Sarah Mitchell',      'email' => 'sarah@example.com',       'user_type' => 'user'],
+            ['name' => 'James Okafor',        'email' => 'james@example.com',       'user_type' => 'user'],
+            ['name' => 'Priya Sharma',        'email' => 'priya@example.com',       'user_type' => 'user'],
+            ['name' => 'Marco Rossi',         'email' => 'marco@example.com',       'user_type' => 'user'],
+            ['name' => 'Yuki Tanaka',         'email' => 'yuki@example.com',        'user_type' => 'user'],
+            ['name' => 'Emma Laurent',        'email' => 'emma@example.com',        'user_type' => 'user'],
+            ['name' => 'Test User',           'email' => 'test@example.com',        'user_type' => 'user'],
+        ];
 
-        $flight = Flight::inRandomOrder()->first();
-
-        $statuses = ['confirmed', 'pending', 'completed', 'cancelled'];
-
-        foreach ($statuses as $status) {
-            Booking::create([
-                'user_id'           => $user->id,
-                'flight_id'         => $flight?->id,
-                'hotel_id'          => null,
-                'trip_id'           => null,
-                'seats_booked'      => rand(1, 3),
-                'total_price'       => rand(300, 2500),
-                'status'            => $status,
-                'passenger_details' => null,
-            ]);
+        foreach ($users as $u) {
+            User::firstOrCreate(
+                ['email' => $u['email']],
+                array_merge($u, ['password' => Hash::make('password')])
+            );
         }
+
+        $this->command->info('✓ Users seeded');
+
+        $this->call(DestinationSeeder::class);
+        $this->command->info('✓ Destinations seeded');
+
+        $this->call(CommunitySeeder::class);
+        $this->command->info('✓ Community seeded');
+
+        $this->call(TripMoodSeeder::class);
+        $this->command->info('✓ Trip moods seeded');
     }
 }

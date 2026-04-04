@@ -1,47 +1,54 @@
 <x-guest-layout>
-    
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
+    <h2 class="auth-title">Welcome Back</h2>
+
+    <form method="POST" action="{{ route('login') }}" id="loginForm">
         @csrf
 
-        
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="input-group">
+            <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+            <input id="email" class="auth-input {{ $errors->has('email') ? 'is-invalid' : '' }}"
+                   type="email" name="email" value="{{ old('email') }}"
+                   required autofocus autocomplete="username" placeholder="you@example.com">
+            @error('email')
+                <div class="input-error">{{ $message }}</div>
+            @enderror
         </div>
 
-        
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="input-group">
+            <label for="password"><i class="fas fa-lock"></i> Password</label>
+            <div class="password-wrapper">
+                <input id="password" class="auth-input {{ $errors->has('password') ? 'is-invalid' : '' }}"
+                       type="password" name="password"
+                       required autocomplete="current-password" placeholder="••••••••">
+                <button type="button" class="toggle-password" id="togglePassword" tabindex="-1">
+                    <i class="fas fa-eye" id="toggleIcon"></i>
+                </button>
+            </div>
+            @error('password')
+                <div class="input-error">{{ $message }}</div>
+            @enderror
         </div>
 
-        
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
+        <div class="remember-me">
+            <input id="remember_me" type="checkbox" name="remember">
+            <label for="remember_me">Remember me</label>
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
+                <a href="{{ route('password.request') }}" class="auth-link" style="margin-left:auto;margin-top:0;">
+                    Forgot password?
                 </a>
             @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
         </div>
+
+        <button type="submit" class="auth-btn" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> Log In
+        </button>
+
+        <div class="auth-divider"><span>Don't have an account?</span></div>
+
+        <a href="{{ route('register') }}" class="auth-link" style="text-align:center;display:block;">
+            Create a free account
+        </a>
     </form>
 </x-guest-layout>

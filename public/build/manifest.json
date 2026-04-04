@@ -1,0 +1,125 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BELcT_i-.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-Dd0vVzS-.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/blade/landing/index.js",
+      "resources/js/blade/dashboard/index.js",
+      "resources/js/blade/discover/index.js",
+      "resources/js/blade/plan-trip/index.js",
+      "resources/js/blade/wishlist/index.js",
+      "resources/js/blade/community/index.js",
+      "resources/js/blade/destinations/index.js",
+      "resources/js/blade/accommodations/index.js",
+      "resources/js/blade/bookings/index.js",
+      "resources/js/blade/flights/index.js",
+      "resources/js/blade/chat/index.js",
+      "resources/js/blade/notifications/index.js",
+      "resources/js/blade/profile/edit.js",
+      "resources/js/blade/profile/edit.js",
+      "resources/js/blade/login.js",
+      "resources/js/blade/auth/register.js"
+    ]
+  },
+  "resources/js/blade/accommodations/index.js": {
+    "file": "assets/index-WAcsf_jR.js",
+    "name": "index",
+    "src": "resources/js/blade/accommodations/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/auth/register.js": {
+    "file": "assets/register-CVfyBz9V.js",
+    "name": "register",
+    "src": "resources/js/blade/auth/register.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/bookings/index.js": {
+    "file": "assets/index-Ceu10hMm.js",
+    "name": "index",
+    "src": "resources/js/blade/bookings/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/chat/index.js": {
+    "file": "assets/index-2Z_aMuwc.js",
+    "name": "index",
+    "src": "resources/js/blade/chat/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/community/index.js": {
+    "file": "assets/index-k1CB3B5N.js",
+    "name": "index",
+    "src": "resources/js/blade/community/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/dashboard/index.js": {
+    "file": "assets/index-CtahYhP9.js",
+    "name": "index",
+    "src": "resources/js/blade/dashboard/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/destinations/index.js": {
+    "file": "assets/index-DhTw12Yf.js",
+    "name": "index",
+    "src": "resources/js/blade/destinations/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/discover/index.js": {
+    "file": "assets/index-D3mwjADC.js",
+    "name": "index",
+    "src": "resources/js/blade/discover/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/flights/index.js": {
+    "file": "assets/index-DvKJKPno.js",
+    "name": "index",
+    "src": "resources/js/blade/flights/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/landing/index.js": {
+    "file": "assets/index-CexbMu-C.js",
+    "name": "index",
+    "src": "resources/js/blade/landing/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/login.js": {
+    "file": "assets/login-DtylD3rF.js",
+    "name": "login",
+    "src": "resources/js/blade/login.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/notifications/index.js": {
+    "file": "assets/index-BG5NFKka.js",
+    "name": "index",
+    "src": "resources/js/blade/notifications/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/plan-trip/index.js": {
+    "file": "assets/index-5KtlfAuJ.js",
+    "name": "index",
+    "src": "resources/js/blade/plan-trip/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/profile/edit.js": {
+    "file": "assets/edit-iqk_9_3W.js",
+    "name": "edit",
+    "src": "resources/js/blade/profile/edit.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/wishlist/index.js": {
+    "file": "assets/index-BYhldexi.js",
+    "name": "index",
+    "src": "resources/js/blade/wishlist/index.js",
+    "isDynamicEntry": true
+  }
+}

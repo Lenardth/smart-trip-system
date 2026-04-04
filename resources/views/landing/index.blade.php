@@ -13,7 +13,7 @@
             <button class="primary-button" onclick="window.location.href='/plan-trip'">
                 <i class="fas fa-magic"></i> Start Planning Now
             </button>
-            <button class="secondary-button" onclick="window.location.href='/flights'">
+            <button class="hero-btn-flights" onclick="window.location.href='/flights'">
                 <i class="fas fa-plane"></i> Book Flights
             </button>
         </div>
@@ -135,7 +135,7 @@
             </div>
         </div>
         <div class="qb-nav">
-            <button class="primary-button qb-next-btn" data-next="2">
+            <button class="primary-button qb-next-btn" data-next="2" onclick="window.showStep(2)">
                 Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -182,10 +182,10 @@
             </div>
         </div>
         <div class="qb-nav">
-            <button class="secondary-button qb-back-btn" data-back="1">
+            <button class="secondary-button qb-back-btn" data-back="1" onclick="window.showStep(1)">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
-            <button class="primary-button qb-next-btn" data-next="3">
+            <button class="primary-button qb-next-btn" data-next="3" onclick="window.showStep(3)">
                 Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -228,10 +228,10 @@
             </div>
         </div>
         <div class="qb-nav">
-            <button class="secondary-button qb-back-btn" data-back="2">
+            <button class="secondary-button qb-back-btn" data-back="2" onclick="window.showStep(2)">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
-            <button class="primary-button" id="generatePlanBtn">
+            <button class="primary-button" id="generatePlanBtn" onclick="window.generateQuickPlan(event)">
                 <i class="fas fa-robot"></i> Generate AI Suggestions
             </button>
         </div>
@@ -338,16 +338,16 @@
         <button class="secondary-button" onclick="window.location.href='/discover'">View All <i class="fas fa-arrow-right"></i></button>
     </div>
     <div class="filter-tags">
-        <span class="filter-tag active" data-filter="all"><i class="fas fa-globe"></i> All</span>
-        <span class="filter-tag" data-filter="trending"><i class="fas fa-fire"></i> Trending</span>
-        <span class="filter-tag" data-filter="beach"><i class="fas fa-umbrella-beach"></i> Beach</span>
-        <span class="filter-tag" data-filter="mountain"><i class="fas fa-mountain"></i> Mountain</span>
-        <span class="filter-tag" data-filter="historical"><i class="fas fa-landmark"></i> Historical</span>
-        <span class="filter-tag" data-filter="food_culture"><i class="fas fa-utensils"></i> Food & Culture</span>
-        <span class="filter-tag" data-filter="eco_tourism"><i class="fas fa-leaf"></i> Eco-Tourism</span>
-        <span class="filter-tag" data-filter="romantic"><i class="fas fa-heart"></i> Romantic</span>
-        <span class="filter-tag" data-filter="adventurous"><i class="fas fa-hiking"></i> Adventure</span>
-        <span class="filter-tag" data-filter="hidden_gem"><i class="fas fa-gem"></i> Hidden Gems</span>
+        <span class="filter-tag active" data-filter="all"         onclick="window.applyDestinationFilter('all', this)"><i class="fas fa-globe"></i> All</span>
+        <span class="filter-tag" data-filter="trending"           onclick="window.applyDestinationFilter('trending', this)"><i class="fas fa-fire"></i> Trending</span>
+        <span class="filter-tag" data-filter="beach"              onclick="window.applyDestinationFilter('beach', this)"><i class="fas fa-umbrella-beach"></i> Beach</span>
+        <span class="filter-tag" data-filter="mountain"           onclick="window.applyDestinationFilter('mountain', this)"><i class="fas fa-mountain"></i> Mountain</span>
+        <span class="filter-tag" data-filter="historical"         onclick="window.applyDestinationFilter('historical', this)"><i class="fas fa-landmark"></i> Historical</span>
+        <span class="filter-tag" data-filter="food_culture"       onclick="window.applyDestinationFilter('food_culture', this)"><i class="fas fa-utensils"></i> Food & Culture</span>
+        <span class="filter-tag" data-filter="eco_tourism"        onclick="window.applyDestinationFilter('eco_tourism', this)"><i class="fas fa-leaf"></i> Eco-Tourism</span>
+        <span class="filter-tag" data-filter="romantic"           onclick="window.applyDestinationFilter('romantic', this)"><i class="fas fa-heart"></i> Romantic</span>
+        <span class="filter-tag" data-filter="adventurous"        onclick="window.applyDestinationFilter('adventurous', this)"><i class="fas fa-hiking"></i> Adventure</span>
+        <span class="filter-tag" data-filter="hidden_gem"         onclick="window.applyDestinationFilter('hidden_gem', this)"><i class="fas fa-gem"></i> Hidden Gems</span>
     </div>
     <div id="destinationsLoading" style="text-align:center; padding: 60px 20px;">
         <i class="fas fa-spinner fa-spin" style="font-size:28px;"></i>

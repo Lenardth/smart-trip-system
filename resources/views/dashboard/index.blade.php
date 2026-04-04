@@ -6,18 +6,9 @@
 @section('page-class', 'main-content')
 @section('page-id', 'mainContent')
 
-
-@push('body-attrs')
-    data-dashboard-user-id="{{ Auth::id() }}"
-    data-dashboard-user-name="{{ Auth::user()->name ?? '' }}"
-    data-dashboard-user-avatar="{{ Auth::user()->avatar ?? '' }}"
-    data-dashboard-user-type="{{ Auth::user()->user_type ?? '' }}"
-    data-dashboard-user-verified="{{ Auth::user()->hasVerifiedEmail() ? '1' : '0' }}"
-@endpush
-
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        (function () {
             window.__dashboardConfig = {
                 pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
                 pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}",
@@ -31,15 +22,14 @@
                     verified:  {{ Auth::user()->hasVerifiedEmail() ? 'true' : 'false' }}
                 }
             };
-        });
+        })();
     </script>
 @endpush
 
 @section('content')
 
-    
     <div class="stats-grid">
-        <div class="stat-card" onclick="openGallery()">
+        <div class="stat-card" onclick="openGallery()" style="cursor:pointer;">
             <div class="stat-icon photos"><i class="fas fa-images"></i></div>
             <div class="stat-info">
                 <h3 id="statPhotosCount">0</h3>
@@ -55,7 +45,7 @@
                 <div class="stat-change"><span>No trips yet</span></div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="window.location.href='/bookings'" style="cursor:pointer;">
             <div class="stat-icon bookings"><i class="fas fa-ticket-alt"></i></div>
             <div class="stat-info">
                 <h3 id="statBookingsCount">0</h3>
@@ -71,6 +61,24 @@
                 <div class="stat-change"><span>View your wishlist</span></div>
             </div>
         </div>
+    </div>
+
+    <div class="settings-shortcut-bar">
+        <a href="{{ route('settings') }}" class="settings-shortcut-item">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+        <a href="{{ route('profile.edit') }}" class="settings-shortcut-item">
+            <i class="fas fa-user-edit"></i> Edit Profile
+        </a>
+        <a href="{{ route('notifications.index') }}" class="settings-shortcut-item">
+            <i class="fas fa-bell"></i> Notifications
+        </a>
+        <a href="{{ route('wishlist.index') }}" class="settings-shortcut-item">
+            <i class="fas fa-heart"></i> My Wishlist
+        </a>
+        <a href="{{ route('bookings.index') }}" class="settings-shortcut-item">
+            <i class="fas fa-ticket-alt"></i> My Bookings
+        </a>
     </div>
 
     
@@ -119,12 +127,12 @@
         <div class="dashboard-section">
             <div class="section-header">
                 <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+                <a href="{{ route('bookings.index') }}" style="font-size:13px;color:var(--gold);text-decoration:none;">View all</a>
             </div>
-            <div class="section-content">
+            <div class="section-content" id="recentActivityContent">
                 <div class="empty-state">
-                    <i class="fas fa-clock"></i>
-                    <h3>No Activity Yet</h3>
-                    <p>Your recent actions will appear here</p>
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading activity…</p>
                 </div>
             </div>
         </div>

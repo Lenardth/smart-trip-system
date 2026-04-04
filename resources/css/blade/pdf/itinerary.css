@@ -1,6 +1,6 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+.pdf-body * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
+        .pdf-body {
             font-family: 'Georgia', 'Times New Roman', serif;
             background: #fff;
             color: #2c2c2c;

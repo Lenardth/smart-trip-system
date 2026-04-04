@@ -1,17 +1,14 @@
-
 @extends('layouts.authenticated')
 
 @section('title', 'Notifications — Smart Booking')
-@section('page-class', 'main-content')
+@section('page-class', 'main-content notifications-page')
 @section('page-id', 'notificationsPage')
-
 
 @push('body-attrs')
     data-user-id="{{ Auth::id() }}"
     data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
     data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster') }}"
 @endpush
-
 
 @section('content')
 
@@ -28,31 +25,28 @@
     </div>
 
     <div class="notification-filter-tabs" id="notifTabs">
-        <button class="notif-tab active" data-tab="all"      onclick="filterNotifs('all')">
+        <button class="notif-tab active" data-tab="all"     onclick="switchTab('all')">
             <i class="fas fa-th-large"></i> All
+            <span id="countAll" class="notif-count"></span>
         </button>
-        <button class="notif-tab"        data-tab="chat"     onclick="filterNotifs('chat')">
+        <button class="notif-tab" data-tab="chat"           onclick="switchTab('chat')">
             <i class="fas fa-comments"></i> Messages
+            <span id="countChat" class="notif-count"></span>
         </button>
-        <button class="notif-tab"        data-tab="booking"  onclick="filterNotifs('booking')">
-            <i class="fas fa-ticket-alt"></i> Bookings
-        </button>
-        <button class="notif-tab"        data-tab="system"   onclick="filterNotifs('system')">
-            <i class="fas fa-info-circle"></i> System
+        <button class="notif-tab" data-tab="activity"       onclick="switchTab('activity')">
+            <i class="fas fa-ticket-alt"></i> Activity
+            <span id="countActivity" class="notif-count"></span>
         </button>
     </div>
 
-    <div class="notifications-list" id="notificationsList">
-        <div class="notifications-loading" id="notifsLoading">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading notifications…</p>
-        </div>
-        <div class="notifications-empty" id="notifsEmpty" style="display:none;">
+    <div id="notifList" class="notif-list-wrap">
+        <div class="notif-empty">
             <i class="fas fa-bell-slash"></i>
-            <h3>You're all caught up!</h3>
-            <p>No notifications to show right now. Check back later.</p>
+            <h3>Loading…</h3>
+            <p>Fetching your notifications.</p>
         </div>
-        <div id="notifsContent"></div>
     </div>
+
+    <p id="notifSubtitle" style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:8px;"></p>
 
 @endsection

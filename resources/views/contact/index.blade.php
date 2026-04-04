@@ -45,7 +45,7 @@
             gap: .75rem;
             margin-bottom: 1.1rem;
             font-size: .92rem;
-            color: var(--text-sub, #333);
+            color: #2c2c2c;
             line-height: 1.5;
         }
 

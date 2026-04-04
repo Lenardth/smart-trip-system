@@ -72,9 +72,10 @@ class User extends Authenticatable
 
     public function getProfilePictureUrlAttribute(): string
     {
-        return $this->profile_picture
-            ? asset('storage/' . $this->profile_picture)
-            : asset('img/default-avatar.png');
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+        return '';
     }
 
     public function getDisplayNameAttribute(): string
@@ -84,6 +85,8 @@ class User extends Authenticatable
 
     public function getAvatarAttribute(): string
     {
-        return $this->profile_picture_url;
+        return $this->profile_picture
+            ? asset('storage/' . $this->profile_picture)
+            : '';
     }
 }

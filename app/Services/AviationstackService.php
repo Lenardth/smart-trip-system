@@ -9,7 +9,7 @@ class AviationstackService
 {
     private string $host    = 'aerodatabox.p.rapidapi.com';
     private string $baseUrl = 'https://aerodatabox.p.rapidapi.com';
-    private string $key;
+    private ?string $key;
 
     private array $airportMap = [
         // Cities → IATA
@@ -72,6 +72,10 @@ class AviationstackService
     ): array {
         $fromLocal = "{$departureDate}T00:00";
         $toLocal   = "{$departureDate}T23:59";
+
+        if (!$this->key) {
+            throw new \RuntimeException('Flight API key is not configured. Add AVIATIONSTACK_KEY to your .env file.');
+        }
 
         $response = Http::withHeaders([
             'x-rapidapi-host' => $this->host,

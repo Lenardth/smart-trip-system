@@ -5,22 +5,23 @@ class="dashboard-page"
 @endpush
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            window.userData = {
-                id:       '{{ Auth::id() }}',
-                name:     '{{ Auth::user()->name ?? '' }}',
-                avatar:   '{{ Auth::user()->avatar ?? '' }}',
-                type:     '{{ Auth::user()->user_type ?? '' }}',
-                verified: '{{ Auth::user()->hasVerifiedEmail() ? '1' : '0' }}'
-            };
-            window.pusherConfig = {
-                key:     '{{ config('broadcasting.connections.pusher.key') }}',
-                cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}'
-            };
-        });
-    </script>
-    @stack('scripts_body')
+<script>
+(function () {
+    var cfg = window.__dashboardConfig = window.__dashboardConfig || {};
+    cfg.pusherKey     = @json(config('broadcasting.connections.pusher.key'));
+    cfg.pusherCluster = @json(config('broadcasting.connections.pusher.options.cluster', 'mt1'));
+    cfg.userId        = {{ Auth::id() ?? 'null' }};
+    cfg.user = {
+        id:        {{ Auth::id() ?? 'null' }},
+        name:      @json(Auth::user()->name ?? ''),
+        firstName: @json(Auth::check() ? explode(' ', Auth::user()->name ?? '')[0] : ''),
+        avatar:    @json(Auth::user()->avatar ?? ''),
+        type:      @json(Auth::user()->user_type ?? ''),
+        verified:  {{ Auth::user()?->hasVerifiedEmail() ? 'true' : 'false' }}
+    };
+})();
+</script>
+@stack('scripts_body')
 @endpush
 
 @section('body')
@@ -30,7 +31,6 @@ class="dashboard-page"
         @if(!isset($hideHeader) && ($withHeader ?? true))
             @include('partials.dashboard-header')
         @endif
-
         <main @if(isset($fullPage) && $fullPage) style="padding:0;height:100%;" @endif>
             @yield('content')
         </main>

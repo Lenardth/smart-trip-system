@@ -1,0 +1,1 @@
+(function(){typeof window.filterDest!="function"&&(window.filterDest=function(e,t){document.querySelectorAll(".cont-tab").forEach(function(i){i.classList.remove("active")}),t&&t.classList.add("active")})})();

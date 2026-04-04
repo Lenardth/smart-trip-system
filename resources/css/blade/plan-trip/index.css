@@ -1,18 +1,4 @@
-html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
-    }
-
-    body > *:first-child {
-        margin-top: 0 !important;
-    }
-
-    body > *:last-child {
-        margin-bottom: 0 !important;
-    }
-
-    .author-badge {
+.author-badge {
         margin-left: auto;
         margin-right: 20px;
         color: var(--gold);

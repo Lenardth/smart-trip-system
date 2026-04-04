@@ -1,58 +1,36 @@
 (function () {
-    function togglePublicNav() {
-        var nav = document.getElementById("publicNav");
-        if (!nav) return;
-        nav.classList.toggle("open");
-    }
-
     function toggleSidebar() {
-        var sidebar = document.getElementById("sidebar");
-        if (!sidebar) return;
-        sidebar.classList.toggle("active");
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('active');
     }
-
-    document.addEventListener("click", function (event) {
-        var nav = document.getElementById("publicNav");
-        var navToggle = document.querySelector(".public-nav-toggle");
-        if (nav && nav.classList.contains("open") && navToggle) {
-            if (!nav.contains(event.target) && !navToggle.contains(event.target)) {
-                nav.classList.remove("open");
-            }
-        }
-    });
 
     function updateWishlistBadge(count) {
-        document.querySelectorAll('#wishlistCount').forEach(el => {
+        document.querySelectorAll('#wishlistCount, #savedCount, #statSavedCount').forEach(function (el) {
             el.textContent = count;
         });
     }
 
     function loadWishlistCount() {
-        fetch('/api/wishlist/count', {
-            headers: { 'Accept': 'application/json' }
-        })
-            .then(r => {
-                if (!r.ok) return;
-                return r.json();
-            })
-            .then(data => {
-                if (data) updateWishlistBadge(data.count ?? 0);
-            })
-            .catch(() => {});
+        fetch('/api/wishlist/count', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { if (!r.ok) return null; return r.json(); })
+            .then(function (data) { if (data) updateWishlistBadge(data.count ?? 0); })
+            .catch(function () {});
     }
 
-    window.togglePublicNav = togglePublicNav;
+    window.togglePublicNav = function () {
+        var nav = document.getElementById('publicNav');
+        if (nav) nav.classList.toggle('open');
+    };
+
     window.toggleSidebar = window.toggleSidebar || toggleSidebar;
+
     document.addEventListener('DOMContentLoaded', loadWishlistCount);
 
-    
-    
-    
-    
-    
-    
     window.addEventListener('storage', function (e) {
         if (e.key !== 'smartBookingWishlistUpdated' || !e.newValue) return;
         loadWishlistCount();
     });
+
+    // Also expose so wishlist toggles on any page can call it directly
+    window.__refreshWishlistBadge = loadWishlistCount;
 })();

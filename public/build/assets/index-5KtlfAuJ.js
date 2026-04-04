@@ -1,0 +1,152 @@
+let M="",H=[],l={},x=null;const U={budget:{backpacker:.7,budget:1,mid:1.5,premium:2.5,luxury:4},duration:{weekend:.4,week:1,two_weeks:1.8,month:3.5,flexible:1},companion:{solo:1,couple:.9,family_young:1.2,family_teens:1.3,friends_small:.95,friends_large:.9,business:1.4}},re={europe:2500,southeast_asia:1500,east_asia:2200,south_asia:1400,middle_east:2e3,africa:1800,north_america:2800,latin_america:1600,oceania:3e3,caribbean:2400,any:2e3},le={europe:19,southeast_asia:10,east_asia:13,south_asia:12,middle_east:5,africa:15,north_america:11,latin_america:16,oceania:15,caribbean:18,any:12},V={backpacker:"Backpacker (Under $500)",budget:"Budget-Friendly ($500–$1,500)",mid:"Mid-Range ($1,500–$4,000)",premium:"Premium ($4,000–$8,000)",luxury:"Luxury ($8,000+)"},J={weekend:"Long Weekend (3–4 days)",week:"One Week (7 days)",two_weeks:"Two Weeks (10–14 days)",month:"One Month or more",flexible:"Flexible / Open-ended"},K={solo:"Solo Traveller",couple:"Couple",family_young:"Family with Young Children",family_teens:"Family with Teenagers",friends_small:"Small Group of Friends (2–4)",friends_large:"Large Group of Friends (5+)",business:"Business Traveller"};window.goStep=j;window.generateSuggestions=Y;window.selectDestination=Z;window.openReceipt=ee;window.closeReceipt=O;window.printReceipt=oe;window.downloadReceiptPdf=ne;window.esc=w;(function(){function o(){document.querySelectorAll(".mood-card").forEach(t=>{t.addEventListener("click",function(){X(this)})});const n=document.getElementById("receiptModal");n&&n.addEventListener("click",function(t){t.target===this&&O()}),document.addEventListener("keydown",function(t){if(t.key==="Escape"){const r=document.getElementById("receiptModal");r&&r.classList.contains("open")&&O()}});const i=document.getElementById("saveBtn");i&&i.addEventListener("click",ue)}document.readyState!=="loading"?o():document.addEventListener("DOMContentLoaded",o)})();function X(o){document.querySelectorAll(".mood-card").forEach(i=>i.classList.remove("selected")),o.classList.add("selected"),M=o.dataset.mood;const n=document.getElementById("selectedMoodValue");n&&(n.value=M),window.__planTripMood=M}function j(o){[1,2,3,4].forEach(t=>{const r=document.getElementById("step"+t),e=document.getElementById("si"+t);r&&(r.style.display="none"),e&&e.classList.remove("active","done")});for(let t=1;t<o;t++){const r=document.getElementById("si"+t);r&&r.classList.add("done")}const n=document.getElementById("si"+o);n&&n.classList.add("active");const i=document.getElementById("step"+o);i&&(i.style.display="block"),window.scrollTo({top:0,behavior:"smooth"})}async function Y(){const o=document.getElementById("selectedMoodValue");if(M=o&&o.value.trim()?o.value.trim():M,!M){alert("Please select or add a mood first."),j(1);return}x=null;const n=document.getElementById("receiptBtn");n&&(n.style.display="none");const i=document.getElementById("saveBtn");i&&(i.style.display="none"),j(4);const t=document.getElementById("loadingState"),r=document.getElementById("errorState"),e=document.getElementById("resultsState");t&&(t.style.display="block"),r&&(r.style.display="none"),e&&(e.style.display="none");const g=document.getElementById("feelingNote"),F=document.getElementById("budget"),s=document.getElementById("duration"),c=document.getElementById("companion"),p=document.getElementById("month"),f=document.getElementById("region"),y=document.getElementById("accommodation"),k=document.getElementById("origin"),$=document.getElementById("experience");l={mood:M,feeling_note:g&&g.value?g.value.trim():null,budget:F?F.value:null,duration:s?s.value:null,companion:c?c.value:null,month:p&&p.value?p.value:null,region:f&&f.value?f.value:null,accommodation:y&&y.value?y.value:null,origin:k&&k.value.trim()?k.value.trim():null,experience:$&&$.value?$.value:null};try{const B=document.querySelector('meta[name="csrf-token"]'),a=await(await fetch("/ai/suggest",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json","X-CSRF-TOKEN":B?B.content:""},body:JSON.stringify(l)})).json();if(t&&(t.style.display="none"),!a.success){r&&(r.textContent=a.message||"Something went wrong.",r.style.display="block");return}H=a.data.map(z=>({...z,costBreakdown:ce(z,l)})),me(H)}catch(B){t&&(t.style.display="none"),r&&(r.textContent="Network error: "+B.message,r.style.display="block")}}function ce(o,n){const i=n.region||"any",t=re[i]||2e3,r=U.budget[n.budget]||1,e=U.duration[n.duration]||1,g=U.companion[n.companion]||1,F=Math.round(t*.4*r),s=Math.round(t*.35*e*r),c=Math.round(t*.15*g),p=Math.round(t*.2*e),f=Math.round(t*.1*r),y=F+s+c+p+f,k=le[i]||12,$=Math.round(y*(k/100)),B=Math.round(y*.05),S=y+$+B,a=fe(n.duration);return{breakdown:{flights:{amount:F,description:"Round-trip flights (economy)",details:de(n.origin,o.destination)},accommodation:{amount:s,description:pe(n.accommodation),nights:a},activities:{amount:c,description:"Guided tours & activities",items:ge(o.top_activities)},food:{amount:p,description:"Meals & dining experiences",perDay:Math.round(p/a)},transportation:{amount:f,description:"Local transportation",includes:["Airport transfers","Public transport","Inter-city travel"]}},subtotal:y,taxes:{amount:$,rate:k,type:"VAT/GST"},serviceFee:{amount:B,description:"Booking & service fee"},total:S,range:{low:Math.round(S*.85),high:Math.round(S*1.15),display:`$${d(Math.round(S*.85))} – $${d(Math.round(S*1.15))}`},savings:{earlyBird:Math.round(S*.1),groupDiscount:(n.companion||"").includes("family")||(n.companion||"").includes("friends")?Math.round(S*.08):0,packageDeal:Math.round(S*.05)}}}function d(o){return o.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")}function de(o,n){if(!o)return"Based on average prices from major hubs";const i=["Emirates","Qatar Airways","Singapore Airlines","British Airways","Lufthansa","Delta","United"],t=i[Math.floor(Math.random()*i.length)],r=Math.floor(Math.random()*6)+8;return`${t} · ~${r}h from ${o}`}function pe(o){const n={hostel:"Shared dormitory in central location",budget_hotel:"2–3 star hotel with breakfast",boutique:"Boutique hotel with local character",resort:"All-inclusive resort",villa:"Private villa with pool",airbnb:"Private apartment with kitchen",glamping:"Eco-lodge with unique experience",any:"Mix of comfortable accommodations"};return n[o]||n.any}function fe(o){return{weekend:3,week:7,two_weeks:12,month:28,flexible:7}[o]||7}function ge(o){return o?`${o.split(",").length} included activities`:"Multiple activities"}function Q(o){const n=o.split(" ");return(n.length===1?o.substring(0,3):n.map(i=>i[0]).join("").substring(0,3)).toUpperCase()}function me(o){const n=document.getElementById("resultsGrid");if(!n)return;n.innerHTML="",o.forEach((t,r)=>{const e=document.createElement("div");e.className="dest-card",e.dataset.idx=r,e.innerHTML=`
+            <div class="select-badge"><i class="fas fa-check"></i></div>
+            <div class="dest-card-header">
+                <h3>${w(t.destination)}</h3>
+                <div class="country"><i class="fas fa-globe" style="margin-right:4px;"></i>${w(t.country)}</div>
+            </div>
+            <p>${w(t.description)}</p>
+            <div class="dest-cost">
+                <i class="fas fa-wallet" style="color:var(--gold);margin-right:6px;"></i>
+                <span>${t.costBreakdown.range.display}</span>
+                <span style="font-size:12px;color:var(--text-muted);display:block;margin-top:4px;">per person</span>
+            </div>
+            <div class="dest-meta">
+                <div class="dest-meta-row"><i class="fas fa-calendar-check"></i><span><strong>Best time:</strong> ${w(t.best_time_to_visit)}</span></div>
+                <div class="dest-meta-row"><i class="fas fa-star"></i><span><strong>Activities:</strong> ${w(t.top_activities)}</span></div>
+                <div class="dest-meta-row"><i class="fas fa-passport"></i><span><strong>Visa:</strong> ${w(t.visa_info)}</span></div>
+                <div class="dest-meta-row"><i class="fas fa-plane"></i><span><strong>Flights:</strong> ${w(t.flight_info)}</span></div>
+                <div class="dest-meta-row"><i class="fas fa-lightbulb"></i><span><strong>Tip:</strong> ${w(t.travel_tip)}</span></div>
+            </div>`,e.addEventListener("click",()=>Z(r)),n.appendChild(e)});const i=document.getElementById("resultsState");i&&(i.style.display="block")}function Z(o){document.querySelectorAll(".dest-card").forEach(r=>r.classList.remove("selected"));const n=document.querySelectorAll(".dest-card");n[o]&&n[o].classList.add("selected"),x=H[o];const i=document.getElementById("receiptBtn");i&&(i.style.display="inline-flex");const t=document.getElementById("saveBtn");t&&(t.style.display="inline-flex",t.innerHTML='<i class="fas fa-bookmark"></i> Save to Dashboard',t.disabled=!1),i&&i.scrollIntoView({behavior:"smooth",block:"nearest"})}async function ue(){if(!x)return;const o=document.getElementById("saveBtn");o&&(o.disabled=!0,o.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving…');const n={destination:x.destination,country:x.country||null,mood:l.mood||null,feeling_note:l.feeling_note||null,budget:l.budget||null,duration:l.duration||null,companion:l.companion||null,region:l.region||null,accommodation:l.accommodation||null,origin:l.origin||null,month:l.month||null,estimated_cost:x.costBreakdown&&x.costBreakdown.total?x.costBreakdown.total:null};console.log("[plan-trip] POST /api/trips payload:",n);try{const i=document.querySelector('meta[name="csrf-token"]'),t=await fetch("/api/trips",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json","X-CSRF-TOKEN":i?i.content:""},body:JSON.stringify(n)}),r=await t.json();if(console.log("[plan-trip] POST /api/trips response:",t.status,r),t.status===409){o&&(o.disabled=!1,o.innerHTML='<i class="fas fa-bookmark"></i> Already Saved'),typeof Swal<"u"&&Swal.fire({title:"Already Saved",text:x.destination+" is already on your dashboard.",icon:"info",confirmButtonColor:"#c9a96e",confirmButtonText:"View Dashboard",showCancelButton:!0,cancelButtonText:"Stay Here"}).then(e=>{e.isConfirmed&&(window.location.href="/dashboard")});return}if(t.ok&&r.success){o&&(o.innerHTML='<i class="fas fa-check"></i> Saved!');try{localStorage.setItem("smartBookingTripSaved",JSON.stringify({ts:Date.now(),destination:x.destination,country:x.country||null})),localStorage.setItem("smartBookingTripProfile",JSON.stringify({mood:l.mood||null,budget:l.budget||null,accommodation:l.accommodation||null,region:l.region||null,feeling_note:l.feeling_note||null}))}catch{}typeof Swal<"u"&&Swal.fire({title:"Trip Saved!",text:x.destination+" has been added to your dashboard.",icon:"success",confirmButtonColor:"#c9a96e",confirmButtonText:"View Dashboard",showCancelButton:!0,cancelButtonText:"Stay Here"}).then(e=>{e.isConfirmed&&(window.location.href="/dashboard")})}else throw new Error(r.message||"Failed to save")}catch(i){console.error("[plan-trip] saveTripToDashboard error:",i),o&&(o.disabled=!1,o.innerHTML='<i class="fas fa-bookmark"></i> Save to Dashboard'),typeof Swal<"u"&&Swal.fire({title:"Error",text:i.message||"Could not save trip. Please try again.",icon:"error",confirmButtonColor:"#c9a96e"})}}function ee(){if(!x)return;const o=document.getElementById("receiptContent");o&&(o.innerHTML=be(x));const n=document.getElementById("receiptModal");n&&(n.classList.add("open"),document.body.style.overflow="hidden")}function O(){const o=document.getElementById("receiptModal");o&&(o.classList.remove("open"),document.body.style.overflow="")}function ve(){const o=Date.now().toString().slice(-8),n=Math.floor(Math.random()*1e4).toString().padStart(4,"0");return`SBP-${o}-${n}`}function te(){const o=new Date,n=new Date(o);return n.setMonth(n.getMonth()+3),{issueDate:o.toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"}),issueTime:o.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:!0}),validUntil:n.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}),bookingRef:ve()}}function ye(o){return o?o.split(",").map(n=>n.trim()).map(n=>`<span style="background:#f8f4f0;padding:6px 12px;border-radius:20px;font-size:12px;color:#3b1f2b;border:1px solid #c9a96e;display:inline-flex;align-items:center;gap:5px;">
+            <i class="fas fa-tag" style="color:#c9a96e;font-size:10px;"></i>${w(n)}
+        </span>`).join(""):""}function be(o){const n=te(),i=o.costBreakdown,t=i.breakdown,r=(l.mood||"").charAt(0).toUpperCase()+(l.mood||"").slice(1),e=V[l.budget]||l.budget||"—",g=J[l.duration]||l.duration||"—",F=K[l.companion]||l.companion||"—";return`
+    <div style="font-family:'Georgia',serif;color:#2c2c2c;">
+        <div style="background:#3b1f2b;padding:28px 30px;">
+            <div style="display:flex;align-items:center;gap:15px;margin-bottom:18px;">
+                <div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="/img/travel-icon.png" alt="Smart Booking" style="width:100%;height:100%;object-fit:contain;filter:brightness(0) invert(1);"></div>
+                <div>
+                    <div style="font-size:22px;font-weight:bold;color:#f5e6d3;letter-spacing:2px;font-variant:small-caps;">Smart Booking</div>
+                    <div style="font-size:11px;color:#d4c4b0;">AI-Powered Travel Planning</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;background:rgba(255,255,255,0.07);padding:14px 16px;border-radius:6px;">
+                <div>
+                    <div style="font-size:10px;color:#d4c4b0;text-transform:uppercase;letter-spacing:1px;">Booking Reference</div>
+                    <div style="font-size:17px;font-weight:bold;color:#c9a96e;font-family:monospace;">${n.bookingRef}</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:#d4c4b0;text-transform:uppercase;letter-spacing:1px;">Issued</div>
+                    <div style="font-size:13px;color:#f5e6d3;">${n.issueDate}</div>
+                    <div style="font-size:11px;color:#d4c4b0;">${n.issueTime}</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:#d4c4b0;text-transform:uppercase;letter-spacing:1px;">Valid Until</div>
+                    <div style="font-size:13px;color:#f5e6d3;">${n.validUntil}</div>
+                </div>
+            </div>
+        </div>
+        <div style="background:linear-gradient(135deg,#c9a96e,#b8955a);padding:18px 30px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <div style="font-size:26px;font-weight:bold;color:#3b1f2b;">${w(o.destination)}</div>
+                <div style="font-size:13px;color:#3b1f2b;opacity:0.75;margin-top:4px;"><i class="fas fa-map-pin" style="margin-right:5px;"></i>${w(o.country)}</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:10px;color:#3b1f2b;opacity:0.7;text-transform:uppercase;">Code</div>
+                <div style="font-size:26px;font-weight:bold;color:#3b1f2b;font-family:monospace;">${Q(o.destination)}</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 30px;background:#fff;">
+            ${[["fas fa-smile","Mood",r],["fas fa-clock","Duration",g+` (${t.accommodation.nights}n)`],["fas fa-users","Companion",F],["fas fa-wallet","Budget",e]].map(([s,c,p])=>`
+                <div style="text-align:center;padding:14px 10px;background:#f8f4f0;border-radius:8px;">
+                    <div style="font-size:22px;color:#c9a96e;margin-bottom:6px;"><i class="${s}"></i></div>
+                    <div style="font-size:10px;color:#6b5b4f;text-transform:uppercase;letter-spacing:0.5px;">${c}</div>
+                    <div style="font-size:13px;font-weight:bold;color:#3b1f2b;margin-top:4px;">${p}</div>
+                </div>`).join("")}
+        </div>
+        <div style="padding:20px 30px;background:#fff;border-top:1px solid #e2d5c7;">
+            <h3 style="color:#3b1f2b;font-size:16px;font-weight:normal;border-bottom:2px solid #c9a96e;padding-bottom:10px;margin:0 0 18px;">
+                <i class="fas fa-calculator" style="color:#c9a96e;margin-right:8px;"></i>Cost Estimation Breakdown
+            </h3>
+            ${[["fas fa-plane","Flights",d(t.flights.amount),t.flights.description,t.flights.details],["fas fa-hotel","Accommodation",d(t.accommodation.amount),t.accommodation.description,`${t.accommodation.nights} nights`],["fas fa-ticket-alt","Activities",d(t.activities.amount),t.activities.description,t.activities.items],["fas fa-utensils","Food & Dining",d(t.food.amount),t.food.description,`~$${t.food.perDay}/day`],["fas fa-bus","Local Transport",d(t.transportation.amount),t.transportation.description,t.transportation.includes.join(" · ")]].map(([s,c,p,f,y])=>`
+                <div style="background:#f8f4f0;border-radius:8px;padding:13px 15px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <i class="${s}" style="color:#c9a96e;width:18px;text-align:center;"></i>
+                            <span style="font-weight:bold;color:#3b1f2b;">${c}</span>
+                        </div>
+                        <span style="font-weight:bold;color:#3b1f2b;">$${p}</span>
+                    </div>
+                    <div style="font-size:11px;color:#6b5b4f;margin-left:28px;">${f}<br><span style="color:#c9a96e;">${y}</span></div>
+                </div>`).join("")}
+            <div style="margin-top:16px;border-top:2px solid #e2d5c7;padding-top:14px;">
+                ${[["Subtotal",`$${d(i.subtotal)}`],[`Taxes (${i.taxes.rate}% ${i.taxes.type})`,`$${d(i.taxes.amount)}`],["Service Fee",`$${d(i.serviceFee.amount)}`]].map(([s,c])=>`
+                    <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;">
+                        <span style="color:#6b5b4f;">${s}</span><span style="color:#3b1f2b;">${c}</span>
+                    </div>`).join("")}
+            </div>
+            <div style="background:linear-gradient(135deg,#3b1f2b,#4d2a3a);border-radius:8px;padding:18px 20px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="color:#c9a96e;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Total per person</div>
+                    <div style="color:#d4c4b0;font-size:11px;margin-top:3px;">Range: ${i.range.display}</div>
+                </div>
+                <div style="color:#c9a96e;font-size:30px;font-weight:bold;">$${d(i.total)}</div>
+            </div>
+            <div style="margin-top:16px;background:#e8f4e8;border-radius:8px;padding:14px 16px;border-left:4px solid #4CAF50;">
+                <div style="font-weight:bold;color:#2c5e2c;margin-bottom:10px;font-size:13px;"><i class="fas fa-tag" style="margin-right:6px;color:#4CAF50;"></i>Available Discounts</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;">
+                    ${[["Early Bird",i.savings.earlyBird],["Group Discount",i.savings.groupDiscount],["Package Deal",i.savings.packageDeal]].map(([s,c])=>`
+                        <div>
+                            <div style="font-size:16px;font-weight:bold;color:#2c5e2c;">$${d(c)}</div>
+                            <div style="font-size:10px;color:#6b5b4f;">${s}</div>
+                        </div>`).join("")}
+                </div>
+                <div style="text-align:center;font-size:11px;color:#6b5b4f;margin-top:10px;">
+                    Total potential savings: <strong style="color:#2c5e2c;">$${d(i.savings.earlyBird+i.savings.groupDiscount+i.savings.packageDeal)}</strong>
+                </div>
+            </div>
+        </div>
+        <div style="padding:0 30px 20px;background:#fff;">
+            <div style="background:#f8f4f0;padding:14px 16px;border-radius:6px;border-left:4px solid #c9a96e;">
+                <div style="font-weight:bold;color:#3b1f2b;margin-bottom:6px;font-size:13px;">
+                    <i class="fas fa-plane-departure" style="color:#c9a96e;margin-right:6px;"></i>Flight Information
+                </div>
+                <div style="color:#6b5b4f;font-size:13px;line-height:1.6;">${w(o.flight_info)}</div>
+            </div>
+        </div>
+        <div style="padding:0 30px 20px;background:#fff;">
+            <div style="font-weight:bold;color:#3b1f2b;border-bottom:2px solid #c9a96e;padding-bottom:8px;margin-bottom:12px;font-size:13px;">
+                <i class="fas fa-star" style="color:#c9a96e;margin-right:6px;"></i>Recommended Activities
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">${ye(o.top_activities)}</div>
+        </div>
+        <div style="padding:0 30px 20px;background:#fff;">
+            <div style="background:linear-gradient(135deg,#fdf0dc,#fff8f2);padding:16px;border-radius:6px;border:1px dashed #c9a96e;display:flex;gap:14px;align-items:flex-start;">
+                <i class="fas fa-lightbulb" style="font-size:22px;color:#c9a96e;flex-shrink:0;margin-top:2px;"></i>
+                <div>
+                    <div style="font-weight:bold;color:#3b1f2b;margin-bottom:5px;font-size:13px;">Travel Tip</div>
+                    <div style="color:#6b5b4f;font-style:italic;font-size:13px;line-height:1.6;">${w(o.travel_tip)}</div>
+                </div>
+            </div>
+        </div>
+        <div style="padding:14px 30px;background:#f8f4f0;font-size:10px;color:#6b5b4f;line-height:1.6;border-top:1px solid #e2d5c7;">
+            <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px;">
+                <span><i class="fas fa-check-circle" style="color:#c9a96e;"></i> 24/7 Customer Support</span>
+                <span><i class="fas fa-check-circle" style="color:#c9a96e;"></i> Price Match Guarantee</span>
+                <span><i class="fas fa-check-circle" style="color:#c9a96e;"></i> Free Cancellation*</span>
+                <span><i class="fas fa-check-circle" style="color:#c9a96e;"></i> AI-Powered Recommendations</span>
+            </div>
+            All prices are estimates and subject to change. Taxes are approximate. *Cancellation policy varies by provider.
+        </div>
+        <div style="padding:10px 30px;background:#3b1f2b;display:flex;justify-content:space-between;font-size:9px;color:#d4c4b0;">
+            <span>Smart Booking AI · smartbooking.com</span>
+            <span>Ref: ${n.bookingRef}</span>
+            <span>Page 1 of 1</span>
+        </div>
+    </div>`}function oe(){const o=document.getElementById("receiptContent");if(!o)return;const n=o.innerHTML,i=window.open("","_blank","width=820,height=1050");i&&(i.document.write(`<!DOCTYPE html><html><head>
+            <title>Trip Receipt — Smart Booking</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                *{box-sizing:border-box;margin:0;padding:0;}
+                body{font-family:'Georgia',serif;background:#f5f0eb;padding:24px;color:#2c2c2c;}
+                @media print{body{background:#fff;padding:0;}}
+            </style>
+        </head><body>${n}</body></html>`),i.document.close(),i.focus(),setTimeout(()=>{i.print(),i.close()},500))}async function ne(){const{jsPDF:o}=window.jspdf;if(!x)return;const n=x,i=n.costBreakdown,t=i.breakdown,r=te(),e=new o({unit:"mm",format:"a4"}),g=e.internal.pageSize.getWidth(),F=e.internal.pageSize.getHeight(),s=18,c=g-s*2,p=[59,31,43],f=[201,169,110],y=[107,91,79],k=[248,244,240],$=[44,94,44],B=[232,244,232];let S=null;try{const m=await(await fetch("/img/travel-icon.png")).blob(),h=await new Promise(T=>{const _=new FileReader;_.onloadend=()=>T(_.result),_.readAsDataURL(m)}),u=await new Promise((T,_)=>{const P=new Image;P.onload=()=>T(P),P.onerror=_,P.src=h}),v=document.createElement("canvas");v.width=u.naturalWidth||256,v.height=u.naturalHeight||256;const A=v.getContext("2d");A.drawImage(u,0,0);const R=A.getImageData(0,0,v.width,v.height),E=R.data;for(let T=0;T<E.length;T+=4)E[T+3]>0&&(E[T]=E[T+1]=E[T+2]=255);A.putImageData(R,0,0),S=v.toDataURL("image/png")}catch{}let a=0;function z(b,m,h){return e.setFontSize(h),e.splitTextToSize(String(b||""),m)}function C(b){a+b>F-16&&(e.addPage(),G(),a=14)}function G(){e.setFillColor(...p),e.rect(0,F-10,g,10,"F"),e.setFontSize(7),e.setTextColor(...f),e.text(`Smart Booking AI  ·  Ref: ${r.bookingRef}`,g/2,F-3,{align:"center"})}e.setFillColor(...p),e.rect(0,0,g,34,"F"),S&&e.addImage(S,"PNG",s,4,26,26),e.setFont("helvetica","bold"),e.setFontSize(18),e.setTextColor(...f),e.text("SMART BOOKING",s+30,16),e.setFont("helvetica","normal"),e.setFontSize(8),e.setTextColor(212,196,176),e.text("AI-Powered Travel Planning  ·  smartbooking.com",s+30,23),a=34,e.setFillColor(70,40,55),e.rect(0,a,g,14,"F"),e.setFont("helvetica","bold"),e.setFontSize(9),e.setTextColor(...f),e.text(`Ref: ${r.bookingRef}`,s,a+9),e.setFont("helvetica","normal"),e.setFontSize(8),e.setTextColor(212,196,176),e.text(`Issued: ${r.issueDate}  ·  ${r.issueTime}`,g-s,a+9,{align:"right"}),a+=14,e.setFillColor(...f),e.rect(0,a,g,20,"F"),e.setFont("helvetica","bold"),e.setFontSize(18),e.setTextColor(...p),e.text(String(n.destination),s,a+13),e.setFont("helvetica","normal"),e.setFontSize(9),e.text(String(n.country).toUpperCase()+"  ·  "+Q(n.destination),g-s,a+13,{align:"right"}),a+=20;const ie=[["Mood",(l.mood||"").charAt(0).toUpperCase()+(l.mood||"").slice(1)],["Duration",(J[l.duration]||l.duration||"—")+` (${t.accommodation.nights}n)`],["Companion",K[l.companion]||l.companion||"—"],["Budget",V[l.budget]||l.budget||"—"]],I=c/4-2;a+=5,ie.forEach(([b,m],h)=>{const u=s+h*(I+2.7);e.setFillColor(...k),e.roundedRect(u,a,I,18,2,2,"F"),e.setFont("helvetica","bold"),e.setFontSize(7),e.setTextColor(...f),e.text(b.toUpperCase(),u+I/2,a+6,{align:"center"}),e.setFont("helvetica","normal"),e.setFontSize(8),e.setTextColor(...p);const v=z(m,I-4,8);v[0]&&e.text(v[0],u+I/2,a+13,{align:"center"})}),a+=24;function L(b){C(12),e.setFillColor(...f),e.rect(s,a,3,7,"F"),e.setFont("helvetica","bold"),e.setFontSize(10),e.setTextColor(...p),e.text(b,s+6,a+5.5),a+=10}function D(b,m,h,u,v,A){C(20);const R=18;e.setFillColor(...k),e.roundedRect(s,a,c,R,2,2,"F"),e.setFont("helvetica","bold"),e.setFontSize(9),e.setTextColor(...p),e.text(m,s+6,a+7),e.text(`$${h}`,s+c-2,a+7,{align:"right"}),e.setFont("helvetica","normal"),e.setFontSize(7.5),e.setTextColor(...y),e.text(String(u),s+6,a+12.5),e.setTextColor(...f);const E=z(v,c-14,7.5);E[0]&&e.text(E[0],s+6,a+16.5),a+=R+3}L("Cost Estimation Breakdown"),D("","Flights",d(t.flights.amount),t.flights.description,t.flights.details),D("","Accommodation",d(t.accommodation.amount),t.accommodation.description,`${t.accommodation.nights} nights`),D("","Activities & Tours",d(t.activities.amount),t.activities.description,t.activities.items),D("","Food & Dining",d(t.food.amount),t.food.description,`~$${t.food.perDay}/day`),D("","Local Transport",d(t.transportation.amount),t.transportation.description,t.transportation.includes.join(" · ")),a+=2,e.setDrawColor(...f),e.setLineWidth(.4),e.line(s,a,s+c,a),a+=5,[["Subtotal",`$${d(i.subtotal)}`],[`Taxes (${i.taxes.rate}% ${i.taxes.type})`,`$${d(i.taxes.amount)}`],["Service Fee",`$${d(i.serviceFee.amount)}`]].forEach(([b,m])=>{C(7),e.setFont("helvetica","normal"),e.setFontSize(9),e.setTextColor(...y),e.text(b,s+4,a),e.setTextColor(...p),e.text(m,s+c-2,a,{align:"right"}),a+=7}),C(22),a+=3,e.setFillColor(...p),e.roundedRect(s,a,c,20,3,3,"F"),e.setFont("helvetica","normal"),e.setFontSize(9),e.setTextColor(...f),e.text("TOTAL PER PERSON (ESTIMATED)",s+5,a+8),e.setFontSize(8),e.setTextColor(212,196,176),e.text(`Range: ${i.range.display}`,s+5,a+14),e.setFont("helvetica","bold"),e.setFontSize(18),e.setTextColor(...f),e.text(`$${d(i.total)}`,s+c-3,a+14,{align:"right"}),a+=25,C(28),e.setFillColor(...B),e.roundedRect(s,a,c,24,2,2,"F"),e.setFont("helvetica","bold"),e.setFontSize(9),e.setTextColor(...$),e.text("Available Discounts",s+5,a+8);const ae=[["Early Bird",i.savings.earlyBird],["Group Discount",i.savings.groupDiscount],["Package Deal",i.savings.packageDeal]],W=c/3;ae.forEach(([b,m],h)=>{const u=s+h*W+W/2;e.setFont("helvetica","bold"),e.setFontSize(10),e.setTextColor(...$),e.text(`$${d(m)}`,u,a+16,{align:"center"}),e.setFont("helvetica","normal"),e.setFontSize(7),e.setTextColor(...y),e.text(b,u,a+21,{align:"center"})}),a+=28,L("Flight Information"),C(18),e.setFillColor(...k),e.roundedRect(s,a,c,16,2,2,"F"),e.setFillColor(...f),e.rect(s,a,3,16,"F"),e.setFont("helvetica","normal"),e.setFontSize(9),e.setTextColor(...p);const se=z(n.flight_info,c-10,9);if(e.text(se,s+7,a+7),a+=22,L("Recommended Activities"),n.top_activities){const b=n.top_activities.split(",").map(u=>u.trim());let m=s,h=a;b.forEach(u=>{const v=e.getTextWidth(u)+10;m+v>s+c&&(m=s,h+=10),C(10),e.setFillColor(...k),e.roundedRect(m,h-4,v,8,2,2,"F"),e.setDrawColor(...f),e.setLineWidth(.3),e.roundedRect(m,h-4,v,8,2,2,"S"),e.setFont("helvetica","normal"),e.setFontSize(8),e.setTextColor(...p),e.text(u,m+v/2,h+1,{align:"center"}),m+=v+4}),a=h+12}L("Travel Tip"),C(22),e.setFillColor(253,240,220);const q=z(n.travel_tip,c-14,9),N=q.length*5+10;e.roundedRect(s,a,c,N,2,2,"F"),e.setDrawColor(...f),e.setLineWidth(.4),e.roundedRect(s,a,c,N,2,2,"S"),e.setFont("helvetica","italic"),e.setFontSize(9),e.setTextColor(...y),e.text(q,s+7,a+7),a+=N+6,C(16),e.setFillColor(...k),e.rect(0,a,g,14,"F"),e.setFont("helvetica","normal"),e.setFontSize(7),e.setTextColor(...y),e.text("All prices are estimates and subject to change based on seasonality, availability, and booking dates. *Cancellation policy varies by provider.",g/2,a+5,{align:"center",maxWidth:c}),e.text("Valid Until: "+r.validUntil,g/2,a+11,{align:"center"}),a+=14,G(),e.save(`trip-receipt-${String(n.destination).toLowerCase().replace(/\s+/g,"-")}.pdf`)}function w(o){return String(o||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}window.selectMood=X;window.goStep=j;window.generateSuggestions=Y;window.openReceipt=ee;window.closeReceipt=O;window.printReceipt=oe;window.downloadReceiptPdf=ne;

@@ -18,7 +18,7 @@
             max-width: 780px;
             margin: 0 auto;
             padding: 3.5rem 1.5rem 5rem;
-            color: var(--text-sub, #333);
+            color: #2c2c2c;
             line-height: 1.8;
         }
 
@@ -48,12 +48,14 @@
         .legal-section p {
             margin: 0 0 .85rem;
             font-size: .94rem;
+            color: #2c2c2c;
         }
 
         .legal-section ul {
             margin: 0 0 .85rem 1.25rem;
             padding: 0;
             font-size: .94rem;
+            color: #2c2c2c;
         }
 
         .legal-section ul li {
@@ -77,7 +79,7 @@
             border-radius: 6px;
             padding: 1.25rem 1.5rem;
             font-size: .9rem;
-            color: var(--text-sub, #333);
+            color: #2c2c2c;
         }
 
         .legal-contact-box a {

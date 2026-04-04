@@ -6,6 +6,7 @@
 @import './auth/register.css';
 @import './dashboard/index.css';
 @import './destinations/index.css';
+@import './destinations/show.css';
 @import './discover/index.css';
 @import './flights/index.css';
 @import './accommodations/index.css';
@@ -17,3 +18,4 @@
 @import './profile/edit.css';
 @import './pdf/itinerary.css';
 @import './landing/index.css';
+@import './notifications/index.css';

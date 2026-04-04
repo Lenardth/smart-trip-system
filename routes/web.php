@@ -19,6 +19,7 @@ use App\Http\Controllers\TripController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\Api\TripMoodController;
 
+// ── Public ────────────────────────────────────────────────────────────────────
 Route::get('/', fn () => view('landing.index'))->name('home');
 
 Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
@@ -27,11 +28,9 @@ Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
 
 Route::get('/accommodations',           [AccommodationController::class, 'index'])->name('accommodations.index');
 Route::get('/api/accommodations',       [AccommodationController::class, 'list'])->name('api.accommodations.list');
-Route::get('/api/accommodations/debug', [AccommodationController::class, 'debug'])->name('api.accommodations.debug');
+Route::get('/api/accommodation-news',   [NewsController::class, 'accommodationNews']);
 
-Route::get('/api/accommodation-news', [NewsController::class, 'accommodationNews']);
-
-Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
+Route::get('/community', [CommunityController::class, 'index'])->name('community');
 
 Route::prefix('api/community')->group(function () {
     Route::get('/stats',                [CommunityController::class, 'stats']);
@@ -49,17 +48,24 @@ Route::prefix('api/community')->group(function () {
 Route::get('/discover', [DiscoverController::class, 'index'])->name('discover');
 
 Route::prefix('api/discover')->group(function () {
-    Route::get('/destinations', [DiscoverController::class, 'destinations'])->name('api.discover.destinations');
-    Route::get('/hidden-gems',  [DiscoverController::class, 'hiddenGems'])->name('api.discover.hidden-gems');
-    Route::get('/debug',        [DiscoverController::class, 'debug'])->name('api.discover.debug');
+    Route::get('/destinations',          [DiscoverController::class, 'destinations'])->name('api.discover.destinations');
+    Route::get('/destinations/{id}',     [DiscoverController::class, 'destinationById'])->name('api.discover.destination')->where('id', '[0-9]+');
+    Route::get('/hidden-gems',           [DiscoverController::class, 'hiddenGems'])->name('api.discover.hidden-gems');
 });
 
 Route::get('/destinations',                 [DestinationController::class, 'index'])->name('destinations');
 Route::get('/destinations/compare',         [DestinationController::class, 'compare'])->name('destinations.compare');
 Route::post('/destinations/compare/add',    [DestinationController::class, 'addToCompare'])->name('destinations.compare.add');
 Route::post('/destinations/compare/remove', [DestinationController::class, 'removeFromCompare'])->name('destinations.compare.remove');
-Route::get('/destinations/{slug}',          [DestinationController::class, 'show'])->name('destinations.show');
+Route::get('/destinations/{id}',            [DestinationController::class, 'show'])->name('destinations.show')->where('id', '[0-9]+');
 
+Route::get('/about',   fn() => view('about.index'))->name('about');
+Route::get('/privacy', fn() => view('privacy.index'))->name('privacy');
+Route::get('/terms',   fn() => view('terms.index'))->name('terms');
+Route::get('/contact',  fn() => view('contact.index'))->name('contact');
+Route::post('/contact', [App\Http\Controllers\ContactController::class, 'send'])->name('contact.send');
+
+// ── Guest only ────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login',                  [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login',                 [AuthController::class, 'login']);
@@ -71,6 +77,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password',        [AuthController::class, 'resetPassword'])->name('password.store');
 });
 
+// ── Authenticated ─────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
     Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
@@ -86,8 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout',           [AuthController::class, 'logout'])->name('logout');
     Route::get('/check-activity',    [AuthController::class, 'checkActivity'])->name('check.activity');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+    Route::get('/dashboard',     [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/notifications', fn () => view('notifications.index'))->name('notifications.index');
     Route::get('/plan-trip',     fn () => view('plan-trip.index'))->name('plan-trip');
     Route::get('/settings',      fn () => view('settings'))->name('settings');
@@ -97,18 +103,22 @@ Route::middleware('auth')->group(function () {
         return view('chat.index', ['other' => \App\Models\User::findOrFail($userId)]);
     })->where('userId', '[0-9]+')->name('chat.thread');
 
+    // Agency
     Route::prefix('agency')->name('agency.')->group(function () {
         Route::get('/flights',  fn () => view('agency.flights'))->name('flights');
         Route::get('/bookings', [BookingController::class, 'agencyBookings'])->name('bookings');
     });
 
+    // Itineraries
     Route::prefix('itineraries')->name('itineraries.')->group(function () {
         Route::get('/',        [ItineraryController::class, 'index'])->name('index');
         Route::get('/export',  [ItineraryController::class, 'export'])->name('export');
+        Route::post('/export', [ItineraryController::class, 'export'])->name('export.post');
         Route::get('/{id}',    [ItineraryController::class, 'show'])->name('show');
         Route::delete('/{id}', [ItineraryController::class, 'destroy'])->name('destroy');
     });
 
+    // Flights
     Route::get('/flights',                  [FlightController::class, 'index'])->name('flights.index');
     Route::get('/flights/create',           [FlightController::class, 'create'])->name('flights.create');
     Route::get('/flights/my-flights',       [FlightController::class, 'myFlights'])->name('flights.my');
@@ -119,16 +129,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/flights/{flight}/book',   [FlightController::class, 'book'])->name('flights.book');
     Route::post('/flights/{flight}/cancel', [FlightController::class, 'cancel'])->name('flights.cancel');
 
+    // Bookings
     Route::get('/bookings',                   [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/agency',            [BookingController::class, 'agencyBookings'])->name('bookings.agency');
     Route::get('/bookings/{booking}',         [BookingController::class, 'show'])->name('bookings.show');
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
-    Route::get('/flights',                    [FlightController::class, 'index'])->name('flights.index');
 
+    // Wishlist
     Route::get('/wishlist',         [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist',        [WishlistController::class, 'store'])->name('wishlist.store');
     Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
 
+    // Profile
     Route::get('/profile',            [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile',          [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile',         [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -136,9 +148,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/picture',   [ProfileController::class, 'uploadProfilePicture'])->name('profile.picture.upload');
     Route::delete('/profile/picture', [ProfileController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
 
+    // API (auth required)
     Route::prefix('api')->group(function () {
 
         Route::get('/user/statistics',              [DashboardController::class, 'statistics']);
+        Route::get('/user/recent-activity',         [DashboardController::class, 'recentActivity']);
         Route::get('/notifications',                [DashboardController::class, 'notifications']);
         Route::post('/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsRead']);
         Route::post('/notifications/mark-read',     [DashboardController::class, 'markNotificationsRead']);
@@ -166,6 +180,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/wishlist/count', [WishlistController::class, 'count']);
 
+        Route::post('/bookings/flight', [BookingController::class, 'bookFlight']);
+
         Route::middleware('throttle:60,1')->group(function () {
             Route::get('/trip-moods', [TripMoodController::class, 'index']);
         });
@@ -176,9 +192,3 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
-
-Route::get('/about',   fn() => view('about.index'))->name('about');
-Route::get('/privacy', fn() => view('privacy.index'))->name('privacy');
-Route::get('/terms',   fn() => view('terms.index'))->name('terms');
-Route::get('/contact',  fn() => view('contact.index'))->name('contact');
-Route::post('/contact', [App\Http\Controllers\ContactController::class, 'send'])->name('contact.send');
