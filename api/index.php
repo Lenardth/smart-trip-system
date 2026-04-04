@@ -1,8 +1,10 @@
 <?php
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
+
 try {
     define('LARAVEL_START', microtime(true));
+
     putenv('APP_CONFIG_CACHE=/tmp/config.php');
     putenv('CACHE_STORE=array');
     putenv('CACHE_DRIVER=array');
@@ -12,6 +14,7 @@ try {
     if ($dbUrl = getenv('DATABASE_URL')) {
         $url = parse_url($dbUrl);
         parse_str($url['query'] ?? '', $query);
+
         $vars = [
             'DB_CONNECTION' => 'pgsql',
             'DB_HOST'       => $url['host'],
@@ -21,6 +24,7 @@ try {
             'DB_PASSWORD'   => $url['pass'],
             'DB_SSLMODE'    => $query['sslmode'] ?? 'require',
         ];
+
         foreach ($vars as $key => $value) {
             putenv("$key=$value");
             $_ENV[$key] = $value;
@@ -28,7 +32,6 @@ try {
         }
     }
 
-    // Forward GROQ_API_KEY
     if ($groqKey = getenv('GROQ_API_KEY')) {
         putenv("GROQ_API_KEY=$groqKey");
         $_ENV['GROQ_API_KEY']    = $groqKey;
@@ -43,6 +46,7 @@ try {
         '/tmp/storage/app/public',
         '/tmp/bootstrap/cache',
     ];
+
     foreach ($dirs as $dir) {
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
@@ -56,23 +60,37 @@ try {
     putenv('APP_EVENTS_CACHE=/tmp/bootstrap/cache/events.php');
 
     require __DIR__ . '/../vendor/autoload.php';
+
     $app = require __DIR__ . '/../bootstrap/app.php';
+
     $app->useStoragePath('/tmp/storage');
+    $app->make(Illuminate\Contracts\Console\Kernel::class)->call('migrate', [
+        '--force' => true
+    ]);
+
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+
     $request = Illuminate\Http\Request::capture();
+
     $response = $kernel->handle($request);
+
     $response->send();
+
     $kernel->terminate($request, $response);
 
 } catch (\Throwable $e) {
     http_response_code(500);
+
     echo '<pre>';
+
     $current = $e;
+
     while ($current) {
         echo get_class($current) . ': ' . $current->getMessage() . "\n";
         echo 'in ' . $current->getFile() . ':' . $current->getLine() . "\n\n";
         $current = $current->getPrevious();
     }
+
     echo "\nTRACE:\n";
     echo $e->getTraceAsString();
     echo '</pre>';
