@@ -534,6 +534,33 @@ body {
 
 .dash-notif-wrap { position: relative; }
 
+/* Dashboard header logo */
+.dash-logo-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.dash-logo-img {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.dash-logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-light);
+    font-family: 'Georgia', serif;
+    letter-spacing: .5px;
+    white-space: nowrap;
+}
+
+.dash-logo-text span { color: var(--gold); }
+
 .dash-profile-chip {
     display: flex;
     align-items: center;
@@ -561,7 +588,19 @@ body {
     flex-shrink: 0;
 }
 
+/* Avatar: initial always visible, image overlays on top */
+.dash-avatar-wrap {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
 .dash-avatar-init {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
     background: var(--gold);
     color: var(--deep);
     font-size: 13px;
@@ -569,6 +608,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    inset: 0;
+}
+
+.dash-avatar-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .dash-profile-name {
@@ -1411,6 +1461,7 @@ body {
     .dash-page-sub { display: none; }
     .dash-profile-name { display: none; }
     .dash-header { padding: 0 16px; }
+    .dash-logo-text { display: none; }
 
     /* Header */
     .main-header {
@@ -1420,18 +1471,40 @@ body {
 
     .mob-hamburger {
         margin-left: auto;
-        border-radius: 0;
-        width: 52px;
-        height: 52px;
-        border-top: none;
-        border-bottom: none;
-        border-right: none;
-        border-left: 1px solid rgba(201,169,110,.3);
-        background: rgba(201,169,110,.1);
-        align-self: stretch;
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        border: 1.5px solid rgba(201,169,110,.5);
+        background: rgba(201,169,110,.15);
         padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: background .2s, border-color .2s;
     }
+
+    .mob-hamburger:active {
+        background: rgba(201,169,110,.35);
+        border-color: var(--gold);
+    }
+
+    .mob-hamburger span {
+        width: 20px;
+        height: 2px;
+        background: var(--gold);
+        border-radius: 2px;
+        display: block;
+        transition: transform .25s, opacity .25s;
+    }
+
+    /* Animate to X when drawer is open */
+    .mob-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .mob-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .mob-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
     .header-logo-img { height: 38px; }
     .header-brand-text { font-size: 16px; }
     .user-display { display: none; }

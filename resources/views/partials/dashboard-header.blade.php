@@ -1,36 +1,26 @@
 <header class="dash-header">
     <div class="dash-header-left">
-        {{-- Mobile sidebar toggle --}}
         <button class="dash-menu-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
             <i class="fas fa-bars"></i>
         </button>
-        <div class="dash-page-info">
-            <h1 class="dash-page-title">@yield('page-title', 'Dashboard')</h1>
-            <p class="dash-page-sub">
-                @hasSection('page-description')
-                    @yield('page-description')
-                @else
-                    Welcome back, {{ Auth::user()->name ?? 'traveller' }}!
-                @endif
-            </p>
-        </div>
+
+        <a href="{{ route('dashboard') }}" class="dash-logo-link">
+            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="dash-logo-img">
+        </a>
     </div>
 
     <div class="dash-header-right">
-        {{-- Search --}}
         <div class="dash-search">
             <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search destinations, flights…" id="dashSearchInput"
+            <input type="text" placeholder="Search…" id="dashSearchInput"
                    onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/discover?q='+encodeURIComponent(this.value.trim())">
         </div>
 
-        {{-- Notifications bell --}}
         <div class="dash-notif-wrap">
             <button class="dash-icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
                 <i class="fas fa-bell"></i>
                 <span class="dash-badge" id="notificationCount" style="display:none;">0</span>
             </button>
-
             <div class="notification-dropdown" id="notificationDropdown">
                 <div class="notification-header">
                     <h3><i class="fas fa-bell"></i> Notifications</h3>
@@ -48,29 +38,28 @@
                 </div>
                 <div class="notification-list" id="notificationList"></div>
                 <div class="notification-footer">
-                    <a href="{{ route('notifications.index') }}" class="view-all-notifications">View all notifications</a>
+                    <a href="{{ route('notifications.index') }}" class="view-all-notifications">View all</a>
                 </div>
             </div>
         </div>
 
-        {{-- Messages --}}
         <a href="{{ route('chat.index') }}" class="dash-icon-btn" aria-label="Messages">
             <i class="fas fa-comment-dots"></i>
         </a>
 
-        {{-- Profile chip --}}
+        {{-- Profile chip: always show initial, overlay image on top if exists --}}
         <a href="{{ route('profile.edit') }}" class="dash-profile-chip">
             @auth
+            <div class="dash-avatar-wrap">
+                <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                 @if(Auth::user()->profile_picture)
-                    <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}"
+                    <img src="{{ asset('storage/'.Auth::user()->profile_picture) }}"
                          alt="{{ Auth::user()->name }}"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                    <span class="dash-avatar-init" style="display:none;">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
-                @else
-                    <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
+                         class="dash-avatar-img"
+                         onerror="this.style.display='none'">
                 @endif
-                <span class="dash-profile-name">{{ explode(' ', Auth::user()->name)[0] }}</span>
-                <i class="fas fa-chevron-down" style="font-size:10px;opacity:.5;"></i>
+            </div>
+            <span class="dash-profile-name">{{ explode(' ', Auth::user()->name)[0] }}</span>
             @endauth
         </a>
     </div>

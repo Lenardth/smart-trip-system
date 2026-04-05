@@ -113,11 +113,13 @@
         drawer.classList.add('open');
         overlay.classList.add('show');
         document.body.style.overflow = 'hidden';
+        if (btn) btn.classList.add('open');
     }
     function closeDrawer() {
         drawer.classList.remove('open');
         overlay.classList.remove('show');
         document.body.style.overflow = '';
+        if (btn) btn.classList.remove('open');
     }
 
     if (btn)      btn.addEventListener('click', openDrawer);

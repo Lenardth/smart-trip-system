@@ -1,10 +1,5 @@
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <a href="{{ route('dashboard') }}" class="sidebar-brand">
-            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="sidebar-logo-img">
-            <span class="sidebar-brand-text">Smart <span>Booking</span></span>
-        </a>
-    </div>
+    {{-- sidebar-header intentionally removed — brand shown in dash-header --}}
 
     <nav class="sidebar-menu">
         @php
