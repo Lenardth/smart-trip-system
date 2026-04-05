@@ -276,11 +276,24 @@
     font-family: 'Georgia', serif;
 }
 
+/* ── Kill ALL blue — override browser defaults and Tailwind inside auth ── */
+.auth-form-inner a,
+.auth-form-inner a:visited,
+.auth-form-inner a:link {
+    color: var(--deep);
+    text-decoration: none;
+}
+
+.auth-form-inner a:hover {
+    color: var(--gold-hover);
+    text-decoration: underline;
+}
+
 .auth-link {
     display: block;
     text-align: center;
-    color: var(--deep);
-    text-decoration: none;
+    color: var(--deep) !important;
+    text-decoration: none !important;
     font-size: 14px;
     font-family: 'Georgia', serif;
     font-weight: 600;
@@ -288,8 +301,8 @@
 }
 
 .auth-link:hover {
-    color: var(--gold-hover);
-    text-decoration: underline;
+    color: var(--gold-hover) !important;
+    text-decoration: underline !important;
 }
 
 .error-message {

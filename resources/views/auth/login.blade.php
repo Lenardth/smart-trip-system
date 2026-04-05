@@ -35,7 +35,7 @@
             <input id="remember_me" type="checkbox" name="remember">
             <label for="remember_me">Remember me</label>
             @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="auth-link" style="margin-left:auto;margin-top:0;">
+                <a href="{{ route('password.request') }}" class="auth-link" style="margin-left:auto;margin-top:0;color:var(--text-muted);font-weight:normal;">
                     Forgot password?
                 </a>
             @endif
@@ -47,7 +47,7 @@
 
         <div class="auth-divider"><span>Don't have an account?</span></div>
 
-        <a href="{{ route('register') }}" class="auth-link" style="text-align:center;display:block;">
+        <a href="{{ route('register') }}" class="auth-link" style="text-align:center;display:block;color:var(--deep);font-weight:700;">
             Create a free account
         </a>
     </form>
