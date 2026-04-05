@@ -106,7 +106,7 @@ body {
     width: auto;
     object-fit: contain;
     display: block;
-    filter: brightness(0) invert(1);
+
 }
 
 .pub-brand-text {
@@ -549,7 +549,7 @@ body {
     width: auto;
     object-fit: contain;
     display: block;
-    filter: brightness(0) invert(1);
+
 }
 
 .dash-logo-text {
@@ -668,7 +668,7 @@ body {
     object-fit: contain;
     display: block;
     flex-shrink: 0;
-    filter: brightness(0) invert(1);
+
 }
 
 .sidebar-brand-text {
@@ -718,7 +718,7 @@ body {
     width: auto;
     min-width: 100px;
     object-fit: contain;
-    filter: brightness(0) invert(1);
+
 }
 
 .logo-text {
