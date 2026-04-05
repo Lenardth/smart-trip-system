@@ -6,7 +6,13 @@
         </button>
         <div class="dash-page-info">
             <h1 class="dash-page-title">@yield('page-title', 'Dashboard')</h1>
-            <p class="dash-page-sub">@yield('page-description', "Welcome back, {{ Auth::user()->name ?? 'traveller' }}!")</p>
+            <p class="dash-page-sub">
+                @hasSection('page-description')
+                    @yield('page-description')
+                @else
+                    Welcome back, {{ Auth::user()->name ?? 'traveller' }}!
+                @endif
+            </p>
         </div>
     </div>
 
