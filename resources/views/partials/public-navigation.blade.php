@@ -6,7 +6,7 @@
 
 {{-- ── Top bar ──────────────────────────────────────────────────────────── --}}
 <header class="main-header">
-    <a href="{{ url('/') }}" class="header-brand">
+        <a href="{{ url('/') }}" class="header-brand">
         <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="logo">
         <span class="logo-text">Smart <span style="color:var(--gold);">Booking</span></span>
     </a>
