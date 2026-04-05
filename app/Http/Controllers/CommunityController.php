@@ -245,6 +245,8 @@ class CommunityController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function tags(): JsonResponse
     {
         $tags = CommunityTopic::whereNotNull('tags')
             ->pluck('tags')
