@@ -92,34 +92,6 @@ try {
         } else {
             $artisan->call('migrate', ['--force' => true]);
         }
-
-        // ── Safety check: remove stale migration records for tables that don't exist ──
-        // This fixes the case where migrations were bulk-recorded but never actually run.
-        $tablesToCheck = [
-            '2025_01_01_000014_create_itineraries_table'        => 'itineraries',
-            '2025_01_01_000015_add_plan_trip_columns_to_trips_table' => null, // column migration
-            '2025_01_01_000016_create_accommodations_table'     => 'accommodations',
-            '2025_01_01_000017_add_feeling_note_to_trips_table' => null,
-            '2025_01_01_000018_create_trip_moods_table'         => 'trip_moods',
-            '2025_01_01_000019_create_accommodation_searches_table' => 'accommodation_searches',
-        ];
-
-        $removedAny = false;
-        foreach ($tablesToCheck as $migration => $table) {
-            if ($table === null) continue; // skip column-only migrations
-            if (!$schema->hasTable($table)) {
-                // Table missing — remove the stale migration record so it gets re-run
-                $db->table('migrations')->where('migration', $migration)->delete();
-                $removedAny = true;
-                error_log("[SmartBooking] Removed stale migration record: {$migration}");
-            }
-        }
-
-        if ($removedAny) {
-            // Re-run migrate to create the missing tables
-            $artisan->call('migrate', ['--force' => true]);
-        }
-
     } catch (\Throwable $migrateErr) {
         $msg = $migrateErr->getMessage();
 
@@ -135,16 +107,18 @@ try {
         }
     }
 
-    try {
-        $schema2 = $db->connection()->getSchemaBuilder();
-        $seeded  = $schema2->hasTable('destinations')
-                && $db->table('destinations')->count() > 0;
+    $schema2 = $db->connection()->getSchemaBuilder();
+    $seeded  = $schema2->hasTable('destinations')
+            && $db->table('destinations')->count() > 0;
 
-        if (!$seeded) {
-            $artisan->call('db:seed', ['--force' => true]);
+    if (!$seeded) {
+        $exitCode = $artisan->call('db:seed', ['--force' => true]);
+        if ($exitCode !== 0) {
+            throw new \RuntimeException(
+                '[SmartBooking] Seeder failed with exit code ' . $exitCode .
+                '. Output: ' . $artisan->output()
+            );
         }
-    } catch (\Throwable $seedErr) {
-        error_log('[SmartBooking] seed warning: ' . $seedErr->getMessage());
     }
 
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
