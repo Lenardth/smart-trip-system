@@ -1,5 +1,5 @@
+/* ── Base & shared ─────────────────────────────────────────────────────────── */
 @import './blade/base.css';
+
+/* ── All page styles ───────────────────────────────────────────────────────── */
 @import './blade/index.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

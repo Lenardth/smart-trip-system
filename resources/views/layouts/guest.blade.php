@@ -1,9 +1,5 @@
 @extends('layouts.base')
 
-@push('styles')
-    @vite(['resources/css/blade/auth/login.css', 'resources/css/blade/auth/register.css'])
-@endpush
-
 @section('body')
     <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--cream);padding:40px 20px;">
 
