@@ -1273,29 +1273,15 @@ body {
     .header-brand-text { font-size: 16px; }
     .user-display { display: none; }
 
-    /* Mobile nav — no hamburger, show links stacked directly */
-    .pub-hamburger { display: none !important; }
-    .nav-hamburger { display: none !important; }
+    /* Mobile: hamburger shows, both nav bars hidden, drawer slides in on tap */
+    .pub-hamburger { display: flex !important; }
+    .nav-hamburger { display: none; }
     .nav-bar-desktop { display: none; }
-    .pub-drawer { display: none !important; }
-    .pub-overlay { display: none !important; }
+    .nav-container { display: none; }
 
-    .nav-container {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        padding: 6px 10px;
-        gap: 2px;
-    }
-
-    .nav-container a,
-    .nav-container button {
-        font-size: 14px;
-        padding: 10px 12px;
-        border-radius: 6px;
-        justify-content: flex-start;
-        margin-left: 0 !important;
-    }
+    /* When drawer is open, ensure nav bar stays hidden */
+    .pub-drawer.open ~ * .nav-container,
+    body.drawer-open .nav-container { display: none; }
 
     /* Page hero shorter on mobile */
     .page-hero { height: 180px; }

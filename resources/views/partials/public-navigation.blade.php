@@ -95,8 +95,20 @@
     var drawer    = document.getElementById('pubDrawer');
     var overlay   = document.getElementById('pubOverlay');
     var closeBtn  = document.getElementById('pubDrawerClose');
-    function open()  { drawer.classList.add('open'); overlay.classList.add('show'); document.body.style.overflow = 'hidden'; }
-    function close() { drawer.classList.remove('open'); overlay.classList.remove('show'); document.body.style.overflow = ''; }
+    function open()  {
+        drawer.classList.add('open');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        var nav = document.getElementById('navContainer');
+        if (nav) nav.style.display = 'none';
+    }
+    function close() {
+        drawer.classList.remove('open');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+        var nav = document.getElementById('navContainer');
+        if (nav) nav.style.display = '';
+    }
     if (hamburger) hamburger.addEventListener('click', open);
     if (closeBtn)  closeBtn.addEventListener('click', close);
     if (overlay)   overlay.addEventListener('click', close);
