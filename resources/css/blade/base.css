@@ -1029,12 +1029,6 @@ body {
     background: rgba(59,31,43,.15);
     margin: 6px 16px;
 }
-    justify-content: space-between;
-    padding: 14px 4px 14px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid rgba(59,31,43,.15);
-    flex-shrink: 0;
-}
 
 .nav-badge {
     background: var(--deep);
