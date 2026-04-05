@@ -1,21 +1,4 @@
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-
-/* Emergency fix - only for this page */
-    html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
-    }
-
-    body > *:first-child {
-        margin-top: 0 !important;
-    }
-
-    body > *:last-child {
-        margin-bottom: 0 !important;
-    }
-
-    .author-badge {
+.author-badge {
         margin-left: auto;
         margin-right: 20px;
         color: var(--gold);

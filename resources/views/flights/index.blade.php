@@ -2,16 +2,10 @@
 
 @section('title', 'Book Flights — Smart Booking')
 
-@push('styles')
-    @vite(['resources/css/blade/flights/index.css'])
-@endpush
 
-@push('scripts_body')
-    @vite(['resources/js/blade/flights/index.js'])
-@endpush
 
 @section('content')
-<section class="page-hero">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(10, 25, 60, 0.75) 0%, rgba(30, 15, 20, 0.45) 100%), url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80'); background-size: cover; background-position: center 40%;">
     <div>
         <h1><i class="fas fa-plane-departure"></i> Book Your Flight</h1>
         <p>Find the best deals on flights worldwide</p>

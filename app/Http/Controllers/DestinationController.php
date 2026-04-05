@@ -12,11 +12,22 @@ class DestinationController extends Controller
         return view('destinations.index');
     }
 
-    public function show($slug)
+    public function show($id)
     {
-        $destination = Destination::where('slug', $slug)->firstOrFail();
+        $destination = Destination::findOrFail($id);
 
-        return view('destinations.show', compact('destination'));
+        // Related destinations: same mood or category, excluding current
+        $related = Destination::active()
+            ->where('id', '!=', $destination->id)
+            ->where(function ($q) use ($destination) {
+                $q->where('mood', $destination->mood)
+                  ->orWhere('category', $destination->category);
+            })
+            ->inRandomOrder()
+            ->limit(4)
+            ->get();
+
+        return view('destinations.show', compact('destination', 'related'));
     }
 
     public function addToCompare(Request $request)

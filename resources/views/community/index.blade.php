@@ -3,15 +3,19 @@
 @section('title', 'Community — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/community/index.css'])
+<script>
+window.__dashboardConfig = window.__dashboardConfig || {};
+@auth
+window.__dashboardConfig.userId    = {{ Auth::id() }};
+window.__dashboardConfig.user      = { id: {{ Auth::id() }}, name: @json(Auth::user()->name), avatar: @json(Auth::user()->avatar ?? '') };
+@endauth
+</script>
 @endpush
 
-@push('scripts_body')
-    @vite(['resources/js/blade/community/index.js'])
-@endpush
+
 
 @section('content')
-<section class="page-hero" style="background:linear-gradient(rgba(20,8,14,.55),rgba(20,8,14,.65)),url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&q=80&fit=crop') center/cover no-repeat;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(140, 30, 30, 0.65) 0%, rgba(20, 15, 10, 0.50) 100%), url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1800&q=80'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-users"></i> Community</h1>
         <p>Connect with fellow travelers, share stories, and join group adventures.</p>
@@ -106,7 +110,7 @@
     </div>
 </div>
 
-<!-- New Topic Modal -->
+
 <div class="modal-overlay" id="topicModal">
     <div class="modal">
         <div class="modal-header">
@@ -140,7 +144,7 @@
     </div>
 </div>
 
-<!-- Create Group Modal -->
+
 <div class="modal-overlay" id="groupModal">
     <div class="modal">
         <div class="modal-header">
@@ -178,7 +182,7 @@
     </div>
 </div>
 
-<!-- Invite to Chat Modal -->
+
 <div class="modal-overlay" id="inviteModal">
     <div class="modal">
         <div class="modal-header">

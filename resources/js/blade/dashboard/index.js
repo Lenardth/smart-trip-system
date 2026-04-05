@@ -26,6 +26,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         loadMediaFromServer();
         loadNotifications();
         loadUpcomingTrips();
+        loadRecentActivity();
 
         if (!notifPollingInterval) {
             notifPollingInterval = setInterval(loadNotifications, 5000);
@@ -37,6 +38,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         initializeRealTimeChat();
         initNotificationListDelegate();
         initTripSavedListener();
+        initWishlistUpdateListener();
         consumePendingTripSave();
     });
 
@@ -71,6 +73,17 @@ window.__dashboardConfig = window.__dashboardConfig || {
                 loadUserStatistics();
                 showTripSavedToast(payload.destination || 'Your trip');
             } catch (_) {}
+        });
+    }
+
+    
+    function initWishlistUpdateListener() {
+        window.addEventListener('storage', function (e) {
+            if (e.key !== 'smartBookingWishlistUpdated' || !e.newValue) return;
+            
+            try { localStorage.removeItem('smartBookingWishlistUpdated'); } catch (_) {}
+            
+            loadUserStatistics();
         });
     }
 
@@ -159,7 +172,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
         try {
             window.Pusher.logToConsole = false;
-            window.Echo = new LaravelEcho.default({
+            window.Echo = new window.Echo({
                 broadcaster: 'pusher',
                 key: cfg.pusherKey,
                 cluster: cfg.pusherCluster,
@@ -397,6 +410,51 @@ window.__dashboardConfig = window.__dashboardConfig || {
             .catch(function () { renderTrips([]); });
     }
 
+    function loadRecentActivity() {
+        var section = document.getElementById('recentActivityContent');
+        if (!section) return;
+
+        fetch('/api/user/recent-activity', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { renderRecentActivity(data.activities || []); })
+            .catch(function () {
+                if (section) section.innerHTML =
+                    '<div class="empty-state"><i class="fas fa-clock"></i><h3>No Activity Yet</h3><p>Your recent actions will appear here.</p></div>';
+            });
+    }
+
+    function renderRecentActivity(activities) {
+        var section = document.getElementById('recentActivityContent');
+        if (!section) return;
+
+        if (!activities.length) {
+            section.innerHTML =
+                '<div class="empty-state">' +
+                    '<i class="fas fa-clock"></i>' +
+                    '<h3>No Activity Yet</h3>' +
+                    '<p>Plan a trip, make a booking, or save a destination to see your activity here.</p>' +
+                '</div>';
+            return;
+        }
+
+        section.innerHTML = activities.map(function (a) {
+            return '<div class="activity-item" onclick="window.location.href=\'' + (a.url || '#') + '\'" style="cursor:pointer;">' +
+                '<div class="activity-icon" style="background:' + (a.color || 'var(--gold)') + '22;color:' + (a.color || 'var(--gold)') + ';">' +
+                    '<i class="fas ' + (a.icon || 'fa-circle') + '"></i>' +
+                '</div>' +
+                '<div class="activity-body">' +
+                    '<div class="activity-title">' + escapeHtml(a.title) + '</div>' +
+                    (a.sub ? '<div class="activity-sub">' + escapeHtml(a.sub) + '</div>' : '') +
+                '</div>' +
+                '<div class="activity-time">' + escapeHtml(a.time) + '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     var BUDGET_LABELS = {
         backpacker: 'Backpacker', budget: 'Budget', mid: 'Mid-Range',
         premium: 'Premium', luxury: 'Luxury'
@@ -479,19 +537,10 @@ window.__dashboardConfig = window.__dashboardConfig || {
     window.loadUserStatistics = loadUserStatistics;
 
     function loadUserStatistics() {
-        var statsPromise = fetch('/api/user/statistics')
+        fetch('/api/user/statistics', { headers: { 'Accept': 'application/json' } })
             .then(function (r) { return r.json(); })
-            .catch(function () { return {}; });
-
-        var wishlistPromise = fetch('/api/wishlist/count', { headers: { 'Accept': 'application/json' } })
-            .then(function (r) { return r.json(); })
-            .catch(function () { return { count: 0 }; });
-
-        Promise.all([statsPromise, wishlistPromise]).then(function (results) {
-            var data = results[0] || {};
-            data.saved = (results[1] && results[1].count !== undefined) ? results[1].count : (data.saved || 0);
-            updateCounts(data);
-        });
+            .then(function (data) { updateCounts(data); })
+            .catch(function () {});
     }
 
     function updateCounts(data) {
@@ -566,14 +615,100 @@ window.__dashboardConfig = window.__dashboardConfig || {
     function renderGallery() {
         var grid = document.getElementById('galleryGrid');
         if (!grid) return;
+        if (!mediaLibrary.length) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">' +
+                '<i class="fas fa-images" style="font-size:40px;opacity:.3;display:block;margin-bottom:12px;"></i>' +
+                '<p>No photos yet. Upload your first photo above.</p></div>';
+            return;
+        }
         grid.innerHTML = mediaLibrary.map(function (item, i) {
-            return '<div class="gallery-item" onclick="viewMedia(' + i + ')">' +
+            return '<div class="gallery-item" style="position:relative;">' +
                 (item.type === 'image'
-                    ? '<img src="' + item.src + '" alt="' + item.name + '">'
-                    : '<video src="' + item.src + '"></video><div class="video-badge"><i class="fas fa-play"></i> Video</div>') +
+                    ? '<img src="' + item.src + '" alt="' + item.name + '" onclick="viewMedia(' + i + ')" style="cursor:pointer;">'
+                    : '<video src="' + item.src + '" onclick="viewMedia(' + i + ')" style="cursor:pointer;"></video>' +
+                      '<div class="video-badge"><i class="fas fa-play"></i> Video</div>') +
+                '<div class="gallery-item-actions">' +
+                    '<button onclick="editMediaTitle(' + i + ')" title="Edit title"><i class="fas fa-edit"></i></button>' +
+                    '<button onclick="deleteSingleMedia(' + i + ')" title="Delete" style="color:#f44336;"><i class="fas fa-trash"></i></button>' +
+                '</div>' +
+                '<div class="gallery-item-name">' + (item.name || '') + '</div>' +
             '</div>';
         }).join('');
     }
+
+    function editMediaTitle(index) {
+        var item = mediaLibrary[index];
+        if (!item) return;
+        if (typeof Swal === 'undefined') {
+            var newTitle = prompt('Edit title:', item.name || '');
+            if (newTitle === null) return;
+            fetch('/api/media/' + item.id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                body: JSON.stringify({ title: newTitle })
+            }).then(function () {
+                mediaLibrary[index].name = newTitle;
+                renderGallery();
+            }).catch(function () {});
+            return;
+        }
+        Swal.fire({
+            title: 'Edit Title',
+            input: 'text',
+            inputValue: item.name || '',
+            inputPlaceholder: 'Enter a title for this photo',
+            showCancelButton: true,
+            confirmButtonColor: '#c9a96e',
+            confirmButtonText: 'Save',
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+            fetch('/api/media/' + item.id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                body: JSON.stringify({ title: result.value })
+            }).then(function () {
+                mediaLibrary[index].name = result.value;
+                renderGallery();
+                Swal.fire({ title: 'Saved!', icon: 'success', timer: 1200, showConfirmButton: false });
+            }).catch(function () {});
+        });
+    }
+
+    function deleteSingleMedia(index) {
+        var item = mediaLibrary[index];
+        if (!item) return;
+        if (typeof Swal === 'undefined') {
+            if (!confirm('Delete this photo?')) return;
+        } else {
+            Swal.fire({
+                title: 'Delete photo?',
+                text: 'This cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f44336',
+                cancelButtonColor: '#6b5b4f',
+                confirmButtonText: 'Delete',
+            }).then(function (result) {
+                if (!result.isConfirmed) return;
+                doDeleteMedia([item.id], index);
+            });
+            return;
+        }
+        doDeleteMedia([item.id], index);
+    }
+
+    function doDeleteMedia(ids, index) {
+        fetch('/api/media/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            body: JSON.stringify({ ids: ids })
+        }).then(function () {
+            loadMediaFromServer();
+        }).catch(function () {});
+    }
+
+    window.editMediaTitle = editMediaTitle;
+    window.deleteSingleMedia = deleteSingleMedia;
 
     function viewMedia(index) {
         currentMediaIndex = index;

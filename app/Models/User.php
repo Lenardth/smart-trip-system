@@ -37,9 +37,19 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'last_login_at' => 'datetime',
-            'password' => 'hashed',
+            'last_login_at'     => 'datetime',
+            'password'          => 'hashed',
         ];
+    }
+
+    public function isAgency(): bool
+    {
+        return $this->user_type === 'agency';
+    }
+
+    public function isTraveler(): bool
+    {
+        return $this->user_type === 'user';
     }
 
     public function trips()
@@ -60,20 +70,23 @@ class User extends Authenticatable
         )->withTimestamps();
     }
 
-    public function getProfilePictureUrlAttribute()
+    public function getProfilePictureUrlAttribute(): string
     {
-        return $this->profile_picture
-            ? asset('storage/' . $this->profile_picture)
-            : asset('img/default-avatar.png');
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+        return '';
     }
 
-    public function getDisplayNameAttribute()
+    public function getDisplayNameAttribute(): string
     {
         return $this->agency_name ?: $this->name;
     }
 
     public function getAvatarAttribute(): string
     {
-        return $this->profile_picture_url;
+        return $this->profile_picture
+            ? asset('storage/' . $this->profile_picture)
+            : '';
     }
 }

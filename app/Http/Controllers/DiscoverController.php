@@ -58,16 +58,18 @@ class DiscoverController extends Controller
         $destinations = $rows->map(function ($row) use ($cols) {
             $row = (array) $row;
             return [
-                'id'          => $row['id'] ?? null,
-                'name'        => $row['name'] ?? $row['title'] ?? 'Unknown',
-                'country'     => $row['country'] ?? null,
-                'region'      => $row['region'] ?? null,
-                'category'    => $row['category'] ?? 'general',
-                'mood'        => $row['mood'] ?? $row['type'] ?? null,
-                'price_from'  => $row['price_from'] ?? $row['price'] ?? $row['min_price'] ?? 0,
-                'description' => $row['description'] ?? $row['summary'] ?? $row['excerpt'] ?? '',
-                'image_url'   => $row['image_url'] ?? $row['image'] ?? $row['photo'] ?? $row['thumbnail'] ?? null,
-                'badge'       => $row['badge'] ?? $row['label'] ?? null,
+                'id'           => $row['id'] ?? null,
+                'name'         => $row['name'] ?? $row['title'] ?? 'Unknown',
+                'country'      => $row['country'] ?? null,
+                'region'       => $row['region'] ?? null,
+                'category'     => $row['category'] ?? 'general',
+                'mood'         => $row['mood'] ?? $row['type'] ?? null,
+                'price_from'   => $row['price_from'] ?? $row['price'] ?? $row['min_price'] ?? 0,
+                'description'  => $row['description'] ?? $row['summary'] ?? $row['excerpt'] ?? '',
+                'image_url'    => $row['image_url'] ?? $row['image'] ?? $row['photo'] ?? $row['thumbnail'] ?? null,
+                'badge'        => $row['badge'] ?? $row['label'] ?? null,
+                'is_hidden_gem'=> (bool)($row['is_hidden_gem'] ?? false),
+                'match_score'  => $row['match_score'] ?? null,
             ];
         });
 
@@ -103,6 +105,29 @@ class DiscoverController extends Controller
         ]);
 
         return response()->json($gems);
+    }
+
+    public function destinationById(int $id): JsonResponse
+    {
+        $row = DB::table('destinations')->where('id', $id)->first();
+        if (!$row) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        $row = (array) $row;
+        return response()->json([
+            'id'           => $row['id'],
+            'name'         => $row['name'] ?? 'Unknown',
+            'country'      => $row['country'] ?? null,
+            'region'       => $row['region'] ?? null,
+            'category'     => $row['category'] ?? 'general',
+            'mood'         => $row['mood'] ?? null,
+            'price_from'   => $row['price_from'] ?? 0,
+            'description'  => $row['description'] ?? '',
+            'image_url'    => $row['image_url'] ?? null,
+            'badge'        => $row['badge'] ?? null,
+            'is_hidden_gem'=> (bool)($row['is_hidden_gem'] ?? false),
+            'match_score'  => $row['match_score'] ?? null,
+        ]);
     }
 
     public function debug(): JsonResponse

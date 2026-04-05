@@ -1,124 +1,220 @@
-@extends('layouts.app-no-nav')
+@extends('layouts.authenticated')
 
-@section('title', 'Edit Profile — Smart Booking')
-
-@push('styles')
-    @vite(['resources/css/blade/profile/edit.css'])
-@endpush
-
-@push('scripts')
-    @vite(['resources/js/blade/profile/edit.js'])
-@endpush
+@section('title', 'Profile — Smart Booking')
+@section('page-title', 'My Profile')
+@section('page-description', 'Manage your account settings and preferences')
 
 @section('content')
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking Logo" class="logo" id="appLogo">
-        <div class="logo-text">Smart Booking</div>
-    </div>
 
-    <nav class="sidebar-menu">
-        <a href="/" class="menu-item"><i class="fas fa-home"></i><span>Home</span></a>
-        <a href="/dashboard" class="menu-item"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
-        <a href="#" class="menu-item" onclick="openGallery(); return false;"><i class="fas fa-images"></i><span>My Photos</span><span class="menu-badge" id="photosCount">0</span></a>
-        <a href="/plan-trip" class="menu-item"><i class="fas fa-route"></i><span>Plan Trip</span></a>
-        <a href="/flights" class="menu-item"><i class="fas fa-plane"></i><span>Book Flights</span></a>
-        <a href="/bookings" class="menu-item"><i class="fas fa-ticket-alt"></i><span>My Bookings</span><span class="menu-badge" id="bookingsCount">0</span></a>
-        <a href="/discover" class="menu-item"><i class="fas fa-compass"></i><span>Discover</span></a>
-        <a href="/destinations" class="menu-item"><i class="fas fa-map-marked-alt"></i><span>Destinations</span></a>
-        <a href="/community" class="menu-item"><i class="fas fa-users"></i><span>Community</span></a>
-        <a href="/wishlist" class="menu-item"><i class="fas fa-heart"></i><span>Wishlist</span><span class="menu-badge" id="savedCount">0</span></a>
-        <a href="#" class="menu-item" onclick="openSettings(); return false;"><i class="fas fa-cog"></i><span>Settings</span></a>
-    </nav>
+@if(session('status'))
+<div class="profile-alert profile-alert--{{ session('status') === 'profile-updated' || session('status') === 'profile-picture-updated' || session('status') === 'password-updated' ? 'success' : 'info' }}">
+    <i class="fas fa-check-circle"></i>
+    @switch(session('status'))
+        @case('profile-updated') Profile updated successfully. @break
+        @case('profile-picture-updated') Profile picture updated. @break
+        @case('profile-picture-deleted') Profile picture removed. @break
+        @case('password-updated') Password changed successfully. @break
+        @default Changes saved.
+    @endswitch
+</div>
+@endif
 
-    <div class="sidebar-footer">
-        <div class="user-profile">
-            <div class="user-avatar" onclick="viewProfile()">
-                @if(Auth::check() && Auth::user()->avatar)
-                    <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" id="userAvatarImg">
+<div class="profile-wrap">
+
+    {{-- Left: Avatar card --}}
+    <div class="profile-sidebar">
+        <div class="profile-avatar-card">
+            <div class="profile-avatar-wrap" id="avatarWrap">
+                @if($user->profile_picture)
+                    <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="{{ $user->name }}" id="avatarImg">
                 @else
-                    <div class="avatar-placeholder" id="userInitials">
-                        {{ Auth::check() ? strtoupper(substr(Auth::user()->name, 0, 1) . (strpos(Auth::user()->name, ' ') !== false ? substr(Auth::user()->name, strpos(Auth::user()->name, ' ') + 1, 1) : '')) : 'U' }}
+                    <div class="profile-avatar-initials" id="avatarInitials">
+                        {{ strtoupper(substr($user->name, 0, 2)) }}
                     </div>
                 @endif
+                <label class="avatar-upload-overlay" for="pictureInput" title="Change photo">
+                    <i class="fas fa-camera"></i>
+                </label>
             </div>
-            <div class="user-info">
-                <h4 id="userName">{{ Auth::user()->name ?? 'User' }}</h4>
-                <div class="user-badges">
-                    <span class="user-type-badge {{ Auth::user()->type ?? 'traveler' }}" id="userTypeBadge">
-                        <i class="fas fa-user"></i>
-                        <span id="userTypeText">{{ ucfirst(Auth::user()->type ?? 'Traveler') }}</span>
-                    </span>
-                    @if(Auth::check() && Auth::user()->verified)
-                        <span class="verified-badge"><i class="fas fa-check-circle"></i> Verified</span>
+
+            <h3 class="profile-name">{{ $user->name }}</h3>
+            <span class="profile-type-badge profile-type-badge--{{ $user->user_type ?? 'traveler' }}">
+                <i class="fas fa-{{ $user->user_type === 'agency' ? 'building' : 'suitcase' }}"></i>
+                {{ ucfirst($user->user_type ?? 'Traveler') }}
+            </span>
+            @if($user->hasVerifiedEmail())
+                <span class="profile-verified"><i class="fas fa-check-circle"></i> Verified</span>
+            @endif
+
+            {{-- Picture upload form --}}
+            <form method="POST" action="{{ route('profile.picture.upload') }}" enctype="multipart/form-data" id="pictureForm">
+                @csrf
+                <input type="file" id="pictureInput" name="profile_picture" accept="image/*" style="display:none"
+                       onchange="document.getElementById('pictureForm').submit()">
+            </form>
+
+            @if($user->profile_picture)
+            <form method="POST" action="{{ route('profile.picture.delete') }}" style="margin-top:8px;">
+                @csrf @method('DELETE')
+                <button type="submit" class="profile-remove-pic-btn">
+                    <i class="fas fa-trash-alt"></i> Remove photo
+                </button>
+            </form>
+            @endif
+        </div>
+
+        {{-- Quick stats --}}
+        <div class="profile-stats-card">
+            <div class="profile-stat">
+                <span class="ps-num" id="profileTrips">—</span>
+                <span class="ps-label">Trips</span>
+            </div>
+            <div class="profile-stat">
+                <span class="ps-num" id="profileBookings">—</span>
+                <span class="ps-label">Bookings</span>
+            </div>
+            <div class="profile-stat">
+                <span class="ps-num" id="profileSaved">—</span>
+                <span class="ps-label">Saved</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Right: Forms --}}
+    <div class="profile-forms">
+
+        {{-- Update profile info --}}
+        <div class="profile-card">
+            <h2><i class="fas fa-user-edit"></i> Profile Information</h2>
+
+            <form method="POST" action="{{ route('profile.update') }}">
+                @csrf @method('PATCH')
+
+                <div class="pf-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required>
+                    @error('name') <span class="pf-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="pf-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required>
+                    @error('email') <span class="pf-error">{{ $message }}</span> @enderror
+                    @if($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
+                        <p class="pf-hint"><i class="fas fa-exclamation-circle"></i> Email not verified.
+                            <form method="POST" action="{{ route('verification.send') }}" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="pf-link-btn">Resend verification</button>
+                            </form>
+                        </p>
                     @endif
                 </div>
-            </div>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
-    </div>
-</div>
 
-<div class="main-content">
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
+                @if($user->user_type === 'agency')
+                <div class="pf-group">
+                    <label for="agency_name">Agency Name</label>
+                    <input type="text" id="agency_name" name="agency_name" value="{{ old('agency_name', $user->agency_name) }}">
                 </div>
-            </div>
+                @endif
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
+                <button type="submit" class="primary-button">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+        </div>
+
+        {{-- Change password --}}
+        <div class="profile-card">
+            <h2><i class="fas fa-lock"></i> Change Password</h2>
+
+            <form method="POST" action="{{ route('password.update') }}">
+                @csrf @method('PUT')
+
+                <div class="pf-group">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" autocomplete="current-password">
+                    @error('current_password', 'updatePassword') <span class="pf-error">{{ $message }}</span> @enderror
                 </div>
-            </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
+                <div class="pf-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="password" autocomplete="new-password">
+                    @error('password', 'updatePassword') <span class="pf-error">{{ $message }}</span> @enderror
                 </div>
-            </div>
+
+                <div class="pf-group">
+                    <label for="password_confirmation">Confirm New Password</label>
+                    <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="primary-button">
+                    <i class="fas fa-key"></i> Update Password
+                </button>
+            </form>
         </div>
+
+        {{-- Danger zone --}}
+        <div class="profile-card profile-card--danger">
+            <h2><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
+            <p style="color:#6b5b4f;font-size:14px;margin-bottom:16px;">
+                Once you delete your account, all data will be permanently removed.
+            </p>
+            <button class="danger-btn" onclick="confirmDelete()">
+                <i class="fas fa-trash-alt"></i> Delete Account
+            </button>
+
+            <form method="POST" action="{{ route('profile.destroy') }}" id="deleteAccountForm" style="display:none;">
+                @csrf @method('DELETE')
+                <input type="hidden" name="password" id="deletePassword">
+            </form>
+        </div>
+
     </div>
 </div>
 
-<div class="gallery-modal" id="galleryModal">
-    <div class="gallery-header">
-        <h3><i class="fas fa-images"></i> My Photos & Videos</h3>
-        <button class="gallery-close" onclick="closeGallery()">Done</button>
-    </div>
-    <div class="gallery-content" id="galleryContent">
-        <div class="upload-area" onclick="triggerFileInput()" id="uploadArea">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <h3>Upload Photos & Videos</h3>
-            <p>Drag and drop files here or click to browse</p>
-            <input type="file" id="mediaInput" multiple accept="image/*,video/*" onchange="handleFileSelect(event)">
-        </div>
-        <div class="gallery-grid" id="galleryGrid"></div>
-    </div>
-    <div class="gallery-toolbar">
-        <button onclick="triggerFileInput()"><i class="fas fa-plus"></i></button>
-        <button onclick="selectAll()"><i class="fas fa-check-double"></i></button>
-        <button onclick="deleteSelected()"><i class="fas fa-trash"></i></button>
-        <button onclick="shareSelected()"><i class="fas fa-share"></i></button>
-    </div>
-</div>
-
-<div class="media-viewer" id="mediaViewer">
-    <div class="viewer-header">
-        <button class="gallery-close" onclick="closeViewer()"><i class="fas fa-arrow-left"></i> Back</button>
-        <div class="viewer-actions">
-            <button onclick="editMedia()"><i class="fas fa-edit"></i></button>
-            <button onclick="downloadMedia()"><i class="fas fa-download"></i></button>
-            <button onclick="shareMedia()"><i class="fas fa-share"></i></button>
-            <button onclick="deleteMedia()"><i class="fas fa-trash"></i></button>
-        </div>
-    </div>
-    <div class="viewer-content" id="viewerContent"></div>
-</div>
-
-<button class="mobile-toggle" onclick="toggleSidebar()">
-    <i class="fas fa-bars"></i>
-</button>
 @endsection
+
+@push('scripts')
+<script>
+// Load stats
+fetch('/api/user/statistics', { headers: { 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(d => {
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set('profileTrips',    d.trips    ?? 0);
+        set('profileBookings', d.bookings ?? 0);
+        set('profileSaved',    d.saved    ?? 0);
+    }).catch(() => {});
+
+// Delete account confirmation
+window.confirmDelete = function () {
+    if (typeof Swal === 'undefined') {
+        const pw = prompt('Enter your password to confirm account deletion:');
+        if (!pw) return;
+        document.getElementById('deletePassword').value = pw;
+        document.getElementById('deleteAccountForm').submit();
+        return;
+    }
+    Swal.fire({
+        title: 'Delete Account?',
+        html: '<p style="color:#6b5b4f;margin-bottom:12px;">This cannot be undone. Enter your password to confirm.</p>' +
+              '<input type="password" id="swalPw" class="swal2-input" placeholder="Your password">',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f44336',
+        cancelButtonColor: '#6b5b4f',
+        confirmButtonText: 'Yes, delete my account',
+        preConfirm: () => {
+            const pw = document.getElementById('swalPw').value;
+            if (!pw) { Swal.showValidationMessage('Password is required'); return false; }
+            return pw;
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            document.getElementById('deletePassword').value = result.value;
+            document.getElementById('deleteAccountForm').submit();
+        }
+    });
+};
+</script>
+@endpush

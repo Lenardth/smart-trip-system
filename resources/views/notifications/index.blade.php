@@ -1,87 +1,52 @@
-{{-- resources/views/chat/index.blade.php --}}
 @extends('layouts.authenticated')
 
-@section('title', 'Messages — Smart Booking')
-
-@push('styles')
-    @vite(['resources/css/blade/chat/index.css'])
-@endpush
-
-@push('scripts')
-    @vite(['resources/js/blade/chat/index.js'])
-@endpush
+@section('title', 'Notifications — Smart Booking')
+@section('page-class', 'main-content notifications-page')
+@section('page-id', 'notificationsPage')
 
 @push('body-attrs')
-    data-chat-user-id="{{ Auth::id() }}"
-    data-chat-user-name="{{ Auth::user()->name ?? '' }}"
-    data-chat-user-avatar="{{ Auth::user()->avatar ?? '' }}"
-    data-chat-open-user-id="{{ isset($other) ? $other->id : '' }}"
-    data-chat-open-user-name="{{ isset($other) ? $other->name : '' }}"
-    data-chat-open-user-avatar="{{ isset($other) ? ($other->avatar ?? '') : '' }}"
+    data-user-id="{{ Auth::id() }}"
     data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
     data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster') }}"
 @endpush
 
-@section('page-class', 'chat-page')
-@section('page-id', 'chatPage')
-
 @section('content')
 
-    {{-- Conversation list panel --}}
-    <div class="chat-sidebar" id="chatSidebar">
-        <div class="chat-sidebar-header">
-            <i class="fas fa-comment-dots" style="color:var(--gold);font-size:20px;"></i>
-            <h2>Messages</h2>
-            <a href="/dashboard" title="Back to Dashboard">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+    <div class="notifications-header">
+        <div>
+            <h2><i class="fas fa-bell"></i> All Notifications</h2>
+            <p>Stay up to date with your trips, bookings, and messages.</p>
         </div>
-
-        <div class="chat-sidebar-search">
-            <i class="fas fa-search chat-sidebar-search-icon"></i>
-            <input type="text" id="pageSearchInput" placeholder="Search people…"
-                oninput="ChatSystem.onSearchInput(event)" autocomplete="off">
-            <div id="pageSearchResults" class="search-results-dropdown" style="display:none;"></div>
-        </div>
-
-        <div class="conv-list" id="pageConvList">
-            <div class="conv-empty">
-                <i class="fas fa-comment-dots" style="font-size:32px;color:rgba(201,169,110,0.3);"></i>
-                <p>No conversations yet</p>
-            </div>
+        <div class="notifications-header-actions">
+            <button class="btn-secondary" id="markAllReadBtn" onclick="markAllRead()">
+                <i class="fas fa-check-double"></i> Mark All as Read
+            </button>
         </div>
     </div>
 
-    {{-- Thread / message panel --}}
-    <div class="chat-thread" id="chatThread">
-
-        <div class="thread-empty-state" id="threadEmptyState">
-            <i class="fas fa-comment-dots"></i>
-            <h3>Your Messages</h3>
-            <p>Select a conversation or search for someone to start chatting.</p>
-        </div>
-
-        <div id="threadView">
-            <div class="thread-header">
-                <div class="thread-header-avatar" id="threadAvatar"></div>
-                <div class="thread-header-info">
-                    <strong id="threadName"></strong>
-                    <small id="threadSub"></small>
-                </div>
-            </div>
-
-            <div class="thread-messages" id="threadMessages"></div>
-
-            <div class="thread-input-area">
-                <textarea id="threadInput" rows="1" placeholder="Type a message… (Enter to send)"
-                    oninput="ChatSystem.autoResize(this)"
-                    onkeydown="ChatSystem.handleKey(event)"></textarea>
-                <button class="thread-send-btn" id="threadSendBtn" onclick="ChatSystem.send()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-
+    <div class="notification-filter-tabs" id="notifTabs">
+        <button class="notif-tab active" data-tab="all"     onclick="switchTab('all')">
+            <i class="fas fa-th-large"></i> All
+            <span id="countAll" class="notif-count"></span>
+        </button>
+        <button class="notif-tab" data-tab="chat"           onclick="switchTab('chat')">
+            <i class="fas fa-comments"></i> Messages
+            <span id="countChat" class="notif-count"></span>
+        </button>
+        <button class="notif-tab" data-tab="activity"       onclick="switchTab('activity')">
+            <i class="fas fa-ticket-alt"></i> Activity
+            <span id="countActivity" class="notif-count"></span>
+        </button>
     </div>
+
+    <div id="notifList" class="notif-list-wrap">
+        <div class="notif-empty">
+            <i class="fas fa-bell-slash"></i>
+            <h3>Loading…</h3>
+            <p>Fetching your notifications.</p>
+        </div>
+    </div>
+
+    <p id="notifSubtitle" style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:8px;"></p>
 
 @endsection

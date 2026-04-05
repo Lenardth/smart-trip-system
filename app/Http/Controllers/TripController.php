@@ -93,6 +93,38 @@ class TripController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $trip = Trip::where('user_id', Auth::id())->findOrFail($id);
+
+        $data = $request->validate([
+            'destination'    => 'sometimes|string|max:255',
+            'country'        => 'nullable|string|max:255',
+            'mood'           => 'nullable|string|max:100',
+            'feeling_note'   => 'nullable|string|max:500',
+            'budget'         => 'nullable|string|max:100',
+            'duration'       => 'nullable|string|max:100',
+            'companion'      => 'nullable|string|max:100',
+            'region'         => 'nullable|string|max:100',
+            'accommodation'  => 'nullable|string|max:100',
+            'origin'         => 'nullable|string|max:255',
+            'month'          => 'nullable|string|max:50',
+            'estimated_cost' => 'nullable|numeric|min:0',
+            'status'         => 'nullable|in:planned,ongoing,completed,cancelled',
+            'notes'          => 'nullable|string|max:2000',
+            'start_date'     => 'nullable|date',
+            'end_date'       => 'nullable|date|after_or_equal:start_date',
+        ]);
+
+        if (isset($data['accommodation'])) {
+            $data['accommodation'] = $this->normaliseAccommodation($data['accommodation']);
+        }
+
+        $trip->update($data);
+
+        return response()->json(['success' => true, 'trip' => $trip->fresh()]);
+    }
+
     private function normaliseAccommodation(?string $value): ?string
     {
         if (!$value) return null;

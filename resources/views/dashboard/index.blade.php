@@ -1,52 +1,70 @@
-{{-- resources/views/dashboard/index.blade.php --}}
-{{-- Top-nav (search, notifications, profile pic) is rendered by
-     partials/dashboard-header, included automatically by layouts/authenticated.
-     Do NOT duplicate it here. --}}
+
+
 @extends('layouts.authenticated')
 
 @section('title', 'Dashboard — Smart Booking')
-
-@push('styles')
-    @vite(['resources/css/blade/dashboard/index.css'])
-@endpush
-
-@push('scripts')
-    @vite(['resources/js/blade/dashboard/index.js'])
-@endpush
-
-@push('body-attrs')
-    data-dashboard-user-id="{{ Auth::id() }}"
-    data-dashboard-user-name="{{ Auth::user()->name ?? '' }}"
-    data-dashboard-user-avatar="{{ Auth::user()->avatar ?? '' }}"
-    data-dashboard-user-type="{{ Auth::user()->type ?? '' }}"
-    data-dashboard-user-verified="{{ (Auth::user()->verified ?? false) ? '1' : '0' }}"
-@endpush
-
 @section('page-class', 'main-content')
 @section('page-id', 'mainContent')
 
+@push('scripts')
+    <script>
+        (function () {
+            window.__dashboardConfig = {
+                pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
+                pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}",
+                userId: {{ Auth::id() ?? 'null' }},
+                user: {
+                    id:        {{ Auth::id() ?? 'null' }},
+                    name:      @json(Auth::user()->name ?? ''),
+                    firstName: @json(Auth::check() ? explode(' ', Auth::user()->name)[0] : ''),
+                    avatar:    @json(Auth::user()->avatar ?? ''),
+                    type:      @json(Auth::user()->user_type ?? ''),
+                    verified:  {{ Auth::user()->hasVerifiedEmail() ? 'true' : 'false' }}
+                }
+            };
+        })();
+    </script>
+@endpush
+
 @section('content')
 
-    {{-- Config available to JS --}}
-    <script>
-        window.__dashboardConfig = {
-            pusherKey:     "{{ config('broadcasting.connections.pusher.key') }}",
-            pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}",
-            userId: {{ Auth::id() ?? 'null' }},
-            user: {
-                id:        {{ Auth::id() ?? 'null' }},
-                name:      @json(Auth::user()->name ?? ''),
-                firstName: @json(Auth::check() ? explode(' ', Auth::user()->name)[0] : ''),
-                avatar:    @json(Auth::user()->avatar ?? ''),
-                type:      @json(Auth::user()->type ?? ''),
-                verified:  {{ (Auth::user()->verified ?? false) ? 'true' : 'false' }}
-            }
-        };
-    </script>
+    {{-- ── Welcome banner ──────────────────────────────────────────────────── --}}
+    @php
+        $user      = Auth::user();
+        $firstName = explode(' ', $user->name)[0];
+        $isNew     = $user->created_at->diffInDays(now()) < 1;
+        $hour      = now()->hour;
+        $greeting  = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+    @endphp
 
-    {{-- Stats --}}
+    <div class="welcome-banner">
+        <div class="welcome-avatar">
+            @if($user->profile_picture)
+                <img src="{{ asset('storage/'.$user->profile_picture) }}"
+                     alt="{{ $user->name }}"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <span style="display:none;">{{ strtoupper(substr($user->name,0,1)) }}</span>
+            @else
+                <span>{{ strtoupper(substr($user->name,0,1)) }}</span>
+            @endif
+        </div>
+        <div class="welcome-text">
+            @if($isNew)
+                <h2>Welcome to Smart Booking, {{ $firstName }}! 🎉</h2>
+                <p>Your account is all set. Start by planning your first trip or exploring destinations.</p>
+            @else
+                <h2>{{ $greeting }}, {{ $firstName }}!</h2>
+                <p>Welcome back — here's what's happening with your travels today.</p>
+            @endif
+        </div>
+        <a href="{{ route('plan-trip') }}" class="welcome-cta">
+            <i class="fas fa-route"></i>
+            {{ $isNew ? 'Plan Your First Trip' : 'Plan a Trip' }}
+        </a>
+    </div>
+
     <div class="stats-grid">
-        <div class="stat-card" onclick="openGallery()">
+        <div class="stat-card" onclick="openGallery()" style="cursor:pointer;">
             <div class="stat-icon photos"><i class="fas fa-images"></i></div>
             <div class="stat-info">
                 <h3 id="statPhotosCount">0</h3>
@@ -62,7 +80,7 @@
                 <div class="stat-change"><span>No trips yet</span></div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="window.location.href='/bookings'" style="cursor:pointer;">
             <div class="stat-icon bookings"><i class="fas fa-ticket-alt"></i></div>
             <div class="stat-info">
                 <h3 id="statBookingsCount">0</h3>
@@ -80,7 +98,24 @@
         </div>
     </div>
 
-    {{-- Quick actions --}}
+    <div class="settings-shortcut-bar">
+        <a href="{{ route('profile.edit') }}" class="settings-shortcut-item">
+            <i class="fas fa-user-edit"></i> Edit Profile
+        </a>
+        <a href="{{ route('notifications.index') }}" class="settings-shortcut-item">
+            <i class="fas fa-bell"></i> Notifications
+        </a>
+        <a href="{{ route('wishlist.index') }}" class="settings-shortcut-item">
+            <i class="fas fa-heart"></i> Wishlist
+        </a>
+        <a href="{{ route('bookings.index') }}" class="settings-shortcut-item">
+            <i class="fas fa-ticket-alt"></i> Bookings
+        </a>
+        <a href="{{ route('settings') }}" class="settings-shortcut-item">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+    </div>
+
     <div class="actions-grid">
         <div class="action-btn" onclick="uploadPhotos()">
             <i class="fas fa-upload"></i><span>Upload Photos</span>
@@ -91,18 +126,18 @@
         <div class="action-btn" onclick="window.location.href='/flights'">
             <i class="fas fa-plane"></i><span>Book Flights</span>
         </div>
-        <div class="action-btn" onclick="window.location.href='/bookings'">
-            <i class="fas fa-ticket-alt"></i><span>My Bookings</span>
-        </div>
         <div class="action-btn" onclick="window.location.href='/discover'">
             <i class="fas fa-compass"></i><span>Discover</span>
         </div>
-        <div class="action-btn" onclick="openSettings()">
-            <i class="fas fa-cog"></i><span>Settings</span>
+        <div class="action-btn" onclick="window.location.href='/community'">
+            <i class="fas fa-users"></i><span>Community</span>
+        </div>
+        <div class="action-btn" onclick="window.location.href='/chat'">
+            <i class="fas fa-comment-dots"></i><span>Messages</span>
         </div>
     </div>
 
-    {{-- Trips & Activity --}}
+    
     <div class="dashboard-grid">
         <div class="dashboard-section">
             <div class="section-header">
@@ -126,12 +161,12 @@
         <div class="dashboard-section">
             <div class="section-header">
                 <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+                <a href="{{ route('bookings.index') }}" style="font-size:13px;color:var(--gold);text-decoration:none;">View all</a>
             </div>
-            <div class="section-content">
+            <div class="section-content" id="recentActivityContent">
                 <div class="empty-state">
-                    <i class="fas fa-clock"></i>
-                    <h3>No Activity Yet</h3>
-                    <p>Your recent actions will appear here</p>
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading activity…</p>
                 </div>
             </div>
         </div>
@@ -141,7 +176,7 @@
 
 @push('modals')
 
-    {{-- Photo Gallery Modal --}}
+    
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-header">
             <h3><i class="fas fa-images"></i> My Photos &amp; Videos</h3>
@@ -165,7 +200,7 @@
         </div>
     </div>
 
-    {{-- Media Viewer --}}
+    
     <div class="media-viewer" id="mediaViewer">
         <div class="viewer-header">
             <button class="gallery-close" onclick="closeViewer()">

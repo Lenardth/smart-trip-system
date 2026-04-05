@@ -3,15 +3,19 @@
 @section('title', 'Discover — Smart Booking')
 
 @push('styles')
-    @vite(['resources/css/blade/discover/index.css'])
+<script>
+window.__dashboardConfig = window.__dashboardConfig || {};
+@auth
+window.__dashboardConfig.userId = {{ Auth::id() }};
+window.__dashboardConfig.user   = { id: {{ Auth::id() }}, name: @json(Auth::user()->name), avatar: @json(Auth::user()->avatar ?? '') };
+@endauth
+</script>
 @endpush
 
-@push('scripts_body')
-    @vite(['resources/js/blade/discover/index.js'])
-@endpush
+
 
 @section('content')
-<section class="page-hero">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(60, 20, 80, 0.70) 0%, rgba(180, 80, 20, 0.40) 100%), url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1800&q=80'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-compass"></i> Discover</h1>
         <p>Explore trending destinations, hidden gems, and AI-curated picks.</p>

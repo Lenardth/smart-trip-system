@@ -1,107 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Login — Smart Booking</title>
-    @vite([
-        'resources/css/blade/base.css',
-        'resources/css/blade/auth/login.css',
-        'resources/js/blade/login.js'
-    ])
+<x-guest-layout>
+    <x-auth-session-status class="mb-4" :status="session('status')" />
 
-</head>
-<body>
-    <div class="auth-page">
-        <div class="auth-card">
-            <div class="auth-logo">
-                <img src="{{ asset('img/travel-icon.png') }}" alt="Smart Booking">
-            </div>
-            <h1 class="auth-title">Welcome Back</h1>
+    <h2 class="auth-title">Welcome Back</h2>
 
-            @if (session('success'))
-                <div class="success-message">
-                    {{ session('success') }}
-                </div>
-            @endif
+    <form method="POST" action="{{ route('login') }}" id="loginForm">
+        @csrf
 
-            @if ($errors->any())
-                <div class="error-message">
-                    @foreach ($errors->all() as $error)
-                        <div>{{ $error }}</div>
-                    @endforeach
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('login') }}" id="loginForm">
-                @csrf
-
-                <div class="input-group">
-                    <label for="email">Email Address</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        class="auth-input @error('email') is-invalid @enderror"
-                        value="{{ old('email') }}"
-                        required
-                        autofocus
-                        placeholder="your@email.com"
-                    >
-                    @error('email')
-                        <div class="input-error">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="input-group">
-                    <label for="password">Password</label>
-                    <div class="password-wrapper">
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            class="auth-input @error('password') is-invalid @enderror"
-                            required
-                            placeholder="Enter your password"
-                        >
-
-                        <button
-                            class="toggle-password"
-                            type="button"
-                            id="togglePassword"
-                            aria-label="Toggle password visibility"
-                        >
-                            <i id="toggleIcon" class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-                    @error('password')
-                        <div class="input-error">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="remember-me">
-                    <input type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
-                    <label for="remember" style="margin:0;font-weight:normal;cursor:pointer;">Remember me</label>
-                </div>
-
-                <button type="submit" class="auth-btn" id="loginBtn">
-                    <i class="fas fa-sign-in-alt"></i> Log In
-                </button>
-            </form>
-
-            <div class="auth-divider">
-                <span>Don't have an account?</span>
-            </div>
-
-            <a href="{{ route('register') }}" class="auth-link">
-                <i class="fas fa-user-plus"></i> Create New Account
-            </a>
-
-            <a href="/" class="auth-link" style="margin-top:10px;">
-                <i class="fas fa-home"></i> Back to Home
-            </a>
+        <div class="input-group">
+            <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+            <input id="email" class="auth-input {{ $errors->has('email') ? 'is-invalid' : '' }}"
+                   type="email" name="email" value="{{ old('email') }}"
+                   required autofocus autocomplete="username" placeholder="you@example.com">
+            @error('email')
+                <div class="input-error">{{ $message }}</div>
+            @enderror
         </div>
-    </div>
-</body>
-</html>
+
+        <div class="input-group">
+            <label for="password"><i class="fas fa-lock"></i> Password</label>
+            <div class="password-wrapper">
+                <input id="password" class="auth-input {{ $errors->has('password') ? 'is-invalid' : '' }}"
+                       type="password" name="password"
+                       required autocomplete="current-password" placeholder="••••••••">
+                <button type="button" class="toggle-password" id="togglePassword" tabindex="-1">
+                    <i class="fas fa-eye" id="toggleIcon"></i>
+                </button>
+            </div>
+            @error('password')
+                <div class="input-error">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="remember-me">
+            <input id="remember_me" type="checkbox" name="remember">
+            <label for="remember_me">Remember me</label>
+            @if (Route::has('password.request'))
+                <a href="{{ route('password.request') }}" class="auth-link" style="margin-left:auto;margin-top:0;">
+                    Forgot password?
+                </a>
+            @endif
+        </div>
+
+        <button type="submit" class="auth-btn" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> Log In
+        </button>
+
+        <div class="auth-divider"><span>Don't have an account?</span></div>
+
+        <a href="{{ route('register') }}" class="auth-link" style="text-align:center;display:block;">
+            Create a free account
+        </a>
+    </form>
+</x-guest-layout>

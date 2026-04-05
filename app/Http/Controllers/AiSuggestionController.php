@@ -75,7 +75,7 @@ class AiSuggestionController extends Controller
         $validated['accommodation'] = $this->normaliseAccommodation($validated['accommodation'] ?? null);
 
         try {
-            $apiKey = config('services.groq.key') ?: env('GROQ_API_KEY') ?: getenv('GROQ_API_KEY');
+            $apiKey = config('services.groq.key');
 
             if (empty($apiKey)) {
                 throw new \RuntimeException('GROQ_API_KEY is not set.');
@@ -148,7 +148,7 @@ class AiSuggestionController extends Controller
         $payload = [
             'model'       => self::MODEL,
             'max_tokens'  => self::MAX_TOKENS,
-            'temperature' => 0.9,
+            'temperature' => 1.1,
             'tools'       => [self::TOOL],
             'tool_choice' => ['type' => 'function', 'function' => ['name' => 'suggest_destinations']],
             'messages'    => [
@@ -241,49 +241,49 @@ class AiSuggestionController extends Controller
         if (!empty($p['month']))                                           $extras[] = "departure month: {$p['month']}";
         if (!empty($p['region'])        && $p['region']        !== 'any') $extras[] = "preferred region: {$p['region']}";
         if (!empty($p['accommodation']) && $p['accommodation'] !== 'any') {
-            $extras[] = 'accommodation: ' . $this->accommodationLabel($p['accommodation']);
+            $extras[] = 'accommodation preference: ' . $this->accommodationLabel($p['accommodation']);
         }
-        if (!empty($p['origin']))                                          $extras[] = "flying from: {$p['origin']}";
-        if (!empty($p['experience']))                                      $extras[] = "experience level: {$p['experience']}";
-        if (!empty($p['feeling_note']))                                    $extras[] = "traveller emotional context: {$p['feeling_note']}";
-        $extrasStr = $extras ? "\nContext: " . implode(' | ', $extras) . '.' : '';
+        if (!empty($p['origin']))  $extras[] = "flying from: {$p['origin']}";
+        if (!empty($p['experience'])) $extras[] = "experience level: {$p['experience']}";
+        if (!empty($p['feeling_note'])) $extras[] = "what they said: \"{$p['feeling_note']}\"";
+        $extrasStr = $extras ? "\nAdditional context: " . implode(' | ', $extras) . '.' : '';
 
         $excludedStr = '';
         $exclDests     = array_filter($p['excluded_destinations'] ?? []);
         $exclCountries = array_filter($p['excluded_countries']    ?? []);
 
         if (!empty($exclDests) || !empty($exclCountries)) {
-            $excludedStr = "\n\n### STRICT EXCLUSION LIST — violating this is an error ###";
+            $excludedStr = "\n\nDo not repeat any of these — they've already been shown:";
             if (!empty($exclDests)) {
                 $safe = array_map(fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d), $exclDests);
-                $excludedStr .= "\nDo NOT suggest these destinations: " . implode(', ', $safe) . '.';
+                $excludedStr .= "\nDestinations already shown: " . implode(', ', $safe) . '.';
             }
             if (!empty($exclCountries)) {
                 $safe = array_map(fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d), $exclCountries);
-                $excludedStr .= "\nDo NOT suggest destinations in these countries: " . implode(', ', $safe) . '.';
+                $excludedStr .= "\nCountries already shown: " . implode(', ', $safe) . '.';
             }
-            $excludedStr .= "\nEvery single one of the 5 destinations must be from a country NOT in the above list.";
+            $excludedStr .= "\nAll 5 picks must be from different countries not listed above.";
         }
 
         $system = <<<SYSTEM
-You are a senior travel consultant with accurate knowledge of global destinations, visa rules, realistic costs, and travel conditions as of {$year}.
+You are someone who has spent years travelling and now helps friends figure out where to go. You are not a travel agent and you do not write like one. You write the way a well-travelled person texts a friend — short sentences mixed with longer ones, the occasional aside, a mild opinion here and there. You never use words like "vibrant", "nestled", "boasts", "tapestry", "gem", "paradise", or "breathtaking". You never start a sentence with "Whether you're". You never write in bullet points inside the description field.
 
-Today is {$month} {$year}. Use this to:
-- Set is_good_right_now=true only when weather and season are genuinely good this month or next
-- Give specific best_months arrays, not vague seasons
-- Tailor visa and flight info to the origin country when provided
+Today is {$month} {$year}. Use this to judge whether a destination is actually good to visit right now.
 
-Cost rules:
-- cost_min_usd and cost_max_usd are TOTAL per-person trip costs including return flights, accommodation, meals and activities
-- Must be realistic for the budget tier and duration
-- Example: budget traveller, 1 week, Southeast Asia → 700–1200 USD
+For each destination:
+- description: 2–3 sentences. Write like you've been there. Name something specific — a street, a dish, a neighbourhood, a weird local habit. Keep it conversational, not promotional.
+- travel_tip: one concrete thing most people don't know. Not "book early" or "respect the culture". Something like: "the old town floods with tour groups by 10am — get there at 8" or "skip the famous beach and go to the one 20 minutes south".
+- visa_info: give the actual answer for the traveller's origin country if known. If not known, give the most common scenario. Don't say "check official sources".
+- flight_info: rough flight time, whether direct routes exist, and the most common layover city if not direct.
+- cost_min_usd / cost_max_usd: realistic total per-person cost including return flights, accommodation, food, and activities for the given budget tier and duration. Don't round to suspiciously clean numbers.
+- best_months: the actual 3–4 best months. Not "spring" or "dry season" — actual month names.
+- top_activities: 4–6 specific things to do. Not "explore the city" or "visit local markets". Real activities with names where possible.
+- is_good_right_now: true only if {$month} is genuinely a decent time to go.
 
-Diversity rule: 5 destinations, 5 completely different countries, spread across different continents.
+Pick 5 destinations from 5 different countries. Spread them across different parts of the world when possible.
 SYSTEM;
 
-        $user = "Recommend destinations for a {$companion} wanting {$p['mood']} travel."
-            . "\nBudget: {$budget}"
-            . "\nDuration: {$duration}"
+        $user = "A {$companion} wants to travel. Mood: {$p['mood']}. Budget: {$budget}. Trip length: {$duration}."
             . $extrasStr
             . $excludedStr;
 

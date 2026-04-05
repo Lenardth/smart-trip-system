@@ -2,7 +2,7 @@ const Wishlist = (() => {
 
     const CSRF = () => document.querySelector('meta[name="csrf-token"]').content;
 
-    /* ── Model ── */
+    
 
     function apiRemove(destinationId) {
         return fetch(`/wishlist/${destinationId}`, {
@@ -14,7 +14,7 @@ const Wishlist = (() => {
         }).then(r => r.json());
     }
 
-    /* ── View ── */
+    
 
     function setCardVisible(card, visible) {
         card.style.display = visible ? 'block' : 'none';
@@ -29,7 +29,7 @@ const Wishlist = (() => {
         });
     }
 
-    /* ── Controller ── */
+    
 
     function filter() {
         const continent = document.getElementById('filterContinent').value;
@@ -76,6 +76,15 @@ const Wishlist = (() => {
                 confirmButtonColor: '#c9a96e',
                 timer: 2000
             });
+            
+            
+            
+            
+            
+            try {
+                localStorage.setItem('smartBookingWishlistUpdated', String(Date.now()));
+            } catch (_) {}
+            
             window.location.reload();
         } catch {
             Swal.fire({
@@ -151,7 +160,7 @@ const Wishlist = (() => {
         });
     }
 
-    /* ── Boot ── */
+    
 
     function init() {
         document.getElementById('filterContinent')?.addEventListener('change', filter);
@@ -165,5 +174,5 @@ const Wishlist = (() => {
 
 })();
 
-// Expose for Blade inline onclick="Wishlist.*"
+
 window.Wishlist = Wishlist;

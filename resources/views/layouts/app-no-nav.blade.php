@@ -1,11 +1,7 @@
 @extends('layouts.base')
 
-@push('styles')
-    @vite(['resources/css/blade/base.css'])
-@endpush
-
 @push('scripts')
-    @stack('scripts_body')  {{-- ADD THIS --}}
+    @stack('scripts_body')
 @endpush
 
 @section('body')

@@ -50,11 +50,6 @@ class Flight extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function agency()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
     public function bookings()
     {
         return $this->hasMany(Booking::class);

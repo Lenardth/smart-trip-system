@@ -1,22 +1,16 @@
-// User data from backend (this would typically come from your server)
-        const userData = {
-            name: "null",
-            firstName: "null",
-            avatar: "null",
-            type: "null",
-            verified: null,
-            id: "null"
-        };
+const userData = (window.__dashboardConfig && window.__dashboardConfig.user)
+            ? window.__dashboardConfig.user
+            : { name: '', firstName: '', avatar: '', type: '', verified: false, id: null };
 
-        // Initialize user interface
+        
         function initializeUserData() {
-            // Set welcome message
+            
             const welcomeMsg = document.getElementById('welcomeMessage');
             welcomeMsg.textContent = `Welcome Back, ${userData.firstName}!`;
 
-            // Set profile pictures
+            
             if (userData.avatar && userData.avatar !== '') {
-                // Use actual user avatar
+                
                 const avatarImages = document.querySelectorAll('.user-avatar img, .nav-profile-pic img');
                 avatarImages.forEach(img => {
                     if (img) {
@@ -25,12 +19,12 @@
                     }
                 });
 
-                // Hide placeholders
+                
                 document.querySelectorAll('.avatar-placeholder, .placeholder').forEach(el => {
                     el.style.display = 'none';
                 });
             } else {
-                // Use initials if no avatar
+                
                 const initials = userData.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
                 const initialsElements = document.querySelectorAll('.avatar-placeholder, .placeholder');
                 initialsElements.forEach(el => {
@@ -38,16 +32,16 @@
                     el.style.display = 'flex';
                 });
 
-                // Hide avatar images
+                
                 document.querySelectorAll('.user-avatar img, .nav-profile-pic img').forEach(img => {
                     if (img) img.style.display = 'none';
                 });
             }
 
-            // Update user name
+            
             document.getElementById('userName').textContent = userData.name;
 
-            // Update user type badge
+            
             const userTypeBadge = document.getElementById('userTypeBadge');
             if (userTypeBadge) {
                 userTypeBadge.className = `user-type-badge ${userData.type}`;
@@ -57,13 +51,13 @@
                 }
             }
 
-            // Load real user statistics
+            
             loadUserStatistics();
         }
 
-        // Load real statistics from backend
+        
         function loadUserStatistics() {
-            // In a real application, this would fetch from your API
+            
             fetch('/api/user/statistics')
                 .then(response => response.json())
                 .then(data => {
@@ -71,11 +65,11 @@
                 })
                 .catch(error => {
                     console.log('Using default counts');
-                    // Use default counts if API fails
+                    
                 });
         }
 
-        // Update counts from real data
+        
         function updateCounts(data = null) {
             const photoCount = data?.photos || mediaLibrary.length;
             const tripsCount = data?.trips || 0;
@@ -83,7 +77,7 @@
             const savedCount = data?.saved || 0;
             const notificationCount = data?.notifications || 0;
 
-            // Update all count displays
+            
             const photosCountEl = document.getElementById('photosCount');
             const statPhotosCountEl = document.getElementById('statPhotosCount');
             const bookingsCountEl = document.getElementById('bookingsCount');
@@ -106,53 +100,58 @@
             }
         }
 
-        // Media storage
+        
         let mediaLibrary = [];
         let selectedMedia = new Set();
         let currentMediaIndex = 0;
 
-        // Notification system
+        
         let notifications = [];
         let currentTab = 'all';
         let unreadCount = 0;
         let pusherChannel = null;
         let chatPollingInterval = null;
 
-        // Initialize on page load
+        
         document.addEventListener('DOMContentLoaded', function () {
             initializeUserData();
             loadMediaFromStorage();
             loadNotifications();
             initializeRealTimeChat();
 
-            // Poll for new notifications every 5 seconds (fallback if WebSocket fails)
+            
             setInterval(loadNotifications, 5000);
         });
 
-        // Real-Time Chat with Pusher/WebSocket
+        
         function initializeRealTimeChat() {
-            // Try to initialize Pusher if available
+            const pusherKey = (window.__dashboardConfig && window.__dashboardConfig.pusherKey) || '';
+            const pusherCluster = (window.__dashboardConfig && window.__dashboardConfig.pusherCluster) || 'mt1';
+            const userId = (window.__dashboardConfig && window.__dashboardConfig.userId) || null;
+
+            if (!pusherKey || !userId) {
+                startChatPolling();
+                return;
+            }
+
             if (typeof Pusher !== 'undefined') {
                 try {
-                    const pusher = new Pusher('null', {
-                        cluster: 'null',
+                    const pusher = new Pusher(pusherKey, {
+                        cluster: pusherCluster,
                         encrypted: true
                     });
 
-                    // Subscribe to user's private channel
-                    pusherChannel = pusher.subscribe('private-user.null');
+                    pusherChannel = pusher.subscribe('private-user.' + userId);
 
-                    // Listen for new chat messages
                     pusherChannel.bind('new-chat-message', function(data) {
                         handleRealTimeChatMessage(data);
                     });
 
-                    // Listen for notification updates
                     pusherChannel.bind('notification', function(data) {
                         handleRealTimeNotification(data);
                     });
 
-                    console.log('✅ Real-time chat initialized with Pusher');
+                    console.log('Real-time chat initialized with Pusher');
                 } catch (error) {
                     console.log('Pusher not available, using polling fallback');
                     startChatPolling();
@@ -163,15 +162,15 @@
             }
         }
 
-        // Fallback: Fast polling for real-time feel
+        
         function startChatPolling() {
-            // Poll every 2 seconds for chat messages
+            
             chatPollingInterval = setInterval(() => {
-                loadNotifications(true); // silent mode
+                loadNotifications(true); 
             }, 2000);
         }
 
-        // Handle real-time chat message
+        
         function handleRealTimeChatMessage(data) {
             const newNotification = {
                 id: data.message_id || Date.now(),
@@ -187,22 +186,22 @@
                 }
             };
 
-            // Add to notifications array
+            
             notifications.unshift(newNotification);
             unreadCount++;
 
-            // Update UI
+            
             updateNotificationBadge();
             renderNotifications();
 
-            // Play notification sound
+            
             playNotificationSound();
 
-            // Show toast notification
+            
             showChatToast(data.sender_name, data.content);
         }
 
-        // Handle real-time notification
+        
         function handleRealTimeNotification(data) {
             notifications.unshift(data);
             if (!data.read) unreadCount++;
@@ -210,7 +209,7 @@
             renderNotifications();
         }
 
-        // Show toast notification for new chat
+        
         function showChatToast(sender, message) {
             const toast = document.createElement('div');
             toast.style.cssText = `
@@ -258,53 +257,41 @@
 
             document.body.appendChild(toast);
 
-            // Auto-remove after 5 seconds
+            
             setTimeout(() => {
                 toast.style.animation = 'slideOutRight 0.4s ease';
                 setTimeout(() => toast.remove(), 400);
             }, 5000);
         }
 
-        // Play notification sound
+        
         function playNotificationSound() {
             try {
                 const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBDGH0fPTgjMGHm7A7+OZUA0PVqzn77BdGgc+ltryxnYpBSh+zPLaizsIGGS57OihUxELTKXh8bllHAU2kNXzzn0vBSh6yfDajDwIFmq+7eibUg4OVKzl8LRfGgc8ldjywngqBCh9y/HajjwIFmm97OmgURALTqPi8bllHAU3kdXzzoAuBSh6yfDajjsJFWq97OmgUg0PVanl8LVfGgc8ldryw3kpBCd9y/DajjsJFWq+7OmfUhAMTqPh8bhnHgU3kdXzzn4vBCh6yfDajjsJFWq+7OidUREMTqPh8bhmHQU3kdXzzn4vBCd7yfDajjsJFmq97OmdUREMTqTg8bhmHQU3kdTzz34uBSd7yfDajjsJFmq97OmdUREMT6Th8bhpHgU2kNTzzoAuBSd7yfDbjTsIFmq97OicUhAMT6Tg8bppHgU2kNTzz4AuBSZ7yfDbkToJFWq97Omc');
                 audio.volume = 0.3;
-                audio.play().catch(() => {}); // Ignore if autoplay blocked
+                audio.play().catch(() => {}); 
             } catch (e) {
                 console.log('Could not play notification sound');
             }
         }
 
-        // Add CSS animation for toast
+        
         const style = document.createElement('style');
         style.textContent = `
-
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
+            @keyframes slideInRight {
+                from { transform: translateX(400px); opacity: 0; }
+                to   { transform: translateX(0);     opacity: 1; }
             }
-
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
+            @keyframes slideOutRight {
+                from { transform: translateX(0);     opacity: 1; }
+                to   { transform: translateX(400px); opacity: 0; }
             }
         `;
         document.head.appendChild(style);
 
-        // Notification Functions
+        
         function loadNotifications(silent = false) {
-            // Load from API
+            
             fetch('/api/notifications')
                 .then(response => response.json())
                 .then(data => {
@@ -412,7 +399,7 @@
             const dropdown = document.getElementById('notificationDropdown');
             dropdown.classList.toggle('active');
 
-            // Mark as read when opened
+            
             if (dropdown.classList.contains('active')) {
                 setTimeout(() => {
                     markVisibleAsRead();
@@ -423,13 +410,13 @@
         function switchNotificationTab(tab) {
             currentTab = tab;
 
-            // Update tab styling
+            
             document.querySelectorAll('.notification-tab').forEach(t => {
                 t.classList.remove('active');
             });
             document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
 
-            // Render filtered notifications
+            
             renderNotifications();
         }
 
@@ -437,7 +424,7 @@
             const listEl = document.getElementById('notificationList');
             let filteredNotifications = notifications;
 
-            // Filter by tab
+            
             if (currentTab === 'chat') {
                 filteredNotifications = notifications.filter(n => n.type === 'chat');
             } else if (currentTab === 'activity') {
@@ -509,7 +496,7 @@
             updateNotificationBadge();
             renderNotifications();
 
-            // Send to backend
+            
             fetch('/api/notifications/mark-all-read', {
                 method: 'POST',
                 headers: {
@@ -540,7 +527,7 @@
             updateNotificationBadge();
             renderNotifications();
 
-            // Send to backend
+            
             fetch('/api/notifications/mark-read', {
                 method: 'POST',
                 headers: {
@@ -555,7 +542,7 @@
             const notification = notifications.find(n => n.id === notificationId);
             if (!notification) return;
 
-            // Mark as read
+            
             notifications = notifications.map(n =>
                 n.id === notificationId ? {...n, read: true} : n
             );
@@ -563,7 +550,7 @@
             updateNotificationBadge();
             renderNotifications();
 
-            // Navigate based on type
+            
             if (notification.type === 'chat') {
                 window.location.href = '/chat';
             } else if (notification.type === 'booking') {
@@ -576,7 +563,7 @@
             }
         }
 
-        // Close dropdown when clicking outside
+        
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('notificationDropdown');
             const button = document.querySelector('.notification-btn');
@@ -586,7 +573,7 @@
             }
         });
 
-        // Compose Chat Functions
+        
         function openComposeMessage() {
             Swal.fire({
                 title: '<i class="fas fa-comments"></i> Send API Chat Message',
@@ -638,7 +625,7 @@
                 cancelButtonText: 'Cancel',
                 showLoaderOnConfirm: true,
                 didOpen: () => {
-                    // Add character counter
+                    
                     const textarea = document.getElementById('messageContent');
                     textarea.addEventListener('input', function() {
                         document.getElementById('charCount').textContent = this.value.length;
@@ -675,7 +662,7 @@
                         timer: 2000
                     });
 
-                    // Refresh notifications
+                    
                     loadNotifications();
                 }
             });
@@ -693,7 +680,7 @@
             }
 
             searchTimeout = setTimeout(() => {
-                // Fetch users from API
+                
                 fetch(`/api/users/search?q=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
@@ -763,7 +750,7 @@
 
             resultsDiv.style.display = 'block';
 
-            // Add hover effect
+            
             resultsDiv.querySelectorAll('div[onclick^="selectUser"]').forEach(el => {
                 el.addEventListener('mouseenter', function() {
                     this.style.background = 'rgba(201, 169, 110, 0.1)';
@@ -791,7 +778,7 @@
             document.getElementById('userSearch').value = '';
             document.getElementById('userSearchResults').style.display = 'none';
 
-            // Focus on message textarea
+            
             document.getElementById('messageContent').focus();
         }
 
@@ -822,7 +809,7 @@
 
                 const data = await response.json();
 
-                // Show success toast
+                
                 const toast = document.createElement('div');
                 toast.style.cssText = `
                     position: fixed;
@@ -858,7 +845,7 @@
             }
         }
 
-        // Add slide animations
+        
         const slideStyle = document.createElement('style');
         slideStyle.textContent = `
 
@@ -884,12 +871,12 @@
         `;
         document.head.appendChild(slideStyle);
 
-        // Toggle sidebar for mobile
+        
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
         }
 
-        // Gallery functions
+        
         function openGallery() {
             document.getElementById('galleryModal').classList.add('active');
             renderGallery();
@@ -903,7 +890,7 @@
             document.getElementById('mediaInput').click();
         }
 
-        // File handling
+        
         function handleFileSelect(event) {
             const files = Array.from(event.target.files);
             files.forEach(file => {
@@ -926,7 +913,7 @@
             event.target.value = '';
         }
 
-        // Drag and drop
+        
         const uploadArea = document.getElementById('uploadArea');
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             uploadArea.addEventListener(eventName, preventDefaults, false);
@@ -956,7 +943,7 @@
             handleFileSelect({ target: { files: files } });
         });
 
-        // Render gallery
+        
         function renderGallery() {
             const galleryGrid = document.getElementById('galleryGrid');
             if (mediaLibrary.length === 0) {
@@ -978,7 +965,7 @@
             `).join('');
         }
 
-        // View media
+        
         function viewMedia(index) {
             currentMediaIndex = index;
             const item = mediaLibrary[index];
@@ -999,7 +986,7 @@
             viewerContent.innerHTML = '';
         }
 
-        // Media actions
+        
         function editMedia() {
             Swal.fire({
                 title: 'Edit Media',
@@ -1130,7 +1117,7 @@
             });
         }
 
-        // Storage functions
+        
         function saveMediaToStorage() {
             localStorage.setItem('smartBookingMedia', JSON.stringify(mediaLibrary));
         }
@@ -1143,11 +1130,11 @@
             }
         }
 
-        // Update counts
+        
         function updateMediaCounts() {
             const photoCount = mediaLibrary.length;
 
-            // Update display counts
+            
             const counts = {
                 photos: photoCount,
                 trips: 0,
@@ -1159,7 +1146,7 @@
             updateCounts(counts);
         }
 
-        // Action functions
+        
         function uploadPhotos() {
             openGallery();
         }
@@ -1231,12 +1218,12 @@
                 confirmButtonText: 'Yes, logout'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Create a form and submit it with POST method
+                    
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '/logout';
 
-                    // Add CSRF token
+                    
                     const csrfToken = document.querySelector('meta[name="csrf-token"]');
                     if (csrfToken) {
                         const csrfInput = document.createElement('input');
@@ -1252,14 +1239,14 @@
             });
         }
 
-        // Add active state to menu items
+        
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', function (e) {
-                // Only prevent default and toggle active for items without real hrefs
+                
                 if (this.getAttribute('href') === '#') {
                     e.preventDefault();
                 }
-                // Don't change active state if this item handles its own navigation
+                
                 if (!this.onclick || this.getAttribute('href') === '#') {
                     document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
@@ -1267,7 +1254,7 @@
             });
         });
 
-        // Close sidebar when clicking outside on mobile
+        
         document.addEventListener('click', function (event) {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.querySelector('.mobile-toggle');
@@ -1279,7 +1266,7 @@
             }
         });
 
-        // Expose for Blade inline onclick attributes (Vite bundles as modules).
+        
         if (typeof toggleSidebar === 'function') window.toggleSidebar = toggleSidebar;
         if (typeof toggleNotifications === 'function') window.toggleNotifications = toggleNotifications;
         if (typeof switchNotificationTab === 'function') window.switchNotificationTab = switchNotificationTab;

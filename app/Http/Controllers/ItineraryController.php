@@ -78,37 +78,45 @@ class ItineraryController extends Controller
         $validated = $request->validate([
             'mood'          => 'required|string',
             'destination'   => 'required|string',
-            'companion'     => 'required|string',
-            'travelers'     => 'required|integer',
-            'departureDate' => 'required|date',
-            'returnDate'    => 'required|date',
-            'budget'        => 'required|integer',
+            'companion'     => 'nullable|string',
+            'travelers'     => 'nullable|integer',
+            'departureDate' => 'nullable|string',
+            'returnDate'    => 'nullable|string',
+            'budget'        => 'nullable|integer',
             'requirements'  => 'nullable|string',
         ]);
 
-        $depDate  = new \DateTime($validated['departureDate']);
-        $retDate  = new \DateTime($validated['returnDate']);
-        $duration = $depDate->diff($retDate)->days;
+        $destination = $validated['destination'];
+        $mood        = strtolower($validated['mood']);
+        $budget      = (int)($validated['budget'] ?? 2500);
+
+        try {
+            $depDate = new \DateTime($validated['departureDate'] ?? '+7 days');
+            $retDate = new \DateTime($validated['returnDate']    ?? '+14 days');
+        } catch (\Exception $e) {
+            $depDate = new \DateTime('+7 days');
+            $retDate = new \DateTime('+14 days');
+        }
 
         $data = [
-            'mood'          => ucfirst($validated['mood']),
-            'destination'   => $this->getDestinationName($validated['destination']),
-            'companion'     => ucfirst($validated['companion']),
-            'travelers'     => $validated['travelers'],
-            'departureDate' => $depDate->format('F j, Y'),
-            'returnDate'    => $retDate->format('F j, Y'),
-            'duration'      => $duration,
-            'budget'        => number_format($validated['budget']),
-            'requirements'  => $validated['requirements'] ?? 'None',
-            'user'          => Auth::user(),
+            'mood'          => $mood,
+            'destination'   => $this->getDestinationName($destination),
+            'companion'     => $validated['companion'] ?? 'solo',
+            'travelers'     => $validated['travelers'] ?? 1,
+            'departureDate' => $depDate->format('Y-m-d'),
+            'returnDate'    => $retDate->format('Y-m-d'),
+            'budget'        => $budget,
+            'requirements'  => $validated['requirements'] ?? null,
+            'itineraryId'   => 'SB-' . strtoupper(substr(md5($destination . now()), 0, 8)),
             'generatedAt'   => now()->format('F j, Y g:i A'),
         ];
 
-        $data['itinerary'] = $this->generateItinerary($validated['destination'], $validated['mood'], $validated['budget']);
+        $data['itinerary'] = $this->generateItinerary($destination, $mood, $budget);
 
-        $pdf = Pdf::loadView('pdf.itinerary', $data);
+        $pdf = Pdf::loadView('pdf.itinerary', ['data' => $data])
+            ->setPaper('a4', 'portrait');
 
-        return $pdf->download('SmartBooking_Itinerary_' . date('Ymd_His') . '.pdf');
+        return $pdf->download('SmartBooking_Itinerary_' . date('Ymd') . '.pdf');
     }
 
     private function getDestinationName($code)

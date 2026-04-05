@@ -1,10 +1,13 @@
-window.__COMMUNITY__ = {
-    pusherKey:     "null",
-    pusherCluster: "null",
-    csrfToken:     "null",
-    authUserId:    null,
-    isLoggedIn:    null
-};
+window.__COMMUNITY__ = (function () {
+    var dc = window.__dashboardConfig || {};
+    return {
+        pusherKey:     dc.pusherKey     || '',
+        pusherCluster: dc.pusherCluster || 'mt1',
+        csrfToken:     document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        authUserId:    dc.userId        || null,
+        isLoggedIn:    !!dc.userId,
+    };
+})();
 (function () {
 
     var cfg          = window.__COMMUNITY__ || {};
@@ -435,7 +438,7 @@ window.__COMMUNITY__ = {
         } catch (_) {}
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function init() {
         loadStats();
         loadTopics();
         loadGroups();
@@ -443,7 +446,10 @@ window.__COMMUNITY__ = {
         loadStories();
         loadTravelers();
         initPusher();
-    });
+    }
+
+    if (document.readyState !== 'loading') init();
+    else document.addEventListener('DOMContentLoaded', init);
 
     window.Community = {
         openTopicModal:  openTopicModal,

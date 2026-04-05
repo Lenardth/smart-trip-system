@@ -2,41 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function edit(Request $request)
+    public function edit(Request $request): View
     {
         return view('profile.edit', [
             'user' => $request->user(),
         ]);
     }
 
-    public function update(Request $request)
+    public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-
-        $validated = $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-        ]);
-
-        $user->fill($validated);
+        $user->fill($request->validated());
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
+        if ($request->filled('agency_name')) {
+            $user->agency_name = $request->agency_name;
+        }
+
         $user->save();
 
-        return redirect()->route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    public function updatePassword(Request $request)
+    public function updatePassword(Request $request): RedirectResponse
     {
         $validated = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
@@ -47,10 +50,10 @@ class ProfileController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return redirect()->route('profile.edit')->with('status', 'password-updated');
+        return Redirect::route('profile.edit')->with('status', 'password-updated');
     }
 
-    public function uploadProfilePicture(Request $request)
+    public function uploadProfilePicture(Request $request): RedirectResponse
     {
         $request->validate([
             'profile_picture' => ['required', 'image', 'max:2048'],
@@ -58,25 +61,29 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if ($request->hasFile('profile_picture')) {
-            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
-            $user->profile_picture = $path;
-            $user->save();
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
         }
 
-        return back()->with('status', 'profile-picture-updated');
+        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+        $user->update(['profile_picture' => $path]);
+
+        return Redirect::route('profile.edit')->with('status', 'profile-picture-updated');
     }
 
-    public function deleteProfilePicture(Request $request)
+    public function deleteProfilePicture(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $user->profile_picture = null;
-        $user->save();
 
-        return back()->with('status', 'profile-picture-deleted');
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+            $user->update(['profile_picture' => null]);
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'profile-picture-deleted');
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
@@ -91,6 +98,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return Redirect::to('/');
     }
 }

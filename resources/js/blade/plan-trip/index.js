@@ -1,4 +1,4 @@
-const { jsPDF } = window.jspdf;
+
 
 let selectedMood = '';
 let lastResults = [];
@@ -90,35 +90,53 @@ const accommodationLabels = {
     any: 'No preference'
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.mood-card').forEach(card => {
-        card.addEventListener('click', function() { selectMood(this); });
-    });
+// Expose functions called from onclick attributes in the blade
+window.goStep            = goStep;
+window.generateSuggestions = generateSuggestions;
+window.selectDestination = selectDestination;
+window.openReceipt       = openReceipt;
+window.closeReceipt      = closeReceipt;
+window.printReceipt      = printReceipt;
+window.downloadReceiptPdf = downloadReceiptPdf;
+window.esc               = esc;
 
-    const receiptModal = document.getElementById('receiptModal');
-    if (receiptModal) {
-        receiptModal.addEventListener('click', function(e) {
-            if (e.target === this) closeReceipt();
+// Run immediately if DOM ready, otherwise wait
+(function () {
+    function init() {
+        document.querySelectorAll('.mood-card').forEach(card => {
+            card.addEventListener('click', function() { selectMood(this); });
         });
+
+        const receiptModal = document.getElementById('receiptModal');
+        if (receiptModal) {
+            receiptModal.addEventListener('click', function(e) {
+                if (e.target === this) closeReceipt();
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('receiptModal');
+                if (modal && modal.classList.contains('open')) closeReceipt();
+            }
+        });
+
+        const saveBtn = document.getElementById('saveBtn');
+        if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
     }
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const modal = document.getElementById('receiptModal');
-            if (modal && modal.classList.contains('open')) {
-                closeReceipt();
-            }
-        }
-    });
-
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
-});
+    if (document.readyState !== 'loading') init();
+    else document.addEventListener('DOMContentLoaded', init);
+}());
 
 function selectMood(el) {
     document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     selectedMood = el.dataset.mood;
+    
+    const hiddenInput = document.getElementById('selectedMoodValue');
+    if (hiddenInput) hiddenInput.value = selectedMood;
+    window.__planTripMood = selectedMood;
 }
 
 function goStep(n) {
@@ -140,8 +158,12 @@ function goStep(n) {
 }
 
 async function generateSuggestions() {
+    
+    const hiddenInput = document.getElementById('selectedMoodValue');
+    selectedMood = (hiddenInput && hiddenInput.value.trim()) ? hiddenInput.value.trim() : selectedMood;
+
     if (!selectedMood) {
-        alert('Please select a mood first.');
+        alert('Please select or add a mood first.');
         goStep(1);
         return;
     }

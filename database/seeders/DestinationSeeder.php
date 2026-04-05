@@ -10,8 +10,10 @@ class DestinationSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::statement('DELETE FROM destinations');
-        // Note: No AUTO_INCREMENT reset needed — SQLite handles IDs automatically
+        if (DB::table('destinations')->count() > 0) {
+            $this->command->info('Destinations already seeded — skipping.');
+            return;
+        }
 
         $now   = Carbon::now()->toDateTimeString();
         $batch = [];

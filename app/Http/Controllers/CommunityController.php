@@ -140,17 +140,16 @@ class CommunityController extends Controller
             ->take(6)
             ->get()
             ->map(fn($g) => [
-                'id'              => $g->id,
-                'name'            => $g->name,
-                'destination'     => $g->destination,
-                'date'            => $g->date,
-                'organizer'       => $g->user?->name ?? $g->organizer,
-                'user_id'         => $g->user_id,
-                'spots_left'      => $g->spots_left,
-                'spots_available' => $g->spots_left,
-                'spots_taken'     => 0,
-                'spots_total'     => $g->spots_left,
-                'status'          => $g->status,
+                'id'          => $g->id,
+                'name'        => $g->name,
+                'destination' => $g->destination,
+                'date'        => $g->date,
+                'organizer'   => $g->user?->name ?? $g->organizer,
+                'user_id'     => $g->user_id,
+                'spots_left'  => $g->spots_left,
+                'spots_taken' => 0,
+                'spots_total' => $g->spots_left,
+                'status'      => $g->status,
             ]);
 
         return response()->json($groups);
@@ -178,6 +177,73 @@ class CommunityController extends Controller
         $this->broadcast(new CommunityGroupCreated($group));
 
         return response()->json($group, 201);
+    }
+
+    public function destroyTopic($id): JsonResponse
+    {
+        $topic = CommunityTopic::findOrFail($id);
+
+        if ($topic->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        CommunityReply::where('topic_id', $id)->delete();
+        $topic->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function updateTopic(Request $request, $id): JsonResponse
+    {
+        $topic = CommunityTopic::findOrFail($id);
+
+        if ($topic->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $data = $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'body'  => 'nullable|string|max:5000',
+            'tags'  => 'nullable|array',
+            'tags.*'=> 'string|max:50',
+        ]);
+
+        if (isset($data['tags'])) {
+            $data['tags'] = json_encode($data['tags']);
+        }
+
+        $topic->update($data);
+
+        return response()->json(['success' => true, 'topic' => $topic->fresh()]);
+    }
+
+    public function destroyReply($id): JsonResponse
+    {
+        $reply = CommunityReply::findOrFail($id);
+
+        if ($reply->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $topicId = $reply->topic_id;
+        $reply->delete();
+
+        CommunityTopic::where('id', $topicId)->decrement('replies');
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyGroup($id): JsonResponse
+    {
+        $group = CommunityGroup::findOrFail($id);
+
+        if ($group->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $group->delete();
+
+        return response()->json(['success' => true]);
     }
 
     public function tags(): JsonResponse

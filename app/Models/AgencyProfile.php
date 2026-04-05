@@ -23,7 +23,7 @@ class AgencyProfile extends Model
 
     protected $casts = [
         'social_links' => 'array',
-        'rating' => 'decimal:2',
+        'rating'       => 'decimal:2',
     ];
 
     public function user()
@@ -31,12 +31,7 @@ class AgencyProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function getSocialLinksAttribute($value)
-    {
-        return json_decode($value, true) ?? [];
-    }
-
-    public function updateRating($newRating)
+    public function updateRating(float $newRating): void
     {
         $total = $this->rating * $this->total_reviews + $newRating;
         $this->total_reviews++;
