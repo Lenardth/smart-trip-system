@@ -2,7 +2,6 @@
 
 define('LARAVEL_START', microtime(true));
 
-// ── Tmp directories ───────────────────────────────────────────────────────────
 foreach ([
     '/tmp/storage/logs',
     '/tmp/storage/framework/cache/data',
@@ -14,7 +13,6 @@ foreach ([
     if (!is_dir($dir)) mkdir($dir, 0777, true);
 }
 
-// ── Serverless env overrides ──────────────────────────────────────────────────
 $envOverrides = [
     'APP_CONFIG_CACHE'    => '/tmp/bootstrap/cache/config.php',
     'APP_SERVICES_CACHE'  => '/tmp/bootstrap/cache/services.php',
@@ -33,7 +31,6 @@ foreach ($envOverrides as $k => $v) {
     $_ENV[$k] = $_SERVER[$k] = $v;
 }
 
-// ── Parse DATABASE_URL (Neon / Supabase / Railway) ────────────────────────────
 if ($dbUrl = getenv('DATABASE_URL')) {
     $url = parse_url($dbUrl);
     parse_str($url['query'] ?? '', $query);
@@ -52,7 +49,6 @@ if ($dbUrl = getenv('DATABASE_URL')) {
     }
 }
 
-// ── Forward other env vars ────────────────────────────────────────────────────
 foreach ([
     'GROQ_API_KEY', 'APP_KEY', 'APP_ENV', 'APP_DEBUG', 'APP_URL',
     'PUSHER_APP_ID', 'PUSHER_APP_KEY', 'PUSHER_APP_SECRET', 'PUSHER_APP_CLUSTER',
@@ -70,22 +66,17 @@ try {
     $app = require __DIR__ . '/../bootstrap/app.php';
     $app->useStoragePath('/tmp/storage');
 
-    // Boot the console kernel so all service providers are registered
     $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
     $artisan->bootstrap();
 
-    // Now the 'db' binding exists
     $db = $app->make(Illuminate\Database\DatabaseManager::class);
 
-    // ── Smart migration: detect state and act accordingly ────────────────────
     try {
         $schema = $db->connection()->getSchemaBuilder();
         $hasMigrationsTable = $schema->hasTable('migrations');
         $hasUsersTable      = $schema->hasTable('users');
 
         if (!$hasMigrationsTable && $hasUsersTable) {
-            // Tables exist but migrations table is missing — DB was set up outside Laravel.
-            // Install the migrations table, then record all files as already run.
             $artisan->call('migrate:install');
             $migrationFiles = glob(__DIR__ . '/../database/migrations/*.php');
             sort($migrationFiles);
@@ -97,22 +88,25 @@ try {
                 }
             }
         } elseif (!$hasMigrationsTable && !$hasUsersTable) {
-            // Completely fresh database — run all migrations
             $artisan->call('migrate', ['--force' => true]);
         } else {
-            // Normal case — run only pending migrations
             $artisan->call('migrate', ['--force' => true]);
         }
     } catch (\Throwable $migrateErr) {
-        if (str_contains($migrateErr->getMessage(), 'already exists')
-         || str_contains($migrateErr->getMessage(), 'Duplicate table')) {
+        $msg = $migrateErr->getMessage();
+
+        $isTableExists = str_contains($msg, 'already exists')
+                      && (str_contains($msg, 'table') || str_contains($msg, 'relation'));
+        $isDuplicateTable = str_contains($msg, 'Duplicate table');
+
+        if ($isTableExists || $isDuplicateTable) {
             error_log('[SmartBooking] Tables already exist, skipping migration.');
         } else {
+            error_log('[SmartBooking] Migration error: ' . $msg);
             throw $migrateErr;
         }
     }
 
-    // ── Seed only on first deploy (when destinations table is empty) ──────────
     try {
         $schema2 = $db->connection()->getSchemaBuilder();
         $seeded  = $schema2->hasTable('destinations')
@@ -125,7 +119,6 @@ try {
         error_log('[SmartBooking] seed warning: ' . $seedErr->getMessage());
     }
 
-    // ── Handle HTTP request ───────────────────────────────────────────────────
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
     $request  = Illuminate\Http\Request::capture();
     $response = $kernel->handle($request);
