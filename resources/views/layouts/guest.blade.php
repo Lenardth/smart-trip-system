@@ -3,7 +3,7 @@
 @section('body')
 <div class="auth-page-wrap">
 
-    {{-- Left panel — branding --}}
+    
     <div class="auth-brand-panel">
         <a href="/" class="auth-brand-logo">
             <img src="{{ asset('img/logo.png') }}" alt="Smart Booking">
@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    {{-- Right panel — form --}}
+    
     <div class="auth-form-panel">
         <div class="auth-form-inner">
             {{ $slot }}

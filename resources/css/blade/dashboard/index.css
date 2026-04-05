@@ -112,8 +112,6 @@
     color: #f44336;
 }
 
-
-
 .sidebar {
     width: 260px;
     background: var(--sidebar-bg);
@@ -1464,7 +1462,6 @@ input[type="file"] {
     opacity: 1;
 }
 
-/* ── Recent Activity ─────────────────────────────────────────────────────── */
 .activity-item {
     display: flex;
     align-items: center;
@@ -1519,7 +1516,6 @@ input[type="file"] {
     flex-shrink: 0;
 }
 
-/* ── Settings shortcut bar (below stats) ─────────────────────────────────── */
 .settings-shortcut-bar {
     display: flex;
     gap: 10px;
@@ -1570,7 +1566,6 @@ input[type="file"] {
     }
 }
 
-/* ── Welcome banner ──────────────────────────────────────────────────────── */
 .welcome-banner {
     display: flex;
     align-items: center;

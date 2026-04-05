@@ -1,14 +1,13 @@
 @extends('layouts.authenticated')
 
-
 @section('content')
 
 @php
     $allBookings = $bookings ?? collect();
-    $flightCount = $allBookings->whereNotNull('flight_id')->count();
-    $hotelCount  = $allBookings->whereNotNull('hotel_id')->count();
-    $activeCount = $allBookings->whereIn('status', ['confirmed', 'pending'])->count();
-    $totalSpent  = $allBookings->whereNotIn('status', ['cancelled'])->sum('total_price');
+    $flightCount = $flightCount ?? $allBookings->whereNotNull('flight_id')->count();
+    $hotelCount  = $hotelCount  ?? $allBookings->whereNotNull('hotel_id')->count();
+    $activeCount = $activeCount ?? $allBookings->whereIn('status', ['confirmed', 'pending'])->count();
+    $totalSpent  = $totalSpent  ?? $allBookings->whereNotIn('status', ['cancelled'])->sum('total_price');
 @endphp
 
 <div class="stats-strip">

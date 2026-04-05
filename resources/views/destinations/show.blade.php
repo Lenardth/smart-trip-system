@@ -4,7 +4,6 @@
 
 @section('content')
 
-{{-- Hero --}}
 <section class="dest-show-hero" style="background: linear-gradient(160deg, rgba(10,20,30,0.62) 0%, rgba(59,31,43,0.45) 100%), url('{{ $destination->image_url ?: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1800&q=80' }}') center/cover no-repeat;">
     <div class="dest-show-hero-inner">
         <a href="{{ route('destinations') }}" class="dest-back-link">
@@ -40,13 +39,12 @@
     </div>
 </section>
 
-{{-- Main content --}}
 <div class="dest-show-wrap">
 
-    {{-- Left column --}}
+    
     <div class="dest-show-main">
 
-        {{-- About --}}
+        
         <div class="dest-show-card">
             <h2><i class="fas fa-info-circle"></i> About {{ $destination->name }}</h2>
             <p class="dest-show-description">
@@ -54,7 +52,7 @@
             </p>
         </div>
 
-        {{-- Key facts --}}
+        
         <div class="dest-show-card">
             <h2><i class="fas fa-list-ul"></i> Key Facts</h2>
             <div class="dest-show-facts">
@@ -105,7 +103,7 @@
             </div>
         </div>
 
-        {{-- Related destinations --}}
+        
         @if($related->count())
         <div class="dest-show-card">
             <h2><i class="fas fa-compass"></i> Similar Destinations</h2>
@@ -128,10 +126,10 @@
 
     </div>
 
-    {{-- Right sidebar --}}
+    
     <aside class="dest-show-sidebar">
 
-        {{-- Price & CTA --}}
+        
         <div class="dest-show-card dest-show-cta-card">
             <div class="dest-cta-price">
                 <span class="dest-cta-from">From</span>
@@ -161,7 +159,7 @@
             @endauth
         </div>
 
-        {{-- Quick info --}}
+        
         <div class="dest-show-card">
             <h3><i class="fas fa-info-circle"></i> Quick Info</h3>
             <ul class="dest-quick-list">

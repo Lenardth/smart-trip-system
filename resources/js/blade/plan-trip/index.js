@@ -1,5 +1,3 @@
-
-
 let selectedMood = '';
 let lastResults = [];
 let lastPayload = {};
@@ -90,53 +88,234 @@ const accommodationLabels = {
     any: 'No preference'
 };
 
-// Expose functions called from onclick attributes in the blade
-window.goStep            = goStep;
-window.generateSuggestions = generateSuggestions;
-window.selectDestination = selectDestination;
-window.openReceipt       = openReceipt;
-window.closeReceipt      = closeReceipt;
-window.printReceipt      = printReceipt;
-window.downloadReceiptPdf = downloadReceiptPdf;
-window.esc               = esc;
+const MOOD_ICON_MAP = [
+    ['adventur', 'fa-hiking'],
+    ['hike', 'fa-mountain'],
+    ['relax', 'fa-spa'],
+    ['calm', 'fa-water'],
+    ['peace', 'fa-dove'],
+    ['cultur', 'fa-landmark'],
+    ['histor', 'fa-scroll'],
+    ['art', 'fa-palette'],
+    ['romant', 'fa-heart'],
+    ['love', 'fa-heart'],
+    ['food', 'fa-utensils'],
+    ['cuisin', 'fa-drumstick-bite'],
+    ['eat', 'fa-utensils'],
+    ['eco', 'fa-leaf'],
+    ['natur', 'fa-tree'],
+    ['green', 'fa-seedling'],
+    ['party', 'fa-music'],
+    ['fun', 'fa-laugh'],
+    ['spirit', 'fa-praying-hands'],
+    ['mindful', 'fa-peace'],
+    ['winter', 'fa-snowflake'],
+    ['ski', 'fa-skiing'],
+    ['beach', 'fa-umbrella-beach'],
+    ['sun', 'fa-sun'],
+    ['tropic', 'fa-umbrella-beach'],
+    ['city', 'fa-city'],
+    ['urban', 'fa-subway'],
+    ['desert', 'fa-sun'],
+    ['mountain', 'fa-mountain'],
+    ['island', 'fa-water'],
+    ['ocean', 'fa-water'],
+    ['tired', 'fa-bed'],
+    ['burnt', 'fa-fire'],
+    ['disconnect', 'fa-wifi'],
+    ['excited', 'fa-bolt'],
+    ['curious', 'fa-search'],
+    ['wander', 'fa-plane'],
+];
 
-// Run immediately if DOM ready, otherwise wait
-(function () {
-    function init() {
-        document.querySelectorAll('.mood-card').forEach(card => {
-            card.addEventListener('click', function() { selectMood(this); });
-        });
+const FALLBACK_ICONS = [
+    'fa-globe-americas', 'fa-map-marked-alt', 'fa-compass', 'fa-route',
+    'fa-suitcase', 'fa-passport', 'fa-binoculars', 'fa-star',
+];
+let _fallbackIdx = 0;
 
-        const receiptModal = document.getElementById('receiptModal');
-        if (receiptModal) {
-            receiptModal.addEventListener('click', function(e) {
-                if (e.target === this) closeReceipt();
-            });
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('receiptModal');
-                if (modal && modal.classList.contains('open')) closeReceipt();
-            }
-        });
-
-        const saveBtn = document.getElementById('saveBtn');
-        if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
+function pickIcon(label) {
+    const lower = (label || '').toLowerCase();
+    for (const [key, icon] of MOOD_ICON_MAP) {
+        if (lower.includes(key)) return icon;
     }
+    return FALLBACK_ICONS[_fallbackIdx++ % FALLBACK_ICONS.length];
+}
 
-    if (document.readyState !== 'loading') init();
-    else document.addEventListener('DOMContentLoaded', init);
-}());
+let communityMoods = [];
+
+function setSelectedMood(value, label) {
+    selectedMood = value;
+    const hiddenInput = document.getElementById('selectedMoodValue');
+    if (hiddenInput) hiddenInput.value = value;
+    window.__planTripMood = value;
+
+    const display = document.getElementById('selectedMoodDisplay');
+    const labelEl = document.getElementById('selectedMoodLabel');
+    if (!display || !labelEl) return;
+
+    if (value) {
+        const icon = pickIcon(label || value);
+        labelEl.innerHTML = `<i class="fas ${icon}" style="margin-right:4px;color:var(--gold);"></i>${escHtml(label)}`;
+        display.classList.add('visible');
+    } else {
+        display.classList.remove('visible');
+    }
+}
 
 function selectMood(el) {
     document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
     el.classList.add('selected');
-    selectedMood = el.dataset.mood;
-    
-    const hiddenInput = document.getElementById('selectedMoodValue');
-    if (hiddenInput) hiddenInput.value = selectedMood;
-    window.__planTripMood = selectedMood;
+    const mood = el.dataset.mood;
+    const h4 = el.querySelector('h4');
+    setSelectedMood(mood, h4 ? h4.textContent.trim() : mood);
+}
+
+function selectCommunityMood(label, pillEl) {
+    document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+    const wasSelected = pillEl.classList.contains('selected');
+    document.querySelectorAll('.mood-pill').forEach(p => p.classList.remove('selected'));
+    if (wasSelected) {
+        setSelectedMood('', '');
+    } else {
+        pillEl.classList.add('selected');
+        setSelectedMood(label, label);
+        bumpMoodUsage(pillEl.dataset.moodId);
+    }
+}
+
+async function loadCommunityMoods() {
+    try {
+        const res = await fetch('/api/trip-moods', {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
+        communityMoods = data.moods || [];
+        renderCommunityMoods();
+    } catch (e) {
+        const loading = document.getElementById('communityMoodsLoading');
+        if (loading) loading.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">Could not load community moods.</span>';
+    }
+}
+
+function renderCommunityMoods() {
+    const container = document.getElementById('communityMoodPills');
+    const countEl = document.getElementById('communityMoodCount');
+    const loading = document.getElementById('communityMoodsLoading');
+    if (loading) loading.remove();
+    if (!container) return;
+
+    if (!communityMoods.length) {
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:12px;opacity:.6;">No community moods yet — be the first!</span>';
+        return;
+    }
+
+    if (countEl) countEl.textContent = `(${communityMoods.length})`;
+    container.innerHTML = '';
+    communityMoods.forEach(mood => {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'mood-pill' + (selectedMood === mood.label ? ' selected' : '');
+        pill.dataset.moodId = mood.id;
+        pill.dataset.moodLabel = mood.label;
+        const icon = pickIcon(mood.label);
+        const countText = mood.use_count > 1 ? `<span class="pill-count">×${mood.use_count}</span>` : '';
+        pill.innerHTML = `<i class="fas ${icon} pill-icon"></i>${escHtml(mood.label)}${countText}`;
+        pill.addEventListener('click', () => selectCommunityMood(mood.label, pill));
+        container.appendChild(pill);
+    });
+}
+
+async function submitCustomMood() {
+    const input = document.getElementById('customMoodInput');
+    const feedback = document.getElementById('moodSubmitFeedback');
+    const btn = document.getElementById('btnAddMood');
+    const raw = input.value.trim();
+
+    if (!raw) { showFeedback(feedback, 'error', 'Please type a feeling first.'); return; }
+    if (raw.length < 3) { showFeedback(feedback, 'error', 'Too short — write at least a few characters.'); return; }
+
+    document.querySelectorAll('.mood-card.selected, .mood-pill.selected').forEach(el => el.classList.remove('selected'));
+    setSelectedMood(raw, raw);
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+    clearFeedback(feedback);
+
+    try {
+        const res = await fetch('/api/trip-moods', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') || {}).content || '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ label: raw }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            showFeedback(feedback, 'error', data.message || 'Could not save mood. Please try again.');
+            return;
+        }
+
+        const exists = communityMoods.find(m => m.label.toLowerCase() === data.mood.label.toLowerCase());
+        if (!exists) {
+            communityMoods.unshift(data.mood);
+        } else {
+            const idx = communityMoods.findIndex(m => m.id === data.mood.id);
+            if (idx > -1) communityMoods[idx] = data.mood;
+        }
+
+        renderCommunityMoods();
+        setSelectedMood(data.mood.label, data.mood.label);
+        document.querySelectorAll('.mood-pill').forEach(p => {
+            if (p.dataset.moodLabel && p.dataset.moodLabel.toLowerCase() === data.mood.label.toLowerCase()) {
+                p.classList.add('selected');
+            }
+        });
+
+        input.value = '';
+        const icon = pickIcon(data.mood.label);
+        showFeedback(feedback, 'success', `<i class="fas fa-check"></i> <i class="fas ${icon}"></i> "${escHtml(data.mood.label)}" saved and selected!`);
+    } catch (e) {
+        showFeedback(feedback, 'error', 'Network error. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus"></i> Add &amp; Use';
+    }
+}
+
+async function bumpMoodUsage(id) {
+    try {
+        await fetch(`/api/trip-moods/${id}/use`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') || {}).content || '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+    } catch (_) {}
+}
+
+function showFeedback(el, type, html) {
+    if (!el) return;
+    el.className = 'mood-submit-feedback ' + type;
+    el.innerHTML = html;
+}
+
+function clearFeedback(el) {
+    if (!el) return;
+    el.className = 'mood-submit-feedback';
+    el.innerHTML = '';
+}
+
+function escHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function goStep(n) {
@@ -158,7 +337,6 @@ function goStep(n) {
 }
 
 async function generateSuggestions() {
-    
     const hiddenInput = document.getElementById('selectedMoodValue');
     selectedMood = (hiddenInput && hiddenInput.value.trim()) ? hiddenInput.value.trim() : selectedMood;
 
@@ -172,7 +350,6 @@ async function generateSuggestions() {
 
     const receiptBtn = document.getElementById('receiptBtn');
     if (receiptBtn) receiptBtn.style.display = 'none';
-
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) saveBtn.style.display = 'none';
 
@@ -186,27 +363,17 @@ async function generateSuggestions() {
     if (errorState) errorState.style.display = 'none';
     if (resultsState) resultsState.style.display = 'none';
 
-    const feelingNoteElement = document.getElementById('feelingNote');
-    const budgetElement = document.getElementById('budget');
-    const durationElement = document.getElementById('duration');
-    const companionElement = document.getElementById('companion');
-    const monthElement = document.getElementById('month');
-    const regionElement = document.getElementById('region');
-    const accommodationElement = document.getElementById('accommodation');
-    const originElement = document.getElementById('origin');
-    const experienceElement = document.getElementById('experience');
-
     lastPayload = {
         mood: selectedMood,
-        feeling_note: (feelingNoteElement && feelingNoteElement.value) ? feelingNoteElement.value.trim() : null,
-        budget: budgetElement ? budgetElement.value : null,
-        duration: durationElement ? durationElement.value : null,
-        companion: companionElement ? companionElement.value : null,
-        month: (monthElement && monthElement.value) ? monthElement.value : null,
-        region: (regionElement && regionElement.value) ? regionElement.value : null,
-        accommodation: (accommodationElement && accommodationElement.value) ? accommodationElement.value : null,
-        origin: (originElement && originElement.value.trim()) ? originElement.value.trim() : null,
-        experience: (experienceElement && experienceElement.value) ? experienceElement.value : null,
+        feeling_note: document.getElementById('feelingNote')?.value.trim() || null,
+        budget: document.getElementById('budget')?.value || null,
+        duration: document.getElementById('duration')?.value || null,
+        companion: document.getElementById('companion')?.value || null,
+        month: document.getElementById('month')?.value || null,
+        region: document.getElementById('region')?.value || null,
+        accommodation: document.getElementById('accommodation')?.value || null,
+        origin: document.getElementById('origin')?.value.trim() || null,
+        experience: document.getElementById('experience')?.value || null,
     };
 
     try {
@@ -225,32 +392,23 @@ async function generateSuggestions() {
         if (loadingState) loadingState.style.display = 'none';
 
         if (!json.success) {
-            if (errorState) {
-                errorState.textContent = json.message || 'Something went wrong.';
-                errorState.style.display = 'block';
-            }
+            if (errorState) { errorState.textContent = json.message || 'Something went wrong.';
+                errorState.style.display = 'block'; }
             return;
         }
 
-        lastResults = json.data.map(dest => ({
-            ...dest,
-            costBreakdown: calculateCostBreakdown(dest, lastPayload)
-        }));
+        lastResults = json.data.map(dest => ({...dest, costBreakdown: calculateCostBreakdown(dest, lastPayload) }));
         renderResults(lastResults);
-
     } catch (err) {
         if (loadingState) loadingState.style.display = 'none';
-        if (errorState) {
-            errorState.textContent = 'Network error: ' + err.message;
-            errorState.style.display = 'block';
-        }
+        if (errorState) { errorState.textContent = 'Network error: ' + err.message;
+            errorState.style.display = 'block'; }
     }
 }
 
 function calculateCostBreakdown(destination, payload) {
     const region = payload.region || 'any';
     const baseCost = REGION_BASE_COSTS[region] || 2000;
-
     const budgetMult = COST_MULTIPLIERS.budget[payload.budget] || 1.0;
     const durationMult = COST_MULTIPLIERS.duration[payload.duration] || 1.0;
     const companionMult = COST_MULTIPLIERS.companion[payload.companion] || 1.0;
@@ -303,15 +461,32 @@ function getFlightDetails(origin, dest) {
 }
 
 function getAccommodationDescription(p) {
-    const d = { hostel: 'Shared dormitory in central location', budget_hotel: '2–3 star hotel with breakfast', boutique: 'Boutique hotel with local character', resort: 'All-inclusive resort', villa: 'Private villa with pool', airbnb: 'Private apartment with kitchen', glamping: 'Eco-lodge with unique experience', any: 'Mix of comfortable accommodations' };
+    const d = {
+        hostel: 'Shared dormitory in central location',
+        budget_hotel: '2–3 star hotel with breakfast',
+        boutique: 'Boutique hotel with local character',
+        resort: 'All-inclusive resort',
+        villa: 'Private villa with pool',
+        airbnb: 'Private apartment with kitchen',
+        glamping: 'Eco-lodge with unique experience',
+        any: 'Mix of comfortable accommodations'
+    };
     return d[p] || d.any;
 }
 
-function getNightsFromDuration(d) { return { weekend: 3, week: 7, two_weeks: 12, month: 28, flexible: 7 }[d] || 7; }
+function getNightsFromDuration(d) {
+    return { weekend: 3, week: 7, two_weeks: 12, month: 28, flexible: 7 }[d] || 7;
+}
 
-function getActivityCount(a) { if (!a) return 'Multiple activities'; return `${a.split(',').length} included activities`; }
+function getActivityCount(a) {
+    if (!a) return 'Multiple activities';
+    return `${a.split(',').length} included activities`;
+}
 
-function generateAirportCode(dest) { const w = dest.split(' '); return (w.length === 1 ? dest.substring(0, 3) : w.map(x => x[0]).join('').substring(0, 3)).toUpperCase(); }
+function generateAirportCode(dest) {
+    const w = dest.split(' ');
+    return (w.length === 1 ? dest.substring(0, 3) : w.map(x => x[0]).join('').substring(0, 3)).toUpperCase();
+}
 
 function renderResults(destinations) {
     const grid = document.getElementById('resultsGrid');
@@ -372,10 +547,8 @@ async function saveTripToDashboard() {
     if (!selectedDest) return;
 
     const btn = document.getElementById('saveBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
-    }
+    if (btn) { btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
 
     const payload = {
         destination: selectedDest.destination,
@@ -389,9 +562,8 @@ async function saveTripToDashboard() {
         accommodation: lastPayload.accommodation || null,
         origin: lastPayload.origin || null,
         month: lastPayload.month || null,
-        estimated_cost: (selectedDest.costBreakdown && selectedDest.costBreakdown.total) ? selectedDest.costBreakdown.total : null,
+        estimated_cost: selectedDest.costBreakdown?.total || null,
     };
-    console.log('[plan-trip] POST /api/trips payload:', payload);
 
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
@@ -405,13 +577,10 @@ async function saveTripToDashboard() {
             body: JSON.stringify(payload),
         });
         const data = await res.json();
-        console.log('[plan-trip] POST /api/trips response:', res.status, data);
 
         if (res.status === 409) {
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved';
-            }
+            if (btn) { btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bookmark"></i> Already Saved'; }
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     title: 'Already Saved',
@@ -427,21 +596,7 @@ async function saveTripToDashboard() {
         }
 
         if (res.ok && data.success) {
-            if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Saved!'; }
-            try {
-                localStorage.setItem('smartBookingTripSaved', JSON.stringify({
-                    ts: Date.now(),
-                    destination: selectedDest.destination,
-                    country: selectedDest.country || null,
-                }));
-                localStorage.setItem('smartBookingTripProfile', JSON.stringify({
-                    mood: lastPayload.mood || null,
-                    budget: lastPayload.budget || null,
-                    accommodation: lastPayload.accommodation || null,
-                    region: lastPayload.region || null,
-                    feeling_note: lastPayload.feeling_note || null,
-                }));
-            } catch (_) {}
+            if (btn) btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     title: 'Trip Saved!',
@@ -457,13 +612,10 @@ async function saveTripToDashboard() {
             throw new Error(data.message || 'Failed to save');
         }
     } catch (err) {
-        console.error('[plan-trip] saveTripToDashboard error:', err);
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard';
-        }
+        if (btn) { btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard'; }
         if (typeof Swal !== 'undefined') {
-            Swal.fire({ title: 'Error', text: err.message || 'Could not save trip. Please try again.', icon: 'error', confirmButtonColor: '#c9a96e' });
+            Swal.fire({ title: 'Error', text: err.message || 'Could not save trip.', icon: 'error', confirmButtonColor: '#c9a96e' });
         }
     }
 }
@@ -471,22 +623,16 @@ async function saveTripToDashboard() {
 function openReceipt() {
     if (!selectedDest) return;
     const receiptContent = document.getElementById('receiptContent');
-    if (receiptContent) {
-        receiptContent.innerHTML = buildReceiptHTML(selectedDest);
-    }
+    if (receiptContent) receiptContent.innerHTML = buildReceiptHTML(selectedDest);
     const receiptModal = document.getElementById('receiptModal');
-    if (receiptModal) {
-        receiptModal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
+    if (receiptModal) { receiptModal.classList.add('open');
+        document.body.style.overflow = 'hidden'; }
 }
 
 function closeReceipt() {
     const receiptModal = document.getElementById('receiptModal');
-    if (receiptModal) {
-        receiptModal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
+    if (receiptModal) { receiptModal.classList.remove('open');
+        document.body.style.overflow = ''; }
 }
 
 function generateReferenceNumber() {
@@ -520,7 +666,6 @@ function buildReceiptHTML(d) {
     const dates = getFormattedDates();
     const cost = d.costBreakdown;
     const bk = cost.breakdown;
-
     const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
     const bud = budgetLabels[lastPayload.budget] || lastPayload.budget || '—';
     const dur = durLabels[lastPayload.duration] || lastPayload.duration || '—';
@@ -563,12 +708,7 @@ function buildReceiptHTML(d) {
             </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 30px;background:#fff;">
-            ${[
-                ['fas fa-smile',   'Mood',         mood],
-                ['fas fa-clock',   'Duration',     dur + ` (${bk.accommodation.nights}n)`],
-                ['fas fa-users',   'Companion',    comp],
-                ['fas fa-wallet',  'Budget',       bud]
-            ].map(([icon,label,val]) => `
+            ${[['fas fa-smile','Mood',mood],['fas fa-clock','Duration',dur+` (${bk.accommodation.nights}n)`],['fas fa-users','Companion',comp],['fas fa-wallet','Budget',bud]].map(([icon,label,val])=>`
                 <div style="text-align:center;padding:14px 10px;background:#f8f4f0;border-radius:8px;">
                     <div style="font-size:22px;color:#c9a96e;margin-bottom:6px;"><i class="${icon}"></i></div>
                     <div style="font-size:10px;color:#6b5b4f;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
@@ -579,13 +719,7 @@ function buildReceiptHTML(d) {
             <h3 style="color:#3b1f2b;font-size:16px;font-weight:normal;border-bottom:2px solid #c9a96e;padding-bottom:10px;margin:0 0 18px;">
                 <i class="fas fa-calculator" style="color:#c9a96e;margin-right:8px;"></i>Cost Estimation Breakdown
             </h3>
-            ${[
-                ['fas fa-plane',   'Flights',           fmt(bk.flights.amount),        bk.flights.description,        bk.flights.details],
-                ['fas fa-hotel',   'Accommodation',     fmt(bk.accommodation.amount),  bk.accommodation.description,  `${bk.accommodation.nights} nights`],
-                ['fas fa-ticket-alt','Activities',      fmt(bk.activities.amount),     bk.activities.description,     bk.activities.items],
-                ['fas fa-utensils','Food & Dining',     fmt(bk.food.amount),           bk.food.description,           `~$${bk.food.perDay}/day`],
-                ['fas fa-bus',     'Local Transport',   fmt(bk.transportation.amount), bk.transportation.description, bk.transportation.includes.join(' · ')]
-            ].map(([icon,label,amt,desc,detail]) => `
+            ${[['fas fa-plane','Flights',fmt(bk.flights.amount),bk.flights.description,bk.flights.details],['fas fa-hotel','Accommodation',fmt(bk.accommodation.amount),bk.accommodation.description,`${bk.accommodation.nights} nights`],['fas fa-ticket-alt','Activities',fmt(bk.activities.amount),bk.activities.description,bk.activities.items],['fas fa-utensils','Food & Dining',fmt(bk.food.amount),bk.food.description,`~$${bk.food.perDay}/day`],['fas fa-bus','Local Transport',fmt(bk.transportation.amount),bk.transportation.description,bk.transportation.includes.join(' · ')]].map(([icon,label,amt,desc,detail])=>`
                 <div style="background:#f8f4f0;border-radius:8px;padding:13px 15px;margin-bottom:10px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
                         <div style="display:flex;align-items:center;gap:10px;">
@@ -597,11 +731,7 @@ function buildReceiptHTML(d) {
                     <div style="font-size:11px;color:#6b5b4f;margin-left:28px;">${desc}<br><span style="color:#c9a96e;">${detail}</span></div>
                 </div>`).join('')}
             <div style="margin-top:16px;border-top:2px solid #e2d5c7;padding-top:14px;">
-                ${[
-                    ['Subtotal',                                `$${fmt(cost.subtotal)}`],
-                    [`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`, `$${fmt(cost.taxes.amount)}`],
-                    ['Service Fee',                             `$${fmt(cost.serviceFee.amount)}`]
-                ].map(([l,v]) => `
+                ${[['Subtotal',`$${fmt(cost.subtotal)}`],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,`$${fmt(cost.taxes.amount)}`],['Service Fee',`$${fmt(cost.serviceFee.amount)}`]].map(([l,v])=>`
                     <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;">
                         <span style="color:#6b5b4f;">${l}</span><span style="color:#3b1f2b;">${v}</span>
                     </div>`).join('')}
@@ -616,33 +746,25 @@ function buildReceiptHTML(d) {
             <div style="margin-top:16px;background:#e8f4e8;border-radius:8px;padding:14px 16px;border-left:4px solid #4CAF50;">
                 <div style="font-weight:bold;color:#2c5e2c;margin-bottom:10px;font-size:13px;"><i class="fas fa-tag" style="margin-right:6px;color:#4CAF50;"></i>Available Discounts</div>
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;">
-                    ${[
-                        ['Early Bird',     cost.savings.earlyBird],
-                        ['Group Discount', cost.savings.groupDiscount],
-                        ['Package Deal',   cost.savings.packageDeal]
-                    ].map(([l,v]) => `
+                    ${[['Early Bird',cost.savings.earlyBird],['Group Discount',cost.savings.groupDiscount],['Package Deal',cost.savings.packageDeal]].map(([l,v])=>`
                         <div>
                             <div style="font-size:16px;font-weight:bold;color:#2c5e2c;">$${fmt(v)}</div>
                             <div style="font-size:10px;color:#6b5b4f;">${l}</div>
                         </div>`).join('')}
                 </div>
                 <div style="text-align:center;font-size:11px;color:#6b5b4f;margin-top:10px;">
-                    Total potential savings: <strong style="color:#2c5e2c;">$${fmt(cost.savings.earlyBird + cost.savings.groupDiscount + cost.savings.packageDeal)}</strong>
+                    Total potential savings: <strong style="color:#2c5e2c;">$${fmt(cost.savings.earlyBird+cost.savings.groupDiscount+cost.savings.packageDeal)}</strong>
                 </div>
             </div>
         </div>
         <div style="padding:0 30px 20px;background:#fff;">
             <div style="background:#f8f4f0;padding:14px 16px;border-radius:6px;border-left:4px solid #c9a96e;">
-                <div style="font-weight:bold;color:#3b1f2b;margin-bottom:6px;font-size:13px;">
-                    <i class="fas fa-plane-departure" style="color:#c9a96e;margin-right:6px;"></i>Flight Information
-                </div>
+                <div style="font-weight:bold;color:#3b1f2b;margin-bottom:6px;font-size:13px;"><i class="fas fa-plane-departure" style="color:#c9a96e;margin-right:6px;"></i>Flight Information</div>
                 <div style="color:#6b5b4f;font-size:13px;line-height:1.6;">${esc(d.flight_info)}</div>
             </div>
         </div>
         <div style="padding:0 30px 20px;background:#fff;">
-            <div style="font-weight:bold;color:#3b1f2b;border-bottom:2px solid #c9a96e;padding-bottom:8px;margin-bottom:12px;font-size:13px;">
-                <i class="fas fa-star" style="color:#c9a96e;margin-right:6px;"></i>Recommended Activities
-            </div>
+            <div style="font-weight:bold;color:#3b1f2b;border-bottom:2px solid #c9a96e;padding-bottom:8px;margin-bottom:12px;font-size:13px;"><i class="fas fa-star" style="color:#c9a96e;margin-right:6px;"></i>Recommended Activities</div>
             <div style="display:flex;flex-wrap:wrap;gap:8px;">${generateActivityTags(d.top_activities)}</div>
         </div>
         <div style="padding:0 30px 20px;background:#fff;">
@@ -674,18 +796,13 @@ function buildReceiptHTML(d) {
 function printReceipt() {
     const receiptContent = document.getElementById('receiptContent');
     if (!receiptContent) return;
-
     const html = receiptContent.innerHTML;
     const win = window.open('', '_blank', 'width=820,height=1050');
     if (win) {
         win.document.write(`<!DOCTYPE html><html><head>
             <title>Trip Receipt — Smart Booking</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-            <style>
-                *{box-sizing:border-box;margin:0;padding:0;}
-                body{font-family:'Georgia',serif;background:#f5f0eb;padding:24px;color:#2c2c2c;}
-                @media print{body{background:#fff;padding:0;}}
-            </style>
+            <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Georgia',serif;background:#f5f0eb;padding:24px;color:#2c2c2c;}@media print{body{background:#fff;padding:0;}}</style>
         </head><body>${html}</body></html>`);
         win.document.close();
         win.focus();
@@ -695,263 +812,146 @@ function printReceipt() {
 
 async function downloadReceiptPdf() {
     if (!selectedDest) return;
-
-    // jsPDF loaded via CDN script tag in the blade view
-    if (!window.jspdf) {
-        printReceipt(); // fallback to print dialog
-        return;
-    }
+    if (!window.jspdf) { printReceipt(); return; }
     const { jsPDF } = window.jspdf;
-
     const d = selectedDest;
     const cost = d.costBreakdown;
     const bk = cost.breakdown;
     const dates = getFormattedDates();
-
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pW = doc.internal.pageSize.getWidth();
     const pH = doc.internal.pageSize.getHeight();
     const mg = 18;
     const cW = pW - mg * 2;
-
-    const deep = [59, 31, 43];
-    const gold = [201, 169, 110];
-    const muted = [107, 91, 79];
-    const cream = [248, 244, 240];
-    const green = [44, 94, 44];
-    const lightGreen = [232, 244, 232];
+    const deep = [59, 31, 43], gold = [201, 169, 110], muted = [107, 91, 79];
+    const cream = [248, 244, 240], green = [44, 94, 44], lightGreen = [232, 244, 232];
 
     let logoBase64 = null;
     try {
         const resp = await fetch('/img/travel-icon.png');
         const blob = await resp.blob();
-        const raw = await new Promise(res => {
-            const reader = new FileReader();
-            reader.onloadend = () => res(reader.result);
-            reader.readAsDataURL(blob);
-        });
-        const img = await new Promise((res, rej) => {
-            const el = new Image();
-            el.onload = () => res(el);
-            el.onerror = rej;
-            el.src = raw;
-        });
+        const raw = await new Promise(res => { const r = new FileReader(); r.onloadend = () => res(r.result); r.readAsDataURL(blob); });
+        const img = await new Promise((res, rej) => { const el = new Image(); el.onload = () => res(el); el.onerror = rej; el.src = raw; });
         const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth || 256;
-        canvas.height = img.naturalHeight || 256;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
+        canvas.width = img.naturalWidth || 256; canvas.height = img.naturalHeight || 256;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            if (data[i + 3] > 0) {
-                data[i] = data[i + 1] = data[i + 2] = 255;
-            }
-        }
+        for (let i = 0; i < data.length; i += 4) { if (data[i+3] > 0) data[i] = data[i+1] = data[i+2] = 255; }
         ctx.putImageData(imageData, 0, 0);
         logoBase64 = canvas.toDataURL('image/png');
     } catch (_) {}
 
     let y = 0;
-
-    function wrap(text, maxW, size) {
-        doc.setFontSize(size);
-        return doc.splitTextToSize(String(text || ''), maxW);
-    }
-
-    function newPageIfNeeded(needed) {
-        if (y + needed > pH - 16) {
-            doc.addPage();
-            addPageFooter();
-            y = 14;
-        }
-    }
-
+    function wrap(text, maxW, size) { doc.setFontSize(size); return doc.splitTextToSize(String(text || ''), maxW); }
+    function newPageIfNeeded(needed) { if (y + needed > pH - 16) { doc.addPage(); addPageFooter(); y = 14; } }
     function addPageFooter() {
-        doc.setFillColor(...deep);
-        doc.rect(0, pH - 10, pW, 10, 'F');
-        doc.setFontSize(7);
-        doc.setTextColor(...gold);
+        doc.setFillColor(...deep); doc.rect(0, pH - 10, pW, 10, 'F');
+        doc.setFontSize(7); doc.setTextColor(...gold);
         doc.text(`Smart Booking AI  ·  Ref: ${dates.bookingRef}`, pW / 2, pH - 3, { align: 'center' });
     }
 
-    doc.setFillColor(...deep);
-    doc.rect(0, 0, pW, 34, 'F');
-    if (logoBase64) {
-        doc.addImage(logoBase64, 'PNG', mg, 4, 26, 26);
-    }
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.setTextColor(...gold);
+    doc.setFillColor(...deep); doc.rect(0, 0, pW, 34, 'F');
+    if (logoBase64) doc.addImage(logoBase64, 'PNG', mg, 4, 26, 26);
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...gold);
     doc.text('SMART BOOKING', mg + 30, 16);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(212, 196, 176);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(212, 196, 176);
     doc.text('AI-Powered Travel Planning  ·  smartbooking.com', mg + 30, 23);
     y = 34;
 
-    doc.setFillColor(70, 40, 55);
-    doc.rect(0, y, pW, 14, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...gold);
+    doc.setFillColor(70, 40, 55); doc.rect(0, y, pW, 14, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...gold);
     doc.text(`Ref: ${dates.bookingRef}`, mg, y + 9);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(212, 196, 176);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(212, 196, 176);
     doc.text(`Issued: ${dates.issueDate}  ·  ${dates.issueTime}`, pW - mg, y + 9, { align: 'right' });
     y += 14;
 
-    doc.setFillColor(...gold);
-    doc.rect(0, y, pW, 20, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.setTextColor(...deep);
+    doc.setFillColor(...gold); doc.rect(0, y, pW, 20, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...deep);
     doc.text(String(d.destination), mg, y + 13);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
     doc.text(String(d.country).toUpperCase() + '  ·  ' + generateAirportCode(d.destination), pW - mg, y + 13, { align: 'right' });
     y += 20;
 
     const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
-    const cards = [
-        ['Mood',      mood],
-        ['Duration',  (durLabels[lastPayload.duration] || lastPayload.duration || '—') + ` (${bk.accommodation.nights}n)`],
-        ['Companion', compLabels[lastPayload.companion] || lastPayload.companion || '—'],
-        ['Budget',    budgetLabels[lastPayload.budget] || lastPayload.budget || '—'],
-    ];
+    const cards2 = [['Mood',mood],['Duration',(durLabels[lastPayload.duration]||lastPayload.duration||'—')+` (${bk.accommodation.nights}n)`],['Companion',compLabels[lastPayload.companion]||lastPayload.companion||'—'],['Budget',budgetLabels[lastPayload.budget]||lastPayload.budget||'—']];
     const cardW = cW / 4 - 2;
     y += 5;
-    cards.forEach(([label, val], i) => {
+    cards2.forEach(([label, val], i) => {
         const cx = mg + i * (cardW + 2.7);
-        doc.setFillColor(...cream);
-        doc.roundedRect(cx, y, cardW, 18, 2, 2, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7);
-        doc.setTextColor(...gold);
-        doc.text(label.toUpperCase(), cx + cardW / 2, y + 6, { align: 'center' });
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(...deep);
+        doc.setFillColor(...cream); doc.roundedRect(cx, y, cardW, 18, 2, 2, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...gold);
+        doc.text(label.toUpperCase(), cx + cardW/2, y+6, { align: 'center' });
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...deep);
         const vlines = wrap(val, cardW - 4, 8);
-        if (vlines[0]) doc.text(vlines[0], cx + cardW / 2, y + 13, { align: 'center' });
+        if (vlines[0]) doc.text(vlines[0], cx + cardW/2, y+13, { align: 'center' });
     });
     y += 24;
 
     function sectionTitle(title) {
         newPageIfNeeded(12);
-        doc.setFillColor(...gold);
-        doc.rect(mg, y, 3, 7, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(...deep);
-        doc.text(title, mg + 6, y + 5.5);
-        y += 10;
+        doc.setFillColor(...gold); doc.rect(mg, y, 3, 7, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...deep);
+        doc.text(title, mg + 6, y + 5.5); y += 10;
     }
 
-    function costRow(icon, label, amount, desc, detail, bgOverride) {
+    function costRow(label, amount, desc, detail) {
         newPageIfNeeded(20);
-        const rH = 18;
-        doc.setFillColor(...(bgOverride || cream));
-        doc.roundedRect(mg, y, cW, rH, 2, 2, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(...deep);
-        doc.text(label, mg + 6, y + 7);
-        doc.text(`$${amount}`, mg + cW - 2, y + 7, { align: 'right' });
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7.5);
-        doc.setTextColor(...muted);
+        doc.setFillColor(...cream); doc.roundedRect(mg, y, cW, 18, 2, 2, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...deep);
+        doc.text(label, mg + 6, y + 7); doc.text(`$${amount}`, mg + cW - 2, y + 7, { align: 'right' });
+        doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...muted);
         doc.text(String(desc), mg + 6, y + 12.5);
         doc.setTextColor(...gold);
         const detailLines = wrap(detail, cW - 14, 7.5);
         if (detailLines[0]) doc.text(detailLines[0], mg + 6, y + 16.5);
-        y += rH + 3;
+        y += 21;
     }
 
     sectionTitle('Cost Estimation Breakdown');
-    costRow('', 'Flights',           fmt(bk.flights.amount),        bk.flights.description,        bk.flights.details);
-    costRow('', 'Accommodation',     fmt(bk.accommodation.amount),  bk.accommodation.description,  `${bk.accommodation.nights} nights`);
-    costRow('', 'Activities & Tours',fmt(bk.activities.amount),     bk.activities.description,     bk.activities.items);
-    costRow('', 'Food & Dining',     fmt(bk.food.amount),           bk.food.description,           `~$${bk.food.perDay}/day`);
-    costRow('', 'Local Transport',   fmt(bk.transportation.amount), bk.transportation.description, bk.transportation.includes.join(' · '));
+    costRow('Flights', fmt(bk.flights.amount), bk.flights.description, bk.flights.details);
+    costRow('Accommodation', fmt(bk.accommodation.amount), bk.accommodation.description, `${bk.accommodation.nights} nights`);
+    costRow('Activities & Tours', fmt(bk.activities.amount), bk.activities.description, bk.activities.items);
+    costRow('Food & Dining', fmt(bk.food.amount), bk.food.description, `~$${bk.food.perDay}/day`);
+    costRow('Local Transport', fmt(bk.transportation.amount), bk.transportation.description, bk.transportation.includes.join(' · '));
 
-    y += 2;
-    doc.setDrawColor(...gold);
-    doc.setLineWidth(0.4);
-    doc.line(mg, y, mg + cW, y);
-    y += 5;
-
-    [
-        ['Subtotal',                                         `$${fmt(cost.subtotal)}`],
-        [`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,  `$${fmt(cost.taxes.amount)}`],
-        ['Service Fee',                                      `$${fmt(cost.serviceFee.amount)}`],
-    ].forEach(([l, v]) => {
+    y += 2; doc.setDrawColor(...gold); doc.setLineWidth(0.4); doc.line(mg, y, mg + cW, y); y += 5;
+    [['Subtotal',`$${fmt(cost.subtotal)}`],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,`$${fmt(cost.taxes.amount)}`],['Service Fee',`$${fmt(cost.serviceFee.amount)}`]].forEach(([l,v]) => {
         newPageIfNeeded(7);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(...muted);
-        doc.text(l, mg + 4, y);
-        doc.setTextColor(...deep);
-        doc.text(v, mg + cW - 2, y, { align: 'right' });
-        y += 7;
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...muted);
+        doc.text(l, mg + 4, y); doc.setTextColor(...deep); doc.text(v, mg + cW - 2, y, { align: 'right' }); y += 7;
     });
 
-    newPageIfNeeded(22);
-    y += 3;
-    doc.setFillColor(...deep);
-    doc.roundedRect(mg, y, cW, 20, 3, 3, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...gold);
+    newPageIfNeeded(22); y += 3;
+    doc.setFillColor(...deep); doc.roundedRect(mg, y, cW, 20, 3, 3, 'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...gold);
     doc.text('TOTAL PER PERSON (ESTIMATED)', mg + 5, y + 8);
-    doc.setFontSize(8);
-    doc.setTextColor(212, 196, 176);
+    doc.setFontSize(8); doc.setTextColor(212, 196, 176);
     doc.text(`Range: ${cost.range.display}`, mg + 5, y + 14);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.setTextColor(...gold);
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...gold);
     doc.text(`$${fmt(cost.total)}`, mg + cW - 3, y + 14, { align: 'right' });
     y += 25;
 
     newPageIfNeeded(28);
-    doc.setFillColor(...lightGreen);
-    doc.roundedRect(mg, y, cW, 24, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...green);
+    doc.setFillColor(...lightGreen); doc.roundedRect(mg, y, cW, 24, 2, 2, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...green);
     doc.text('Available Discounts', mg + 5, y + 8);
-    const savings = [
-        ['Early Bird',     cost.savings.earlyBird],
-        ['Group Discount', cost.savings.groupDiscount],
-        ['Package Deal',   cost.savings.packageDeal],
-    ];
-    const sW = cW / 3;
-    savings.forEach(([l, v], i) => {
-        const sx = mg + i * sW + sW / 2;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(...green);
-        doc.text(`$${fmt(v)}`, sx, y + 16, { align: 'center' });
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7);
-        doc.setTextColor(...muted);
-        doc.text(l, sx, y + 21, { align: 'center' });
+    [['Early Bird',cost.savings.earlyBird],['Group Discount',cost.savings.groupDiscount],['Package Deal',cost.savings.packageDeal]].forEach(([l,v],i) => {
+        const sx = mg + i * (cW/3) + (cW/3)/2;
+        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...green);
+        doc.text(`$${fmt(v)}`, sx, y+16, { align: 'center' });
+        doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...muted);
+        doc.text(l, sx, y+21, { align: 'center' });
     });
     y += 28;
 
     sectionTitle('Flight Information');
     newPageIfNeeded(18);
-    doc.setFillColor(...cream);
-    doc.roundedRect(mg, y, cW, 16, 2, 2, 'F');
-    doc.setFillColor(...gold);
-    doc.rect(mg, y, 3, 16, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...deep);
-    const flightLines = wrap(d.flight_info, cW - 10, 9);
-    doc.text(flightLines, mg + 7, y + 7);
-    y += 18 + 4;
+    doc.setFillColor(...cream); doc.roundedRect(mg, y, cW, 16, 2, 2, 'F');
+    doc.setFillColor(...gold); doc.rect(mg, y, 3, 16, 'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...deep);
+    doc.text(wrap(d.flight_info, cW - 10, 9), mg + 7, y + 7);
+    y += 22;
 
     sectionTitle('Recommended Activities');
     if (d.top_activities) {
@@ -961,15 +961,10 @@ async function downloadReceiptPdf() {
             const tw = doc.getTextWidth(act) + 10;
             if (ax + tw > mg + cW) { ax = mg; lineY += 10; }
             newPageIfNeeded(10);
-            doc.setFillColor(...cream);
-            doc.roundedRect(ax, lineY - 4, tw, 8, 2, 2, 'F');
-            doc.setDrawColor(...gold);
-            doc.setLineWidth(0.3);
-            doc.roundedRect(ax, lineY - 4, tw, 8, 2, 2, 'S');
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(...deep);
-            doc.text(act, ax + tw / 2, lineY + 1, { align: 'center' });
+            doc.setFillColor(...cream); doc.roundedRect(ax, lineY-4, tw, 8, 2, 2, 'F');
+            doc.setDrawColor(...gold); doc.setLineWidth(0.3); doc.roundedRect(ax, lineY-4, tw, 8, 2, 2, 'S');
+            doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...deep);
+            doc.text(act, ax + tw/2, lineY+1, { align: 'center' });
             ax += tw + 4;
         });
         y = lineY + 12;
@@ -981,45 +976,57 @@ async function downloadReceiptPdf() {
     const tipLines = wrap(d.travel_tip, cW - 14, 9);
     const tipH = tipLines.length * 5 + 10;
     doc.roundedRect(mg, y, cW, tipH, 2, 2, 'F');
-    doc.setDrawColor(...gold);
-    doc.setLineWidth(0.4);
-    doc.roundedRect(mg, y, cW, tipH, 2, 2, 'S');
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(9);
-    doc.setTextColor(...muted);
+    doc.setDrawColor(...gold); doc.setLineWidth(0.4); doc.roundedRect(mg, y, cW, tipH, 2, 2, 'S');
+    doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(...muted);
     doc.text(tipLines, mg + 7, y + 7);
     y += tipH + 6;
 
     newPageIfNeeded(16);
-    doc.setFillColor(...cream);
-    doc.rect(0, y, pW, 14, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(...muted);
-    doc.text(
-        'All prices are estimates and subject to change based on seasonality, availability, and booking dates. *Cancellation policy varies by provider.',
-        pW / 2, y + 5, { align: 'center', maxWidth: cW }
-    );
-    doc.text('Valid Until: ' + dates.validUntil, pW / 2, y + 11, { align: 'center' });
+    doc.setFillColor(...cream); doc.rect(0, y, pW, 14, 'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...muted);
+    doc.text('All prices are estimates and subject to change based on seasonality, availability, and booking dates. *Cancellation policy varies by provider.', pW/2, y+5, { align: 'center', maxWidth: cW });
+    doc.text('Valid Until: ' + dates.validUntil, pW/2, y+11, { align: 'center' });
     y += 14;
 
     addPageFooter();
-
     doc.save(`trip-receipt-${String(d.destination).toLowerCase().replace(/\s+/g, '-')}.pdf`);
 }
 
 function esc(str) {
     return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+function init() {
+    const receiptModal = document.getElementById('receiptModal');
+    if (receiptModal) {
+        receiptModal.addEventListener('click', function(e) { if (e.target === this) closeReceipt(); });
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('receiptModal');
+            if (modal && modal.classList.contains('open')) closeReceipt();
+        }
+    });
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
+
+    document.getElementById('customMoodInput')?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); submitCustomMood(); }
+    });
+
+    loadCommunityMoods();
+}
+
+if (document.readyState !== 'loading') init();
+else document.addEventListener('DOMContentLoaded', init);
+
 window.selectMood = selectMood;
+window.submitCustomMood = submitCustomMood;
 window.goStep = goStep;
 window.generateSuggestions = generateSuggestions;
+window.selectDestination = selectDestination;
 window.openReceipt = openReceipt;
 window.closeReceipt = closeReceipt;
 window.printReceipt = printReceipt;

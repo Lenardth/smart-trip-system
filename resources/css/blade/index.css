@@ -1,8 +1,6 @@
-/* ── Layouts ───────────────────────────────────────────────────────────────── */
 @import './layouts/app.css';
 @import './layouts/guest.css';
 
-/* ── Auth ──────────────────────────────────────────────────────────────────── */
 @import './auth/login.css';
 @import './auth/register.css';
 @import './auth/confirm-password.css';
@@ -10,7 +8,6 @@
 @import './auth/reset-password.css';
 @import './auth/verify-email.css';
 
-/* ── App pages ─────────────────────────────────────────────────────────────── */
 @import './landing/index.css';
 @import './dashboard/index.css';
 @import './discover/index.css';

@@ -115,11 +115,16 @@ class DashboardController extends Controller
         $user   = Auth::user();
         $userId = $user->id;
 
-        $trips         = Trip::where('user_id', $userId)->count();
-        $bookings      = Booking::where('user_id', $userId)->count();
-        $saved         = SavedDestination::where('user_id', $userId)->count();
-        $photos        = Media::where('user_id', $userId)->count();
-        $notifications = $user->unreadNotifications()->count();
+        $trips    = Trip::where('user_id', $userId)->count();
+        $bookings = Booking::where('user_id', $userId)->count();
+        $saved    = SavedDestination::where('user_id', $userId)->count();
+        $photos   = Media::where('user_id', $userId)->count();
+
+        try {
+            $notifications = $user->unreadNotifications()->count();
+        } catch (\Exception $e) {
+            $notifications = 0;
+        }
 
         return response()->json([
             'photos'        => $photos,

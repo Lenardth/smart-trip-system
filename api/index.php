@@ -107,12 +107,13 @@ try {
         // ── Safety check: remove stale migration records for tables that don't exist ──
         // This fixes the case where migrations were bulk-recorded but never actually run.
         $tablesToCheck = [
-            '2025_01_01_000014_create_itineraries_table'        => 'itineraries',
-            '2025_01_01_000015_add_plan_trip_columns_to_trips_table' => null, // column migration
-            '2025_01_01_000016_create_accommodations_table'     => 'accommodations',
-            '2025_01_01_000017_add_feeling_note_to_trips_table' => null,
-            '2025_01_01_000018_create_trip_moods_table'         => 'trip_moods',
-            '2025_01_01_000019_create_accommodation_searches_table' => 'accommodation_searches',
+            '2025_01_01_000014_create_itineraries_table'             => 'itineraries',
+            '2025_01_01_000015_add_plan_trip_columns_to_trips_table' => null,
+            '2025_01_01_000016_create_accommodations_table'          => 'accommodations',
+            '2025_01_01_000017_add_feeling_note_to_trips_table'      => null,
+            '2025_01_01_000018_create_trip_moods_table'              => 'trip_moods',
+            '2025_01_01_000019_create_accommodation_searches_table'  => 'accommodation_searches',
+            '2025_01_01_000020_change_budget_column_in_trips_table'  => null,
         ];
 
         $removedAny = false;

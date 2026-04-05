@@ -39,7 +39,7 @@ class FlightController extends Controller
             if (!$fromCode || !$toCode) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Could not find airport codes. Please use valid city names or IATA codes (e.g., BUD, LHR, JFK).',
+                    'message' => 'Could not find airport for "' . (!$fromCode ? $validated['from'] : $validated['to']) . '". Try using the city name (e.g., London, Dubai) or IATA code (e.g., LHR, DXB).',
                     'flights' => [],
                 ], 422);
             }

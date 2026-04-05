@@ -1,5 +1,5 @@
 <div class="sidebar" id="sidebar">
-    {{-- sidebar-header intentionally removed — brand shown in dash-header --}}
+    
 
     <nav class="sidebar-menu">
         @php

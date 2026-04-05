@@ -1,15 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BK0Igzp7.css",
+    "file": "assets/app-Cdu-Crwr.css",
     "src": "resources/css/app.css",
-    "isEntry": true,
-    "name": "app",
-    "names": [
-      "app.css"
-    ]
+    "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-Ei1to33q.js",
+    "file": "assets/app-BcOCQk7H.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -35,7 +31,7 @@
     ]
   },
   "resources/js/blade/accommodations/index.js": {
-    "file": "assets/index-WAcsf_jR.js",
+    "file": "assets/index-B-Zhszfo.js",
     "name": "index",
     "src": "resources/js/blade/accommodations/index.js",
     "isDynamicEntry": true
@@ -47,25 +43,25 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/bookings/index.js": {
-    "file": "assets/index-Ceu10hMm.js",
+    "file": "assets/index-f26zgMd9.js",
     "name": "index",
     "src": "resources/js/blade/bookings/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/chat/index.js": {
-    "file": "assets/index-2Z_aMuwc.js",
+    "file": "assets/index-Q9B-6TR8.js",
     "name": "index",
     "src": "resources/js/blade/chat/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/community/index.js": {
-    "file": "assets/index-k1CB3B5N.js",
+    "file": "assets/index-DWhMpea8.js",
     "name": "index",
     "src": "resources/js/blade/community/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/dashboard/index.js": {
-    "file": "assets/index-CtahYhP9.js",
+    "file": "assets/index-Bi1P8kwi.js",
     "name": "index",
     "src": "resources/js/blade/dashboard/index.js",
     "isDynamicEntry": true
@@ -77,7 +73,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/discover/index.js": {
-    "file": "assets/index-D3mwjADC.js",
+    "file": "assets/index-ikCcVRxG.js",
     "name": "index",
     "src": "resources/js/blade/discover/index.js",
     "isDynamicEntry": true
@@ -89,7 +85,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/landing/index.js": {
-    "file": "assets/index-CexbMu-C.js",
+    "file": "assets/index-DFj4oxtK.js",
     "name": "index",
     "src": "resources/js/blade/landing/index.js",
     "isDynamicEntry": true
@@ -107,19 +103,19 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/plan-trip/index.js": {
-    "file": "assets/index-BrjXADKT.js",
+    "file": "assets/index-BeNjOfvg.js",
     "name": "index",
     "src": "resources/js/blade/plan-trip/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/profile/edit.js": {
-    "file": "assets/edit-iqk_9_3W.js",
+    "file": "assets/edit-D9g3jCAS.js",
     "name": "edit",
     "src": "resources/js/blade/profile/edit.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/wishlist/index.js": {
-    "file": "assets/index-BYhldexi.js",
+    "file": "assets/index-C6YA1MoT.js",
     "name": "index",
     "src": "resources/js/blade/wishlist/index.js",
     "isDynamicEntry": true

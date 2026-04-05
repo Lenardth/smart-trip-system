@@ -8,7 +8,6 @@ let accommodationsGrid, emptyState, aiMatchPanel, aiMatchSummary;
 let locationPanel, mapCityLabel, mapAccomCount, newsCityLabel, newsDateline;
 let newsLoading, newsError, newsErrorMsg, newsFeed, newsEmpty, newsMoreLink;
 
-// Run immediately if DOM ready, otherwise wait
 function ready(fn) {
     if (document.readyState !== 'loading') fn();
     else document.addEventListener('DOMContentLoaded', fn);

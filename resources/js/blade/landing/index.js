@@ -1,5 +1,3 @@
-// ── Helpers ──────────────────────────────────────────────────────────────────
-// Run fn now if DOM is ready, otherwise wait for DOMContentLoaded
 function ready(fn) {
     if (document.readyState !== 'loading') { fn(); }
     else { document.addEventListener('DOMContentLoaded', fn); }
@@ -50,7 +48,6 @@ function moodIconMap(mood) {
     return icons[mood] || '<i class="fas fa-map-marker-alt"></i>';
 }
 
-// ── Step navigation (exposed to window for onclick) ───────────────────────────
 window.showStep = function (step) {
     [1, 2, 3].forEach(n => {
         const panel  = document.getElementById('qbPanel' + n);
@@ -65,7 +62,6 @@ window.showStep = function (step) {
     });
 };
 
-// ── Filter tags (exposed to window for onclick) ───────────────────────────────
 window.applyDestinationFilter = function (filter, tagEl) {
     document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
     if (tagEl) tagEl.classList.add('active');
@@ -86,7 +82,6 @@ window.applyDestinationFilter = function (filter, tagEl) {
     renderGrid(results.slice(0, 8));
 };
 
-// ── Destination grid rendering ────────────────────────────────────────────────
 function buildCard(d) {
     const image       = d.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(d.name) + '/600/400';
     const price       = d.price_from ? 'From ' + Number(d.price_from).toLocaleString() : '';
@@ -170,7 +165,6 @@ async function fetchDestinations() {
 
 window.initDestinations = fetchDestinations;
 
-// ── Style filter (category cards) ─────────────────────────────────────────────
 window.filterByStyle = function (style, cardEl) {
     const styleMap = {
         adventure: { moods: ['adventurous'],      categories: ['adventurous', 'mountain'],               label: 'Adventure Travel' },
@@ -214,7 +208,6 @@ window.filterByStyle = function (style, cardEl) {
     }
 };
 
-// ── AI Quick Plan ─────────────────────────────────────────────────────────────
 window.generateQuickPlan = async function (e) {
     const btn = e && (e.currentTarget || e.target);
     const mood          = getVal('moodSelect');
@@ -302,7 +295,6 @@ window.generateQuickPlan = async function (e) {
     }
 };
 
-// ── Newsletter ────────────────────────────────────────────────────────────────
 window.subscribeNewsletter = function () {
     const emailInput = document.querySelector('.newsletter-input input');
     if (!emailInput) return;
@@ -322,10 +314,9 @@ window.subscribeNewsletter = function () {
     }, 2000);
 };
 
-// ── DOM-dependent setup ───────────────────────────────────────────────────────
 ready(function () {
 
-    // Custom mood select dropdown
+    
     const wrapper  = document.getElementById('moodSelectWrapper');
     const trigger  = document.getElementById('moodSelectTrigger');
     const dropdown = document.getElementById('moodDropdown');
@@ -350,7 +341,7 @@ ready(function () {
         document.addEventListener('click', () => wrapper.classList.remove('open'));
     }
 
-    // Filter tags — use event delegation on the container
+    
     const filterContainer = document.querySelector('.filter-tags');
     if (filterContainer) {
         filterContainer.addEventListener('click', function (e) {
@@ -360,7 +351,7 @@ ready(function () {
         });
     }
 
-    // Generate plan button
+    
     const generateBtn = document.getElementById('generatePlanBtn');
     if (generateBtn) {
         generateBtn.addEventListener('click', function (e) {
@@ -368,7 +359,7 @@ ready(function () {
         });
     }
 
-    // QB step navigation — event delegation
+    
     document.addEventListener('click', function (e) {
         const nextBtn = e.target.closest('.qb-next-btn');
         const backBtn = e.target.closest('.qb-back-btn');
@@ -376,7 +367,7 @@ ready(function () {
         if (backBtn) window.showStep(parseInt(backBtn.getAttribute('data-back')));
     });
 
-    // Slideshow
+    
     const nextBtn            = document.querySelector('.next-btn');
     const prevBtn            = document.querySelector('.prev-btn');
     const slideshowContainer = document.querySelector('.slideshow-container');
@@ -450,6 +441,6 @@ ready(function () {
         startAuto();
     }
 
-    // Fetch destinations
+    
     fetchDestinations();
 });

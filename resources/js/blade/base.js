@@ -31,6 +31,6 @@
         loadWishlistCount();
     });
 
-    // Also expose so wishlist toggles on any page can call it directly
+    
     window.__refreshWishlistBadge = loadWishlistCount;
 })();
