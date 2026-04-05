@@ -124,20 +124,15 @@ Route::middleware('auth')->group(function () {
 
     // Flights
     Route::get('/flights',                  [FlightController::class, 'index'])->name('flights.index');
-    Route::get('/flights/create',           [FlightController::class, 'create'])->name('flights.create');
-    Route::get('/flights/my-flights',       [FlightController::class, 'myFlights'])->name('flights.my');
-    Route::get('/flights/airports',         [FlightController::class, 'airports'])->name('flights.airports');
     Route::post('/flights/search',          [FlightController::class, 'search'])->name('flights.search');
-    Route::post('/flights',                 [FlightController::class, 'store'])->name('flights.store');
-    Route::get('/flights/{flight}',         [FlightController::class, 'show'])->name('flights.show');
-    Route::post('/flights/{flight}/book',   [FlightController::class, 'book'])->name('flights.book');
-    Route::post('/flights/{flight}/cancel', [FlightController::class, 'cancel'])->name('flights.cancel');
+    Route::get('/flights/airports',         [FlightController::class, 'airports'])->name('flights.airports');
 
     // Bookings
-    Route::get('/bookings',                   [BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/agency',            [BookingController::class, 'agencyBookings'])->name('bookings.agency');
-    Route::get('/bookings/{booking}',         [BookingController::class, 'show'])->name('bookings.show');
-    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::get('/bookings',                        [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/create',                 [BookingController::class, 'create'])->name('bookings.create');
+    Route::get('/bookings/agency',                 [BookingController::class, 'agencyBookings'])->name('bookings.agency');
+    Route::get('/bookings/{booking}',              [BookingController::class, 'show'])->name('bookings.show');
+    Route::post('/bookings/{booking}/cancel',      [BookingController::class, 'cancel'])->name('bookings.cancel');
 
     // Wishlist
     Route::get('/wishlist',         [WishlistController::class, 'index'])->name('wishlist.index');
@@ -186,7 +181,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/wishlist/count', [WishlistController::class, 'count']);
 
-        Route::post('/bookings/flight', [BookingController::class, 'bookFlight']);
+        Route::post('/bookings/flight',         [BookingController::class, 'bookFlight']);
+        Route::post('/bookings/accommodation',  [BookingController::class, 'storeAccommodation']);
 
         Route::middleware('throttle:60,1')->group(function () {
             Route::get('/trip-moods', [TripMoodController::class, 'index']);

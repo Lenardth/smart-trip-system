@@ -1,4 +1,3 @@
-// Read auth state from __dashboardConfig (set by authenticated layout or community page)
 const _dc = window.__dashboardConfig || {};
 const CSRF    = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const IS_AUTH = !!(_dc.userId);

@@ -174,5 +174,4 @@ const Wishlist = (() => {
 
 })();
 
-
 window.Wishlist = Wishlist;

@@ -1,10 +1,3 @@
-{{-- ═══════════════════════════════════════════════════════════════════════
-     PUBLIC NAVIGATION
-     Desktop : dark top bar  +  gold link bar below
-     Mobile  : dark top bar  +  hamburger  →  full gold drawer slides in
-════════════════════════════════════════════════════════════════════════ --}}
-
-{{-- ── Top bar ──────────────────────────────────────────────────────────── --}}
 <header class="main-header">
         <a href="{{ url('/') }}" class="header-brand">
         <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="logo">
@@ -25,13 +18,12 @@
     </div>
     @endauth
 
-    {{-- Hamburger — mobile only --}}
+    
     <button class="mob-hamburger" id="mobHamburger" aria-label="Open menu">
         <span></span><span></span><span></span>
     </button>
 </header>
 
-{{-- ── Desktop gold nav bar ─────────────────────────────────────────────── --}}
 <nav class="nav-container desktop-nav">
     <a href="{{ url('/') }}"                     class="{{ request()->is('/')                  ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
     <a href="{{ route('discover') }}"             class="{{ request()->routeIs('discover')      ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>
@@ -52,12 +44,11 @@
     @endguest
 </nav>
 
-{{-- ── Mobile: overlay + full gold drawer ──────────────────────────────── --}}
 <div class="mob-overlay" id="mobOverlay"></div>
 
 <nav class="mob-drawer" id="mobDrawer">
 
-    {{-- Drawer header --}}
+    
     <div class="mob-drawer-head">
         <div style="display:flex;align-items:center;gap:10px;">
             <img src="{{ asset('img/logo.png') }}" alt="Smart Booking"
@@ -71,7 +62,7 @@
         </button>
     </div>
 
-    {{-- Nav links --}}
+    
     <div class="mob-drawer-links">
         <a href="{{ url('/') }}"                     class="mob-link {{ request()->is('/')                  ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
         <a href="{{ route('discover') }}"             class="mob-link {{ request()->routeIs('discover')      ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>

@@ -1,6 +1,3 @@
-/* Shared styles for confirm-password, forgot-password, reset-password, verify-email */
-/* All colours use project CSS variables only — no hardcoded hex */
-
 .auth-subtitle {
     text-align: center;
     color: var(--text-muted);

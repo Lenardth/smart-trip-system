@@ -36,7 +36,7 @@
 
     <div class="settings-content">
 
-        {{-- Account --}}
+        
         <div class="settings-tab active" id="tab-account">
             <div class="settings-card">
                 <div class="settings-card-header">
@@ -104,7 +104,7 @@
             </div>
         </div>
 
-        {{-- Security --}}
+        
         <div class="settings-tab" id="tab-security" style="display:none;">
             <div class="settings-card">
                 <h2 class="settings-section-title"><i class="fas fa-lock"></i> Change Password</h2>
@@ -161,7 +161,7 @@
             </div>
         </div>
 
-        {{-- Preferences --}}
+        
         <div class="settings-tab" id="tab-preferences" style="display:none;">
             <div class="settings-card">
                 <h2 class="settings-section-title"><i class="fas fa-sliders-h"></i> App Preferences</h2>
@@ -203,7 +203,7 @@
             </div>
         </div>
 
-        {{-- Danger --}}
+        
         <div class="settings-tab" id="tab-danger" style="display:none;">
             <div class="settings-card settings-card--danger">
                 <h2 class="settings-section-title" style="color:var(--danger);border-bottom-color:rgba(244,67,54,.2);">

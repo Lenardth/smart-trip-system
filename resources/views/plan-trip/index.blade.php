@@ -1,4 +1,3 @@
-
 @extends('layouts.public')
 
 @section('title', 'Plan Trip — Smart Booking')
@@ -85,7 +84,6 @@
         .custom-mood-box > label i { color: var(--gold); }
         .custom-mood-input-row { display: flex; gap: 10px; align-items: flex-start; }
 
-        /* ── Typing text: dark + clearly visible on light card background ── */
         .custom-mood-input-row input[type="text"] {
             flex: 1;
             padding: 10px 14px;
@@ -176,19 +174,18 @@
         <div class="step" id="si4"><div class="step-circle">4</div><div class="step-label">Results</div></div>
     </div>
 
-    
     <div class="planner-card" id="step1">
         <h3><i class="fas fa-heart" style="color:var(--gold);margin-right:8px;"></i>How are you feeling?</h3>
         <p style="color:var(--text-muted);text-align:left;margin-top:0;">Choose a quick mood, pick one from the community, or describe your own feeling below.</p>
 
         <div class="mood-section-label"><i class="fas fa-th-large"></i> Quick picks</div>
         <div class="mood-grid">
-            <div class="mood-card" data-mood="adventurous"><div class="mood-icon"><i class="fas fa-hiking"></i></div><h4>Adventurous</h4><p>Thrills & exploration</p></div>
-            <div class="mood-card" data-mood="relaxed"><div class="mood-icon"><i class="fas fa-spa"></i></div><h4>Relaxed</h4><p>Peace & tranquility</p></div>
-            <div class="mood-card" data-mood="cultural"><div class="mood-icon"><i class="fas fa-landmark"></i></div><h4>Cultural</h4><p>History & art</p></div>
-            <div class="mood-card" data-mood="romantic"><div class="mood-icon"><i class="fas fa-heart"></i></div><h4>Romantic</h4><p>Love & escape</p></div>
-            <div class="mood-card" data-mood="foodie"><div class="mood-icon"><i class="fas fa-utensils"></i></div><h4>Foodie</h4><p>Cuisine & flavor</p></div>
-            <div class="mood-card" data-mood="eco-travel"><div class="mood-icon"><i class="fas fa-leaf"></i></div><h4>Eco-Travel</h4><p>Nature & sustainability</p></div>
+            <div class="mood-card" data-mood="adventurous" onclick="selectMood(this)"><div class="mood-icon"><i class="fas fa-hiking"></i></div><h4>Adventurous</h4><p>Thrills & exploration</p></div>
+            <div class="mood-card" data-mood="relaxed" onclick="selectMood(this)"><div class="mood-icon"><i class="fas fa-spa"></i></div><h4>Relaxed</h4><p>Peace & tranquility</p></div>
+            <div class="mood-card" data-mood="cultural" onclick="selectMood(this)"><div class="mood-icon"><i class="fas fa-landmark"></i></div><h4>Cultural</h4><p>History & art</p></div>
+            <div class="mood-card" data-mood="romantic" onclick="selectMood(this)"><div class="mood-icon"><i class="fas fa-heart"></i></div><h4>Romantic</h4><p>Love & escape</p></div>
+            <div class="mood-card" data-mood="foodie" onclick="selectMood(this)"><div class="mood-icon"><i class="fas fa-utensils"></i></div><h4>Foodie</h4><p>Cuisine & flavor</p></div>
+            <div class="mood-card" data-mood="eco-travel" onclick="selectMood(this)"><div class="mood-icon"><i class="fas fa-leaf"></i></div><h4>Eco-Travel</h4><p>Nature & sustainability</p></div>
         </div>
 
         <div class="community-moods" style="margin-top:24px;">
@@ -245,7 +242,6 @@
         <div class="btn-row"><button class="primary-button" onclick="goStep(2)">Next <i class="fas fa-arrow-right"></i></button></div>
     </div>
 
-    
     <div class="planner-card" id="step2" style="display:none;">
         <h3><i class="fas fa-suitcase" style="color:var(--gold);margin-right:8px;"></i>Trip Details</h3>
         <div class="form-row">
@@ -300,7 +296,6 @@
         </div>
     </div>
 
-    
     <div class="planner-card" id="step3" style="display:none;">
         <h3><i class="fas fa-sliders-h" style="color:var(--gold);margin-right:8px;"></i>Preferences</h3>
         <div class="form-row">
@@ -358,7 +353,6 @@
         </div>
     </div>
 
-    
     <div id="step4" style="display:none;">
         <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
@@ -380,7 +374,6 @@
     </div>
 </div>
 
-
 <div class="modal-overlay" id="receiptModal">
     <div class="modal">
         <div class="modal-header">
@@ -397,231 +390,4 @@
         </div>
     </div>
 </div>
-
-
-<script>
-(function () {
-    /* FA icon map — keyword → icon class, matching the project's FA style */
-    const MOOD_ICON_MAP = [
-        ['adventur', 'fa-hiking'],   ['hike',     'fa-mountain'],
-        ['relax',    'fa-spa'],      ['calm',     'fa-water'],     ['peace',  'fa-dove'],
-        ['cultur',   'fa-landmark'], ['histor',   'fa-scroll'],    ['art',    'fa-palette'],
-        ['romant',   'fa-heart'],    ['love',     'fa-heart'],
-        ['food',     'fa-utensils'], ['cuisin',   'fa-drumstick-bite'], ['eat', 'fa-utensils'],
-        ['eco',      'fa-leaf'],     ['natur',    'fa-tree'],      ['green',  'fa-seedling'],
-        ['party',    'fa-music'],    ['fun',      'fa-laugh'],
-        ['spirit',   'fa-praying-hands'], ['mindful', 'fa-peace'],
-        ['winter',   'fa-snowflake'],['ski',      'fa-skiing'],
-        ['beach',    'fa-umbrella-beach'], ['sun', 'fa-sun'],      ['tropic', 'fa-umbrella-beach'],
-        ['city',     'fa-city'],     ['urban',    'fa-subway'],
-        ['desert',   'fa-sun'],      ['mountain', 'fa-mountain'],
-        ['island',   'fa-water'],    ['ocean',    'fa-water'],
-        ['tired',    'fa-bed'],      ['burnt',    'fa-fire'],      ['disconnect', 'fa-wifi'],
-        ['excited',  'fa-bolt'],     ['curious',  'fa-search'],    ['wander', 'fa-plane'],
-    ];
-    const FALLBACK_ICONS = [
-        'fa-globe-americas','fa-map-marked-alt','fa-compass','fa-route',
-        'fa-suitcase','fa-passport','fa-binoculars','fa-star',
-    ];
-    let _fallbackIdx = 0;
-
-    function pickIcon(label) {
-        const lower = label.toLowerCase();
-        for (const [key, icon] of MOOD_ICON_MAP) {
-            if (lower.includes(key)) return icon;
-        }
-        return FALLBACK_ICONS[_fallbackIdx++ % FALLBACK_ICONS.length];
-    }
-
-    let communityMoods = [];
-    let selectedMood   = '';
-
-    document.addEventListener('DOMContentLoaded', function () {
-        loadCommunityMoods();
-        document.getElementById('customMoodInput')?.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); window.submitCustomMood(); }
-        });
-    });
-
-    async function loadCommunityMoods() {
-        try {
-            const res  = await fetch('/api/trip-moods', {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const data = await res.json();
-            communityMoods = data.moods || [];
-            renderCommunityMoods();
-        } catch (e) {
-            const loading = document.getElementById('communityMoodsLoading');
-            if (loading) loading.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">Could not load community moods.</span>';
-        }
-    }
-
-    function renderCommunityMoods() {
-        const container = document.getElementById('communityMoodPills');
-        const countEl   = document.getElementById('communityMoodCount');
-        const loading   = document.getElementById('communityMoodsLoading');
-        if (loading) loading.remove();
-
-        if (!communityMoods.length) {
-            container.innerHTML = '<span style="color:var(--text-muted);font-size:12px;opacity:.6;">No community moods yet — be the first!</span>';
-            return;
-        }
-
-        countEl.textContent = '(' + communityMoods.length + ')';
-        container.innerHTML = '';
-        communityMoods.forEach(function (mood) {
-            const pill = document.createElement('button');
-            pill.type = 'button';
-            pill.className = 'mood-pill' + (selectedMood === mood.label ? ' selected' : '');
-            pill.dataset.moodId    = mood.id;
-            pill.dataset.moodLabel = mood.label;
-            const icon      = pickIcon(mood.label);
-            const countText = mood.use_count > 1 ? '<span class="pill-count">×' + mood.use_count + '</span>' : '';
-            pill.innerHTML  = '<i class="fas ' + icon + ' pill-icon"></i>' + escapeHtml(mood.label) + countText;
-            pill.addEventListener('click', function () { selectCommunityMood(mood.label, pill); });
-            container.appendChild(pill);
-        });
-    }
-
-    function selectCommunityMood(label, pillEl) {
-        document.querySelectorAll('.mood-card.selected').forEach(function (c) { c.classList.remove('selected'); });
-        var wasSelected = pillEl.classList.contains('selected');
-        document.querySelectorAll('.mood-pill.selected').forEach(function (p) { p.classList.remove('selected'); });
-        if (wasSelected) {
-            setSelectedMood('', '');
-        } else {
-            pillEl.classList.add('selected');
-            setSelectedMood(label, label);
-            bumpMoodUsage(pillEl.dataset.moodId);
-        }
-    }
-
-    window.submitCustomMood = async function () {
-        const input    = document.getElementById('customMoodInput');
-        const feedback = document.getElementById('moodSubmitFeedback');
-        const btn      = document.getElementById('btnAddMood');
-        const raw      = input.value.trim();
-
-        if (!raw) { showFeedback(feedback, 'error', 'Please type a feeling first.'); return; }
-        if (raw.length < 3) { showFeedback(feedback, 'error', 'Too short — write at least a few characters.'); return; }
-
-        /* ── Select locally right away — works even if the API call fails ── */
-        document.querySelectorAll('.mood-card.selected, .mood-pill.selected').forEach(function (el) { el.classList.remove('selected'); });
-        setSelectedMood(raw, raw);
-
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
-        clearFeedback(feedback);
-
-        try {
-            const res  = await fetch('/api/trip-moods', {
-                method: 'POST',
-                headers: {
-                    'Content-Type':     'application/json',
-                    'Accept':           'application/json',
-                    'X-CSRF-TOKEN':     (document.querySelector('meta[name="csrf-token"]') || {}).content || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ label: raw }),
-            });
-            const data = await res.json();
-
-            if (!res.ok) {
-                showFeedback(feedback, 'error', data.message || 'Could not save mood. Please try again.');
-                return;
-            }
-
-            const exists = communityMoods.find(function (m) {
-                return m.label.toLowerCase() === data.mood.label.toLowerCase();
-            });
-            if (!exists) {
-                communityMoods.unshift(data.mood);
-            } else {
-                const idx = communityMoods.findIndex(function (m) { return m.id === data.mood.id; });
-                if (idx > -1) communityMoods[idx] = data.mood;
-            }
-
-            renderCommunityMoods();
-
-            setSelectedMood(data.mood.label, data.mood.label);
-            document.querySelectorAll('.mood-pill').forEach(function (p) {
-                if (p.dataset.moodLabel && p.dataset.moodLabel.toLowerCase() === data.mood.label.toLowerCase()) {
-                    p.classList.add('selected');
-                }
-            });
-
-            input.value = '';
-            const icon = pickIcon(data.mood.label);
-            showFeedback(feedback, 'success', '<i class="fas fa-check"></i> <i class="fas ' + icon + '"></i> "' + escapeHtml(data.mood.label) + '" saved and selected!');
-
-        } catch (e) {
-            showFeedback(feedback, 'error', 'Network error. Please try again.');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-plus"></i> Add &amp; Use';
-        }
-    };
-
-    async function bumpMoodUsage(id) {
-        try {
-            await fetch('/api/trip-moods/' + id + '/use', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN':     (document.querySelector('meta[name="csrf-token"]') || {}).content || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-        } catch (_) {}
-    }
-
-    function setSelectedMood(value, label) {
-        selectedMood = value;
-        /* ── Single source of truth: hidden input drives index.js too ── */
-        const hiddenInput = document.getElementById('selectedMoodValue');
-        if (hiddenInput) hiddenInput.value = value;
-        /* Expose to index.js module scope via global bridge */
-        window.__planTripMood = value;
-
-        const display = document.getElementById('selectedMoodDisplay');
-        const labelEl = document.getElementById('selectedMoodLabel');
-        if (value) {
-            const icon = pickIcon(label || value);
-            labelEl.innerHTML = '<i class="fas ' + icon + '" style="margin-right:4px;color:var(--gold);"></i>' + escapeHtml(label);
-            display.classList.add('visible');
-        } else {
-            display.classList.remove('visible');
-        }
-    }
-
-    document.addEventListener('click', function (e) {
-        const card = e.target.closest('.mood-card');
-        if (!card) return;
-        document.querySelectorAll('.mood-pill.selected').forEach(function (p) { p.classList.remove('selected'); });
-        const mood = card.dataset.mood;
-        if (card.classList.contains('selected')) {
-            card.classList.remove('selected');
-            setSelectedMood('', '');
-        } else {
-            document.querySelectorAll('.mood-card.selected').forEach(function (c) { c.classList.remove('selected'); });
-            card.classList.add('selected');
-            const h4 = card.querySelector('h4');
-            setSelectedMood(mood, h4 ? h4.textContent : mood);
-        }
-    });
-
-    function showFeedback(el, type, html) {
-        el.className = 'mood-submit-feedback ' + type;
-        el.innerHTML = html;
-    }
-    function clearFeedback(el) { el.className = 'mood-submit-feedback'; el.innerHTML = ''; }
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g,'&amp;')
-            .replace(/</g,'&lt;')
-            .replace(/>/g,'&gt;')
-            .replace(/"/g,'&quot;');
-    }
-})();
-</script>
 @endsection

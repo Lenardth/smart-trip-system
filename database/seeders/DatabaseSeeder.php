@@ -34,10 +34,18 @@ class DatabaseSeeder extends Seeder
         $this->call(DestinationSeeder::class);
         $this->command->info('✓ Destinations seeded');
 
-        $this->call(CommunitySeeder::class);
-        $this->command->info('✓ Community seeded');
+        try {
+            $this->call(CommunitySeeder::class);
+            $this->command->info('✓ Community seeded');
+        } catch (\Throwable $e) {
+            $this->command->warn('⚠ Community seeded skipped: ' . $e->getMessage());
+        }
 
-        $this->call(TripMoodSeeder::class);
-        $this->command->info('✓ Trip moods seeded');
+        try {
+            $this->call(TripMoodSeeder::class);
+            $this->command->info('✓ Trip moods seeded');
+        } catch (\Throwable $e) {
+            $this->command->warn('⚠ Trip moods skipped: ' . $e->getMessage());
+        }
     }
 }

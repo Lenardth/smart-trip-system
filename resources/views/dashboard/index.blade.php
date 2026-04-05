@@ -1,5 +1,3 @@
-
-
 @extends('layouts.authenticated')
 
 @section('title', 'Dashboard — Smart Booking')
@@ -28,7 +26,7 @@
 
 @section('content')
 
-    {{-- ── Welcome banner ──────────────────────────────────────────────────── --}}
+    
     @php
         $user      = Auth::user();
         $firstName = explode(' ', $user->name)[0];

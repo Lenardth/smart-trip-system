@@ -1,5 +1,3 @@
-/* ── Destination Detail Page ─────────────────────────────────────────────── */
-
 .dest-show-hero {
     min-height: 420px;
     display: flex;
@@ -95,7 +93,6 @@
     color: #fff;
 }
 
-/* ── Layout ──────────────────────────────────────────────────────────────── */
 .dest-show-wrap {
     max-width: 1200px;
     margin: 40px auto 60px;
@@ -106,7 +103,6 @@
     align-items: start;
 }
 
-/* ── Cards ───────────────────────────────────────────────────────────────── */
 .dest-show-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -149,7 +145,6 @@
     margin: 0;
 }
 
-/* ── Facts grid ──────────────────────────────────────────────────────────── */
 .dest-show-facts {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -197,7 +192,6 @@
     color: var(--text-muted);
 }
 
-/* ── Related destinations ────────────────────────────────────────────────── */
 .dest-show-related {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -250,7 +244,6 @@
     color: var(--gold);
 }
 
-/* ── Sidebar CTA ─────────────────────────────────────────────────────────── */
 .dest-show-cta-card {
     position: sticky;
     top: 20px;
@@ -292,7 +285,6 @@
     display: flex;
 }
 
-/* ── Quick list ──────────────────────────────────────────────────────────── */
 .dest-quick-list {
     list-style: none;
     padding: 0;
@@ -320,7 +312,6 @@
 
 .dest-quick-list li strong { color: var(--deep); }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
     .dest-show-wrap {
         grid-template-columns: 1fr;

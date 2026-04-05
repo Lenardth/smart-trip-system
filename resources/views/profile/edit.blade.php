@@ -21,7 +21,7 @@
 
 <div class="profile-wrap">
 
-    {{-- Left: Avatar card --}}
+    
     <div class="profile-sidebar">
         <div class="profile-avatar-card">
             <div class="profile-avatar-wrap" id="avatarWrap">
@@ -46,7 +46,7 @@
                 <span class="profile-verified"><i class="fas fa-check-circle"></i> Verified</span>
             @endif
 
-            {{-- Picture upload form --}}
+            
             <form method="POST" action="{{ route('profile.picture.upload') }}" enctype="multipart/form-data" id="pictureForm">
                 @csrf
                 <input type="file" id="pictureInput" name="profile_picture" accept="image/*" style="display:none"
@@ -63,7 +63,7 @@
             @endif
         </div>
 
-        {{-- Quick stats --}}
+        
         <div class="profile-stats-card">
             <div class="profile-stat">
                 <span class="ps-num" id="profileTrips">—</span>
@@ -80,10 +80,10 @@
         </div>
     </div>
 
-    {{-- Right: Forms --}}
+    
     <div class="profile-forms">
 
-        {{-- Update profile info --}}
+        
         <div class="profile-card">
             <h2><i class="fas fa-user-edit"></i> Profile Information</h2>
 
@@ -123,7 +123,7 @@
             </form>
         </div>
 
-        {{-- Change password --}}
+        
         <div class="profile-card">
             <h2><i class="fas fa-lock"></i> Change Password</h2>
 
@@ -153,7 +153,7 @@
             </form>
         </div>
 
-        {{-- Danger zone --}}
+        
         <div class="profile-card profile-card--danger">
             <h2><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
             <p style="color:#6b5b4f;font-size:14px;margin-bottom:16px;">

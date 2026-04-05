@@ -113,11 +113,6 @@ function leaveReviewDemo() {
     });
 }
 
-
-
-
-
-
 function leaveReview(id) {
     Swal.fire({
         title: 'Leave a Review',
@@ -150,15 +145,11 @@ function leaveReview(id) {
     });
 }
 
-
 function setRatingReal(n) {
     document.querySelectorAll('#starRatingReal i').forEach((s, i) => {
         s.style.color = i < n ? '#c9a96e' : '#e0e0e0';
     });
 }
-
-
-
 
 function rebookBooking(id) {
     
@@ -252,11 +243,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
-
-
-
-
-
 
 window.toggleDetail       = toggleDetail;
 window.toggleDetailDemo   = toggleDetailDemo;

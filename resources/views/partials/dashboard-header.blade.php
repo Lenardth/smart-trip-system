@@ -47,7 +47,7 @@
             <i class="fas fa-comment-dots"></i>
         </a>
 
-        {{-- Profile chip: always show initial, overlay image on top if exists --}}
+        
         <a href="{{ route('profile.edit') }}" class="dash-profile-chip">
             @auth
             <div class="dash-avatar-wrap">

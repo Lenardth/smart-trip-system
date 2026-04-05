@@ -6,7 +6,6 @@ import './bootstrap';
 window.Alpine = Alpine;
 Alpine.start();
 
-// ── Per-page dynamic imports ────────────────────────────────────────────────
 const path = window.location.pathname.replace(/\/$/, '') || '/';
 
 const routes = {
@@ -36,12 +35,12 @@ const loader = routes[path]
     )?.[1];
 
 if (loader) {
-    // Fire the module. If DOM is already ready, modules that use
-    // document.addEventListener('DOMContentLoaded') will miss it —
-    // so we patch DOMContentLoaded to fire immediately when already loaded.
+    
+    
+    
     if (document.readyState !== 'loading') {
-        // Monkey-patch so any module that calls addEventListener('DOMContentLoaded', fn)
-        // gets fn() called synchronously right away.
+        
+        
         const _orig = document.addEventListener.bind(document);
         document.addEventListener = function (type, fn, opts) {
             if (type === 'DOMContentLoaded') {
@@ -51,7 +50,7 @@ if (loader) {
             }
         };
         loader().then(() => {
-            // Restore original after module loaded
+            
             document.addEventListener = _orig;
         }).catch(err => console.error('[app] page module failed:', err));
     } else {
