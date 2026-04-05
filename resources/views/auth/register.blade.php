@@ -28,8 +28,8 @@
             <label><i class="fas fa-id-badge"></i> Account Type</label>
             <div class="user-type-selector">
                 <label class="type-option">
-                    <input type="radio" name="user_type" value="traveler" id="type_traveler"
-                           {{ old('user_type', 'traveler') === 'traveler' ? 'checked' : '' }}
+                    <input type="radio" name="user_type" value="user" id="type_traveler"
+                           {{ old('user_type', 'user') === 'user' ? 'checked' : '' }}
                            onchange="toggleAgencyFields()">
                     <span class="type-card">
                         <span class="type-icon"><i class="fas fa-suitcase"></i></span>
