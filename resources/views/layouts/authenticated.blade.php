@@ -35,8 +35,4 @@ class="dashboard-page"
             @yield('content')
         </main>
     </div>
-
-    <button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
-        <i class="fas fa-bars"></i>
-    </button>
 @endsection

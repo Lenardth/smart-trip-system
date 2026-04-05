@@ -28,6 +28,41 @@
 
 @section('content')
 
+    {{-- ── Welcome banner ──────────────────────────────────────────────────── --}}
+    @php
+        $user      = Auth::user();
+        $firstName = explode(' ', $user->name)[0];
+        $isNew     = $user->created_at->diffInDays(now()) < 1;
+        $hour      = now()->hour;
+        $greeting  = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+    @endphp
+
+    <div class="welcome-banner">
+        <div class="welcome-avatar">
+            @if($user->profile_picture)
+                <img src="{{ asset('storage/'.$user->profile_picture) }}"
+                     alt="{{ $user->name }}"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <span style="display:none;">{{ strtoupper(substr($user->name,0,1)) }}</span>
+            @else
+                <span>{{ strtoupper(substr($user->name,0,1)) }}</span>
+            @endif
+        </div>
+        <div class="welcome-text">
+            @if($isNew)
+                <h2>Welcome to Smart Booking, {{ $firstName }}! 🎉</h2>
+                <p>Your account is all set. Start by planning your first trip or exploring destinations.</p>
+            @else
+                <h2>{{ $greeting }}, {{ $firstName }}!</h2>
+                <p>Welcome back — here's what's happening with your travels today.</p>
+            @endif
+        </div>
+        <a href="{{ route('plan-trip') }}" class="welcome-cta">
+            <i class="fas fa-route"></i>
+            {{ $isNew ? 'Plan Your First Trip' : 'Plan a Trip' }}
+        </a>
+    </div>
+
     <div class="stats-grid">
         <div class="stat-card" onclick="openGallery()" style="cursor:pointer;">
             <div class="stat-icon photos"><i class="fas fa-images"></i></div>
@@ -64,9 +99,6 @@
     </div>
 
     <div class="settings-shortcut-bar">
-        <a href="{{ route('settings') }}" class="settings-shortcut-item">
-            <i class="fas fa-cog"></i> Settings
-        </a>
         <a href="{{ route('profile.edit') }}" class="settings-shortcut-item">
             <i class="fas fa-user-edit"></i> Edit Profile
         </a>
@@ -74,14 +106,16 @@
             <i class="fas fa-bell"></i> Notifications
         </a>
         <a href="{{ route('wishlist.index') }}" class="settings-shortcut-item">
-            <i class="fas fa-heart"></i> My Wishlist
+            <i class="fas fa-heart"></i> Wishlist
         </a>
         <a href="{{ route('bookings.index') }}" class="settings-shortcut-item">
-            <i class="fas fa-ticket-alt"></i> My Bookings
+            <i class="fas fa-ticket-alt"></i> Bookings
+        </a>
+        <a href="{{ route('settings') }}" class="settings-shortcut-item">
+            <i class="fas fa-cog"></i> Settings
         </a>
     </div>
 
-    
     <div class="actions-grid">
         <div class="action-btn" onclick="uploadPhotos()">
             <i class="fas fa-upload"></i><span>Upload Photos</span>
@@ -92,14 +126,14 @@
         <div class="action-btn" onclick="window.location.href='/flights'">
             <i class="fas fa-plane"></i><span>Book Flights</span>
         </div>
-        <div class="action-btn" onclick="window.location.href='/bookings'">
-            <i class="fas fa-ticket-alt"></i><span>My Bookings</span>
-        </div>
         <div class="action-btn" onclick="window.location.href='/discover'">
             <i class="fas fa-compass"></i><span>Discover</span>
         </div>
-        <div class="action-btn" onclick="openSettings()">
-            <i class="fas fa-cog"></i><span>Settings</span>
+        <div class="action-btn" onclick="window.location.href='/community'">
+            <i class="fas fa-users"></i><span>Community</span>
+        </div>
+        <div class="action-btn" onclick="window.location.href='/chat'">
+            <i class="fas fa-comment-dots"></i><span>Messages</span>
         </div>
     </div>
 
