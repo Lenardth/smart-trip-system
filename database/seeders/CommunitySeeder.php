@@ -4,12 +4,21 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class CommunitySeeder extends Seeder
 {
     public function run(): void
     {
+        if (!Schema::hasTable('community_topics') ||
+            !Schema::hasTable('community_groups') ||
+            !Schema::hasTable('community_stories') ||
+            !Schema::hasTable('community_replies')) {
+            $this->command->warn('Community tables do not exist — skipping.');
+            return;
+        }
+
         if (DB::table('community_topics')->count() > 0) {
             $this->command->info('Community already seeded — skipping.');
             return;
@@ -59,12 +68,12 @@ class CommunitySeeder extends Seeder
         }
 
         $stories = [
-            ['author' => 'Sarah Mitchell', 'title' => '30 Days Across Vietnam on a Motorbike',       'excerpt' => 'From the misty mountains of Sapa to the golden lanterns of Hoi An, riding south through Vietnam was the most liberating thing I\'ve ever done.',                                                                                                    'image_url' => 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80', 'likes' => 243, 'comments' => 31, 'days' => 3],
-            ['author' => 'James Okafor',   'title' => 'Sleeping Under the Stars in the Sahara',      'excerpt' => 'No phone signal, no electricity, just a blanket of stars so dense it looked like someone had spilled sugar across the sky.',                                                                                                                        'image_url' => 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80', 'likes' => 189, 'comments' => 24, 'days' => 7],
-            ['author' => 'Yuki Tanaka',    'title' => 'Finding Quiet in Crowded Japan',              'excerpt' => 'Everyone warns you about Tokyo\'s crowds. Nobody tells you about the moss-carpeted temple at 6am with only monks and birdsong for company.',                                                                                                         'image_url' => 'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=800&q=80', 'likes' => 312, 'comments' => 47, 'days' => 12],
-            ['author' => 'Priya Sharma',   'title' => 'Solo Through Rajasthan: A Love Letter to India','excerpt' => 'Pink cities, blue cities, golden deserts. India overwhelms all the senses at once — but somewhere between the chaos of Jaipur and the silence of the Thar Desert, I found myself.',                                                                'image_url' => 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80', 'likes' => 156, 'comments' => 19, 'days' => 18],
-            ['author' => 'Marco Rossi',    'title' => 'The Camino de Santiago Changed My Life',      'excerpt' => '800 kilometres on foot. Blisters, sunburn, and the occasional downpour. But also strangers who became family, sunrises over ancient hills.',                                                                                                        'image_url' => 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&q=80', 'likes' => 427, 'comments' => 63, 'days' => 25],
-            ['author' => 'Emma Laurent',   'title' => 'Island-Hopping the Greek Cyclades',           'excerpt' => 'White walls, cobalt domes, and the Aegean stretching endlessly blue. Each island has its own personality — Santorini for sunsets, Milos for beaches.',                                                                                              'image_url' => 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80', 'likes' => 198, 'comments' => 28, 'days' => 30],
+            ['author' => 'Sarah Mitchell', 'title' => '30 Days Across Vietnam on a Motorbike',        'excerpt' => 'From the misty mountains of Sapa to the golden lanterns of Hoi An, riding south through Vietnam was the most liberating thing I\'ve ever done.',                              'image_url' => 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80', 'likes' => 243, 'comments' => 31, 'days' => 3],
+            ['author' => 'James Okafor',   'title' => 'Sleeping Under the Stars in the Sahara',       'excerpt' => 'No phone signal, no electricity, just a blanket of stars so dense it looked like someone had spilled sugar across the sky.',                                                  'image_url' => 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80', 'likes' => 189, 'comments' => 24, 'days' => 7],
+            ['author' => 'Yuki Tanaka',    'title' => 'Finding Quiet in Crowded Japan',               'excerpt' => 'Everyone warns you about Tokyo\'s crowds. Nobody tells you about the moss-carpeted temple at 6am with only monks and birdsong for company.',                                  'image_url' => 'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=800&q=80', 'likes' => 312, 'comments' => 47, 'days' => 12],
+            ['author' => 'Priya Sharma',   'title' => 'Solo Through Rajasthan: A Love Letter to India','excerpt' => 'Pink cities, blue cities, golden deserts. India overwhelms all the senses at once — but somewhere between the chaos of Jaipur and the silence of the Thar Desert, I found myself.', 'image_url' => 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80', 'likes' => 156, 'comments' => 19, 'days' => 18],
+            ['author' => 'Marco Rossi',    'title' => 'The Camino de Santiago Changed My Life',       'excerpt' => '800 kilometres on foot. Blisters, sunburn, and the occasional downpour. But also strangers who became family, sunrises over ancient hills.',                                   'image_url' => 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&q=80', 'likes' => 427, 'comments' => 63, 'days' => 25],
+            ['author' => 'Emma Laurent',   'title' => 'Island-Hopping the Greek Cyclades',            'excerpt' => 'White walls, cobalt domes, and the Aegean stretching endlessly blue. Each island has its own personality — Santorini for sunsets, Milos for beaches.',                         'image_url' => 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80', 'likes' => 198, 'comments' => 28, 'days' => 30],
         ];
 
         foreach ($stories as $s) {
