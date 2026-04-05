@@ -164,8 +164,7 @@ try {
 } catch (\Throwable $e) {
     http_response_code(500);
     $debug = in_array(getenv('APP_ENV'), ['local', 'development'])
-          || getenv('APP_DEBUG') === 'true'
-          || true; // temporary: always show errors to diagnose blank screen
+          || getenv('APP_DEBUG') === 'true';
 
     if ($debug) {
         echo '<pre style="font-family:monospace;padding:20px;background:#1a0a00;color:#f5e6d3;">';
