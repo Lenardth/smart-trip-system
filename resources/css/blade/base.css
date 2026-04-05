@@ -108,9 +108,6 @@ body {
     display: block;
     filter: brightness(0) invert(1);
 }
-    object-fit: contain;
-    display: block;
-}
 
 .pub-brand-text {
     font-size: 19px;
