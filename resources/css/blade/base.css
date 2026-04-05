@@ -1276,6 +1276,7 @@ body {
     /* Show hamburger, hide desktop nav */
     .nav-hamburger { display: flex; }
     .nav-bar-desktop { display: none; }
+    .nav-container { display: none; }
 
     /* Page hero shorter on mobile */
     .page-hero { height: 180px; }
