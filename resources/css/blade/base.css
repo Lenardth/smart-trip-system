@@ -1273,10 +1273,11 @@ body {
     .header-brand-text { font-size: 16px; }
     .user-display { display: none; }
 
-    /* Show hamburger, hide desktop nav */
+    /* Show hamburger, hide BOTH desktop nav bars */
     .nav-hamburger { display: flex; }
     .nav-bar-desktop { display: none; }
     .nav-container { display: none; }
+    .pub-hamburger { display: flex; }
 
     /* Page hero shorter on mobile */
     .page-hero { height: 180px; }
