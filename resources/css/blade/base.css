@@ -72,14 +72,14 @@ body {
     background-color: var(--deep);
 }
 
-/* ── Public header (white, professional) ─────────────────────────────────── */
+/* ── Public header (original dark colors) ───────────────────────────────── */
 .pub-header {
     position: sticky;
     top: 0;
     z-index: 900;
-    background: #fff;
-    border-bottom: 1px solid #e8e0d8;
-    box-shadow: 0 1px 12px rgba(59,31,43,.08);
+    background: var(--deep);
+    border-bottom: 2px solid var(--gold-hover);
+    box-shadow: 0 2px 16px rgba(0,0,0,.25);
 }
 
 .pub-header-inner {
@@ -111,7 +111,7 @@ body {
 .pub-brand-text {
     font-size: 19px;
     font-weight: 700;
-    color: var(--deep);
+    color: #fff;
     font-family: 'Georgia', serif;
     letter-spacing: .5px;
     white-space: nowrap;
@@ -138,7 +138,7 @@ body {
     border-radius: 6px;
     font-size: 13.5px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--text-sub);
     text-decoration: none;
     font-family: 'Georgia', serif;
     white-space: nowrap;
@@ -151,12 +151,12 @@ body {
 }
 
 .pub-nav-link:hover {
-    color: var(--deep);
-    background: rgba(59,31,43,.05);
+    color: #fff;
+    background: rgba(255,255,255,.1);
 }
 
 .pub-nav-link.active {
-    color: var(--deep);
+    color: var(--gold);
     background: rgba(201,169,110,.15);
     font-weight: 700;
 }
@@ -178,9 +178,9 @@ body {
 .pub-btn-ghost {
     padding: 8px 16px;
     border-radius: 6px;
-    border: 1.5px solid var(--border);
+    border: 1.5px solid rgba(201,169,110,.5);
     background: transparent;
-    color: var(--deep);
+    color: var(--text-sub);
     font-size: 13.5px;
     font-weight: 600;
     font-family: 'Georgia', serif;
@@ -188,21 +188,21 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    transition: border-color .18s, background .18s;
+    transition: border-color .18s, background .18s, color .18s;
     white-space: nowrap;
 }
 
 .pub-btn-ghost:hover {
     border-color: var(--gold);
-    background: rgba(201,169,110,.08);
-    color: var(--deep);
+    background: rgba(201,169,110,.12);
+    color: #fff;
 }
 
 .pub-btn-solid {
     padding: 8px 18px;
     border-radius: 6px;
-    background: var(--deep);
-    color: #fff;
+    background: var(--gold);
+    color: var(--deep);
     font-size: 13.5px;
     font-weight: 700;
     font-family: 'Georgia', serif;
@@ -215,7 +215,7 @@ body {
 }
 
 .pub-btn-solid:hover {
-    background: var(--deep-alt);
+    background: var(--gold-hover);
 }
 
 /* User chip */
@@ -225,14 +225,15 @@ body {
     gap: 8px;
     padding: 5px 12px 5px 5px;
     border-radius: 999px;
-    border: 1.5px solid var(--border);
-    background: #fff;
+    border: 1.5px solid rgba(201,169,110,.4);
+    background: rgba(255,255,255,.07);
     cursor: pointer;
-    transition: border-color .18s;
+    transition: border-color .18s, background .18s;
 }
 
 .pub-user-chip:hover {
     border-color: var(--gold);
+    background: rgba(201,169,110,.12);
 }
 
 .pub-user-chip img,
@@ -245,8 +246,8 @@ body {
 }
 
 .pub-user-initial {
-    background: var(--deep);
-    color: var(--gold);
+    background: var(--gold);
+    color: var(--deep);
     font-size: 13px;
     font-weight: 700;
     display: flex;
@@ -257,7 +258,7 @@ body {
 .pub-user-name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--deep);
+    color: var(--text-sub);
     font-family: 'Georgia', serif;
 }
 
@@ -269,23 +270,24 @@ body {
     gap: 5px;
     width: 38px;
     height: 38px;
-    background: transparent;
-    border: 1.5px solid var(--border);
+    background: rgba(255,255,255,.08);
+    border: 1.5px solid rgba(201,169,110,.4);
     border-radius: 7px;
     cursor: pointer;
     padding: 8px;
     flex-shrink: 0;
-    transition: border-color .18s;
+    transition: border-color .18s, background .18s;
 }
 
 .pub-hamburger:hover {
     border-color: var(--gold);
+    background: rgba(201,169,110,.15);
 }
 
 .pub-hamburger span {
     display: block;
     height: 2px;
-    background: var(--deep);
+    background: var(--gold);
     border-radius: 2px;
 }
 
@@ -386,9 +388,9 @@ body {
     position: sticky;
     top: 0;
     z-index: 800;
-    background: #fff;
-    border-bottom: 1px solid #e8e0d8;
-    box-shadow: 0 1px 10px rgba(59,31,43,.07);
+    background: var(--deep);
+    border-bottom: 2px solid var(--gold-hover);
+    box-shadow: 0 2px 16px rgba(0,0,0,.25);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -409,27 +411,28 @@ body {
     width: 36px;
     height: 36px;
     border-radius: 7px;
-    border: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--deep);
+    border: 1.5px solid rgba(201,169,110,.4);
+    background: rgba(255,255,255,.07);
+    color: var(--gold);
     font-size: 15px;
     cursor: pointer;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: border-color .18s;
+    transition: border-color .18s, background .18s;
 }
 
-.dash-menu-btn:hover { border-color: var(--gold); }
-
-.dash-page-info {
-    min-width: 0;
+.dash-menu-btn:hover {
+    border-color: var(--gold);
+    background: rgba(201,169,110,.15);
 }
+
+.dash-page-info { min-width: 0; }
 
 .dash-page-title {
     font-size: 18px;
     font-weight: 700;
-    color: var(--deep);
+    color: var(--text-light);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -439,7 +442,7 @@ body {
 
 .dash-page-sub {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--text-sub);
     margin: 2px 0 0;
     white-space: nowrap;
     overflow: hidden;
@@ -457,20 +460,20 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--cream);
-    border: 1.5px solid var(--border);
+    background: rgba(255,255,255,.08);
+    border: 1.5px solid rgba(201,169,110,.3);
     border-radius: 8px;
     padding: 7px 14px;
-    transition: border-color .18s;
+    transition: border-color .18s, background .18s;
 }
 
 .dash-search:focus-within {
     border-color: var(--gold);
-    background: #fff;
+    background: rgba(255,255,255,.12);
 }
 
 .dash-search i {
-    color: var(--text-muted);
+    color: var(--text-sub);
     font-size: 13px;
     flex-shrink: 0;
 }
@@ -480,37 +483,35 @@ body {
     background: transparent;
     outline: none;
     font-size: 13.5px;
-    color: var(--deep);
+    color: var(--text-light);
     font-family: 'Georgia', serif;
     width: 200px;
 }
 
-.dash-search input::placeholder {
-    color: var(--text-muted);
-}
+.dash-search input::placeholder { color: var(--text-sub); }
 
 .dash-icon-btn {
     position: relative;
     width: 38px;
     height: 38px;
     border-radius: 8px;
-    border: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--deep);
+    border: 1.5px solid rgba(201,169,110,.3);
+    background: rgba(255,255,255,.07);
+    color: var(--text-sub);
     font-size: 15px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    transition: border-color .18s, background .18s;
+    transition: border-color .18s, background .18s, color .18s;
     flex-shrink: 0;
 }
 
 .dash-icon-btn:hover {
     border-color: var(--gold);
-    background: rgba(201,169,110,.08);
-    color: var(--deep);
+    background: rgba(201,169,110,.15);
+    color: var(--gold);
 }
 
 .dash-badge {
@@ -528,12 +529,10 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0 4px;
-    border: 2px solid #fff;
+    border: 2px solid var(--deep);
 }
 
-.dash-notif-wrap {
-    position: relative;
-}
+.dash-notif-wrap { position: relative; }
 
 .dash-profile-chip {
     display: flex;
@@ -541,15 +540,16 @@ body {
     gap: 8px;
     padding: 5px 12px 5px 5px;
     border-radius: 999px;
-    border: 1.5px solid var(--border);
-    background: #fff;
+    border: 1.5px solid rgba(201,169,110,.4);
+    background: rgba(255,255,255,.07);
     text-decoration: none;
-    transition: border-color .18s;
+    transition: border-color .18s, background .18s;
     flex-shrink: 0;
 }
 
 .dash-profile-chip:hover {
     border-color: var(--gold);
+    background: rgba(201,169,110,.15);
 }
 
 .dash-profile-chip img,
@@ -562,8 +562,8 @@ body {
 }
 
 .dash-avatar-init {
-    background: var(--deep);
-    color: var(--gold);
+    background: var(--gold);
+    color: var(--deep);
     font-size: 13px;
     font-weight: 700;
     display: flex;
@@ -574,7 +574,7 @@ body {
 .dash-profile-name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--deep);
+    color: var(--text-sub);
     font-family: 'Georgia', serif;
     white-space: nowrap;
 }
