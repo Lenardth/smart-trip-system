@@ -41,7 +41,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
         initWishlistUpdateListener();
         consumePendingTripSave();
     });
-
     window.addEventListener('pageshow', function (e) {
         if (!e.persisted) return;
         loadUpcomingTrips();

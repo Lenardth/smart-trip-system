@@ -694,8 +694,14 @@ function printReceipt() {
 }
 
 async function downloadReceiptPdf() {
-    const { jsPDF } = window.jspdf;
     if (!selectedDest) return;
+
+    // jsPDF loaded via CDN script tag in the blade view
+    if (!window.jspdf) {
+        printReceipt(); // fallback to print dialog
+        return;
+    }
+    const { jsPDF } = window.jspdf;
 
     const d = selectedDest;
     const cost = d.costBreakdown;

@@ -1,17 +1,29 @@
 @extends('layouts.base')
 
 @section('body')
-    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--cream);padding:40px 20px;">
+<div class="auth-page-wrap">
 
-        <a href="/" style="margin-bottom:24px;display:flex;align-items:center;gap:10px;text-decoration:none;">
-            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking"
-                 style="height:72px;width:auto;filter:brightness(0) invert(1);">
-            <span style="font-size:22px;font-weight:700;font-family:'Georgia',serif;letter-spacing:.5px;color:var(--deep);">Smart <span style="color:var(--gold);">Booking</span></span>
+    {{-- Left panel — branding --}}
+    <div class="auth-brand-panel">
+        <a href="/" class="auth-brand-logo">
+            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking">
         </a>
+        <h1 class="auth-brand-title">Smart <span>Booking</span></h1>
+        <p class="auth-brand-sub">AI-powered travel planning for every kind of trip.</p>
+        <div class="auth-brand-features">
+            <div class="auth-feature"><i class="fas fa-route"></i> Plan trips with AI</div>
+            <div class="auth-feature"><i class="fas fa-plane"></i> Search & book flights</div>
+            <div class="auth-feature"><i class="fas fa-heart"></i> Save your dream destinations</div>
+            <div class="auth-feature"><i class="fas fa-users"></i> Connect with travellers</div>
+        </div>
+    </div>
 
-        <div style="width:100%;max-width:460px;background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:36px;border:1px solid var(--border);">
+    {{-- Right panel — form --}}
+    <div class="auth-form-panel">
+        <div class="auth-form-inner">
             {{ $slot }}
         </div>
-
     </div>
+
+</div>
 @endsection
