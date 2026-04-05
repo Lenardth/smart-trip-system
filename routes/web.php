@@ -37,9 +37,13 @@ Route::prefix('api/community')->group(function () {
     Route::get('/topics',               [CommunityController::class, 'topics']);
     Route::post('/topics',              [CommunityController::class, 'storeTopic']);
     Route::get('/topics/{id}',          [CommunityController::class, 'showTopic']);
+    Route::put('/topics/{id}',          [CommunityController::class, 'updateTopic']);
+    Route::delete('/topics/{id}',       [CommunityController::class, 'destroyTopic']);
     Route::post('/topics/{id}/replies', [CommunityController::class, 'storeReply']);
+    Route::delete('/replies/{id}',      [CommunityController::class, 'destroyReply']);
     Route::get('/groups',               [CommunityController::class, 'groups']);
     Route::post('/groups',              [CommunityController::class, 'storeGroup']);
+    Route::delete('/groups/{id}',       [CommunityController::class, 'destroyGroup']);
     Route::get('/tags',                 [CommunityController::class, 'tags']);
     Route::get('/stories',              [CommunityController::class, 'stories']);
     Route::get('/travelers',            [CommunityController::class, 'travelers']);
@@ -173,10 +177,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/media/{media}',           [MediaController::class, 'update']);
         Route::get('/dashboard/stats',         [MediaController::class, 'stats']);
 
-        Route::get('/trips',          [TripController::class, 'index']);
-        Route::get('/trips/upcoming', [TripController::class, 'upcoming']);
-        Route::post('/trips',         [TripController::class, 'store']);
-        Route::delete('/trips/{id}',  [TripController::class, 'destroy']);
+        Route::get('/trips',           [TripController::class, 'index']);
+        Route::get('/trips/upcoming',  [TripController::class, 'upcoming']);
+        Route::post('/trips',          [TripController::class, 'store']);
+        Route::put('/trips/{id}',      [TripController::class, 'update']);
+        Route::patch('/trips/{id}',    [TripController::class, 'update']);
+        Route::delete('/trips/{id}',   [TripController::class, 'destroy']);
 
         Route::get('/wishlist/count', [WishlistController::class, 'count']);
 

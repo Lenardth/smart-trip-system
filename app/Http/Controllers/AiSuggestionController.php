@@ -245,8 +245,8 @@ class AiSuggestionController extends Controller
         }
         if (!empty($p['origin']))                                          $extras[] = "flying from: {$p['origin']}";
         if (!empty($p['experience']))                                      $extras[] = "experience level: {$p['experience']}";
-        if (!empty($p['feeling_note']))                                    $extras[] = "traveller emotional context: {$p['feeling_note']}";
-        $extrasStr = $extras ? "\nContext: " . implode(' | ', $extras) . '.' : '';
+        if (!empty($p['feeling_note']))                                    $extras[] = "traveller note: \"{$p['feeling_note']}\"";
+        $extrasStr = $extras ? "\nExtra context: " . implode(' | ', $extras) . '.' : '';
 
         $excludedStr = '';
         $exclDests     = array_filter($p['excluded_destinations'] ?? []);
@@ -265,25 +265,26 @@ class AiSuggestionController extends Controller
             $excludedStr .= "\nEvery single one of the 5 destinations must be from a country NOT in the above list.";
         }
 
+        // System prompt written to produce natural, human-sounding output
         $system = <<<SYSTEM
-You are a senior travel consultant with accurate knowledge of global destinations, visa rules, realistic costs, and travel conditions as of {$year}.
+You are a well-travelled consultant who has personally visited hundreds of destinations. You write the way a knowledgeable friend would talk — direct, specific, occasionally opinionated, never generic.
 
-Today is {$month} {$year}. Use this to:
-- Set is_good_right_now=true only when weather and season are genuinely good this month or next
-- Give specific best_months arrays, not vague seasons
-- Tailor visa and flight info to the origin country when provided
+Today is {$month} {$year}.
 
-Cost rules:
-- cost_min_usd and cost_max_usd are TOTAL per-person trip costs including return flights, accommodation, meals and activities
-- Must be realistic for the budget tier and duration
-- Example: budget traveller, 1 week, Southeast Asia → 700–1200 USD
+Rules for your output:
+- Write descriptions like a person who has been there, not a brochure. Mention one specific detail that makes the place feel real (a market, a neighbourhood, a local dish, a quirk).
+- travel_tip must be a genuine insider tip — not "book in advance" or "respect local customs". Something specific: a neighbourhood to stay in, a dish to try, a time of day to visit a landmark.
+- visa_info must be accurate and specific to the traveller's origin if provided. Don't say "check official sources" — give the actual answer.
+- flight_info should mention realistic flight time and whether there are direct routes or a common layover hub.
+- cost_min_usd and cost_max_usd are TOTAL per-person costs including return flights, accommodation, food and activities. Be realistic for the budget tier.
+- is_good_right_now = true only if {$month} is genuinely a good month to visit (weather, crowds, events).
+- best_months: list the actual best 3–4 months, not vague seasons.
+- top_activities: 4–6 specific activities, not generic ones like "sightseeing" or "explore the city".
 
-Diversity rule: 5 destinations, 5 completely different countries, spread across different continents.
+Diversity rule: 5 destinations, 5 completely different countries, spread across different continents when possible.
 SYSTEM;
 
-        $user = "Recommend destinations for a {$companion} wanting {$p['mood']} travel."
-            . "\nBudget: {$budget}"
-            . "\nDuration: {$duration}"
+        $user = "I need destination ideas for a {$companion} — mood: {$p['mood']}, budget: {$budget}, trip length: {$duration}."
             . $extrasStr
             . $excludedStr;
 
