@@ -224,30 +224,31 @@
 
 .auth-btn {
     width: 100%;
-    padding: 13px;
+    padding: 12px 30px;
     background: var(--gold);
     color: var(--deep);
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 15px;
     font-family: 'Georgia', serif;
-    font-weight: 700;
+    font-weight: bold;
     cursor: pointer;
     letter-spacing: .5px;
-    transition: background .2s, box-shadow .2s;
+    transition: background .3s, box-shadow .3s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
 }
 
 .auth-btn:hover {
     background: var(--gold-hover);
-    box-shadow: 0 4px 14px rgba(59,31,43,.25);
+    box-shadow: 0 3px 10px rgba(0,0,0,.22);
 }
 
 .auth-btn.loading {
-    opacity: .7;
+    opacity: .55;
     cursor: not-allowed;
     pointer-events: none;
 }
