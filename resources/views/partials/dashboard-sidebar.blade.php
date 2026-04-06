@@ -1,5 +1,5 @@
 <div class="sidebar" id="sidebar">
-    
+
 
     <nav class="sidebar-menu">
         @php
@@ -32,6 +32,10 @@
 
         <a href="#" class="menu-item" onclick="openSettings(); return false;">
             <i class="fas fa-cog"></i><span>Settings</span>
+        </a>
+        <a href="{{ route('premium') }}" class="menu-item {{ request()->is('premium') ? 'active' : '' }}" style="color:var(--gold);">
+            <i class="fas fa-crown"></i>
+            <span>{{ Auth::user()->is_premium ? '⭐ Premium' : 'Upgrade' }}</span>
         </a>
     </nav>
 

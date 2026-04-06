@@ -26,7 +26,7 @@
 
 @section('content')
 
-    
+
     @php
         $user      = Auth::user();
         $firstName = explode(' ', $user->name)[0];
@@ -40,6 +40,7 @@
             @if($user->profile_picture)
                 <img src="{{ asset('storage/'.$user->profile_picture) }}"
                      alt="{{ $user->name }}"
+                     style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <span style="display:none;">{{ strtoupper(substr($user->name,0,1)) }}</span>
             @else
@@ -47,17 +48,18 @@
             @endif
         </div>
         <div class="welcome-text">
-            @if($isNew)
-                <h2>Welcome to Smart Booking, {{ $firstName }}! 🎉</h2>
-                <p>Your account is all set. Start by planning your first trip or exploring destinations.</p>
-            @else
-                <h2>{{ $greeting }}, {{ $firstName }}!</h2>
-                <p>Welcome back — here's what's happening with your travels today.</p>
-            @endif
+            <h2 id="welcomeMessage">{{ $greeting }}, {{ $firstName }}!</h2>
+            <p id="welcomeSubtext">
+                @if($isNew)
+                    Your account is all set. Start by planning your first trip or exploring destinations.
+                @else
+                    Welcome back — here's what's happening with your travels today.
+                @endif
+            </p>
         </div>
         <a href="{{ route('plan-trip') }}" class="welcome-cta">
             <i class="fas fa-route"></i>
-            {{ $isNew ? 'Plan Your First Trip' : 'Plan a Trip' }}
+            Plan a Trip
         </a>
     </div>
 
@@ -67,7 +69,7 @@
             <div class="stat-info">
                 <h3 id="statPhotosCount">0</h3>
                 <p>Total Photos</p>
-                <div class="stat-change"><span>Upload to get started</span></div>
+                <div class="stat-change"><span id="photosSubtext">Upload to get started</span></div>
             </div>
         </div>
         <div class="stat-card" onclick="window.location.href='/plan-trip'" style="cursor:pointer;">
@@ -75,7 +77,7 @@
             <div class="stat-info">
                 <h3 id="statTripsCount">0</h3>
                 <p>Planned Trips</p>
-                <div class="stat-change"><span>No trips yet</span></div>
+                <div class="stat-change"><span id="tripsSubtext">No trips yet</span></div>
             </div>
         </div>
         <div class="stat-card" onclick="window.location.href='/bookings'" style="cursor:pointer;">
@@ -83,7 +85,7 @@
             <div class="stat-info">
                 <h3 id="statBookingsCount">0</h3>
                 <p>Active Bookings</p>
-                <div class="stat-change"><span>No bookings yet</span></div>
+                <div class="stat-change"><span id="bookingsSubtext">No bookings yet</span></div>
             </div>
         </div>
         <div class="stat-card" onclick="window.location.href='/wishlist'" style="cursor:pointer;">
@@ -91,7 +93,7 @@
             <div class="stat-info">
                 <h3 id="statSavedCount">0</h3>
                 <p>Saved Places</p>
-                <div class="stat-change"><span>View your wishlist</span></div>
+                <div class="stat-change"><span id="savedSubtext">View your wishlist</span></div>
             </div>
         </div>
     </div>
@@ -135,7 +137,7 @@
         </div>
     </div>
 
-    
+
     <div class="dashboard-grid">
         <div class="dashboard-section">
             <div class="section-header">
@@ -174,7 +176,7 @@
 
 @push('modals')
 
-    
+
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-header">
             <h3><i class="fas fa-images"></i> My Photos &amp; Videos</h3>
@@ -198,7 +200,7 @@
         </div>
     </div>
 
-    
+
     <div class="media-viewer" id="mediaViewer">
         <div class="viewer-header">
             <button class="gallery-close" onclick="closeViewer()">
