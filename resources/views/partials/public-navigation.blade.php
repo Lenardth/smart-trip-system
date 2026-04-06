@@ -6,19 +6,21 @@
 
     @auth
     <div class="user-display">
-        @if(Auth::user()->profile_picture)
-            <img src="{{ asset('storage/'.Auth::user()->profile_picture) }}"
-                 alt="{{ Auth::user()->name }}"
-                 style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);"
-                 onerror="this.style.display='none'">
-        @else
-            <i class="fas fa-user-circle" style="font-size:22px;color:var(--gold);"></i>
-        @endif
+        <div class="nav-avatar">
+            @if(Auth::user()->profile_picture)
+                <img src="{{ asset('storage/'.Auth::user()->profile_picture) }}"
+                     alt="{{ Auth::user()->name }}"
+                     class="nav-avatar-img"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <span class="nav-avatar-init" style="display:none;">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
+            @else
+                <span class="nav-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
+            @endif
+        </div>
         <span>{{ explode(' ', Auth::user()->name)[0] }}</span>
     </div>
     @endauth
 
-    
     <button class="mob-hamburger" id="mobHamburger" aria-label="Open menu">
         <span></span><span></span><span></span>
     </button>
@@ -48,21 +50,16 @@
 
 <nav class="mob-drawer" id="mobDrawer">
 
-    
     <div class="mob-drawer-head">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking"
-                 style="height:40px;width:auto;filter:brightness(0) invert(1);">
-            <span style="font-size:17px;font-weight:700;color:var(--deep);font-family:'Georgia',serif;letter-spacing:.5px;">
-                Smart <span style="color:rgba(59,31,43,.6);">Booking</span>
-            </span>
+        <div class="mob-brand">
+            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="mob-logo">
+            <span class="mob-brand-text">Smart <span>Booking</span></span>
         </div>
         <button class="mob-drawer-close" id="mobDrawerClose" aria-label="Close menu">
             <i class="fas fa-times"></i>
         </button>
     </div>
 
-    
     <div class="mob-drawer-links">
         <a href="{{ url('/') }}"                     class="mob-link {{ request()->is('/')                  ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
         <a href="{{ route('discover') }}"             class="mob-link {{ request()->routeIs('discover')      ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>

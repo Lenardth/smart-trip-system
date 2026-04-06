@@ -6,8 +6,10 @@ use App\Http\Controllers\AiSuggestionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DestinationController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\ItineraryController;
@@ -101,6 +103,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications', fn () => view('notifications.index'))->name('notifications.index');
     Route::get('/plan-trip',     fn () => view('plan-trip.index'))->name('plan-trip');
     Route::get('/settings',      fn () => view('settings'))->name('settings');
+    Route::get('/premium',       [SubscriptionController::class, 'page'])->name('premium');
 
     Route::get('/chat', fn () => view('chat.index'))->name('chat.index');
     Route::get('/chat/{userId}', function ($userId) {
@@ -183,6 +186,12 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/bookings/flight',         [BookingController::class, 'bookFlight']);
         Route::post('/bookings/accommodation',  [BookingController::class, 'storeAccommodation']);
+
+        Route::post('/coupon/validate',         [CouponController::class, 'validate']);
+
+        Route::get('/subscription/status',      [SubscriptionController::class, 'status']);
+        Route::post('/subscription/subscribe',  [SubscriptionController::class, 'subscribe']);
+        Route::post('/subscription/cancel',     [SubscriptionController::class, 'cancel']);
 
         Route::middleware('throttle:60,1')->group(function () {
             Route::get('/trip-moods', [TripMoodController::class, 'index']);

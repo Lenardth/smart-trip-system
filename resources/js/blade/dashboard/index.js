@@ -75,7 +75,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
         });
     }
 
-
     function initWishlistUpdateListener() {
         window.addEventListener('storage', function(e) {
             if (e.key !== 'smartBookingWishlistUpdated' || !e.newValue) return;
@@ -263,7 +262,12 @@ window.__dashboardConfig = window.__dashboardConfig || {
     }
 
     function loadNotifications(silent) {
-        fetch('/api/notifications', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+        fetch('/api/notifications', { credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
             .then(function(r) {
                 return r.json();
             })
@@ -363,6 +367,10 @@ window.__dashboardConfig = window.__dashboardConfig || {
         } else {
             badge.style.display = 'none';
         }
+        
+        var bEl = document.getElementById('bookingsCount');
+        var sEl = document.getElementById('savedCount');
+        if (!bEl || bEl.textContent === '0') loadUserStatistics();
     }
 
     function markAllRead() {
@@ -476,17 +484,15 @@ window.__dashboardConfig = window.__dashboardConfig || {
         var welcomeMsg = document.getElementById('welcomeMessage');
         if (welcomeMsg) {
             var name = cfg.firstName || cfg.name || 'User';
-            welcomeMsg.textContent = 'Welcome Back, ' + name + '!';
+            var h = new Date().getHours();
+            var greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+            welcomeMsg.textContent = greeting + ', ' + name + '!';
         }
         loadUserStatistics();
     }
 
     function loadUpcomingTrips() {
-        fetch('/api/trips/upcoming', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
+        fetch('/api/trips/upcoming', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
             .then(function(r) {
                 return r.json();
             })
@@ -502,11 +508,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         var section = document.getElementById('recentActivityContent');
         if (!section) return;
 
-        fetch('/api/user/recent-activity', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
+        fetch('/api/user/recent-activity', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
             .then(function(r) {
                 return r.json();
             })
@@ -648,11 +650,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
     window.loadUserStatistics = loadUserStatistics;
 
     function loadUserStatistics() {
-        fetch('/api/user/statistics', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
+        fetch('/api/user/statistics', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
             .then(function(r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();
@@ -667,28 +665,38 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     function updateCounts(data) {
         data = data || {};
-        var photos = data.photos !== undefined ? data.photos : mediaLibrary.length;
-        var trips = data.trips !== undefined ? data.trips : 0;
-        var bookings = data.bookings !== undefined ? data.bookings : 0;
-        var saved = data.saved !== undefined ? data.saved : 0;
-        var notifs = data.notifications !== undefined ? data.notifications : 0;
+        var photos   = data.photos        !== undefined ? data.photos        : mediaLibrary.length;
+        var trips    = data.trips         !== undefined ? data.trips         : 0;
+        var bookings = data.bookings      !== undefined ? data.bookings      : 0;
+        var saved    = data.saved         !== undefined ? data.saved         : 0;
+        var notifs   = data.notifications !== undefined ? data.notifications : unreadCount;
 
-        function set(id, v) {
-            var el = document.getElementById(id);
-            if (el) el.textContent = v;
-        }
-        set('photosCount', photos);
-        set('statPhotosCount', photos);
-        set('bookingsCount', bookings);
-        set('statBookingsCount', bookings);
-        set('savedCount', saved);
-        set('statSavedCount', saved);
-        set('statTripsCount', trips);
+        function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
 
+        set('statPhotosCount',  photos);
+        set('statTripsCount',   trips);
+        set('statBookingsCount',bookings);
+        set('statSavedCount',   saved);
+        set('bookingsCount',    bookings);
+        set('savedCount',       saved);
+
+        set('photosSubtext',   photos   > 0 ? photos   + ' file'    + (photos   !== 1 ? 's' : '') + ' uploaded' : 'Upload to get started');
+        set('tripsSubtext',    trips    > 0 ? trips    + ' trip'    + (trips    !== 1 ? 's' : '') + ' planned'  : 'No trips yet');
+        set('bookingsSubtext', bookings > 0 ? bookings + ' booking' + (bookings !== 1 ? 's' : '') + ' active'   : 'No bookings yet');
+        set('savedSubtext',    saved    > 0 ? saved    + ' place'   + (saved    !== 1 ? 's' : '') + ' saved'    : 'View your wishlist');
+
+        updateNotificationBadge(notifs);
+    }
+
+    function updateNotificationBadge(count) {
         var badge = document.getElementById('notificationCount');
-        if (badge) {
-            badge.textContent = notifs;
-            badge.style.display = notifs > 0 ? 'block' : 'none';
+        if (!badge) return;
+        var n = count !== undefined ? count : unreadCount;
+        if (n > 0) {
+            badge.textContent = n > 99 ? '99+' : n;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
         }
     }
 
@@ -1041,11 +1049,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
     }
 
     function loadMediaFromServer() {
-        fetch('/api/media', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
+        fetch('/api/media', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
             .then(function(r) {
                 return r.json();
             })

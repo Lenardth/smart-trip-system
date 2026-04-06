@@ -1,5 +1,4 @@
 <div class="sidebar" id="sidebar">
-    
 
     <nav class="sidebar-menu">
         @php
@@ -33,6 +32,10 @@
         <a href="#" class="menu-item" onclick="openSettings(); return false;">
             <i class="fas fa-cog"></i><span>Settings</span>
         </a>
+        <a href="{{ route('premium') }}" class="menu-item {{ request()->is('premium') ? 'active' : '' }}" style="color:var(--gold);">
+            <i class="fas fa-crown"></i>
+            <span>{{ Auth::user()->is_premium ? '⭐ Premium' : 'Upgrade' }}</span>
+        </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -41,6 +44,7 @@
                 @if(Auth::check() && Auth::user()->profile_picture)
                     <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}"
                          alt="{{ Auth::user()->name }}"
+                         style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                     <div class="avatar-placeholder" style="display:none;">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}

@@ -801,7 +801,7 @@ function printReceipt() {
     if (win) {
         win.document.write(`<!DOCTYPE html><html><head>
             <title>Trip Receipt — Smart Booking</title>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <link rel="stylesheet" href="https:
             <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Georgia',serif;background:#f5f0eb;padding:24px;color:#2c2c2c;}@media print{body{background:#fff;padding:0;}}</style>
         </head><body>${html}</body></html>`);
         win.document.close();

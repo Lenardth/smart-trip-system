@@ -62,15 +62,38 @@
                     </select>
                 </div>
 
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-size:13px;color:var(--text-muted);margin-bottom:6px;">Promo Code <span style="opacity:.5;">(optional)</span></label>
+                    <div style="display:flex;gap:8px;">
+                        <input type="text" id="couponInput" placeholder="Enter promo code"
+                               style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--deep);font-size:14px;text-transform:uppercase;">
+                        <button type="button" onclick="applyCoupon()" class="secondary-button" style="padding:10px 16px;font-size:13px;">Apply</button>
+                    </div>
+                    <div id="couponMsg" style="font-size:12px;margin-top:6px;"></div>
+                </div>
+
                 <div id="priceSummary" style="display:none;background:#f8f4f0;border-radius:8px;padding:16px;margin-bottom:20px;">
                     <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;">
                         <span style="color:var(--text-muted);" id="nightsLabel">— nights</span>
                         <span id="subtotalLabel" style="color:var(--deep);font-weight:600;"></span>
                     </div>
+                    <div id="discountRow" style="display:none;justify-content:space-between;margin-bottom:8px;font-size:13px;">
+                        <span style="color:#2e7d32;"><i class="fas fa-tag"></i> Promo discount</span>
+                        <span id="discountLabel" style="color:#2e7d32;font-weight:600;"></span>
+                    </div>
+                    <div id="feeRow" style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;">
+                        <span style="color:var(--text-muted);">Service fee (5%)</span>
+                        <span id="feeLabel" style="color:var(--text-muted);"></span>
+                    </div>
                     <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">
                         <span style="color:var(--deep);">Total</span>
                         <span id="totalLabel" style="color:var(--gold);"></span>
                     </div>
+                    @auth
+                    @if(Auth::user()->is_premium)
+                    <div style="margin-top:8px;font-size:11px;color:#2e7d32;text-align:center;"><i class="fas fa-crown"></i> Premium member — no service fee!</div>
+                    @endif
+                    @endauth
                 </div>
 
                 <button type="submit" id="submitBtn" class="primary-button" style="width:100%;padding:14px;font-size:15px;">
@@ -94,26 +117,87 @@
 @push('scripts')
 <script>
 (function () {
-    const rate    = {{ $accommodation?->nightly_rate ?? 0 }};
-    const checkIn = document.getElementById('checkIn');
-    const checkOut= document.getElementById('checkOut');
-    const guests  = document.getElementById('guests');
-    const summary = document.getElementById('priceSummary');
-    const form    = document.getElementById('bookingForm');
+    const rate      = {{ $accommodation?->nightly_rate ?? 0 }};
+    const isPremium = {{ Auth::user()->is_premium ? 'true' : 'false' }};
+    const checkIn   = document.getElementById('checkIn');
+    const checkOut  = document.getElementById('checkOut');
+    const guests    = document.getElementById('guests');
+    const summary   = document.getElementById('priceSummary');
+    const form      = document.getElementById('bookingForm');
+    let appliedCoupon = null;
+    let appliedDiscount = 0;
 
     function updatePrice() {
         if (!checkIn.value || !checkOut.value) { summary.style.display = 'none'; return; }
         const d1 = new Date(checkIn.value), d2 = new Date(checkOut.value);
         const nights = Math.round((d2 - d1) / 86400000);
         if (nights <= 0) { summary.style.display = 'none'; return; }
-        const g = parseInt(guests.value) || 1;
-        const total = rate * nights * g;
+        const g        = parseInt(guests.value) || 1;
+        const subtotal = rate * nights * g;
+        const discount = appliedDiscount;
+        const afterDiscount = Math.max(0, subtotal - discount);
+        const fee      = isPremium ? 0 : Math.round(afterDiscount * 0.05 * 100) / 100;
+        const total    = afterDiscount + fee;
+
         document.getElementById('nightsLabel').textContent  = nights + ' night' + (nights > 1 ? 's' : '') + ' × ' + g + ' guest' + (g > 1 ? 's' : '');
-        document.getElementById('subtotalLabel').textContent = '$' + (rate * nights * g).toLocaleString();
-        document.getElementById('totalLabel').textContent    = '$' + total.toLocaleString();
+        document.getElementById('subtotalLabel').textContent = '$' + subtotal.toLocaleString();
+
+        const discountRow = document.getElementById('discountRow');
+        if (discount > 0) {
+            discountRow.style.display = 'flex';
+            document.getElementById('discountLabel').textContent = '-$' + discount.toFixed(2);
+        } else {
+            discountRow.style.display = 'none';
+        }
+
+        const feeRow = document.getElementById('feeRow');
+        if (isPremium) {
+            feeRow.style.display = 'none';
+        } else {
+            feeRow.style.display = 'flex';
+            document.getElementById('feeLabel').textContent = '$' + fee.toFixed(2);
+        }
+
+        document.getElementById('totalLabel').textContent = '$' + total.toLocaleString();
         summary.style.display = 'block';
         checkOut.min = new Date(d1.getTime() + 86400000).toISOString().split('T')[0];
     }
+
+    window.applyCoupon = async function () {
+        const code = document.getElementById('couponInput').value.trim();
+        const msg  = document.getElementById('couponMsg');
+        if (!code) return;
+
+        const d1 = new Date(checkIn.value), d2 = new Date(checkOut.value);
+        const nights   = Math.round((d2 - d1) / 86400000) || 1;
+        const g        = parseInt(guests.value) || 1;
+        const subtotal = rate * nights * g;
+
+        try {
+            const res  = await fetch('/api/coupon/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: JSON.stringify({ code, subtotal }),
+            });
+            const data = await res.json();
+            if (data.valid) {
+                appliedCoupon   = code;
+                appliedDiscount = data.discount;
+                msg.style.color = '#2e7d32';
+                msg.textContent = '✓ ' + data.description + ' applied!';
+                updatePrice();
+            } else {
+                appliedCoupon   = null;
+                appliedDiscount = 0;
+                msg.style.color = '#c0392b';
+                msg.textContent = data.message;
+                updatePrice();
+            }
+        } catch (_) {
+            msg.style.color = '#c0392b';
+            msg.textContent = 'Could not validate coupon.';
+        }
+    };
 
     checkIn.addEventListener('change', updatePrice);
     checkOut.addEventListener('change', updatePrice);
@@ -128,32 +212,26 @@
 
             const body = {
                 accommodation_id: form.querySelector('[name=accommodation_id]').value,
-                check_in:  checkIn.value,
-                check_out: checkOut.value,
-                guests:    guests.value,
+                check_in:    checkIn.value,
+                check_out:   checkOut.value,
+                guests:      guests.value,
+                coupon_code: appliedCoupon || undefined,
             };
 
             try {
                 const res  = await fetch('/api/bookings/accommodation', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
                     body: JSON.stringify(body),
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire({
-                        title: 'Booking Confirmed!',
-                        html: '<p>Reference: <strong>' + data.booking_reference + '</strong></p><p>Total: <strong>$' + Number(data.total_price).toLocaleString() + '</strong></p>',
-                        icon: 'success',
-                        confirmButtonColor: '#c9a96e',
-                        confirmButtonText: 'View My Bookings',
-                        showCancelButton: true,
-                        cancelButtonText: 'Stay Here',
-                    }).then(r => { if (r.isConfirmed) window.location.href = '/bookings'; });
+                    let html = '<p>Reference: <strong>' + data.booking_reference + '</strong></p>';
+                    if (data.discount > 0) html += '<p>Discount: <strong style="color:#2e7d32;">-$' + Number(data.discount).toFixed(2) + '</strong></p>';
+                    if (data.service_fee > 0) html += '<p>Service fee: <strong>$' + Number(data.service_fee).toFixed(2) + '</strong></p>';
+                    html += '<p>Total paid: <strong>$' + Number(data.total_price).toLocaleString() + '</strong></p>';
+                    Swal.fire({ title: 'Booking Confirmed!', html, icon: 'success', confirmButtonColor: '#c9a96e', confirmButtonText: 'View My Bookings', showCancelButton: true, cancelButtonText: 'Stay Here' })
+                        .then(r => { if (r.isConfirmed) window.location.href = '/bookings'; });
                 } else {
                     throw new Error(data.message || 'Booking failed');
                 }
