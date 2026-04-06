@@ -75,7 +75,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
         });
     }
 
-
     function initWishlistUpdateListener() {
         window.addEventListener('storage', function(e) {
             if (e.key !== 'smartBookingWishlistUpdated' || !e.newValue) return;
@@ -368,7 +367,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         } else {
             badge.style.display = 'none';
         }
-        // Keep sidebar bookings/saved in sync whenever notifications update
+        
         var bEl = document.getElementById('bookingsCount');
         var sEl = document.getElementById('savedCount');
         if (!bEl || bEl.textContent === '0') loadUserStatistics();

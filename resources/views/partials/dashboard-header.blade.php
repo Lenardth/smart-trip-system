@@ -47,16 +47,17 @@
             <i class="fas fa-comment-dots"></i>
         </a>
 
-        
         <a href="{{ route('profile.edit') }}" class="dash-profile-chip">
             @auth
             <div class="dash-avatar-wrap">
-                <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
                 @if(Auth::user()->profile_picture)
                     <img src="{{ asset('storage/'.Auth::user()->profile_picture) }}"
                          alt="{{ Auth::user()->name }}"
                          class="dash-avatar-img"
-                         onerror="this.style.display='none'">
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <span class="dash-avatar-init" style="display:none;">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
+                @else
+                    <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
                 @endif
             </div>
             <span class="dash-profile-name">{{ explode(' ', Auth::user()->name)[0] }}</span>

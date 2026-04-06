@@ -26,7 +26,6 @@
 
 @section('content')
 
-
     @php
         $user      = Auth::user();
         $firstName = explode(' ', $user->name)[0];
@@ -137,7 +136,6 @@
         </div>
     </div>
 
-
     <div class="dashboard-grid">
         <div class="dashboard-section">
             <div class="section-header">
@@ -176,7 +174,6 @@
 
 @push('modals')
 
-
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-header">
             <h3><i class="fas fa-images"></i> My Photos &amp; Videos</h3>
@@ -199,7 +196,6 @@
             <button onclick="shareSelected()"><i class="fas fa-share"></i></button>
         </div>
     </div>
-
 
     <div class="media-viewer" id="mediaViewer">
         <div class="viewer-header">

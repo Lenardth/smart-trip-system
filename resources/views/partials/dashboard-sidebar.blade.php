@@ -1,6 +1,5 @@
 <div class="sidebar" id="sidebar">
 
-
     <nav class="sidebar-menu">
         @php
             $menu = [
@@ -45,6 +44,7 @@
                 @if(Auth::check() && Auth::user()->profile_picture)
                     <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}"
                          alt="{{ Auth::user()->name }}"
+                         style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                     <div class="avatar-placeholder" style="display:none;">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
