@@ -54,5 +54,12 @@ class DatabaseSeeder extends Seeder
         } catch (\Throwable $e) {
             $this->command->warn('⚠ Coupons skipped: ' . $e->getMessage());
         }
+
+        try {
+            $this->call(AccommodationSeeder::class);
+            $this->command->info('✓ Accommodations seeded');
+        } catch (\Throwable $e) {
+            $this->command->warn('⚠ Accommodations skipped: ' . $e->getMessage());
+        }
     }
 }

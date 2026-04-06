@@ -86,14 +86,18 @@ class AccommodationController extends Controller
             ->map(fn($a) => $this->formatAccommodation($a->toArray()))
             ->toArray();
 
-        AccommodationSearch::create([
-            'user_id'       => Auth::id(),
-            'query'         => $q,
-            'style'         => $style,
-            'budget_tier'   => $budgetTier,
-            'results_count' => count($results),
-            'ip_address'    => $request->ip(),
-        ]);
+        try {
+            AccommodationSearch::create([
+                'user_id'       => Auth::id(),
+                'query'         => $q,
+                'style'         => $style,
+                'budget_tier'   => $budgetTier,
+                'results_count' => count($results),
+                'ip_address'    => $request->ip(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('AccommodationSearch log failed: ' . $e->getMessage());
+        }
 
         return response()->json(['accommodations' => $results]);
     }

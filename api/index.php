@@ -137,6 +137,9 @@ try {
             if ($schema2->hasTable('trip_moods') && $db->table('trip_moods')->count() === 0) {
                 $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\TripMoodSeeder', '--force' => true]);
             }
+            if ($schema2->hasTable('accommodations') && $db->table('accommodations')->count() === 0) {
+                $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\AccommodationSeeder', '--force' => true]);
+            }
         }
     } catch (\Throwable $seedErr) {
         error_log('[SmartBooking] Seed warning: ' . $seedErr->getMessage());
