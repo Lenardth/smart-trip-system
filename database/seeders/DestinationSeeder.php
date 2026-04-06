@@ -16,10 +16,12 @@ class DestinationSeeder extends Seeder
             return;
         }
 
-        if (DB::table('destinations')->count() > 0) {
+        if (DB::table('destinations')->count() >= 100) {
             $this->command->info('Destinations already seeded — skipping.');
             return;
         }
+
+        DB::table('destinations')->truncate();
 
         $now   = Carbon::now()->toDateTimeString();
         $batch = [];

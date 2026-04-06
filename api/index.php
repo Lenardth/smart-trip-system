@@ -126,7 +126,7 @@ try {
     try {
         $schema2         = $db->connection()->getSchemaBuilder();
         $hasDestinations = $schema2->hasTable('destinations')
-                        && $db->table('destinations')->count() > 0;
+                        && $db->table('destinations')->count() >= 100;
 
         if (!$hasDestinations) {
             $artisan->call('db:seed', ['--force' => true]);
