@@ -4,12 +4,18 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class DestinationSeeder extends Seeder
 {
     public function run(): void
     {
+        if (!Schema::hasTable('destinations')) {
+            $this->command->warn('destinations table does not exist — skipping.');
+            return;
+        }
+
         if (DB::table('destinations')->count() > 0) {
             $this->command->info('Destinations already seeded — skipping.');
             return;
@@ -84,19 +90,11 @@ class DestinationSeeder extends Seeder
         return $templates[array_rand($templates)];
     }
 
-    /**
-     * Picsum gives a stable, real photo for every destination based on its name.
-     * No API key needed, never goes down, always returns a real image.
-     */
     private function getPlaceholderImage(string $name): string
     {
         $seed = abs(crc32($name)) % 1000;
         return "https://picsum.photos/seed/{$seed}/600/400";
     }
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Data  [name, country, region, category, mood, price, description, image, badge, is_hidden_gem, match_score]
-    // ──────────────────────────────────────────────────────────────────────────
 
     private function destinations(): array
     {
@@ -207,7 +205,6 @@ class DestinationSeeder extends Seeder
             ['Warsaw','Poland','europe','historical','cultural',1100,
                 'Phoenix city — reconstructed Old Town, poignant history, and vibrant modern energy.',
                 'https://images.unsplash.com/photo-1575637508295-3c4176d8a9d4?w=600&q=80',null,0,null],
-            // Hidden Gems — Europe
             ['Hallstatt','Austria','europe','mountain','romantic',2800,
                 'Fairy-tale lakeside village in the Salzkammergut that inspired a thousand postcards.',
                 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80','💝 Romantic',1,96],
@@ -347,7 +344,6 @@ class DestinationSeeder extends Seeder
             ['Istanbul','Turkey','middle_east','historical','cultural',1700,
                 'Where Europe meets Asia — the Blue Mosque, Grand Bazaar, and Bosphorus in one extraordinary city.',
                 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600&q=80',null,0,null],
-            // Hidden gems — Asia
             ['Chiang Mai','Thailand','asia','eco_tourism','cultural',750,
                 'Northern Thai gem of 300 temples, ethical elephant sanctuaries, and night bazaars.',
                 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=80',null,1,91],
@@ -421,7 +417,6 @@ class DestinationSeeder extends Seeder
             ['Cairo','Egypt','middle_east','historical','cultural',1100,
                 'Great Pyramid, Sphinx, Egyptian Museum, and the glorious energy of 20 million people.',
                 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=600&q=80',null,0,null],
-            // Hidden gems — Middle East
             ['Wadi Rum','Jordan','middle_east','eco_tourism','adventurous',1400,
                 'Mars-like desert of monolithic rock formations, Bedouin camps, and star-filled skies.',
                 'https://images.unsplash.com/photo-1538969867081-5f4e5e3c7b2a?w=600&q=80','🌿 Eco',1,92],
@@ -465,7 +460,6 @@ class DestinationSeeder extends Seeder
             ['Victoria Falls','Zimbabwe','africa','eco_tourism','adventurous',2000,
                 'The Smoke that Thunders — world\'s largest waterfall on the Zambezi, plus white-water rafting.',
                 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80','🌿 Eco',0,null],
-            // Hidden gems — Africa
             ['Chefchaouen','Morocco','africa','general','relaxed',900,
                 'The Blue Pearl — mountain village painted entirely in blue, perfect for peaceful wandering.',
                 'https://images.unsplash.com/photo-1548699894-68e1ad8c34bc?w=600&q=80','⭐ AI Pick',1,93],
@@ -533,7 +527,6 @@ class DestinationSeeder extends Seeder
             ['Tulum','Mexico','america','beach','relaxed',1600,
                 'Cliffside Mayan ruins above turquoise Caribbean, cenote swimming, and chic eco-resort scene.',
                 'https://images.unsplash.com/photo-1601918774946-25832a4be0d6?w=600&q=80',null,0,null],
-            // Hidden gems — Americas
             ['Iguazu Falls','Argentina','america','eco_tourism','adventurous',1800,
                 'Wider than Niagara, taller than Victoria — 275 waterfalls thundering through subtropical jungle.',
                 'https://images.unsplash.com/photo-1582610116397-edb72c1f6934?w=600&q=80','🌿 Eco',0,null],
@@ -598,7 +591,6 @@ class DestinationSeeder extends Seeder
             ['Bora Bora','French Polynesia','oceania','beach','romantic',4500,
                 'Mount Otemanu rising above a perfect turquoise lagoon — the ultimate South Pacific fantasy.',
                 'https://images.unsplash.com/photo-1589979481223-deb893043163?w=600&q=80','💝 Romantic',0,null],
-            // Hidden gems — Oceania
             ['Fiji - Yasawa Islands','Fiji','oceania','beach','relaxed',2500,
                 'Remote Melanesian island chain of extraordinary beaches, snorkelling, and traditional village life.',
                 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&q=80','🌊 Beach',1,93],
