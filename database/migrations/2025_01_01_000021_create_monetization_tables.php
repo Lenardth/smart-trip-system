@@ -9,6 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         // Coupons / promo codes
+        if (Schema::hasTable('coupons')) {
+            return;
+        }
+
         Schema::create('coupons', function (Blueprint $table) {
             $table->id();
             $table->string('code', 32)->unique();
@@ -65,16 +69,16 @@ return new class extends Migration
 
         // Add monetization columns to bookings
         Schema::table('bookings', function (Blueprint $table) {
-            $table->decimal('subtotal', 10, 2)->nullable()->after('total_price');
-            $table->decimal('discount_amount', 8, 2)->default(0)->after('subtotal');
-            $table->decimal('service_fee', 8, 2)->default(0)->after('discount_amount');
-            $table->string('coupon_code', 32)->nullable()->after('service_fee');
+            if (!Schema::hasColumn('bookings', 'subtotal'))         $table->decimal('subtotal', 10, 2)->nullable()->after('total_price');
+            if (!Schema::hasColumn('bookings', 'discount_amount'))  $table->decimal('discount_amount', 8, 2)->default(0)->after('subtotal');
+            if (!Schema::hasColumn('bookings', 'service_fee'))      $table->decimal('service_fee', 8, 2)->default(0)->after('discount_amount');
+            if (!Schema::hasColumn('bookings', 'coupon_code'))      $table->string('coupon_code', 32)->nullable()->after('service_fee');
         });
 
         // Add subscription column to users
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_premium')->default(false)->after('user_type');
-            $table->timestamp('premium_until')->nullable()->after('is_premium');
+            if (!Schema::hasColumn('users', 'is_premium'))    $table->boolean('is_premium')->default(false)->after('user_type');
+            if (!Schema::hasColumn('users', 'premium_until')) $table->timestamp('premium_until')->nullable()->after('is_premium');
         });
     }
 
