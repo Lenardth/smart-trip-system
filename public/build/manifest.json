@@ -1,11 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-D0uFkbD7.css",
+    "file": "assets/app-BpUFCggx.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-CYODLOER.js",
+    "file": "assets/app-CuZzs7b9.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -24,10 +24,7 @@
       "resources/js/blade/notifications/index.js",
       "resources/js/blade/profile/edit.js",
       "resources/js/blade/profile/edit.js",
-      "resources/js/blade/login.js",
-      "resources/js/blade/auth/register.js",
-      "resources/js/blade/login.js",
-      "resources/js/blade/login.js"
+      "resources/js/blade/auth/register.js"
     ]
   },
   "resources/js/blade/accommodations/index.js": {
@@ -88,12 +85,6 @@
     "file": "assets/index-DFj4oxtK.js",
     "name": "index",
     "src": "resources/js/blade/landing/index.js",
-    "isDynamicEntry": true
-  },
-  "resources/js/blade/login.js": {
-    "file": "assets/login-DtylD3rF.js",
-    "name": "login",
-    "src": "resources/js/blade/login.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/notifications/index.js": {

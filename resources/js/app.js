@@ -25,10 +25,10 @@ const routes = {
     '/register': () => import('./blade/auth/register.js'),
 };
 
-const loader = routes[path] ?
-    ? Object.entries(routes).find(([key]) =>
+const loader = routes[path] ??
+    Object.entries(routes).find(([key]) =>
         key !== '/' && path.startsWith(key + '/')
-    ) ? . [1];
+    )?.[1];
 
 if (loader) {
     if (document.readyState !== 'loading') {
