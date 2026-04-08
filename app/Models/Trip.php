@@ -33,6 +33,16 @@ class Trip extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function media()
+    {
+        return $this->hasMany(Media::class);
+    }
+
     public function getDurationLabelAttribute(): string
     {
         return [

@@ -13,7 +13,7 @@ class BookingController extends Controller
     public function __construct(private PricingService $pricing) {}
     public function index()
     {
-        $bookings = Booking::with(['flight', 'hotel', 'trip'])
+        $bookings = Booking::with(['flight', 'trip'])
             ->byUser(Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -26,7 +26,6 @@ class BookingController extends Controller
         )->count();
 
         $hotelCount = $all->filter(fn($b) =>
-            $b->hotel_id !== null ||
             ($b->passenger_details && ($b->passenger_details['type'] ?? '') === 'accommodation')
         )->count();
 
@@ -39,12 +38,10 @@ class BookingController extends Controller
     public function show(Booking $booking)
     {
         if ($booking->user_id !== Auth::id()) {
-            if (!$booking->flight || $booking->flight->user_id !== Auth::id()) {
-                abort(403);
-            }
+            abort(403);
         }
 
-        $booking->load(['flight', 'hotel', 'trip', 'user']);
+        $booking->load(['flight', 'trip', 'user']);
 
         return view('bookings.show', compact('booking'));
     }

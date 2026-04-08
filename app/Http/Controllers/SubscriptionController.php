@@ -21,6 +21,11 @@ class SubscriptionController extends Controller
             ->latest()
             ->first();
 
+        // Sync is_premium flag if subscription has expired
+        if ($user->is_premium && !$sub) {
+            $user->update(['is_premium' => false, 'premium_until' => null]);
+        }
+
         return response()->json([
             'is_premium'    => $user->is_premium,
             'premium_until' => $user->premium_until?->toDateString(),
