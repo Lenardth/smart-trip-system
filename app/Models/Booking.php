@@ -14,7 +14,6 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'flight_id',
-        'hotel_id',
         'trip_id',
         'booking_reference',
         'seats_booked',
@@ -39,14 +38,13 @@ class Booking extends Model
 
     public function user()   { return $this->belongsTo(User::class);   }
     public function flight() { return $this->belongsTo(Flight::class); }
-    public function hotel()  { return $this->belongsTo(Hotel::class);  }
     public function trip()   { return $this->belongsTo(Trip::class);   }
 
     public function getTypeAttribute(): string
     {
         if ($this->flight_id) return 'flights';
         if ($this->trip_id)   return 'trips';
-        if ($this->hotel_id)  return 'hotels';
+        if ($this->passenger_details && ($this->passenger_details['type'] ?? '') === 'accommodation') return 'hotels';
         return 'unknown';
     }
 
@@ -58,16 +56,10 @@ class Booking extends Model
             return "{$from} (" . strtoupper(substr($from, 0, 3)) . ") → "
                  . "{$to} ("   . strtoupper(substr($to,   0, 3)) . ")";
         }
-        if ($this->hotel) return $this->hotel->name;
-        if ($this->trip)  return $this->trip->name;
+        if ($this->trip) return $this->trip->name;
+        if ($this->passenger_details?->name) return $this->passenger_details['name'];
         return 'Booking #' . $this->booking_reference;
     }
-
-    public function isConfirmed(): bool  { return $this->status === 'confirmed'; }
-    public function isPending(): bool    { return $this->status === 'pending';   }
-    public function isCancelled(): bool  { return $this->status === 'cancelled'; }
-    public function isCompleted(): bool  { return $this->status === 'completed'; }
-    public function isActive(): bool     { return in_array($this->status, ['confirmed', 'pending']); }
 
     public function scopeConfirmed($query)       { return $query->where('status', 'confirmed'); }
     public function scopePending($query)         { return $query->where('status', 'pending');   }

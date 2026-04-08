@@ -61,5 +61,12 @@ class DatabaseSeeder extends Seeder
         } catch (\Throwable $e) {
             $this->command->warn('⚠ Accommodations skipped: ' . $e->getMessage());
         }
+
+        try {
+            $this->call(ItineraryDestinationSeeder::class);
+            $this->command->info('✓ Itinerary destinations seeded');
+        } catch (\Throwable $e) {
+            $this->command->warn('⚠ Itinerary destinations skipped: ' . $e->getMessage());
+        }
     }
 }

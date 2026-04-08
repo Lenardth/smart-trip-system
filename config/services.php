@@ -35,4 +35,8 @@ return [
         'key' => env('AVIATIONSTACK_KEY'),
     ],
 
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+    ],
+
 ];

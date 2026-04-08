@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use App\Models\Booking;
 use App\Models\Trip;
 use App\Models\Message;
@@ -189,22 +188,6 @@ class DashboardController extends Controller
             ->update(['read_at' => now()]);
 
         return response()->json(['success' => true]);
-    }
-
-    public function searchUsers(Request $request): JsonResponse
-    {
-        $query = $request->input('q', '');
-
-        $users = User::where('id', '!=', Auth::id())
-            ->where(function ($q) use ($query) {
-                $q->where('name',  'like', '%' . $query . '%')
-                  ->orWhere('email', 'like', '%' . $query . '%');
-            })
-            ->select('id', 'name', 'email', 'profile_picture')
-            ->limit(10)
-            ->get();
-
-        return response()->json(['users' => $users]);
     }
 
     public function sendChat(Request $request): JsonResponse

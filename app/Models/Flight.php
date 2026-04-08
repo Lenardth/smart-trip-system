@@ -40,11 +40,6 @@ class Flight extends Model
         return $query->where('is_active', true);
     }
 
-    public function scopeByAgency($query, $agencyId)
-    {
-        return $query->where('user_id', $agencyId);
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -53,24 +48,5 @@ class Flight extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class);
-    }
-
-    public function isAvailable()
-    {
-        return $this->is_active && $this->seats_available > 0;
-    }
-
-    public function hasAvailableSeats($seats = 1)
-    {
-        return $this->seats_available >= $seats;
-    }
-
-    public function formatDuration()
-    {
-        if ($this->departure_time && $this->arrival_time) {
-            $diff = $this->departure_time->diff($this->arrival_time);
-            return $diff->format('%hh %im');
-        }
-        return 'N/A';
     }
 }

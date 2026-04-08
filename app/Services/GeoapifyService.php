@@ -109,9 +109,4 @@ class GeoapifyService
             ],
         ];
     }
-
-    public function placeDetails(string $placeId): ?array
-    {
-        return null;
-    }
 }

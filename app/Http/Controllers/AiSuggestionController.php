@@ -75,7 +75,7 @@ class AiSuggestionController extends Controller
         $validated['accommodation'] = $this->normaliseAccommodation($validated['accommodation'] ?? null);
 
         try {
-            $apiKey = config('services.groq.key') ?: config('ai.groq.key') ?: env('GROQ_API_KEY');
+            $apiKey = config('services.groq.key') ?: env('GROQ_API_KEY');
 
             if (empty($apiKey)) {
                 throw new \RuntimeException('GROQ_API_KEY is not set.');

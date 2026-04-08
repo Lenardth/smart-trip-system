@@ -129,17 +129,4 @@ class DiscoverController extends Controller
             'match_score'  => $row['match_score'] ?? null,
         ]);
     }
-
-    public function debug(): JsonResponse
-    {
-        $cols  = Schema::getColumnListing('destinations');
-        $count = DB::table('destinations')->count();
-        $sample = DB::table('destinations')->first();
-
-        return response()->json([
-            'columns'      => $cols,
-            'total_rows'   => $count,
-            'sample_row'   => $sample,
-        ]);
-    }
 }

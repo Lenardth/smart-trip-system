@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
@@ -29,10 +28,7 @@ class Media extends Model
         'file_size' => 'integer',
     ];
 
-    protected $appends = [
-        'url',
-        'thumbnail',
-    ];
+    protected $appends = ['url'];
 
     public function user()
     {
@@ -47,40 +43,5 @@ class Media extends Model
     public function getUrlAttribute(): string
     {
         return asset('storage/' . $this->file_path);
-    }
-
-    public function getThumbnailAttribute(): string
-    {
-        if ($this->type === 'video') {
-            return $this->url;
-        }
-
-        $thumbPath = str_replace('.', '_thumb.', $this->file_path);
-
-        if (Storage::disk('public')->exists($thumbPath)) {
-            return asset('storage/' . $thumbPath);
-        }
-
-        return $this->url;
-    }
-
-    public function scopeImages($query)
-    {
-        return $query->where('type', 'image');
-    }
-
-    public function scopeVideos($query)
-    {
-        return $query->where('type', 'video');
-    }
-
-    public function scopeFavorites($query)
-    {
-        return $query->where('is_favorite', true);
-    }
-
-    public function scopeByTrip($query, $tripId)
-    {
-        return $query->where('trip_id', $tripId);
     }
 }

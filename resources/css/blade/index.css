@@ -1,12 +1,5 @@
-@import './layouts/app.css';
-@import './layouts/guest.css';
-
+@import './auth/shared-auth.css';
 @import './auth/login.css';
-@import './auth/register.css';
-@import './auth/confirm-password.css';
-@import './auth/forgot-password.css';
-@import './auth/reset-password.css';
-@import './auth/verify-email.css';
 
 @import './landing/index.css';
 @import './dashboard/index.css';

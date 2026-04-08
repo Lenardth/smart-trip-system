@@ -1,9 +1,15 @@
 window.App = {
     init() {
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        this.loadWishlistCount();
     },
     showToast(message, type = 'info') {
-        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
         document.querySelector('.app-toast')?.remove();
         const toast = document.createElement('div');
         toast.className = 'app-toast';
@@ -11,29 +17,51 @@ window.App = {
         toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+    },
+    updateWishlistBadge(count) {
+        document.querySelectorAll('#wishlistCount, #savedCount, #statSavedCount').forEach(el => {
+            el.textContent = count;
+        });
+    },
+    loadWishlistCount() {
+        fetch('/api/wishlist/count', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(r => {
+                if (!r.ok) return null;
+                return r.json();
+            })
+            .then(data => {
+                if (data) this.updateWishlistBadge(data.count?? 0);
+            })
+            .catch(() => {});
     }
 };
 
-window.toggleSidebar = function () {
+window.toggleSidebar = function() {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.toggle('active');
 };
 
-window.viewProfile = function () {
+window.viewProfile = function() {
     window.location.href = '/profile';
 };
-
-window.openSettings = function () {
+window.openSettings = function() {
     window.location.href = '/settings';
 };
 
-window.togglePublicNav = function () {
+window.togglePublicNav = function() {
     document.getElementById('publicNav')?.classList.toggle('open');
 };
 
-window.logout = function () {
+window.logout = function() {
     const existing = document.querySelector('.logout-form');
-    if (existing) { existing.submit(); return; }
+    if (existing) {
+        existing.submit();
+        return;
+    }
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/logout';
@@ -42,60 +70,88 @@ window.logout = function () {
     form.submit();
 };
 
-window.toggleNotifications = function () {
+window.toggleNotifications = function() {
     document.getElementById('notificationDropdown')?.classList.toggle('active');
 };
 
-window.switchNotificationTab = function (tab) {
+window.switchNotificationTab = function(tab) {
     document.querySelectorAll('.notification-tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`.notification-tab[data-tab="${tab}"]`)?.classList.add('active');
 };
 
-window.markAllRead = function () {
+window.markAllRead = function() {
     fetch('/api/notifications/mark-all-read', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
     }).then(() => {
         document.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
         const badge = document.getElementById('notificationCount');
         if (badge) badge.style.display = 'none';
         if (typeof Swal !== 'undefined') {
-            Swal.fire({ title: 'All marked as read', icon: 'success', timer: 1500, showConfirmButton: false, confirmButtonColor: '#c9a96e' });
+            Swal.fire({
+                title: 'All marked as read',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                confirmButtonColor: '#c9a96e'
+            });
         }
     }).catch(console.error);
 };
 
-window.openComposeMessage = function () {
+window.openComposeMessage = function() {
     window.location.href = '/chat';
 };
 
-window.handleNotificationClick = function (id) {
+window.handleNotificationClick = function(id) {
     fetch(`/api/notifications/${id}/read`, {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '', 'Content-Type': 'application/json' }
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            'Content-Type': 'application/json'
+        }
     }).catch(() => {});
 };
 
-window.openGallery = window.openGallery || function () {
+window.openGallery = window.openGallery || function() {
     const modal = document.getElementById('galleryModal');
-    if (modal) { modal.style.display = 'flex'; modal.classList.add('active'); }
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }
 };
 
-window.closeGallery = window.closeGallery || function () {
+window.closeGallery = window.closeGallery || function() {
     const modal = document.getElementById('galleryModal');
-    if (modal) { modal.style.display = 'none'; modal.classList.remove('active'); }
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
 };
 
-window.uploadPhotos = window.uploadPhotos || function () {
+window.uploadPhotos = window.uploadPhotos || function() {
     window.openGallery();
     setTimeout(() => document.getElementById('mediaInput')?.click(), 100);
 };
 
-document.addEventListener('click', function (e) {
+window.__refreshWishlistBadge = function() {
+    App.loadWishlistCount();
+};
+
+document.addEventListener('click', function(e) {
     const dropdown = document.getElementById('notificationDropdown');
     const btn = document.querySelector('.notification-btn');
     if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
         dropdown.classList.remove('active');
+    }
+});
+
+window.addEventListener('storage', function(e) {
+    if (e.key === 'smartBookingWishlistUpdated' && e.newValue) {
+        App.loadWishlistCount();
     }
 });
 

@@ -94,11 +94,11 @@
                             @if($booking->flight?->arrival_time)
                                 <span><i class="fas fa-calendar-check"></i> {{ $booking->flight->arrival_time->format('M j, Y') }}</span>
                             @endif
-                            @if($booking->hotel?->check_in)
-                                <span><i class="fas fa-calendar-alt"></i> {{ \Carbon\Carbon::parse($booking->hotel->check_in)->format('M j, Y') }}</span>
+                            @if($booking->passenger_details?->check_in)
+                                <span><i class="fas fa-calendar-alt"></i> {{ \Carbon\Carbon::parse($booking->passenger_details['check_in'])->format('M j, Y') }}</span>
                             @endif
-                            @if($booking->hotel?->check_out)
-                                <span><i class="fas fa-calendar-check"></i> {{ \Carbon\Carbon::parse($booking->hotel->check_out)->format('M j, Y') }}</span>
+                            @if($booking->passenger_details?->check_out)
+                                <span><i class="fas fa-calendar-check"></i> {{ \Carbon\Carbon::parse($booking->passenger_details['check_out'])->format('M j, Y') }}</span>
                             @endif
                             <span>
                                 <i class="fas fa-users"></i>
@@ -107,8 +107,8 @@
                             @if($booking->flight?->airline)
                                 <span><i class="fas fa-plane-departure"></i> {{ $booking->flight->airline }}</span>
                             @endif
-                            @if($booking->hotel?->name)
-                                <span><i class="fas fa-bed"></i> {{ $booking->hotel->name }}</span>
+                            @if($booking->passenger_details?->name && $booking->type === 'hotels')
+                                <span><i class="fas fa-bed"></i> {{ $booking->passenger_details['name'] }}</span>
                             @endif
                         </div>
                         <span class="booking-ref">REF: {{ $booking->booking_reference }}</span>
@@ -119,22 +119,22 @@
                     </div>
                     <div class="booking-actions">
                         <span class="status-badge status-{{ $booking->status }}">
-                            <i class="fas {{ $booking->isConfirmed() ? 'fa-check-circle' : ($booking->isPending() ? 'fa-clock' : ($booking->isCompleted() ? 'fa-flag-checkered' : 'fa-times-circle')) }}"></i>
+                            <i class="fas {{ $booking->status === 'confirmed' ? 'fa-check-circle' : ($booking->status === 'pending' ? 'fa-clock' : ($booking->status === 'completed' ? 'fa-flag-checkered' : 'fa-times-circle')) }}"></i>
                             {{ ucfirst($booking->status) }}
                         </span>
                         <div class="action-btns">
                             <button class="action-btn" onclick="toggleDetail('{{ $booking->id }}')">
                                 <i class="fas fa-chevron-down"></i> Details
                             </button>
-                            @if($booking->isActive())
+                            @if(in_array($booking->status, ['confirmed', 'pending']))
                                 <button class="action-btn danger" onclick="cancelBooking('{{ $booking->id }}')">
                                     <i class="fas fa-times"></i>
                                 </button>
-                            @elseif($booking->isCompleted())
+                            @elseif($booking->status === 'completed')
                                 <button class="action-btn primary" onclick="leaveReview('{{ $booking->id }}')">
                                     <i class="fas fa-star"></i> Review
                                 </button>
-                            @elseif($booking->isCancelled())
+                            @elseif($booking->status === 'cancelled')
                                 <button class="action-btn primary" onclick="rebookBooking('{{ $booking->id }}')">
                                     <i class="fas fa-redo"></i> Rebook
                                 </button>
@@ -153,9 +153,9 @@
                             <div class="detail-item"><label>Flight</label><span>{{ $booking->flight->flight_number }} — {{ $booking->flight->airline }}</span></div>
                             <div class="detail-item"><label>Class</label><span>{{ ucfirst($booking->flight->class) }}</span></div>
                         @endif
-                        @if($booking->hotel)
-                            <div class="detail-item"><label>Hotel</label><span>{{ $booking->hotel->name }}</span></div>
-                            <div class="detail-item"><label>Room</label><span>{{ $booking->hotel->room_type ?? 'Standard' }}</span></div>
+                        @if($booking->type === 'hotels' && $booking->passenger_details)
+                            <div class="detail-item"><label>Accommodation</label><span>{{ $booking->passenger_details['name'] ?? '—' }}</span></div>
+                            <div class="detail-item"><label>Style</label><span>{{ ucfirst($booking->passenger_details['style'] ?? 'Standard') }}</span></div>
                         @endif
                         @if($booking->trip)
                             <div class="detail-item"><label>Trip</label><span>{{ $booking->trip->name }}</span></div>

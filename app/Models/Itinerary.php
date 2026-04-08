@@ -25,10 +25,10 @@ class Itinerary extends Model
 
     protected $casts = [
         'departure_date' => 'date',
-        'return_date' => 'date',
-        'generated_at' => 'datetime',
-        'travelers' => 'integer',
-        'budget' => 'integer',
+        'return_date'    => 'date',
+        'generated_at'   => 'datetime',
+        'travelers'      => 'integer',
+        'budget'         => 'integer',
     ];
 
     public function user()
@@ -36,26 +36,18 @@ class Itinerary extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function getDurationAttribute()
+    public static function resolveDestinationName(string $code): string
+    {
+        return ItineraryDestination::resolveLabel($code);
+    }
+
+    public function getDurationAttribute(): int
     {
         return $this->departure_date->diffInDays($this->return_date);
     }
 
-    public function getFormattedDestinationAttribute()
+    public function getFormattedDestinationAttribute(): string
     {
-        $destinations = [
-            'bali' => 'Bali, Indonesia',
-            'kyoto' => 'Kyoto, Japan',
-            'swiss' => 'Swiss Alps, Switzerland',
-            'santorini' => 'Santorini, Greece',
-            'paris' => 'Paris, France',
-            'lisbon' => 'Lisbon, Portugal',
-            'bangkok' => 'Bangkok, Thailand',
-            'amalfi' => 'Amalfi Coast, Italy',
-            'nz' => 'New Zealand',
-            'morocco' => 'Morocco',
-        ];
-
-        return $destinations[$this->destination] ?? ucfirst($this->destination);
+        return self::resolveDestinationName($this->destination);
     }
 }

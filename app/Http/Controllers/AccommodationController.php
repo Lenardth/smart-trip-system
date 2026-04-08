@@ -112,18 +112,6 @@ class AccommodationController extends Controller
         return response()->json(['searches' => $searches]);
     }
 
-    public function debug(Request $request): JsonResponse
-    {
-        abort_unless(app()->isLocal(), 403);
-
-        $q = trim($request->input('q', 'Paris'));
-
-        return response()->json([
-            'query'   => $q,
-            'geocode' => $this->geoapify->geocodeCity($q),
-        ]);
-    }
-
     private function formatAccommodation(array $a): array
     {
         return [

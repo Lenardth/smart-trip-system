@@ -18,9 +18,4 @@ class Subscription extends Model
     ];
 
     public function user() { return $this->belongsTo(User::class); }
-
-    public function isActive(): bool
-    {
-        return $this->status === 'active' && $this->ends_at->isFuture();
-    }
 }

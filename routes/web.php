@@ -59,11 +59,8 @@ Route::prefix('api/discover')->group(function () {
     Route::get('/hidden-gems',           [DiscoverController::class, 'hiddenGems'])->name('api.discover.hidden-gems');
 });
 
-Route::get('/destinations',                 [DestinationController::class, 'index'])->name('destinations');
-Route::get('/destinations/compare',         [DestinationController::class, 'compare'])->name('destinations.compare');
-Route::post('/destinations/compare/add',    [DestinationController::class, 'addToCompare'])->name('destinations.compare.add');
-Route::post('/destinations/compare/remove', [DestinationController::class, 'removeFromCompare'])->name('destinations.compare.remove');
-Route::get('/destinations/{id}',            [DestinationController::class, 'show'])->name('destinations.show')->where('id', '[0-9]+');
+Route::get('/destinations',      [DestinationController::class, 'index'])->name('destinations');
+Route::get('/destinations/{id}', [DestinationController::class, 'show'])->name('destinations.show')->where('id', '[0-9]+');
 
 Route::get('/about',   fn() => view('about.index'))->name('about');
 Route::get('/privacy', fn() => view('privacy.index'))->name('privacy');
@@ -169,16 +166,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/itineraries', [ItineraryController::class, 'store']);
 
         Route::get('/media',                   [MediaController::class, 'index']);
+        Route::get('/media/{media}',           [MediaController::class, 'show']);
         Route::post('/media/upload',           [MediaController::class, 'upload']);
         Route::delete('/media/delete',         [MediaController::class, 'delete']);
         Route::post('/media/{media}/favorite', [MediaController::class, 'toggleFavorite']);
-        Route::put('/media/{media}',           [MediaController::class, 'update']);
+        Route::patch('/media/{media}',         [MediaController::class, 'update']);
         Route::get('/dashboard/stats',         [MediaController::class, 'stats']);
 
         Route::get('/trips',           [TripController::class, 'index']);
         Route::get('/trips/upcoming',  [TripController::class, 'upcoming']);
         Route::post('/trips',          [TripController::class, 'store']);
-        Route::put('/trips/{id}',      [TripController::class, 'update']);
         Route::patch('/trips/{id}',    [TripController::class, 'update']);
         Route::delete('/trips/{id}',   [TripController::class, 'destroy']);
 
