@@ -53,7 +53,7 @@ class Booking extends Model
         if ($this->flight) {
             $from = $this->flight->departure_city;
             $to   = $this->flight->arrival_city;
-            return "{$from} (" . strtoupper(substr($from, 0, 3)) . ") → "
+            return "{$from} (" . strtoupper(substr($from, 0, 3)) . ") ? "
                  . "{$to} ("   . strtoupper(substr($to,   0, 3)) . ")";
         }
         if ($this->trip) return $this->trip->name;

@@ -25,7 +25,7 @@ class AccommodationController extends Controller
         $style      = $request->input('style');
         $budgetTier = $request->input('budget_tier');
 
-        // No query — return existing DB accommodations
+        
         if (!$q || strlen($q) < 2) {
             $dbResults = Accommodation::active()
                 ->when($style,      fn($query) => $query->byStyle($style))
@@ -37,7 +37,7 @@ class AccommodationController extends Controller
             return response()->json(['accommodations' => $dbResults]);
         }
 
-        // Has query — fetch from Geoapify and persist to DB
+        
         $places = $this->geoapify->placesByCity($q, [], 100);
 
         if (empty($places)) {
@@ -77,7 +77,7 @@ class AccommodationController extends Controller
             );
         }
 
-        // Return from DB so data is always consistent
+        
         $results = Accommodation::active()
             ->byCity($q)
             ->when($style,      fn($query) => $query->byStyle($style))

@@ -12,7 +12,7 @@ class AviationstackService
     private ?string $key;
 
     private array $airportMap = [
-        // Europe
+        
         'budapest'        => 'BUD', 'london'          => 'LHR', 'paris'           => 'CDG',
         'amsterdam'       => 'AMS', 'frankfurt'       => 'FRA', 'istanbul'        => 'IST',
         'rome'            => 'FCO', 'madrid'          => 'MAD', 'barcelona'       => 'BCN',
@@ -44,14 +44,14 @@ class AviationstackService
         'bratislava'      => 'BTS', 'krakow'          => 'KRK', 'gdansk'          => 'GDN',
         'wroclaw'         => 'WRO', 'poznan'          => 'POZ', 'katowice'        => 'KTW',
         'budapest'        => 'BUD', 'debrecen'        => 'DEB',
-        // Middle East
+        
         'dubai'           => 'DXB', 'abu dhabi'       => 'AUH', 'doha'            => 'DOH',
         'riyadh'          => 'RUH', 'jeddah'          => 'JED', 'muscat'          => 'MCT',
         'kuwait'          => 'KWI', 'kuwait city'     => 'KWI', 'bahrain'         => 'BAH',
         'amman'           => 'AMM', 'beirut'          => 'BEY', 'tel aviv'        => 'TLV',
         'jerusalem'       => 'TLV', 'tehran'          => 'IKA', 'baghdad'         => 'BGW',
         'erbil'           => 'EBL', 'sharjah'         => 'SHJ', 'ras al khaimah'  => 'RKT',
-        // Asia
+        
         'singapore'       => 'SIN', 'tokyo'           => 'NRT', 'osaka'           => 'KIX',
         'sydney'          => 'SYD', 'hong kong'       => 'HKG', 'beijing'         => 'PEK',
         'shanghai'        => 'PVG', 'seoul'           => 'ICN', 'bangkok'         => 'BKK',
@@ -76,7 +76,7 @@ class AviationstackService
         'medan'           => 'KNO', 'makassar'        => 'UPG', 'cebu'            => 'CEB',
         'macau'           => 'MFM', 'langkawi'        => 'LGK', 'penang'          => 'PEN',
         'kota kinabalu'   => 'BKI', 'kuching'         => 'KCH',
-        // Africa
+        
         'johannesburg'    => 'JNB', 'cape town'       => 'CPT', 'nairobi'         => 'NBO',
         'cairo'           => 'CAI', 'casablanca'      => 'CMN', 'lagos'           => 'LOS',
         'accra'           => 'ACC', 'addis ababa'     => 'ADD', 'dar es salaam'   => 'DAR',
@@ -89,7 +89,7 @@ class AviationstackService
         'luanda'          => 'LAD', 'windhoek'        => 'WDH', 'gaborone'        => 'GBE',
         'durban'          => 'DUR', 'port elizabeth'  => 'PLZ', 'bloemfontein'    => 'BFN',
         'mauritius'       => 'MRU', 'reunion'         => 'RUN', 'seychelles'      => 'SEZ',
-        // Americas
+        
         'new york'        => 'JFK', 'los angeles'     => 'LAX', 'chicago'         => 'ORD',
         'miami'           => 'MIA', 'san francisco'   => 'SFO', 'dallas'          => 'DFW',
         'houston'         => 'IAH', 'atlanta'         => 'ATL', 'toronto'         => 'YYZ',
@@ -114,7 +114,7 @@ class AviationstackService
         'raleigh'         => 'RDU', 'richmond'        => 'RIC', 'baltimore'       => 'BWI',
         'philadelphia'    => 'PHL', 'newark'          => 'EWR', 'jfk'             => 'JFK',
         'lax'             => 'LAX', 'lhr'             => 'LHR', 'cdg'             => 'CDG',
-        // Oceania
+        
         'melbourne'       => 'MEL', 'brisbane'        => 'BNE', 'perth'           => 'PER',
         'auckland'        => 'AKL', 'wellington'      => 'WLG', 'christchurch'    => 'CHC',
         'adelaide'        => 'ADL', 'gold coast'      => 'OOL', 'cairns'          => 'CNS',
@@ -132,29 +132,29 @@ class AviationstackService
     {
         $input = trim($input);
 
-        // Already a 3-letter IATA code
+        
         if (preg_match('/^[A-Za-z]{3}$/', $input)) {
             return strtoupper($input);
         }
 
-        // Normalize: lowercase, strip common suffixes
+        
         $lower = strtolower($input);
         $lower = preg_replace('/\s*(international|airport|intl|city|centre|center)\s*/', ' ', $lower);
         $lower = preg_replace('/\s+/', ' ', trim($lower));
 
-        // Exact match
+        
         if (isset($this->airportMap[$lower])) {
             return $this->airportMap[$lower];
         }
 
-        // Partial match — input contains map key or map key contains input
+        
         foreach ($this->airportMap as $city => $iata) {
             if (str_contains($lower, $city) || str_contains($city, $lower)) {
                 return $iata;
             }
         }
 
-        // Word-level match — any word in input matches start of a city name
+        
         $words = explode(' ', $lower);
         foreach ($words as $word) {
             if (strlen($word) < 3) continue;

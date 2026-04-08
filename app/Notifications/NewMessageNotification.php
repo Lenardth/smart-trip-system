@@ -29,7 +29,7 @@ class NewMessageNotification extends Notification
             'type'    => 'chat',
             'title'   => 'New message from ' . $sender->name,
             'message' => strlen($this->message->body) > 80
-                ? substr($this->message->body, 0, 80) . 'â€¦'
+                ? substr($this->message->body, 0, 80) . '…'
                 : $this->message->body,
             'url'     => '/chat/' . $sender->id,
             'user'    => [

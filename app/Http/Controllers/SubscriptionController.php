@@ -21,7 +21,7 @@ class SubscriptionController extends Controller
             ->latest()
             ->first();
 
-        // Sync is_premium flag if subscription has expired
+        
         if ($user->is_premium && !$sub) {
             $user->update(['is_premium' => false, 'premium_until' => null]);
         }
@@ -53,8 +53,8 @@ class SubscriptionController extends Controller
 
         $user = Auth::user();
 
-        // In production, verify payment with your gateway here
-        // For now we trust the payment_reference as proof of payment
+        
+        
 
         $starts = now();
         $ends   = now()->addDays(self::PREMIUM_DAYS);

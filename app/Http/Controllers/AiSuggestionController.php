@@ -179,7 +179,7 @@ class AiSuggestionController extends Controller
         curl_close($ch);
 
         if ($body === false) throw new \RuntimeException("cURL error: {$err}");
-        if ($status === 401) throw new \RuntimeException('Groq authentication failed â€” check GROQ_API_KEY.');
+        if ($status === 401) throw new \RuntimeException('Groq authentication failed — check GROQ_API_KEY.');
         if ($status >= 400) {
             Log::error('Groq API error', ['status' => $status, 'body' => $body]);
             throw new \RuntimeException("Groq API error {$status}: " . substr($body, 0, 300));
@@ -209,9 +209,9 @@ class AiSuggestionController extends Controller
         $year  = now()->year;
 
         $duration = match ($p['duration']) {
-            'weekend'   => 'a long weekend (3â€“4 days)',
+            'weekend'   => 'a long weekend (3–4 days)',
             'week'      => 'one week (7 days)',
-            'two_weeks' => 'two weeks (10â€“14 days)',
+            'two_weeks' => 'two weeks (10–14 days)',
             'month'     => 'one month or longer',
             'flexible'  => 'a flexible open-ended trip',
             default     => $p['duration'],
@@ -219,9 +219,9 @@ class AiSuggestionController extends Controller
 
         $budget = match ($p['budget']) {
             'backpacker' => 'backpacker (under $500 USD total)',
-            'budget'     => 'budget-friendly ($500â€“$1,500 USD)',
-            'mid'        => 'mid-range ($1,500â€“$4,000 USD)',
-            'premium'    => 'premium ($4,000â€“$8,000 USD)',
+            'budget'     => 'budget-friendly ($500–$1,500 USD)',
+            'mid'        => 'mid-range ($1,500–$4,000 USD)',
+            'premium'    => 'premium ($4,000–$8,000 USD)',
             'luxury'     => 'luxury ($8,000+ USD)',
             default      => $p['budget'],
         };
@@ -231,7 +231,7 @@ class AiSuggestionController extends Controller
             'couple'        => 'couple',
             'family_young'  => 'family with young children',
             'family_teens'  => 'family with teenagers',
-            'friends_small' => 'small group of friends (2â€“4)',
+            'friends_small' => 'small group of friends (2–4)',
             'friends_large' => 'large group of friends (5+)',
             'business'      => 'business traveller',
             default         => $p['companion'],
@@ -253,7 +253,7 @@ class AiSuggestionController extends Controller
         $exclCountries = array_filter($p['excluded_countries']    ?? []);
 
         if (!empty($exclDests) || !empty($exclCountries)) {
-            $excludedStr = "\n\nDo not repeat any of these â€” they've already been shown:";
+            $excludedStr = "\n\nDo not repeat any of these — they've already been shown:";
             if (!empty($exclDests)) {
                 $safe = array_map(fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d), $exclDests);
                 $excludedStr .= "\nDestinations already shown: " . implode(', ', $safe) . '.';
@@ -266,18 +266,18 @@ class AiSuggestionController extends Controller
         }
 
         $system = <<<SYSTEM
-You are someone who has spent years travelling and now helps friends figure out where to go. You are not a travel agent and you do not write like one. You write the way a well-travelled person texts a friend â€” short sentences mixed with longer ones, the occasional aside, a mild opinion here and there. You never use words like "vibrant", "nestled", "boasts", "tapestry", "gem", "paradise", or "breathtaking". You never start a sentence with "Whether you're". You never write in bullet points inside the description field.
+You are someone who has spent years travelling and now helps friends figure out where to go. You are not a travel agent and you do not write like one. You write the way a well-travelled person texts a friend — short sentences mixed with longer ones, the occasional aside, a mild opinion here and there. You never use words like "vibrant", "nestled", "boasts", "tapestry", "gem", "paradise", or "breathtaking". You never start a sentence with "Whether you're". You never write in bullet points inside the description field.
 
 Today is {$month} {$year}. Use this to judge whether a destination is actually good to visit right now.
 
 For each destination:
-- description: 2â€“3 sentences. Write like you've been there. Name something specific â€” a street, a dish, a neighbourhood, a weird local habit. Keep it conversational, not promotional.
-- travel_tip: one concrete thing most people don't know. Not "book early" or "respect the culture". Something like: "the old town floods with tour groups by 10am â€” get there at 8" or "skip the famous beach and go to the one 20 minutes south".
+- description: 2–3 sentences. Write like you've been there. Name something specific — a street, a dish, a neighbourhood, a weird local habit. Keep it conversational, not promotional.
+- travel_tip: one concrete thing most people don't know. Not "book early" or "respect the culture". Something like: "the old town floods with tour groups by 10am — get there at 8" or "skip the famous beach and go to the one 20 minutes south".
 - visa_info: give the actual answer for the traveller's origin country if known. If not known, give the most common scenario. Don't say "check official sources".
 - flight_info: rough flight time, whether direct routes exist, and the most common layover city if not direct.
 - cost_min_usd / cost_max_usd: realistic total per-person cost including return flights, accommodation, food, and activities for the given budget tier and duration. Don't round to suspiciously clean numbers.
-- best_months: the actual 3â€“4 best months. Not "spring" or "dry season" â€” actual month names.
-- top_activities: 4â€“6 specific things to do. Not "explore the city" or "visit local markets". Real activities with names where possible.
+- best_months: the actual 3–4 best months. Not "spring" or "dry season" — actual month names.
+- top_activities: 4–6 specific things to do. Not "explore the city" or "visit local markets". Real activities with names where possible.
 - is_good_right_now: true only if {$month} is genuinely a decent time to go.
 
 Pick 5 destinations from 5 different countries. Spread them across different parts of the world when possible.
@@ -298,7 +298,7 @@ SYSTEM;
             'region'             => $d['region']        ?? '',
             'description'        => $d['description']   ?? '',
             'estimated_cost'     => '$' . number_format($d['cost_min_usd'] ?? 0)
-                                  . ' â€“ $' . number_format($d['cost_max_usd'] ?? 0)
+                                  . ' – $' . number_format($d['cost_max_usd'] ?? 0)
                                   . ' USD (' . ($d['cost_includes'] ?? 'flights, hotel, food') . ')',
             'best_time_to_visit' => implode(', ', $d['best_months']             ?? []),
             'is_good_right_now'  => (bool) ($d['is_good_right_now']             ?? false),

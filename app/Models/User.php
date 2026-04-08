@@ -82,7 +82,7 @@ class User extends Authenticatable
         return $this->agency_name ?: $this->name;
     }
 
-    // avatar is an alias for profile_picture_url for API consistency
+    
     public function getAvatarAttribute(): string
     {
         return $this->profile_picture_url;

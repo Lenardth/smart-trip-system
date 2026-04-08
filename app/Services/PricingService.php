@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class PricingService
 {
-    const SERVICE_FEE_RATE   = 0.05;  // 5%
-    const AGENCY_COMMISSION  = 0.10;  // 10% of booking goes to platform from agency bookings
+    const SERVICE_FEE_RATE   = 0.05;  
+    const AGENCY_COMMISSION  = 0.10;  
 
     public function calculate(float $subtotal, User $user, ?string $couponCode = null): array
     {
@@ -35,7 +35,7 @@ class PricingService
 
         $afterDiscount = max(0, $subtotal - $discount);
 
-        // Premium users pay no service fee
+        
         $serviceFee = $user->is_premium ? 0 : round($afterDiscount * self::SERVICE_FEE_RATE, 2);
 
         $total = $afterDiscount + $serviceFee;

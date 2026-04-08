@@ -24,7 +24,7 @@ class DashboardController extends Controller
         $userId = Auth::id();
         $activities = [];
 
-        // Recent trips
+        
         Trip::where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($t) use (&$activities) {
                 $activities[] = [
@@ -32,14 +32,14 @@ class DashboardController extends Controller
                     'icon'  => 'fa-route',
                     'color' => '#9c27b0',
                     'title' => 'Trip planned to ' . $t->destination,
-                    'sub'   => ($t->budget_label ?? '') . ($t->duration ? ' Â· ' . ($t->duration_label ?? $t->duration) : ''),
+                    'sub'   => ($t->budget_label ?? '') . ($t->duration ? ' · ' . ($t->duration_label ?? $t->duration) : ''),
                     'time'  => $t->created_at->diffForHumans(),
                     'ts'    => $t->created_at->timestamp,
                     'url'   => '/plan-trip',
                 ];
             });
 
-        // Recent bookings
+        
         Booking::where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($b) use (&$activities) {
                 $activities[] = [
@@ -47,14 +47,14 @@ class DashboardController extends Controller
                     'icon'  => 'fa-ticket-alt',
                     'color' => '#4caf50',
                     'title' => 'Booking: ' . ($b->title ?? 'Ref #' . $b->booking_reference),
-                    'sub'   => '$' . number_format($b->total_price) . ' Â· ' . ucfirst($b->status),
+                    'sub'   => '$' . number_format($b->total_price) . ' · ' . ucfirst($b->status),
                     'time'  => $b->created_at->diffForHumans(),
                     'ts'    => $b->created_at->timestamp,
                     'url'   => '/bookings',
                 ];
             });
 
-        // Recent wishlist saves
+        
         SavedDestination::with('destination:id,name,country')
             ->where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($s) use (&$activities) {
@@ -72,7 +72,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Recent photo uploads
+        
         Media::where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($m) use (&$activities) {
                 $activities[] = [
@@ -80,14 +80,14 @@ class DashboardController extends Controller
                     'icon'  => 'fa-images',
                     'color' => '#2196f3',
                     'title' => 'Uploaded: ' . ($m->title ?? $m->file_name),
-                    'sub'   => ucfirst($m->type) . ' Â· ' . number_format($m->file_size / 1024, 0) . ' KB',
+                    'sub'   => ucfirst($m->type) . ' · ' . number_format($m->file_size / 1024, 0) . ' KB',
                     'time'  => $m->created_at->diffForHumans(),
                     'ts'    => $m->created_at->timestamp,
                     'url'   => '/dashboard',
                 ];
             });
 
-        // Recent messages sent
+        
         \App\Models\Message::where('sender_id', $userId)->latest()->limit(3)->get()
             ->each(function ($msg) use (&$activities) {
                 $activities[] = [
@@ -95,14 +95,14 @@ class DashboardController extends Controller
                     'icon'  => 'fa-comment-dots',
                     'color' => '#c9a96e',
                     'title' => 'Message sent',
-                    'sub'   => mb_strlen($msg->body) > 50 ? mb_substr($msg->body, 0, 50) . 'â€¦' : $msg->body,
+                    'sub'   => mb_strlen($msg->body) > 50 ? mb_substr($msg->body, 0, 50) . '…' : $msg->body,
                     'time'  => $msg->created_at->diffForHumans(),
                     'ts'    => $msg->created_at->timestamp,
                     'url'   => '/chat',
                 ];
             });
 
-        // Sort by most recent, take top 10
+        
         usort($activities, fn($a, $b) => $b['ts'] - $a['ts']);
         $sorted = array_slice($activities, 0, 10);
 

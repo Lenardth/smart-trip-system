@@ -44,7 +44,7 @@ class FlightController extends Controller
                 ], 422);
             }
 
-            usleep(1000000); // 1s before flight search to respect rate limit
+            usleep(1000000); 
             $flights = $this->aviationstack->searchFlights(
                 $fromCode,
                 $toCode,

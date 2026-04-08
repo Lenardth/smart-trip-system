@@ -121,7 +121,7 @@ class ItineraryController extends Controller
 
     private function buildDayPlans(string $destination, string $mood, int $budget): array
     {
-        // Try exact destination code first, fall back to 'bali' as default
+        
         $plans = ItineraryDayPlan::where('destination_code', $destination)
             ->orderBy('day')
             ->get();
