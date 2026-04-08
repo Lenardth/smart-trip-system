@@ -51,7 +51,7 @@ class Trip extends Model
             'two_weeks' => 'Two Weeks',
             'month'     => 'One Month+',
             'flexible'  => 'Flexible',
-        ][$this->duration] ?? $this->duration ?? '—';
+        ][$this->duration] ?? $this->duration ?? '-';
     }
 
     public function getBudgetLabelAttribute(): string
@@ -62,6 +62,6 @@ class Trip extends Model
             'mid'        => 'Mid-Range',
             'premium'    => 'Premium',
             'luxury'     => 'Luxury',
-        ][$this->budget] ?? $this->budget ?? '—';
+        ][$this->budget] ?? $this->budget ?? '-';
     }
 }

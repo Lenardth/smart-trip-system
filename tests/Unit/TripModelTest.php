@@ -41,7 +41,7 @@ class TripModelTest extends TestCase
     public function test_duration_label_returns_dash_when_null(): void
     {
         $trip = $this->makeTrip(['duration' => null]);
-        $this->assertSame('—', $trip->getDurationLabelAttribute());
+        $this->assertSame('-', $trip->getDurationLabelAttribute());
     }
 
     public function test_budget_label_returns_human_readable_value(): void
@@ -69,6 +69,6 @@ class TripModelTest extends TestCase
     public function test_budget_label_returns_dash_when_null(): void
     {
         $trip = $this->makeTrip(['budget' => null]);
-        $this->assertSame('—', $trip->getBudgetLabelAttribute());
+        $this->assertSame('-', $trip->getBudgetLabelAttribute());
     }
 }
