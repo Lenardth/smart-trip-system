@@ -666,27 +666,30 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     function updateCounts(data) {
         data = data || {};
-        var photos   = data.photos        !== undefined ? data.photos        : mediaLibrary.length;
-        var trips    = data.trips         !== undefined ? data.trips         : 0;
-        var bookings = data.bookings      !== undefined ? data.bookings      : 0;
-        var saved    = data.saved         !== undefined ? data.saved         : 0;
-        var notifs   = data.notifications !== undefined ? data.notifications : unreadCount;
 
-        function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+        function set(id, v) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            // Never overwrite a real server-rendered value with 0
+            var current = parseInt(el.textContent, 10);
+            if (v === 0 && current > 0) return;
+            el.textContent = v;
+        }
 
-        set('statPhotosCount',  photos);
-        set('statTripsCount',   trips);
-        set('statBookingsCount',bookings);
-        set('statSavedCount',   saved);
-        set('bookingsCount',    bookings);
-        set('savedCount',       saved);
+        function setSub(id, v) {
+            var el = document.getElementById(id);
+            if (el) el.textContent = v;
+        }
 
-        set('photosSubtext',   photos   > 0 ? photos   + ' file'    + (photos   !== 1 ? 's' : '') + ' uploaded' : 'Upload to get started');
-        set('tripsSubtext',    trips    > 0 ? trips    + ' trip'    + (trips    !== 1 ? 's' : '') + ' planned'  : 'No trips yet');
-        set('bookingsSubtext', bookings > 0 ? bookings + ' booking' + (bookings !== 1 ? 's' : '') + ' active'   : 'No bookings yet');
-        set('savedSubtext',    saved    > 0 ? saved    + ' place'   + (saved    !== 1 ? 's' : '') + ' saved'    : 'View your wishlist');
+        if (data.photos   !== undefined) { set('statPhotosCount',  data.photos);   setSub('photosSubtext',   data.photos   > 0 ? data.photos   + ' file'    + (data.photos   !== 1 ? 's' : '') + ' uploaded' : 'Upload to get started'); }
+        if (data.trips    !== undefined) { set('statTripsCount',   data.trips);    setSub('tripsSubtext',    data.trips    > 0 ? data.trips    + ' trip'    + (data.trips    !== 1 ? 's' : '') + ' planned'  : 'No trips yet'); }
+        if (data.bookings !== undefined) { set('statBookingsCount',data.bookings); setSub('bookingsSubtext', data.bookings > 0 ? data.bookings + ' booking' + (data.bookings !== 1 ? 's' : '') + ' active'   : 'No bookings yet'); }
+        if (data.saved    !== undefined) { set('statSavedCount',   data.saved);    setSub('savedSubtext',    data.saved    > 0 ? data.saved    + ' place'   + (data.saved    !== 1 ? 's' : '') + ' saved'    : 'View your wishlist'); }
 
-        updateNotificationBadge(notifs);
+        if (data.bookings !== undefined) set('bookingsCount', data.bookings);
+        if (data.saved    !== undefined) set('savedCount',    data.saved);
+
+        if (data.notifications !== undefined) updateNotificationBadge(data.notifications);
     }
 
     function updateNotificationBadge(count) {
@@ -1076,9 +1079,13 @@ window.__dashboardConfig = window.__dashboardConfig || {
     }
 
     function updateMediaCounts() {
-        updateCounts({
-            photos: mediaLibrary.length
-        });
+        // Only update the photos count — don't touch trips/bookings/saved
+        var el = document.getElementById('statPhotosCount');
+        if (el) el.textContent = mediaLibrary.length;
+        var sub = document.getElementById('photosSubtext');
+        if (sub) sub.textContent = mediaLibrary.length > 0
+            ? mediaLibrary.length + ' file' + (mediaLibrary.length !== 1 ? 's' : '') + ' uploaded'
+            : 'Upload to get started';
     }
 
     function uploadPhotos() {
