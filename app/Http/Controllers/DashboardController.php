@@ -21,25 +21,41 @@ class DashboardController extends Controller
 
     public function recentActivity(): JsonResponse
     {
-        $userId = Auth::id();
+        $userId     = Auth::id();
         $activities = [];
 
-        
+        // Trips
         Trip::where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($t) use (&$activities) {
+                $dur = [
+                    'weekend'   => 'Long Weekend',
+                    'week'      => 'One Week',
+                    'two_weeks' => 'Two Weeks',
+                    'month'     => 'One Month+',
+                    'flexible'  => 'Flexible',
+                ][$t->duration] ?? $t->duration ?? '';
+
+                $bud = [
+                    'backpacker' => 'Backpacker',
+                    'budget'     => 'Budget',
+                    'mid'        => 'Mid-Range',
+                    'premium'    => 'Premium',
+                    'luxury'     => 'Luxury',
+                ][$t->budget] ?? $t->budget ?? '';
+
                 $activities[] = [
                     'type'  => 'trip',
                     'icon'  => 'fa-route',
                     'color' => '#9c27b0',
                     'title' => 'Trip planned to ' . $t->destination,
-                    'sub'   => ($t->budget_label ?? '') . ($t->duration ? ' · ' . ($t->duration_label ?? $t->duration) : ''),
+                    'sub'   => trim($bud . ($dur ? ' Â· ' . $dur : '')),
                     'time'  => $t->created_at->diffForHumans(),
                     'ts'    => $t->created_at->timestamp,
                     'url'   => '/plan-trip',
                 ];
             });
 
-        
+        // Bookings
         Booking::where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($b) use (&$activities) {
                 $activities[] = [
@@ -47,14 +63,14 @@ class DashboardController extends Controller
                     'icon'  => 'fa-ticket-alt',
                     'color' => '#4caf50',
                     'title' => 'Booking: ' . ($b->title ?? 'Ref #' . $b->booking_reference),
-                    'sub'   => '$' . number_format($b->total_price) . ' · ' . ucfirst($b->status),
+                    'sub'   => '$' . number_format((float) $b->total_price) . ' Â· ' . ucfirst($b->status),
                     'time'  => $b->created_at->diffForHumans(),
                     'ts'    => $b->created_at->timestamp,
                     'url'   => '/bookings',
                 ];
             });
 
-        
+        // Wishlist saves
         SavedDestination::with('destination:id,name,country')
             ->where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($s) use (&$activities) {
@@ -72,41 +88,43 @@ class DashboardController extends Controller
                 ];
             });
 
-        
+        // Photo uploads
         Media::where('user_id', $userId)->latest()->limit(5)->get()
             ->each(function ($m) use (&$activities) {
+                $kb = $m->file_size ? number_format($m->file_size / 1024, 0) . ' KB' : '';
                 $activities[] = [
                     'type'  => 'photo',
                     'icon'  => 'fa-images',
                     'color' => '#2196f3',
-                    'title' => 'Uploaded: ' . ($m->title ?? $m->file_name),
-                    'sub'   => ucfirst($m->type) . ' · ' . number_format($m->file_size / 1024, 0) . ' KB',
+                    'title' => 'Uploaded: ' . ($m->title ?? $m->file_name ?? 'Photo'),
+                    'sub'   => ucfirst($m->type ?? 'image') . ($kb ? ' Â· ' . $kb : ''),
                     'time'  => $m->created_at->diffForHumans(),
                     'ts'    => $m->created_at->timestamp,
                     'url'   => '/dashboard',
                 ];
             });
 
-        
-        \App\Models\Message::where('sender_id', $userId)->latest()->limit(3)->get()
+        // Messages sent
+        Message::where('sender_id', $userId)->latest()->limit(3)->get()
             ->each(function ($msg) use (&$activities) {
+                $preview = mb_strlen($msg->body) > 50
+                    ? mb_substr($msg->body, 0, 50) . 'â€¦'
+                    : $msg->body;
                 $activities[] = [
                     'type'  => 'message',
                     'icon'  => 'fa-comment-dots',
                     'color' => '#c9a96e',
                     'title' => 'Message sent',
-                    'sub'   => mb_strlen($msg->body) > 50 ? mb_substr($msg->body, 0, 50) . '…' : $msg->body,
+                    'sub'   => $preview,
                     'time'  => $msg->created_at->diffForHumans(),
                     'ts'    => $msg->created_at->timestamp,
                     'url'   => '/chat',
                 ];
             });
 
-        
         usort($activities, fn($a, $b) => $b['ts'] - $a['ts']);
-        $sorted = array_slice($activities, 0, 10);
 
-        return response()->json(['activities' => $sorted]);
+        return response()->json(['activities' => array_slice($activities, 0, 10)]);
     }
 
     public function statistics(): JsonResponse
@@ -114,8 +132,9 @@ class DashboardController extends Controller
         $user   = Auth::user();
         $userId = $user->id;
 
-        $trips    = Trip::where('user_id', $userId)->count();
-        $bookings = Booking::where('user_id', $userId)->count();
+        // Only count active/planned items so numbers match what user sees
+        $trips    = Trip::where('user_id', $userId)->where('status', 'planned')->count();
+        $bookings = Booking::where('user_id', $userId)->whereIn('status', ['confirmed', 'pending'])->count();
         $saved    = SavedDestination::where('user_id', $userId)->count();
         $photos   = Media::where('user_id', $userId)->count();
 
@@ -144,14 +163,10 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        $rows = $user->notifications()
-            ->latest()
-            ->limit(50)
-            ->get();
+        $rows = $user->notifications()->latest()->limit(50)->get();
 
         $mapped = $rows->map(function ($n) {
             $data = $n->data;
-
             return [
                 'id'      => $n->id,
                 'type'    => $data['type']    ?? 'system',
@@ -170,7 +185,6 @@ class DashboardController extends Controller
     public function markAllNotificationsRead(): JsonResponse
     {
         Auth::user()->unreadNotifications()->update(['read_at' => now()]);
-
         return response()->json(['success' => true]);
     }
 
@@ -203,9 +217,6 @@ class DashboardController extends Controller
             'body'        => $request->input('content'),
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-        ]);
+        return response()->json(['success' => true, 'message' => $message]);
     }
 }
