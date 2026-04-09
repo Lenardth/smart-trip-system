@@ -24,7 +24,15 @@
                 <i class="fas {{ $item['icon'] }}"></i>
                 <span>{{ $item['label'] }}</span>
                 @if(!empty($item['badge']))
-                    <span class="menu-badge" id="{{ $item['badge'] }}">0</span>
+                    @php
+                        $badgeVal = match($item['badge']) {
+                            'bookingsCount' => \App\Models\Booking::where('user_id', Auth::id())->whereIn('status',['confirmed','pending'])->count(),
+                            'savedCount'    => \App\Models\SavedDestination::where('user_id', Auth::id())->count(),
+                            default         => 0,
+                        };
+                    @endphp
+                    <span class="menu-badge" id="{{ $item['badge'] }}"
+                          style="{{ $badgeVal > 0 ? '' : 'display:none;' }}">{{ $badgeVal ?: 0 }}</span>
                 @endif
             </a>
         @endforeach

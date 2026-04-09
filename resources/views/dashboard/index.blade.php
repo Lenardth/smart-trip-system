@@ -66,33 +66,37 @@
         <div class="stat-card" onclick="openGallery()" style="cursor:pointer;">
             <div class="stat-icon photos"><i class="fas fa-images"></i></div>
             <div class="stat-info">
-                <h3 id="statPhotosCount">0</h3>
+                @php $photos = \App\Models\Media::where('user_id', Auth::id())->count(); @endphp
+                <h3 id="statPhotosCount">{{ $photos }}</h3>
                 <p>Total Photos</p>
-                <div class="stat-change"><span id="photosSubtext">Upload to get started</span></div>
+                <div class="stat-change"><span id="photosSubtext">{{ $photos > 0 ? $photos.' file'.($photos!==1?'s':'').' uploaded' : 'Upload to get started' }}</span></div>
             </div>
         </div>
         <div class="stat-card" onclick="window.location.href='/plan-trip'" style="cursor:pointer;">
             <div class="stat-icon trips"><i class="fas fa-route"></i></div>
             <div class="stat-info">
-                <h3 id="statTripsCount">0</h3>
+                @php $trips = \App\Models\Trip::where('user_id', Auth::id())->where('status','planned')->count(); @endphp
+                <h3 id="statTripsCount">{{ $trips }}</h3>
                 <p>Planned Trips</p>
-                <div class="stat-change"><span id="tripsSubtext">No trips yet</span></div>
+                <div class="stat-change"><span id="tripsSubtext">{{ $trips > 0 ? $trips.' trip'.($trips!==1?'s':'').' planned' : 'No trips yet' }}</span></div>
             </div>
         </div>
         <div class="stat-card" onclick="window.location.href='/bookings'" style="cursor:pointer;">
             <div class="stat-icon bookings"><i class="fas fa-ticket-alt"></i></div>
             <div class="stat-info">
-                <h3 id="statBookingsCount">0</h3>
+                @php $bookings = \App\Models\Booking::where('user_id', Auth::id())->whereIn('status',['confirmed','pending'])->count(); @endphp
+                <h3 id="statBookingsCount">{{ $bookings }}</h3>
                 <p>Active Bookings</p>
-                <div class="stat-change"><span id="bookingsSubtext">No bookings yet</span></div>
+                <div class="stat-change"><span id="bookingsSubtext">{{ $bookings > 0 ? $bookings.' booking'.($bookings!==1?'s':'').' active' : 'No bookings yet' }}</span></div>
             </div>
         </div>
         <div class="stat-card" onclick="window.location.href='/wishlist'" style="cursor:pointer;">
             <div class="stat-icon saved"><i class="fas fa-heart"></i></div>
             <div class="stat-info">
-                <h3 id="statSavedCount">0</h3>
+                @php $saved = \App\Models\SavedDestination::where('user_id', Auth::id())->count(); @endphp
+                <h3 id="statSavedCount">{{ $saved }}</h3>
                 <p>Saved Places</p>
-                <div class="stat-change"><span id="savedSubtext">View your wishlist</span></div>
+                <div class="stat-change"><span id="savedSubtext">{{ $saved > 0 ? $saved.' place'.($saved!==1?'s':'').' saved' : 'View your wishlist' }}</span></div>
             </div>
         </div>
     </div>
