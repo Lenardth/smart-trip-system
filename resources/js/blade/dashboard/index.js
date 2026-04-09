@@ -5,6 +5,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
     user: { name: "", firstName: "", avatar: "", type: "", verified: false, id: null }
 };
 
+// Import photo editor
+import './photo-editor.js';
+
 // ── Top-level stubs so onclick attributes work before the module loads ──────
 // These are replaced by the real functions once the IIFE executes.
 ['openGallery','closeGallery','triggerFileInput','triggerCamera','triggerVideoInput',
@@ -657,6 +660,8 @@ window.__dashboardConfig = window.__dashboardConfig || {
     window.deleteTrip = deleteTrip;
     window.loadUpcomingTrips = loadUpcomingTrips;
     window.loadUserStatistics = loadUserStatistics;
+    // Expose mediaLibrary so photo editor can access it
+    window.__mediaLibrary = mediaLibrary;
 
     function loadUserStatistics() {
         fetch('/api/user/statistics', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
@@ -812,26 +817,22 @@ window.__dashboardConfig = window.__dashboardConfig || {
     function editMediaTitle(index) {
         var item = mediaLibrary[index];
         if (!item) return;
-        _editingMediaIndex = index;
 
-        // Populate modal
-        var titleEl    = document.getElementById('editMediaTitle');
-        var locationEl = document.getElementById('editMediaLocation');
-        var favEl      = document.getElementById('editMediaFavorite');
-        var previewEl  = document.getElementById('editMediaPreview');
-
-        if (titleEl)    titleEl.value    = item.name     || '';
-        if (locationEl) locationEl.value = item.location || '';
-        if (favEl)      favEl.checked    = !!item.is_favorite;
-
-        if (previewEl) {
-            previewEl.innerHTML = item.type === 'image'
-                ? '<img src="' + item.src + '" style="max-width:100%;max-height:180px;object-fit:contain;">'
-                : '<video src="' + item.src + '" style="max-width:100%;max-height:180px;" controls></video>';
+        if (item.type === 'image' && window.openPhotoEditor) {
+            // Open iPhone-style editor for images
+            window.openPhotoEditor(index, mediaLibrary);
+        } else {
+            // Open metadata modal for videos / non-images
+            _editingMediaIndex = index;
+            var titleEl    = document.getElementById('editMediaTitle');
+            var locationEl = document.getElementById('editMediaLocation');
+            var favEl      = document.getElementById('editMediaFavorite');
+            if (titleEl)    titleEl.value    = item.name     || '';
+            if (locationEl) locationEl.value = item.location || '';
+            if (favEl)      favEl.checked    = !!item.is_favorite;
+            var modal = document.getElementById('editMediaModal');
+            if (modal) modal.classList.add('open');
         }
-
-        var modal = document.getElementById('editMediaModal');
-        if (modal) modal.classList.add('open');
     }
 
     function closeEditMedia() {
@@ -923,25 +924,75 @@ window.__dashboardConfig = window.__dashboardConfig || {
     function viewMedia(index) {
         currentMediaIndex = index;
         var item = mediaLibrary[index];
-        var content = document.getElementById('viewerContent');
-        if (!content) return;
-        content.innerHTML = item.type === 'image' ?
-            '<img src="' + item.src + '" alt="' + item.name + '">' :
-            '<video src="' + item.src + '" controls autoplay></video>';
-        var viewer = document.getElementById('mediaViewer');
+        if (!item) return;
+
+        var viewer   = document.getElementById('mediaViewer');
+        var img      = document.getElementById('viewerImg');
+        var video    = document.getElementById('viewerVideo');
+        var canvas   = document.getElementById('peCanvas');
+        var title    = document.getElementById('viewerTitle');
+        var toggle   = document.getElementById('viewerEditToggle');
+        var tools    = document.getElementById('viewerEditTools');
+
+        if (title) title.textContent = item.name || item.file_name || '';
+
+        // Reset to view mode
+        if (img)    { img.style.display    = 'none'; img.src    = ''; }
+        if (video)  { video.style.display  = 'none'; video.src  = ''; }
+        if (canvas) { canvas.style.display = 'none'; }
+        if (tools)  tools.style.display = 'none';
+
+        if (item.type === 'image') {
+            if (img) { img.src = item.src; img.style.display = 'block'; }
+            if (toggle) toggle.style.display = 'flex';
+            // Reset edit mode buttons
+            var btnView = document.getElementById('btnViewMode');
+            var btnEdit = document.getElementById('btnEditMode');
+            if (btnView) { btnView.classList.add('active'); }
+            if (btnEdit) { btnEdit.classList.remove('active'); }
+        } else {
+            if (video) { video.src = item.src; video.style.display = 'block'; }
+            if (toggle) toggle.style.display = 'none';
+        }
+
         if (viewer) viewer.classList.add('active');
     }
 
     function closeViewer() {
         var viewer = document.getElementById('mediaViewer');
         if (viewer) viewer.classList.remove('active');
-        var content = document.getElementById('viewerContent');
-        if (content) content.innerHTML = '';
+        var video = document.getElementById('viewerVideo');
+        if (video) { video.pause(); video.src = ''; }
+        if (typeof PE !== 'undefined') PE.close();
     }
 
+    window.setViewerMode = function(mode) {
+        var img    = document.getElementById('viewerImg');
+        var canvas = document.getElementById('peCanvas');
+        var tools  = document.getElementById('viewerEditTools');
+        var btnView= document.getElementById('btnViewMode');
+        var btnEdit= document.getElementById('btnEditMode');
+
+        if (mode === 'edit') {
+            if (img)    img.style.display    = 'none';
+            if (canvas) canvas.style.display = 'block';
+            if (tools)  tools.style.display  = 'block';
+            if (btnView) btnView.classList.remove('active');
+            if (btnEdit) btnEdit.classList.add('active');
+            // Open photo editor on the canvas
+            if (typeof PE !== 'undefined') PE.open(currentMediaIndex, mediaLibrary);
+        } else {
+            if (canvas) canvas.style.display = 'none';
+            if (tools)  tools.style.display  = 'none';
+            if (img)    img.style.display     = 'block';
+            if (btnView) btnView.classList.add('active');
+            if (btnEdit) btnEdit.classList.remove('active');
+        }
+    };
+
     function editMedia() {
-        Swal.fire({
-            title: 'Edit Media',
+        window.setViewerMode('edit');
+    }
             html: '<ul style="text-align:left;margin-left:20px;"><li>Crop &amp; Rotate</li><li>Filters &amp; Adjustments</li><li>Add Text &amp; Stickers</li><li>Drawing Tools</li></ul>',
             icon: 'info',
             confirmButtonColor: '#c9a96e',
