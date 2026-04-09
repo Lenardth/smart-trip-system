@@ -72,9 +72,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 15px;
-    padding: 8px 40px;
+    gap: 16px;
+    padding: 10px 40px;
     background-color: var(--deep);
+    min-height: 80px;
 }
 
 .pub-header {
@@ -725,19 +726,26 @@ body {
 }
 
 .logo {
-    height: 300px;
+    height: 80px;
     width: auto;
-    min-width: 100px;
+    min-width: 60px;
     object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,.4));
+    transition: transform .2s;
+}
+
+.header-brand:hover .logo {
+    transform: scale(1.05);
 }
 
 .logo-text {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
-    color: var(--text-light);
+    color: #fff;
     letter-spacing: 2px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, .4);
+    text-shadow: 0 2px 8px rgba(0,0,0,.5);
     font-variant: small-caps;
+    line-height: 1;
 }
 
 .user-display {

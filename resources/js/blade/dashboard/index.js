@@ -720,6 +720,22 @@ window.__dashboardConfig = window.__dashboardConfig || {
         if (el) el.click();
     }
 
+    function triggerCamera() {
+        openGallery();
+        setTimeout(function() {
+            var el = document.getElementById('cameraInput');
+            if (el) el.click();
+        }, 200);
+    }
+
+    function triggerVideoInput() {
+        var el = document.getElementById('videoInput');
+        if (el) el.click();
+    }
+
+    window.triggerCamera    = triggerCamera;
+    window.triggerVideoInput= triggerVideoInput;
+
     function handleFileSelect(event) {
         var files = Array.from((event && event.target && event.target.files) || []);
         if (!files.length) return;
@@ -783,58 +799,77 @@ window.__dashboardConfig = window.__dashboardConfig || {
         }).join('');
     }
 
+    var _editingMediaIndex = -1;
+
     function editMediaTitle(index) {
         var item = mediaLibrary[index];
         if (!item) return;
-        if (typeof Swal === 'undefined') {
-            var newTitle = prompt('Edit title:', item.name || '');
-            if (newTitle === null) return;
-            fetch('/api/media/' + item.id, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken()
-                },
-                body: JSON.stringify({
-                    title: newTitle
-                })
-            }).then(function() {
-                mediaLibrary[index].name = newTitle;
-                renderGallery();
-            }).catch(function() {});
-            return;
+        _editingMediaIndex = index;
+
+        // Populate modal
+        var titleEl    = document.getElementById('editMediaTitle');
+        var locationEl = document.getElementById('editMediaLocation');
+        var favEl      = document.getElementById('editMediaFavorite');
+        var previewEl  = document.getElementById('editMediaPreview');
+
+        if (titleEl)    titleEl.value    = item.name     || '';
+        if (locationEl) locationEl.value = item.location || '';
+        if (favEl)      favEl.checked    = !!item.is_favorite;
+
+        if (previewEl) {
+            previewEl.innerHTML = item.type === 'image'
+                ? '<img src="' + item.src + '" style="max-width:100%;max-height:180px;object-fit:contain;">'
+                : '<video src="' + item.src + '" style="max-width:100%;max-height:180px;" controls></video>';
         }
-        Swal.fire({
-            title: 'Edit Title',
-            input: 'text',
-            inputValue: item.name || '',
-            inputPlaceholder: 'Enter a title for this photo',
-            showCancelButton: true,
-            confirmButtonColor: '#c9a96e',
-            confirmButtonText: 'Save',
-        }).then(function(result) {
-            if (!result.isConfirmed) return;
-            fetch('/api/media/' + item.id, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken()
-                },
-                body: JSON.stringify({
-                    title: result.value
-                })
-            }).then(function() {
-                mediaLibrary[index].name = result.value;
-                renderGallery();
-                Swal.fire({
-                    title: 'Saved!',
-                    icon: 'success',
-                    timer: 1200,
-                    showConfirmButton: false
-                });
-            }).catch(function() {});
-        });
+
+        var modal = document.getElementById('editMediaModal');
+        if (modal) modal.classList.add('open');
     }
+
+    function closeEditMedia() {
+        var modal = document.getElementById('editMediaModal');
+        if (modal) modal.classList.remove('open');
+        _editingMediaIndex = -1;
+    }
+
+    function saveMediaEdit() {
+        var index = _editingMediaIndex;
+        if (index < 0) return;
+        var item = mediaLibrary[index];
+        if (!item) return;
+
+        var title    = (document.getElementById('editMediaTitle')    || {}).value || '';
+        var location = (document.getElementById('editMediaLocation') || {}).value || '';
+        var fav      = (document.getElementById('editMediaFavorite') || {}).checked || false;
+
+        fetch('/api/media/' + item.id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            body: JSON.stringify({ title: title, location: location, is_favorite: fav })
+        }).then(function(r) { return r.json(); })
+          .then(function() {
+              mediaLibrary[index].name        = title;
+              mediaLibrary[index].location    = location;
+              mediaLibrary[index].is_favorite = fav;
+              closeEditMedia();
+              renderGallery();
+              if (typeof Swal !== 'undefined') {
+                  Swal.fire({ title: 'Saved!', icon: 'success', timer: 1200, showConfirmButton: false });
+              }
+          }).catch(function() {
+              if (typeof Swal !== 'undefined') {
+                  Swal.fire({ title: 'Error', text: 'Could not save changes.', icon: 'error' });
+              }
+          });
+    }
+
+    function editCurrentMedia() {
+        editMediaTitle(currentMediaIndex);
+    }
+
+    window.closeEditMedia  = closeEditMedia;
+    window.saveMediaEdit   = saveMediaEdit;
+    window.editCurrentMedia= editCurrentMedia;
 
     function deleteSingleMedia(index) {
         var item = mediaLibrary[index];

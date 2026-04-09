@@ -120,6 +120,9 @@
     </div>
 
     <div class="actions-grid">
+        <div class="action-btn" onclick="triggerCamera ? triggerCamera() : uploadPhotos()">
+            <i class="fas fa-camera"></i><span>Take Photo</span>
+        </div>
         <div class="action-btn" onclick="uploadPhotos()">
             <i class="fas fa-upload"></i><span>Upload Photos</span>
         </div>
@@ -134,9 +137,6 @@
         </div>
         <div class="action-btn" onclick="window.location.href='/community'">
             <i class="fas fa-users"></i><span>Community</span>
-        </div>
-        <div class="action-btn" onclick="window.location.href='/chat'">
-            <i class="fas fa-comment-dots"></i><span>Messages</span>
         </div>
     </div>
 
@@ -181,23 +181,73 @@
     <div class="gallery-modal" id="galleryModal">
         <div class="gallery-header">
             <h3><i class="fas fa-images"></i> My Photos &amp; Videos</h3>
-            <button class="gallery-close" onclick="closeGallery()">Done</button>
+            <button class="gallery-close" onclick="closeGallery()"><i class="fas fa-times"></i></button>
         </div>
         <div class="gallery-content" id="galleryContent">
-            <div class="upload-area" id="uploadArea" onclick="triggerFileInput()">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <h3>Upload Photos &amp; Videos</h3>
-                <p>Drag and drop files here or click to browse</p>
-                <input type="file" id="mediaInput" multiple accept="image/*,video/*"
-                    onchange="handleFileSelect(event)">
+
+            {{-- Upload options row --}}
+            <div class="upload-options-row">
+                <div class="upload-option-btn" onclick="triggerFileInput()">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Browse Files</span>
+                </div>
+                <div class="upload-option-btn upload-option-camera" onclick="triggerCamera()">
+                    <i class="fas fa-camera"></i>
+                    <span>Take Photo</span>
+                </div>
+                <div class="upload-option-btn" onclick="triggerVideoInput()">
+                    <i class="fas fa-video"></i>
+                    <span>Record Video</span>
+                </div>
             </div>
+
+            {{-- Hidden file inputs --}}
+            <input type="file" id="mediaInput"       multiple accept="image/*,video/*"          style="display:none;" onchange="handleFileSelect(event)">
+            <input type="file" id="cameraInput"               accept="image/*"    capture="environment" style="display:none;" onchange="handleFileSelect(event)">
+            <input type="file" id="videoInput"                accept="video/*"    capture="environment" style="display:none;" onchange="handleFileSelect(event)">
+
+            {{-- Upload drop zone --}}
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag &amp; drop files here</p>
+            </div>
+
             <div class="gallery-grid" id="galleryGrid"></div>
         </div>
         <div class="gallery-toolbar">
-            <button onclick="triggerFileInput()"><i class="fas fa-plus"></i></button>
-            <button onclick="selectAll()"><i class="fas fa-check-double"></i></button>
-            <button onclick="deleteSelected()"><i class="fas fa-trash"></i></button>
-            <button onclick="shareSelected()"><i class="fas fa-share"></i></button>
+            <button onclick="triggerFileInput()"  title="Add files"><i class="fas fa-plus"></i></button>
+            <button onclick="triggerCamera()"     title="Camera"><i class="fas fa-camera"></i></button>
+            <button onclick="selectAll()"         title="Select all"><i class="fas fa-check-double"></i></button>
+            <button onclick="deleteSelected()"    title="Delete selected"><i class="fas fa-trash"></i></button>
+        </div>
+    </div>
+
+    {{-- Edit media modal --}}
+    <div class="modal-overlay" id="editMediaModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit" style="color:var(--gold);margin-right:8px;"></i> Edit Photo</h2>
+                <button class="modal-close" onclick="closeEditMedia()">&#x2715;</button>
+            </div>
+            <div class="modal-body">
+                <div id="editMediaPreview" style="width:100%;height:180px;background:#000;border-radius:6px;overflow:hidden;margin-bottom:16px;display:flex;align-items:center;justify-content:center;"></div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="editMediaTitle" class="auth-input" placeholder="Photo title">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="editMediaLocation" class="auth-input" placeholder="Where was this taken?">
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                    <input type="checkbox" id="editMediaFavorite" style="accent-color:var(--gold);width:16px;height:16px;">
+                    <label for="editMediaFavorite" style="font-size:14px;color:var(--deep);cursor:pointer;"><i class="fas fa-star" style="color:var(--gold);margin-right:4px;"></i> Mark as favourite</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-button" onclick="closeEditMedia()">Cancel</button>
+                <button class="primary-button" onclick="saveMediaEdit()"><i class="fas fa-save"></i> Save</button>
+            </div>
         </div>
     </div>
 
@@ -207,10 +257,9 @@
                 <i class="fas fa-arrow-left"></i> Back
             </button>
             <div class="viewer-actions">
-                <button onclick="editMedia()"><i class="fas fa-edit"></i></button>
-                <button onclick="downloadMedia()"><i class="fas fa-download"></i></button>
-                <button onclick="shareMedia()"><i class="fas fa-share"></i></button>
-                <button onclick="deleteMedia()"><i class="fas fa-trash"></i></button>
+                <button onclick="editCurrentMedia()" title="Edit"><i class="fas fa-edit"></i></button>
+                <button onclick="downloadMedia()"    title="Download"><i class="fas fa-download"></i></button>
+                <button onclick="deleteMedia()"      title="Delete" style="color:var(--danger);"><i class="fas fa-trash"></i></button>
             </div>
         </div>
         <div class="viewer-content" id="viewerContent"></div>
