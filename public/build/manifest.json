@@ -1,11 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BpUFCggx.css",
+    "file": "assets/app-BpZ0TGKK.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-CuZzs7b9.js",
+    "file": "assets/app-BMdhJW-7.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -58,7 +58,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/dashboard/index.js": {
-    "file": "assets/index-DuAMgAGy.js",
+    "file": "assets/index-Dkpyx8RD.js",
     "name": "index",
     "src": "resources/js/blade/dashboard/index.js",
     "isDynamicEntry": true
@@ -76,7 +76,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/flights/index.js": {
-    "file": "assets/index-DDXhyayZ.js",
+    "file": "assets/index-DoAwyCIX.js",
     "name": "index",
     "src": "resources/js/blade/flights/index.js",
     "isDynamicEntry": true
@@ -94,7 +94,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/plan-trip/index.js": {
-    "file": "assets/index-C0ExuUNl.js",
+    "file": "assets/index-DDlbU-tY.js",
     "name": "index",
     "src": "resources/js/blade/plan-trip/index.js",
     "isDynamicEntry": true

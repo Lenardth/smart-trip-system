@@ -143,7 +143,7 @@
 }
 
 .sidebar-logo-img {
-    height: 40px;
+    height: 80px;
     width: auto;
     object-fit: contain;
     display: block;
@@ -164,8 +164,8 @@
 }
 
 .sidebar-header .logo {
-    width: 50px;
-    height: 50px;
+    width: 100px;
+    height: 100px;
 }
 
 .sidebar-header .logo-text {
@@ -1427,7 +1427,7 @@ input[type="file"] {
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    background: rgba(0,0,0,.65);
+    background: rgba(0, 0, 0, .65);
     color: #fff;
     border: none;
     cursor: pointer;
@@ -1439,7 +1439,7 @@ input[type="file"] {
 }
 
 .gallery-item-actions button:hover {
-    background: rgba(0,0,0,.85);
+    background: rgba(0, 0, 0, .85);
 }
 
 .gallery-item-name {
@@ -1447,7 +1447,7 @@ input[type="file"] {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0,0,0,.55);
+    background: rgba(0, 0, 0, .55);
     color: #fff;
     font-size: 11px;
     padding: 4px 6px;
@@ -1474,9 +1474,13 @@ input[type="file"] {
     padding-right: 8px;
 }
 
-.activity-item:last-child { border-bottom: none; }
+.activity-item:last-child {
+    border-bottom: none;
+}
 
-.activity-item:hover { background: rgba(201,169,110,.06); }
+.activity-item:hover {
+    background: rgba(201, 169, 110, .06);
+}
 
 .activity-icon {
     width: 38px;
@@ -1489,7 +1493,10 @@ input[type="file"] {
     flex-shrink: 0;
 }
 
-.activity-body { flex: 1; min-width: 0; }
+.activity-body {
+    flex: 1;
+    min-width: 0;
+}
 
 .activity-title {
     font-size: 13px;
@@ -1525,7 +1532,7 @@ input[type="file"] {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(59,31,43,.05);
+    box-shadow: 0 2px 8px rgba(59, 31, 43, .05);
 }
 
 .settings-shortcut-item {
@@ -1545,7 +1552,10 @@ input[type="file"] {
     white-space: nowrap;
 }
 
-.settings-shortcut-item i { color: var(--gold); font-size: 13px; }
+.settings-shortcut-item i {
+    color: var(--gold);
+    font-size: 13px;
+}
 
 .settings-shortcut-item:hover {
     background: var(--deep);
@@ -1553,7 +1563,9 @@ input[type="file"] {
     border-color: var(--deep);
 }
 
-.settings-shortcut-item:hover i { color: var(--gold); }
+.settings-shortcut-item:hover i {
+    color: var(--gold);
+}
 
 @media (max-width: 768px) {
     .settings-shortcut-bar {
@@ -1574,7 +1586,7 @@ input[type="file"] {
     border-radius: 12px;
     padding: 22px 28px;
     margin-bottom: 24px;
-    box-shadow: 0 4px 20px rgba(59,31,43,.18);
+    box-shadow: 0 4px 20px rgba(59, 31, 43, .18);
     flex-wrap: wrap;
 }
 
@@ -1646,6 +1658,11 @@ input[type="file"] {
         padding: 18px 16px;
         gap: 14px;
     }
-    .welcome-text h2 { font-size: 17px; }
-    .welcome-cta { width: 100%; justify-content: center; }
+    .welcome-text h2 {
+        font-size: 17px;
+    }
+    .welcome-cta {
+        width: 100%;
+        justify-content: center;
+    }
 }

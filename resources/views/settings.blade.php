@@ -36,7 +36,7 @@
 
     <div class="settings-content">
 
-        
+
         <div class="settings-tab active" id="tab-account">
             <div class="settings-card">
                 <div class="settings-card-header">
@@ -63,6 +63,9 @@
                     @csrf
                     <input type="file" id="settingsPicInput" name="profile_picture" accept="image/*" style="display:none"
                            onchange="document.getElementById('settingsPicForm').submit()">
+                    @error('profile_picture')
+                        <div class="pf-error" style="margin-top:8px; display:block; text-align:center;">{{ $message }}</div>
+                    @enderror
                 </form>
 
                 <form method="POST" action="{{ route('profile.update') }}" style="margin-top:24px;">
@@ -104,7 +107,7 @@
             </div>
         </div>
 
-        
+
         <div class="settings-tab" id="tab-security" style="display:none;">
             <div class="settings-card">
                 <h2 class="settings-section-title"><i class="fas fa-lock"></i> Change Password</h2>
@@ -161,7 +164,7 @@
             </div>
         </div>
 
-        
+
         <div class="settings-tab" id="tab-preferences" style="display:none;">
             <div class="settings-card">
                 <h2 class="settings-section-title"><i class="fas fa-sliders-h"></i> App Preferences</h2>
@@ -203,7 +206,7 @@
             </div>
         </div>
 
-        
+
         <div class="settings-tab" id="tab-danger" style="display:none;">
             <div class="settings-card settings-card--danger">
                 <h2 class="settings-section-title" style="color:var(--danger);border-bottom-color:rgba(244,67,54,.2);">

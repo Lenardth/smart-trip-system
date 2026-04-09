@@ -1,5 +1,10 @@
 let currentFlights = [];
 
+// Top-level window proxies so onclick attributes work before ready() fires
+window.fillRoute    = function(from, to) { if (window._fillRoute)    window._fillRoute(from, to); };
+window.bookFlight   = function(idx)      { if (window._bookFlight)   window._bookFlight(idx); };
+window.searchFlights= function()         { if (window._searchFlights) window._searchFlights(); };
+
 function ready(fn) {
     if (document.readyState !== 'loading') fn();
     else document.addEventListener('DOMContentLoaded', fn);

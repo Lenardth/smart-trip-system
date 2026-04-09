@@ -19,8 +19,8 @@
 }
 
 .logo {
-    width: 50px;
-    height: 50px;
+    width: 100px;
+    height: 100px;
     object-fit: contain;
     filter: brightness(0) invert(1);
 }
@@ -1150,8 +1150,8 @@
 }
 
 .sidebar-header .logo {
-    width: 50px;
-    height: 50px;
+    width: 100px;
+    height: 100px;
 }
 
 .sidebar-header .logo-text {

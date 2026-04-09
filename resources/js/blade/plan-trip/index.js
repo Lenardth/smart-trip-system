@@ -3,6 +3,20 @@ let lastResults = [];
 let lastPayload = {};
 let selectedDest = null;
 
+// Expose to window immediately — onclick attributes in blade need these
+// before the module's init() runs. Function declarations are hoisted so
+// this works even though the function bodies appear later in the file.
+window.selectMood         = function(el) { return selectMood(el); };
+window.submitCustomMood   = function()   { return submitCustomMood(); };
+window.goStep             = function(n)  { return goStep(n); };
+window.generateSuggestions= function()  { return generateSuggestions(); };
+window.selectDestination  = function(i) { return selectDestination(i); };
+window.openReceipt        = function()  { return openReceipt(); };
+window.closeReceipt       = function()  { return closeReceipt(); };
+window.printReceipt       = function()  { return printReceipt(); };
+window.downloadReceiptPdf = function()  { return downloadReceiptPdf(); };
+window.esc                = function(s) { return esc(s); };
+
 const COST_MULTIPLIERS = {
     budget: { backpacker: 0.7, budget: 1.0, mid: 1.5, premium: 2.5, luxury: 4.0 },
     duration: { weekend: 0.4, week: 1.0, two_weeks: 1.8, month: 3.5, flexible: 1.0 },

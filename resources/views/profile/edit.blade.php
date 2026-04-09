@@ -21,7 +21,7 @@
 
 <div class="profile-wrap">
 
-    
+
     <div class="profile-sidebar">
         <div class="profile-avatar-card">
             <div class="profile-avatar-wrap" id="avatarWrap">
@@ -46,11 +46,14 @@
                 <span class="profile-verified"><i class="fas fa-check-circle"></i> Verified</span>
             @endif
 
-            
+
             <form method="POST" action="{{ route('profile.picture.upload') }}" enctype="multipart/form-data" id="pictureForm">
                 @csrf
                 <input type="file" id="pictureInput" name="profile_picture" accept="image/*" style="display:none"
                        onchange="document.getElementById('pictureForm').submit()">
+                @error('profile_picture')
+                    <div class="pf-error" style="margin-top:8px; display:block; text-align:center;">{{ $message }}</div>
+                @enderror
             </form>
 
             @if($user->profile_picture)
@@ -63,7 +66,7 @@
             @endif
         </div>
 
-        
+
         <div class="profile-stats-card">
             <div class="profile-stat">
                 <span class="ps-num" id="profileTrips">—</span>
@@ -80,10 +83,10 @@
         </div>
     </div>
 
-    
+
     <div class="profile-forms">
 
-        
+
         <div class="profile-card">
             <h2><i class="fas fa-user-edit"></i> Profile Information</h2>
 
@@ -123,7 +126,7 @@
             </form>
         </div>
 
-        
+
         <div class="profile-card">
             <h2><i class="fas fa-lock"></i> Change Password</h2>
 
@@ -153,7 +156,7 @@
             </form>
         </div>
 
-        
+
         <div class="profile-card profile-card--danger">
             <h2><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
             <p style="color:#6b5b4f;font-size:14px;margin-bottom:16px;">

@@ -21,7 +21,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
     var unreadCount = 0;
     var notifPollingInterval = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    function init() {
         initializeUserData();
         loadMediaFromServer();
         loadNotifications();
@@ -40,7 +40,13 @@ window.__dashboardConfig = window.__dashboardConfig || {
         initTripSavedListener();
         initWishlistUpdateListener();
         consumePendingTripSave();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
     window.addEventListener('pageshow', function(e) {
         if (!e.persisted) return;
         loadUpcomingTrips();
