@@ -77,6 +77,7 @@ try {
         $hasUsersTable      = $schema->hasTable('users');
 
         if (!$hasMigrationsTable && $hasUsersTable) {
+            // DB exists but no migrations table — record all as run without executing
             $artisan->call('migrate:install');
             $migrationFiles = glob(__DIR__ . '/../database/migrations/*.php');
             sort($migrationFiles);
@@ -87,40 +88,66 @@ try {
                 }
             }
         } else {
-            $artisan->call('migrate', ['--force' => true]);
+            // Run pending migrations — each in its own try/catch to avoid
+            // Postgres "transaction aborted" cascade failures
+            try {
+                // Reset any aborted transaction before starting
+                try { $db->statement('ROLLBACK'); } catch (\Throwable $_) {}
+
+                $artisan->call('migrate', ['--force' => true]);
+            } catch (\Throwable $migrateErr) {
+                $msg = $migrateErr->getMessage();
+                if (str_contains($msg, 'already exists') || str_contains($msg, 'Duplicate table')) {
+                    error_log('[SmartBooking] Some tables already exist — continuing.');
+                } elseif (str_contains($msg, 'transaction is aborted') || str_contains($msg, '25P02')) {
+                    // Postgres aborted transaction — rollback and retry once
+                    try { $db->statement('ROLLBACK'); } catch (\Throwable $_) {}
+                    error_log('[SmartBooking] Transaction aborted, retrying migrate after rollback.');
+                    try {
+                        $artisan->call('migrate', ['--force' => true]);
+                    } catch (\Throwable $retry) {
+                        error_log('[SmartBooking] Retry migrate error: ' . $retry->getMessage());
+                    }
+                } else {
+                    error_log('[SmartBooking] Migration error: ' . $msg);
+                }
+            }
         }
 
+        // Refresh schema builder after migrations
+        $schema = $db->connection()->getSchemaBuilder();
+
+        // Check for tables that were recorded as migrated but never actually created
         $tablesToCheck = [
             '2025_01_01_000014_create_itineraries_table'             => 'itineraries',
-            '2025_01_01_000015_add_plan_trip_columns_to_trips_table' => null,
             '2025_01_01_000016_create_accommodations_table'          => 'accommodations',
-            '2025_01_01_000017_add_feeling_note_to_trips_table'      => null,
             '2025_01_01_000018_create_trip_moods_table'              => 'trip_moods',
             '2025_01_01_000019_create_accommodation_searches_table'  => 'accommodation_searches',
-            '2025_01_01_000020_change_budget_column_in_trips_table'  => null,
             '2025_01_01_000021_create_monetization_tables'           => 'coupons',
         ];
 
         $removedAny = false;
         foreach ($tablesToCheck as $migration => $table) {
-            if ($table === null) continue;
-            if ($hasMigrationsTable && !$schema->hasTable($table)) {
-                $db->table('migrations')->where('migration', $migration)->delete();
-                $removedAny = true;
-                error_log("[SmartBooking] Removed stale record: {$migration}");
+            if (!$schema->hasTable($table)) {
+                try {
+                    $db->table('migrations')->where('migration', $migration)->delete();
+                    $removedAny = true;
+                    error_log("[SmartBooking] Removed stale record: {$migration}");
+                } catch (\Throwable $_) {}
             }
         }
 
         if ($removedAny) {
-            $artisan->call('migrate', ['--force' => true]);
+            try { $db->statement('ROLLBACK'); } catch (\Throwable $_) {}
+            try {
+                $artisan->call('migrate', ['--force' => true]);
+            } catch (\Throwable $e2) {
+                error_log('[SmartBooking] Re-run migrate error: ' . $e2->getMessage());
+            }
         }
 
     } catch (\Throwable $migrateErr) {
-        if (!str_contains($migrateErr->getMessage(), 'already exists')
-         && !str_contains($migrateErr->getMessage(), 'Duplicate table')) {
-            error_log('[SmartBooking] Migration error: ' . $migrateErr->getMessage());
-            throw $migrateErr;
-        }
+        error_log('[SmartBooking] Migration outer error: ' . $migrateErr->getMessage());
     }
 
     try {
