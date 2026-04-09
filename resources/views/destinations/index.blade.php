@@ -4,7 +4,7 @@
 
 @section('content')
 
-<section class="page-hero" style="background: linear-gradient(160deg, rgba(5,50,80,0.72) 0%, rgba(10,20,30,0.5) 100%), url('https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=1800&q=80') center/cover no-repeat;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(5,20,40,0.75) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=90') center/cover no-repeat;">
     <div>
         <h1><i class="fas fa-map-marked-alt"></i> All Destinations</h1>
         <p>Browse our full catalogue of curated travel destinations around the world.</p>

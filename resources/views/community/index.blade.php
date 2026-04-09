@@ -13,10 +13,10 @@ window.__dashboardConfig.user      = { id: {{ Auth::id() }}, name: @json(Auth::u
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(160deg, rgba(140, 30, 30, 0.65) 0%, rgba(20, 15, 10, 0.50) 100%), url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1800&q=80'); background-size: cover; background-position: center;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(20,10,30,0.72) 0%, rgba(59,31,43,0.55) 100%), url('https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=1920&q=90'); background-size: cover; background-position: center 60%;">
     <div>
         <h1><i class="fas fa-users"></i> Community</h1>
-        <p>Connect with fellow travelers, share stories, and join group adventures.</p>
+        <p>Connect with fellow travellers, share stories, and join group adventures.</p>
     </div>
 </section>
 

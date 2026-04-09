@@ -13,7 +13,7 @@ window.__dashboardConfig.user   = { id: {{ Auth::id() }}, name: @json(Auth::user
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(160deg, rgba(60, 20, 80, 0.70) 0%, rgba(180, 80, 20, 0.40) 100%), url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1800&q=80'); background-size: cover; background-position: center;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(10,30,20,0.72) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=90'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-compass"></i> Discover</h1>
         <p>Explore trending destinations, hidden gems, and AI-curated picks.</p>

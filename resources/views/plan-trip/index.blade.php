@@ -159,7 +159,7 @@
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(160deg, rgba(10, 50, 30, 0.72) 0%, rgba(20, 30, 10, 0.45) 100%), url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1800&q=80'); background-size: cover; background-position: center;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(5,25,15,0.75) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1920&q=90'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-route"></i> Plan Your Trip</h1>
         <p>Let AI build the perfect itinerary tailored to your mood, budget, and style.</p>

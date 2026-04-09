@@ -11,10 +11,10 @@
 @endpush
 
 @section('content')
-<section class="page-hero accommodations-hero" style="background: linear-gradient(160deg, rgba(80, 40, 10, 0.7) 0%, rgba(20, 10, 5, 0.5) 100%), url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1800&q=80'); background-size: cover; background-position: center top;">
+<section class="page-hero accommodations-hero" style="background: linear-gradient(160deg, rgba(10,25,20,0.72) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1920&q=90'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-hotel"></i> Find Accommodation</h1>
-        <p>Browse accommodation options and match your trip style.</p>
+        <p>Handpicked stays for every budget — from boutique hotels to eco-lodges.</p>
     </div>
 </section>
 

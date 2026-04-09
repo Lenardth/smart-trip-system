@@ -584,8 +584,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     function renderTrips(trips) {
         var section = document.getElementById('upcomingTripsContent');
-        var countEl = document.getElementById('statTripsCount');
-        if (countEl) countEl.textContent = trips.length;
         if (!section) return;
 
         if (!trips.length) {

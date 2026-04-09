@@ -1177,27 +1177,52 @@ body {
 }
 
 .page-hero {
-    height: 260px;
+    height: 340px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     color: var(--text-light);
     background: linear-gradient(rgba(30, 15, 20, .6), rgba(30, 15, 20, .6)) center/cover;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(201,169,110,.06) 50%, transparent 60%);
+    background-size: 200% 100%;
+    animation: heroShimmer 5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes heroShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.page-hero > div {
+    position: relative;
+    z-index: 1;
+    padding: 0 20px;
 }
 
 .page-hero h1 {
-    font-size: 36px;
-    font-weight: normal;
+    font-size: 42px;
+    font-weight: 700;
     letter-spacing: 1px;
-    margin: 0 0 10px;
-    color: var(--text-light);
+    margin: 0 0 12px;
+    color: #fff;
+    text-shadow: 0 2px 20px rgba(0,0,0,.4);
 }
 
 .page-hero p {
-    font-size: 16px;
-    color: var(--text-sub);
+    font-size: 17px;
+    color: rgba(255,255,255,.88);
     margin: 0 0 20px;
+    text-shadow: 0 1px 8px rgba(0,0,0,.3);
 }
 
 .section-title {
