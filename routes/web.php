@@ -171,6 +171,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/media/delete',         [MediaController::class, 'delete']);
         Route::post('/media/{media}/favorite', [MediaController::class, 'toggleFavorite']);
         Route::patch('/media/{media}',         [MediaController::class, 'update']);
+        Route::put('/media/{media}',           [MediaController::class, 'update']);
         Route::get('/dashboard/stats',         [MediaController::class, 'stats']);
 
         Route::get('/trips',           [TripController::class, 'index']);

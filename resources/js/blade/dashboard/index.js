@@ -2,15 +2,23 @@ window.__dashboardConfig = window.__dashboardConfig || {
     pusherKey: "",
     pusherCluster: "mt1",
     userId: null,
-    user: {
-        name: "",
-        firstName: "",
-        avatar: "",
-        type: "",
-        verified: false,
-        id: null
-    }
+    user: { name: "", firstName: "", avatar: "", type: "", verified: false, id: null }
 };
+
+// ── Top-level stubs so onclick attributes work before the module loads ──────
+// These are replaced by the real functions once the IIFE executes.
+['openGallery','closeGallery','triggerFileInput','triggerCamera','triggerVideoInput',
+ 'handleFileSelect','viewMedia','closeViewer','editMediaTitle','editCurrentMedia',
+ 'closeEditMedia','saveMediaEdit','deleteSingleMedia','deleteSelected','selectAll',
+ 'deleteMedia','downloadMedia','editMedia','uploadPhotos','deleteTrip',
+ 'loadUpcomingTrips','loadUserStatistics','toggleNotifications','markAllRead',
+ 'switchNotificationTab','openComposeMessage','handleNotificationClick',
+ 'toggleSidebar','viewProfile'
+].forEach(function(fn) {
+    if (!window[fn]) window[fn] = function() {
+        console.warn('[dashboard] ' + fn + ' called before module loaded');
+    };
+});
 
 (function() {
     var mediaLibrary = [];
@@ -843,7 +851,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         var fav      = (document.getElementById('editMediaFavorite') || {}).checked || false;
 
         fetch('/api/media/' + item.id, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
             body: JSON.stringify({ title: title, location: location, is_favorite: fav })
         }).then(function(r) { return r.json(); })
