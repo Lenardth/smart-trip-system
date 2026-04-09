@@ -148,24 +148,36 @@ try {
 
     } catch (\Throwable $migrateErr) {
         error_log('[SmartBooking] Migration outer error: ' . $migrateErr->getMessage());
+        // Don't rethrow — let the app serve requests even if migrations had issues
     }
 
+    // ── Seed missing data independently ──────────────────────────────────────
     try {
-        $schema2         = $db->connection()->getSchemaBuilder();
-        $hasDestinations = $schema2->hasTable('destinations')
-                        && $db->table('destinations')->count() >= 100;
+        $schema3 = $db->connection()->getSchemaBuilder();
 
-        if (!$hasDestinations) {
-            $artisan->call('db:seed', ['--force' => true]);
+        // Destinations
+        if ($schema3->hasTable('destinations') && $db->table('destinations')->count() < 50) {
+            $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\DestinationSeeder', '--force' => true]);
+            error_log('[SmartBooking] Destinations seeded.');
+        }
+
+        // Users (demo accounts)
+        if ($schema3->hasTable('users') && $db->table('users')->count() < 3) {
+            $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\DatabaseSeeder', '--force' => true]);
+            error_log('[SmartBooking] Full seed run.');
         } else {
-            if ($schema2->hasTable('coupons') && $db->table('coupons')->count() === 0) {
-                $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\CouponSeeder', '--force' => true]);
-            }
-            if ($schema2->hasTable('trip_moods') && $db->table('trip_moods')->count() === 0) {
+            // Seed individual tables that are empty
+            if ($schema3->hasTable('trip_moods') && $db->table('trip_moods')->count() === 0) {
                 $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\TripMoodSeeder', '--force' => true]);
+                error_log('[SmartBooking] TripMoods seeded.');
             }
-            if ($schema2->hasTable('accommodations') && $db->table('accommodations')->count() === 0) {
+            if ($schema3->hasTable('community_topics') && $db->table('community_topics')->count() === 0) {
+                $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\CommunitySeeder', '--force' => true]);
+                error_log('[SmartBooking] Community seeded.');
+            }
+            if ($schema3->hasTable('accommodations') && $db->table('accommodations')->count() === 0) {
                 $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\AccommodationSeeder', '--force' => true]);
+                error_log('[SmartBooking] Accommodations seeded.');
             }
         }
     } catch (\Throwable $seedErr) {
