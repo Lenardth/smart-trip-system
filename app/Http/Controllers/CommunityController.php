@@ -43,6 +43,7 @@ class CommunityController extends Controller
             'title'         => $t->title,
             'body'          => $t->body,
             'author'        => $t->user?->name ?? $t->author ?? 'Anonymous',
+            'author_avatar' => $t->user?->avatar ?? null,
             'user_id'       => $t->user_id,
             'tags'          => is_string($t->tags) ? (json_decode($t->tags, true) ?? []) : ($t->tags ?? []),
             'replies_count' => $t->replies ?? 0,

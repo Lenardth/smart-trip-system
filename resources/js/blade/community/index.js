@@ -115,10 +115,13 @@ window.__COMMUNITY__ = (function () {
                 var authorId   = t.user_id || null;
                 var authorName = t.author  || 'Traveler';
                 var msgBtn     = cfg.isLoggedIn ? messageBtn(authorId, authorName) : '';
-                var invBtn     = cfg.isLoggedIn ? inviteBtn(authorId, authorName, null, 'Forum member') : '';
+                var invBtn     = cfg.isLoggedIn ? inviteBtn(authorId, authorName, t.author_avatar, 'Forum member') : '';
+                var avatarHtml = t.author_avatar
+                    ? '<div class="forum-avatar" style="overflow:hidden;"><img src="' + t.author_avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>'
+                    : '<div class="forum-avatar">' + initials(authorName) + '</div>';
 
                 return '<div class="forum-topic">' +
-                    '<div class="forum-avatar">' + initials(authorName) + '</div>' +
+                    avatarHtml +
                     '<div class="ft-body">' +
                         '<h4 onclick="Community.openTopic(' + t.id + ')">' + t.title + '</h4>' +
                         '<div class="ft-meta">' +
