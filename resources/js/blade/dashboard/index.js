@@ -373,10 +373,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
         } else {
             badge.style.display = 'none';
         }
-        
-        var bEl = document.getElementById('bookingsCount');
-        var sEl = document.getElementById('savedCount');
-        if (!bEl || bEl.textContent === '0') loadUserStatistics();
     }
 
     function markAllRead() {
@@ -494,7 +490,8 @@ window.__dashboardConfig = window.__dashboardConfig || {
             var greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
             welcomeMsg.textContent = greeting + ', ' + name + '!';
         }
-        loadUserStatistics();
+        // Stats are rendered server-side — no fetch needed on load.
+        // loadUserStatistics() is only called after user actions (save trip, wishlist etc.)
     }
 
     function loadUpcomingTrips() {

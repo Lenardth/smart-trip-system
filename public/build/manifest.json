@@ -5,7 +5,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DGWwy3Jb.js",
+    "file": "assets/app-Boq6hS3_.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -58,7 +58,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/dashboard/index.js": {
-    "file": "assets/index-BRwynNho.js",
+    "file": "assets/index-Bl9U6QaN.js",
     "name": "index",
     "src": "resources/js/blade/dashboard/index.js",
     "isDynamicEntry": true
