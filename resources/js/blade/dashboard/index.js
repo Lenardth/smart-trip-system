@@ -5,9 +5,6 @@ window.__dashboardConfig = window.__dashboardConfig || {
     user: { name: "", firstName: "", avatar: "", type: "", verified: false, id: null }
 };
 
-// Import photo editor
-import './photo-editor.js';
-
 // ── Top-level stubs so onclick attributes work before the module loads ──────
 // These are replaced by the real functions once the IIFE executes.
 ['openGallery','closeGallery','triggerFileInput','triggerCamera','triggerVideoInput',
@@ -992,12 +989,6 @@ import './photo-editor.js';
 
     function editMedia() {
         window.setViewerMode('edit');
-    }
-            html: '<ul style="text-align:left;margin-left:20px;"><li>Crop &amp; Rotate</li><li>Filters &amp; Adjustments</li><li>Add Text &amp; Stickers</li><li>Drawing Tools</li></ul>',
-            icon: 'info',
-            confirmButtonColor: '#c9a96e',
-            confirmButtonText: 'Open Editor'
-        });
     }
 
     function downloadMedia() {
