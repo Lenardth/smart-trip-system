@@ -31,6 +31,10 @@ return [
         'key' => env('GNEWS_API_KEY'),
     ],
 
+    'newsapi' => [
+        'key' => env('NEWSAPI_KEY'),
+    ],
+
     'aviationstack' => [
         'key' => env('AVIATIONSTACK_KEY'),
     ],

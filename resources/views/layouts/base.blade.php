@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/js/blade/shared/currency.js'])
     @stack('styles')
 </head>
 <body @stack('body-attrs')>
@@ -20,6 +21,18 @@
     @stack('modals')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     @stack('scripts')
+    <script>
+    (function initCurrencySwitchers() {
+        function tryInit() {
+            if (typeof window.Currency === 'undefined') { setTimeout(tryInit, 100); return; }
+            ['navCurrencySlot','dashCurrencySlot'].forEach(function(id) {
+                if (document.getElementById(id)) window.Currency.buildSwitcher(id);
+            });
+        }
+        if (document.readyState !== 'loading') tryInit();
+        else document.addEventListener('DOMContentLoaded', tryInit);
+    })();
+    </script>
 
 </body>
 </html>

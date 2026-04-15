@@ -51,13 +51,30 @@ class Booking extends Model
     public function getTitleAttribute(): string
     {
         if ($this->flight) {
-            $from = $this->flight->departure_city;
-            $to   = $this->flight->arrival_city;
-            return "{$from} (" . strtoupper(substr($from, 0, 3)) . ") ? "
-                 . "{$to} ("   . strtoupper(substr($to,   0, 3)) . ")";
+            $from = $this->flight->departure_city ?? '';
+            $to   = $this->flight->arrival_city   ?? '';
+            return "{$from} → {$to}";
         }
-        if ($this->trip) return $this->trip->name;
-        if ($this->passenger_details?->name) return $this->passenger_details['name'];
+        if ($this->trip) return $this->trip->name ?? 'Trip';
+
+        $pd = $this->passenger_details;
+        if ($pd) {
+            // AsArrayObject — use array access, not property access
+            $name = $pd['name'] ?? null;
+            if ($name) return $name;
+
+            // Flight booking stored in passenger_details
+            $airline = $pd['airline'] ?? null;
+            $dep     = $pd['departure_airport'] ?? null;
+            $arr     = $pd['arrival_airport']   ?? null;
+            if ($airline && $dep && $arr) return "{$dep} → {$arr} ({$airline})";
+            if ($dep && $arr)             return "{$dep} → {$arr}";
+
+            // Accommodation booking
+            $city = $pd['city'] ?? null;
+            if ($city) return "Stay in {$city}";
+        }
+
         return 'Booking #' . $this->booking_reference;
     }
 

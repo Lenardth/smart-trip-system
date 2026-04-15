@@ -47,6 +47,8 @@
             <i class="fas fa-comment-dots"></i>
         </a>
 
+        <div class="dash-currency-slot" id="dashCurrencySlot"></div>
+
         <a href="{{ route('profile.edit') }}" class="dash-profile-chip">
             @auth
             <div class="dash-avatar-wrap">

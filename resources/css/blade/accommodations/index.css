@@ -704,3 +704,503 @@
     background: #c9b88a;
     vertical-align: middle;
 }
+
+/* ── Booking.com-style card redesign ─────────────────────────────────────── */
+
+.accom-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(59,31,43,.07);
+    transition: transform .25s, box-shadow .25s;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.accom-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 28px rgba(59,31,43,.15);
+}
+
+.accom-image {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--border);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.accom-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(59,31,43,.35) 100%);
+}
+
+.accom-style-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--deep);
+    color: var(--gold);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    z-index: 1;
+}
+
+.accom-deal-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--danger);
+    color: var(--text-light);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.accom-body {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 6px;
+}
+
+.accom-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.accom-name {
+    color: var(--deep);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.3;
+    flex: 1;
+}
+
+.accom-score-wrap {
+    flex-shrink: 0;
+}
+
+.accom-score {
+    display: inline-block;
+    background: var(--deep);
+    color: var(--gold);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 5px 9px;
+    border-radius: 6px 6px 6px 0;
+    min-width: 38px;
+    text-align: center;
+    border: 1px solid var(--gold);
+}
+
+.accom-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: -2px;
+}
+
+.accom-rating-word {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--deep);
+}
+
+.accom-reviews {
+    font-size: 11.5px;
+    color: var(--text-muted);
+}
+
+.accom-location {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.accom-location i {
+    color: var(--gold);
+    font-size: 11px;
+}
+
+.accom-map-link {
+    color: var(--gold);
+    font-size: 11px;
+    text-decoration: none;
+    margin-left: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: color .2s;
+}
+
+.accom-map-link:hover {
+    color: var(--gold-hover);
+    text-decoration: underline;
+}
+
+.accom-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+}
+
+.accom-amenity {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,.25);
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.accom-amenity i {
+    color: var(--success);
+    font-size: 9px;
+}
+
+.accom-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.accom-price-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.accom-price-main {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--deep);
+    line-height: 1;
+}
+
+.accom-price-unit {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 2px;
+}
+
+.accom-budget-tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    background: var(--gold-dim);
+    color: var(--deep);
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(201,169,110,.3);
+    width: fit-content;
+}
+
+.accom-cta-wrap {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.accom-book-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .2s, box-shadow .2s;
+    white-space: nowrap;
+    font-family: 'Georgia', serif;
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+}
+
+.accom-book-btn:hover {
+    background: var(--gold-hover);
+    color: var(--deep);
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,.18);
+}
+
+.accom-news-btn {
+    width: 38px;
+    height: 38px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: border-color .2s, color .2s, background .2s;
+    flex-shrink: 0;
+}
+
+.accom-news-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-dim);
+}
+
+/* ── Travel Warning Banner ───────────────────────────────────────────────── */
+
+.warning-banner-inner {
+    background: var(--warning-bg);
+    border: 1.5px solid var(--warning);
+    border-radius: 10px;
+    padding: 18px 20px;
+}
+
+.warning-banner-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--orange);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.warning-banner-title i {
+    font-size: 16px;
+}
+
+.warning-banner-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+}
+
+.warning-item {
+    padding: 10px 0;
+    border-top: 1px solid var(--border-soft);
+}
+
+.warning-item:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+
+.warning-item-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--deep);
+    text-decoration: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.4;
+    transition: color .2s;
+}
+
+.warning-item-title:hover {
+    color: var(--gold-hover);
+    text-decoration: underline;
+}
+
+.warning-item-title i {
+    margin-top: 2px;
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--warning);
+}
+
+.warning-item-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 4px 0 4px 18px;
+    line-height: 1.5;
+}
+
+.warning-item-source {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-left: 18px;
+}
+
+/* ── Recommendations Panel ───────────────────────────────────────────────── */
+
+.recommendations-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(59,31,43,.06);
+}
+
+.rec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.rec-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rec-title-row > i {
+    color: var(--danger);
+    font-size: 16px;
+}
+
+.rec-title-row > span:first-of-type {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--deep);
+}
+
+.rec-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.rec-shuffle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-bg);
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .2s, color .2s, background .2s;
+    font-family: 'Georgia', serif;
+    flex-shrink: 0;
+}
+
+.rec-shuffle-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.rec-shuffle-btn.spinning i {
+    animation: spinOnce .5s ease;
+}
+
+@keyframes spinOnce {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.rec-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.rec-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    background: var(--cream);
+    cursor: pointer;
+    transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
+    font-family: 'Georgia', serif;
+    text-align: left;
+}
+
+.rec-chip:hover {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59,31,43,.1);
+}
+
+.rec-chip-emoji {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.rec-chip-city {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--deep);
+}
+
+.rec-chip-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.rec-fun-fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,.3);
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: var(--deep);
+    line-height: 1.5;
+    transition: opacity .3s;
+}
+
+.rec-fun-fact i {
+    color: var(--gold);
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}

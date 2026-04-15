@@ -1,14 +1,17 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-CN405uc_.css",
+    "file": "assets/app-CW5skqtk.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-ExUkZrjr.js",
+    "file": "assets/app-BpXQlpLJ.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
+    "imports": [
+      "resources/js/blade/shared/travel-advisory.js"
+    ],
     "dynamicImports": [
       "resources/js/blade/landing/index.js",
       "resources/js/blade/dashboard/index.js",
@@ -28,7 +31,7 @@
     ]
   },
   "resources/js/blade/accommodations/index.js": {
-    "file": "assets/index-B-Zhszfo.js",
+    "file": "assets/index-DmWoxG9Y.js",
     "name": "index",
     "src": "resources/js/blade/accommodations/index.js",
     "isDynamicEntry": true
@@ -76,7 +79,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/flights/index.js": {
-    "file": "assets/index-DoAwyCIX.js",
+    "file": "assets/index-DhYLMysw.js",
     "name": "index",
     "src": "resources/js/blade/flights/index.js",
     "isDynamicEntry": true
@@ -94,7 +97,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/plan-trip/index.js": {
-    "file": "assets/index-DDlbU-tY.js",
+    "file": "assets/index-DPkxfjVl.js",
     "name": "index",
     "src": "resources/js/blade/plan-trip/index.js",
     "isDynamicEntry": true
@@ -104,6 +107,18 @@
     "name": "edit",
     "src": "resources/js/blade/profile/edit.js",
     "isDynamicEntry": true
+  },
+  "resources/js/blade/shared/currency.js": {
+    "file": "assets/currency-C54Dg6uk.js",
+    "name": "currency",
+    "src": "resources/js/blade/shared/currency.js",
+    "isEntry": true
+  },
+  "resources/js/blade/shared/travel-advisory.js": {
+    "file": "assets/travel-advisory-CZ4-n5YD.js",
+    "name": "travel-advisory",
+    "src": "resources/js/blade/shared/travel-advisory.js",
+    "isEntry": true
   },
   "resources/js/blade/wishlist/index.js": {
     "file": "assets/index-C6YA1MoT.js",

@@ -19,6 +19,8 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\TravelAdvisoryController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\Api\TripMoodController;
 
 // ── Public ────────────────────────────────────────────────────────────────────
@@ -27,6 +29,19 @@ Route::get('/', fn () => view('landing.index'))->name('home');
 Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
     ->middleware('throttle:20,1')
     ->name('ai.suggest');
+
+Route::get('/api/travel-advisory', [TravelAdvisoryController::class, 'advisory'])
+    ->middleware('throttle:30,1')
+    ->name('api.travel-advisory');
+
+Route::get('/api/travel-warning', [App\Http\Controllers\NewsController::class, 'travelWarning'])
+    ->middleware('throttle:30,1')
+    ->name('api.travel-warning');
+
+// Currency
+Route::get('/api/currency/rates',       [CurrencyController::class, 'rates'])->name('api.currency.rates');
+Route::post('/api/currency/set',        [CurrencyController::class, 'setCurrency'])->name('api.currency.set');
+Route::post('/api/currency/convert',    [CurrencyController::class, 'convert'])->name('api.currency.convert');
 
 Route::get('/accommodations',           [AccommodationController::class, 'index'])->name('accommodations.index');
 Route::get('/api/accommodations',       [AccommodationController::class, 'list'])->name('api.accommodations.list');

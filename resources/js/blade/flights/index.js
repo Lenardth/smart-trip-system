@@ -56,6 +56,17 @@ ready(function () {
     if (departureDateInput) departureDateInput.min = today;
     if (returnDateInput)    returnDateInput.min    = today;
 
+    // Swap airports button
+    const swapBtn = document.getElementById('swapBtn');
+    if (swapBtn) {
+        swapBtn.addEventListener('click', function() {
+            const fromVal = fromInput ? fromInput.value : '';
+            const toVal   = toInput   ? toInput.value   : '';
+            if (fromInput) fromInput.value = toVal;
+            if (toInput)   toInput.value   = fromVal;
+        });
+    }
+
     let currentTripType = 'round-trip';
 
     document.querySelectorAll('.trip-type-tab').forEach(tab => {
@@ -147,14 +158,18 @@ ready(function () {
         if (resultsCountSpan) resultsCountSpan.textContent = sorted.length;
 
         const cards = sorted.map(function(flight, index) {
-            const price = flight.price ? fmt(flight.price) : 'N/A';
+            const usdPrice = flight.price || 0;
+            const priceNote = flight.price_note ? ' <span style="font-size:10px;opacity:.6;">est.</span>' : '';
+            const price = usdPrice > 0
+                ? (typeof window.Currency !== 'undefined' ? window.Currency.format(usdPrice) : '$' + usdPrice.toLocaleString())
+                : 'Price TBD';
             return '<div class="flight-card" data-flight-index="' + index + '">' +
                 '<div class="flight-header">' +
                     '<div class="airline-info">' +
                         '<div class="airline-name">' + escapeHtml(flight.airline || 'Airline') + '</div>' +
                         '<div class="flight-number">Flight ' + escapeHtml(flight.flight_number || 'N/A') + '</div>' +
                     '</div>' +
-                    '<div class="flight-price">' + price + '<span class="price-per-person">per person</span></div>' +
+                    '<div class="flight-price" data-price-usd="' + usdPrice + '">' + price + priceNote + '<span class="price-per-person">per person</span></div>' +
                 '</div>' +
                 '<div class="flight-body">' +
                     '<div class="flight-route">' +

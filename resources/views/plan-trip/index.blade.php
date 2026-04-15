@@ -151,6 +151,134 @@
         .selected-mood-display.visible { display: flex; }
         .selected-mood-display i { color: var(--gold); }
         .selected-mood-display strong { color: var(--gold); }
+
+        /* Surprise summary panel */
+        .surprise-summary {
+            display: none;
+            margin-top: 20px;
+            background: var(--gold-dim);
+            border: 1.5px solid var(--gold);
+            border-radius: 10px;
+            padding: 18px 20px;
+            animation: fadeSlideIn .3s ease;
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .surprise-summary-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--deep);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .surprise-summary-title i { color: var(--gold); }
+        .surprise-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .surprise-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .surprise-item i {
+            color: var(--gold);
+            font-size: 13px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        .surprise-item span {
+            font-size: 12.5px;
+            color: var(--deep);
+            line-height: 1.4;
+        }
+        .surprise-item strong {
+            display: block;
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .surprise-summary-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .surprise-summary-actions .primary-button,
+        .surprise-summary-actions .secondary-button {
+            font-size: 13px;
+            padding: 10px 20px;
+        }
+
+        /* Surprise Me button */
+        .surprise-btn {
+            background: transparent;
+            border: 1.5px dashed var(--gold);
+            color: var(--deep);
+            font-size: 13px;
+            transition: background .2s, transform .15s;
+        }
+        .surprise-btn:hover {
+            background: var(--gold-dim);
+            transform: rotate(-2deg) scale(1.04);
+        }
+
+        /* Surprise toast */
+        .surprise-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--deep);
+            color: var(--gold);
+            padding: 12px 24px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Georgia', serif;
+            box-shadow: 0 8px 24px rgba(0,0,0,.3);
+            z-index: 9999;
+            opacity: 0;
+            transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .surprise-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Animated loading */
+        #loadingMsg {
+            transition: opacity .2s;
+        }
+        .loading-fun-fact {
+            margin-top: 16px;
+            padding: 12px 18px;
+            background: var(--gold-dim);
+            border: 1px solid rgba(201,169,110,.3);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--deep);
+            max-width: 420px;
+            text-align: center;
+            line-height: 1.5;
+            transition: opacity .4s;
+        }
     </style>
 @endpush
 
@@ -162,7 +290,7 @@
 <section class="page-hero" style="background: linear-gradient(160deg, rgba(5,25,15,0.75) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1920&q=90'); background-size: cover; background-position: center;">
     <div>
         <h1><i class="fas fa-route"></i> Plan Your Trip</h1>
-        <p>Let AI build the perfect itinerary tailored to your mood, budget, and style.</p>
+        <p id="heroTagline">Let AI build the perfect itinerary tailored to your mood, budget, and style.</p>
     </div>
 </section>
 
@@ -239,7 +367,12 @@
             <small style="display:block;margin-top:8px;color:var(--text-muted);">This helps AI personalise destination and accommodation style better.</small>
         </div>
 
-        <div class="btn-row"><button class="primary-button" onclick="goStep(2)">Next <i class="fas fa-arrow-right"></i></button></div>
+        <div class="btn-row">
+            <button class="secondary-button surprise-btn" onclick="surpriseMe()">
+                <i class="fas fa-dice"></i> Surprise Me!
+            </button>
+            <button class="primary-button" onclick="goStep(2)">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
     </div>
 
     <div class="planner-card" id="step2" style="display:none;">
@@ -356,7 +489,8 @@
     <div id="step4" style="display:none;">
         <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
-            <p>Finding your perfect destinations…</p>
+            <p id="loadingMsg">Finding your perfect destinations…</p>
+            <div class="loading-fun-fact" id="loadingFunFact"></div>
         </div>
         <div id="errorState" class="error-state" style="display:none;"></div>
         <div id="resultsState" class="results-section" style="display:none;">
@@ -364,6 +498,7 @@
             <p class="section-subtitle">5 destinations matched to your preferences. Click one to select it, then print your trip receipt.</p>
             <p class="select-hint"><i class="fas fa-hand-pointer" style="margin-right:6px;"></i>Tap a card to select your destination</p>
             <div class="results-grid" id="resultsGrid"></div>
+            <div id="travelAdvisoryContainer" style="display:none;"></div>
         </div>
         <div class="btn-row" style="margin-top:30px;">
             <button class="secondary-button" onclick="goStep(3)"><i class="fas fa-arrow-left"></i> Adjust Preferences</button>

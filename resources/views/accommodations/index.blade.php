@@ -20,6 +20,22 @@
 
 <main class="accommodations-wrap">
 
+    {{-- ── Smart Recommendations (shown before search) ── --}}
+    <section id="recommendationsPanel" class="recommendations-panel">
+        <div class="rec-header">
+            <div class="rec-title-row">
+                <i class="fas fa-fire"></i>
+                <span>Trending Right Now</span>
+                <span class="rec-subtitle">Popular destinations travellers are searching today</span>
+            </div>
+            <button class="rec-shuffle-btn" id="recShuffleBtn" onclick="shuffleRecommendations()">
+                <i class="fas fa-random"></i> Shuffle
+            </button>
+        </div>
+        <div class="rec-chips" id="recChips"></div>
+        <div class="rec-fun-fact" id="recFunFact"></div>
+    </section>
+
     <section class="filters">
         <input id="searchInput" type="text" placeholder="Search by city, country, or name">
         <select id="styleSelect">
@@ -101,6 +117,9 @@
         </div>
 
     </section>
+
+    <div id="travelWarningBanner" style="display:none;margin:0 0 20px;"></div>
+    <div id="travelAdvisoryContainer" style="display:none;margin:0 0 24px;"></div>
 
     <section id="accommodationsGrid" class="grid"></section>
     <div id="emptyState" class="empty" style="display:none;">No accommodations found.</div>

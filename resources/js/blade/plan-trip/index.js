@@ -16,6 +16,9 @@ window.closeReceipt       = function()  { return closeReceipt(); };
 window.printReceipt       = function()  { return printReceipt(); };
 window.downloadReceiptPdf = function()  { return downloadReceiptPdf(); };
 window.esc                = function(s) { return esc(s); };
+window.surpriseMe         = function()  { /* defined below */ };
+window.acceptSurprise     = function()  { /* defined below */ };
+window.clearSurprise      = function()  { /* defined below */ };
 
 const COST_MULTIPLIERS = {
     budget: { backpacker: 0.7, budget: 1.0, mid: 1.5, premium: 2.5, luxury: 4.0 },
@@ -555,6 +558,15 @@ function selectDestination(idx) {
     }
 
     if (receiptBtn) receiptBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Load travel advisory for selected destination
+    if (typeof window.renderTravelAdvisory === 'function') {
+        window.renderTravelAdvisory(
+            'travelAdvisoryContainer',
+            selectedDest.destination,
+            selectedDest.country
+        );
+    }
 }
 
 async function saveTripToDashboard() {
@@ -1045,3 +1057,204 @@ window.openReceipt = openReceipt;
 window.closeReceipt = closeReceipt;
 window.printReceipt = printReceipt;
 window.downloadReceiptPdf = downloadReceiptPdf;
+
+// ── Fun & Realistic Enhancements ─────────────────────────────────────────────
+
+window.surpriseMe = function() {
+    const moods = ['adventurous', 'relaxed', 'cultural', 'romantic', 'foodie', 'eco-travel'];
+    const budgets = ['backpacker', 'budget', 'mid', 'premium'];
+    const durations = ['weekend', 'week', 'two_weeks'];
+    const companions = ['solo', 'couple', 'friends_small'];
+    const regions = ['europe', 'southeast_asia', 'africa', 'latin_america', 'east_asia', 'middle_east'];
+
+    // Step 1 — pick and visually select a random mood
+    const randomMood = moods[Math.floor(Math.random() * moods.length)];
+    const moodCard = document.querySelector('.mood-card[data-mood="' + randomMood + '"]');
+    if (moodCard) {
+        // Make sure we're on step 1 first
+        goStep(1);
+        // Scroll to mood grid
+        moodCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Flash highlight then select
+        moodCard.style.transform = 'scale(1.08)';
+        moodCard.style.boxShadow = '0 0 0 3px var(--gold)';
+        setTimeout(function() {
+            moodCard.style.transform = '';
+            moodCard.style.boxShadow = '';
+            selectMood(moodCard);
+        }, 400);
+    }
+
+    // Set random values for steps 2 & 3
+    const chosenBudget   = budgets[Math.floor(Math.random() * budgets.length)];
+    const chosenDuration = durations[Math.floor(Math.random() * durations.length)];
+    const chosenCompanion = companions[Math.floor(Math.random() * companions.length)];
+    const chosenRegion   = regions[Math.floor(Math.random() * regions.length)];
+
+    const budgetEl    = document.getElementById('budget');
+    const durationEl  = document.getElementById('duration');
+    const companionEl = document.getElementById('companion');
+    const regionEl    = document.getElementById('region');
+
+    if (budgetEl)    budgetEl.value    = chosenBudget;
+    if (durationEl)  durationEl.value  = chosenDuration;
+    if (companionEl) companionEl.value = chosenCompanion;
+    if (regionEl)    regionEl.value    = chosenRegion;
+
+    // Build a readable summary of what was chosen
+    const moodLabels = {
+        adventurous: 'Adventurous', relaxed: 'Relaxed', cultural: 'Cultural',
+        romantic: 'Romantic', foodie: 'Foodie', 'eco-travel': 'Eco-Travel'
+    };
+    const budgetLabels = {
+        backpacker: 'Backpacker (under $500)', budget: 'Budget ($500-$1,500)',
+        mid: 'Mid-Range ($1,500-$4,000)', premium: 'Premium ($4,000-$8,000)'
+    };
+    const durationLabels = {
+        weekend: 'Long Weekend (3-4 days)', week: 'One Week', two_weeks: 'Two Weeks'
+    };
+    const companionLabels = {
+        solo: 'Solo', couple: 'Couple', friends_small: 'Small Group of Friends'
+    };
+    const regionLabels = {
+        europe: 'Europe', southeast_asia: 'Southeast Asia', africa: 'Africa',
+        latin_america: 'Latin America', east_asia: 'East Asia', middle_east: 'Middle East'
+    };
+
+    // Show a summary panel on step 1 before moving on
+    let summaryEl = document.getElementById('surpriseSummary');
+    if (!summaryEl) {
+        summaryEl = document.createElement('div');
+        summaryEl.id = 'surpriseSummary';
+        summaryEl.className = 'surprise-summary';
+        const btnRow = document.querySelector('#step1 .btn-row');
+        if (btnRow) btnRow.parentNode.insertBefore(summaryEl, btnRow);
+    }
+
+    summaryEl.innerHTML =
+        '<div class="surprise-summary-title"><i class="fas fa-dice"></i> Your Surprise Trip</div>'
+        + '<div class="surprise-summary-grid">'
+        + '<div class="surprise-item"><i class="fas fa-heart"></i><span><strong>Mood</strong>' + (moodLabels[randomMood] || randomMood) + '</span></div>'
+        + '<div class="surprise-item"><i class="fas fa-wallet"></i><span><strong>Budget</strong>' + (budgetLabels[chosenBudget] || chosenBudget) + '</span></div>'
+        + '<div class="surprise-item"><i class="fas fa-clock"></i><span><strong>Duration</strong>' + (durationLabels[chosenDuration] || chosenDuration) + '</span></div>'
+        + '<div class="surprise-item"><i class="fas fa-users"></i><span><strong>Travelling as</strong>' + (companionLabels[chosenCompanion] || chosenCompanion) + '</span></div>'
+        + '<div class="surprise-item"><i class="fas fa-globe"></i><span><strong>Region</strong>' + (regionLabels[chosenRegion] || chosenRegion) + '</span></div>'
+        + '</div>'
+        + '<div class="surprise-summary-actions">'
+        + '<button class="secondary-button" onclick="clearSurprise()"><i class="fas fa-redo"></i> Change</button>'
+        + '<button class="primary-button" onclick="acceptSurprise()"><i class="fas fa-magic"></i> Find My Destinations</button>'
+        + '</div>';
+
+    summaryEl.style.display = 'block';
+    summaryEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+window.acceptSurprise = function() {
+    generateSuggestions();
+};
+
+window.clearSurprise = function() {
+    const summaryEl = document.getElementById('surpriseSummary');
+    if (summaryEl) summaryEl.style.display = 'none';
+    // Deselect mood cards
+    document.querySelectorAll('.mood-card.selected').forEach(function(c) { c.classList.remove('selected'); });
+    document.querySelectorAll('.mood-pill.selected').forEach(function(p) { p.classList.remove('selected'); });
+    setSelectedMood('', '');
+    // Reset selects
+    ['budget', 'duration', 'companion', 'region'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.selectedIndex = 0;
+    });
+};
+
+// Animated loading messages
+const LOADING_MESSAGES = [
+    'Scanning 195 countries for your perfect match...',
+    'Consulting the travel gods...',
+    'Checking visa requirements and flight routes...',
+    'Asking locals for their secret spots...',
+    'Calculating the vibe-to-budget ratio...',
+    'Filtering out tourist traps...',
+    'Finding hidden gems just for you...',
+    'Almost there — good things take a moment...',
+];
+
+const TRAVEL_FACTS = [
+    '🌍 Did you know? The shortest commercial flight is just 57 seconds long (Scotland).',
+    '✈️ Fun fact: Airlines lose about 25 million bags per year. Always pack essentials in carry-on.',
+    '🏨 Pro tip: Booking Tuesday–Wednesday is usually 15% cheaper than weekends.',
+    '🌊 The Maldives has the lowest elevation of any country — just 1.5m above sea level.',
+    '🎒 Packing tip: Roll your clothes instead of folding — fits 30% more in your bag.',
+    '🗺️ The world\'s longest road trip is from Cape Town to Magadan — 22,000km.',
+    '🌅 Golden hour is 30 minutes after sunrise and before sunset — best photos of your life.',
+    '🍜 Street food is often the safest bet — high turnover means fresh ingredients.',
+    '🏔️ Altitude sickness can hit at just 2,500m. Acclimatise before big hikes.',
+    '💡 Offline maps save lives. Download Google Maps for your destination before you go.',
+];
+
+let loadingMsgInterval = null;
+let loadingMsgIndex = 0;
+
+function startLoadingAnimation() {
+    const msgEl = document.getElementById('loadingMsg');
+    const factEl = document.getElementById('loadingFunFact');
+
+    loadingMsgIndex = 0;
+    if (msgEl) msgEl.textContent = LOADING_MESSAGES[0];
+    if (factEl) {
+        const fact = TRAVEL_FACTS[Math.floor(Math.random() * TRAVEL_FACTS.length)];
+        factEl.innerHTML = fact;
+        factEl.style.opacity = '0';
+        setTimeout(function() { factEl.style.opacity = '1'; }, 500);
+    }
+
+    loadingMsgInterval = setInterval(function() {
+        loadingMsgIndex = (loadingMsgIndex + 1) % LOADING_MESSAGES.length;
+        if (msgEl) {
+            msgEl.style.opacity = '0';
+            setTimeout(function() {
+                msgEl.textContent = LOADING_MESSAGES[loadingMsgIndex];
+                msgEl.style.opacity = '1';
+            }, 200);
+        }
+    }, 2000);
+}
+
+function stopLoadingAnimation() {
+    if (loadingMsgInterval) {
+        clearInterval(loadingMsgInterval);
+        loadingMsgInterval = null;
+    }
+}
+
+// Rotating hero taglines
+const HERO_TAGLINES = [
+    'Let AI build the perfect itinerary tailored to your mood, budget, and style.',
+    'From weekend escapes to month-long adventures — we\'ve got you covered.',
+    'Tell us how you feel. We\'ll tell you where to go.',
+    'Your next great story starts with a single search.',
+    'Forget the spreadsheets. Just tell us your vibe.',
+];
+
+(function initPlanTrip() {
+    // Rotate hero tagline
+    const tagline = document.getElementById('heroTagline');
+    if (tagline) {
+        tagline.textContent = HERO_TAGLINES[Math.floor(Math.random() * HERO_TAGLINES.length)];
+    }
+
+    // Expose saveBtn click
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
+})();
+
+// Patch generateSuggestions to use animated loading
+const _origGenerate = window.generateSuggestions;
+window.generateSuggestions = async function() {
+    startLoadingAnimation();
+    try {
+        await _origGenerate();
+    } finally {
+        stopLoadingAnimation();
+    }
+};

@@ -94,10 +94,10 @@
                             @if($booking->flight?->arrival_time)
                                 <span><i class="fas fa-calendar-check"></i> {{ $booking->flight->arrival_time->format('M j, Y') }}</span>
                             @endif
-                            @if($booking->passenger_details?->check_in)
+                            @if(isset($booking->passenger_details['check_in']))
                                 <span><i class="fas fa-calendar-alt"></i> {{ \Carbon\Carbon::parse($booking->passenger_details['check_in'])->format('M j, Y') }}</span>
                             @endif
-                            @if($booking->passenger_details?->check_out)
+                            @if(isset($booking->passenger_details['check_out']))
                                 <span><i class="fas fa-calendar-check"></i> {{ \Carbon\Carbon::parse($booking->passenger_details['check_out'])->format('M j, Y') }}</span>
                             @endif
                             <span>
@@ -107,14 +107,14 @@
                             @if($booking->flight?->airline)
                                 <span><i class="fas fa-plane-departure"></i> {{ $booking->flight->airline }}</span>
                             @endif
-                            @if($booking->passenger_details?->name && $booking->type === 'hotels')
+                            @if(($booking->passenger_details && isset($booking->passenger_details['name'])) && $booking->type === 'hotels')
                                 <span><i class="fas fa-bed"></i> {{ $booking->passenger_details['name'] }}</span>
                             @endif
                         </div>
                         <span class="booking-ref">REF: {{ $booking->booking_reference }}</span>
                     </div>
                     <div class="booking-price">
-                        <div class="amount">${{ number_format($booking->total_price, 2) }}</div>
+                        <div class="amount" data-price-usd="{{ $booking->total_price }}">${{ number_format($booking->total_price, 2) }}</div>
                         <div class="per">total</div>
                     </div>
                     <div class="booking-actions">
@@ -161,7 +161,7 @@
                             <div class="detail-item"><label>Trip</label><span>{{ $booking->trip->name }}</span></div>
                         @endif
                         <div class="detail-item"><label>Passengers</label><span>{{ $passengers }}</span></div>
-                        <div class="detail-item"><label>Total Paid</label><span>${{ number_format($booking->total_price, 2) }}</span></div>
+                        <div class="detail-item"><label>Total Paid</label><span data-price-usd="{{ $booking->total_price }}">${{ number_format($booking->total_price, 2) }}</span></div>
                     </div>
                 </div>
 

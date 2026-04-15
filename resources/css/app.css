@@ -8,3 +8,8 @@
 @import './blade/auth/reset-password.css';
 @import './blade/auth/confirm-password.css';
 @import './blade/auth/verify-email.css';
+
+@import './blade/shared/travel-advisory.css';
+@import './blade/shared/currency.css';
+
+@import './blade/flights/index.css';

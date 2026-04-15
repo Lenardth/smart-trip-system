@@ -119,7 +119,10 @@ function renderDestinations(destinations) {
         const badgeHtml = d.badge ? `<span class="dest-badge">${d.badge}</span>` : '';
         const imgStyle  = d.image_url ? `background-image:url('${d.image_url}')` : '';
         const inList    = wishlistedIds.has(d.id);
-        const price     = d.price_from ? '$' + Number(d.price_from).toLocaleString() + '+' : '';
+        const priceUsd  = d.price_from ? Number(d.price_from) : 0;
+        const price     = priceUsd > 0
+            ? '<span data-price-usd="' + priceUsd + '">' + (typeof window.Currency !== 'undefined' ? window.Currency.format(priceUsd) : '$' + priceUsd.toLocaleString()) + '+</span>'
+            : '';
 
         return `<div class="destination-card" data-id="${d.id}">
             <div class="destination-image" style="${imgStyle}">

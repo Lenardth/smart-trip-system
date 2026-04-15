@@ -132,29 +132,28 @@ class AviationstackService
     {
         $input = trim($input);
 
-        
+        // Direct IATA code
         if (preg_match('/^[A-Za-z]{3}$/', $input)) {
             return strtoupper($input);
         }
 
-        
         $lower = strtolower($input);
         $lower = preg_replace('/\s*(international|airport|intl|city|centre|center)\s*/', ' ', $lower);
         $lower = preg_replace('/\s+/', ' ', trim($lower));
 
-        
+        // Exact match
         if (isset($this->airportMap[$lower])) {
             return $this->airportMap[$lower];
         }
 
-        
+        // Substring match
         foreach ($this->airportMap as $city => $iata) {
             if (str_contains($lower, $city) || str_contains($city, $lower)) {
                 return $iata;
             }
         }
 
-        
+        // Word prefix match
         $words = explode(' ', $lower);
         foreach ($words as $word) {
             if (strlen($word) < 3) continue;
@@ -165,7 +164,19 @@ class AviationstackService
             }
         }
 
-        return null;
+        // Fuzzy match — handles typos like "Johanessburg" → "johannesburg"
+        $bestScore = 0;
+        $bestIata  = null;
+        foreach ($this->airportMap as $city => $iata) {
+            similar_text($lower, $city, $percent);
+            if ($percent > $bestScore) {
+                $bestScore = $percent;
+                $bestIata  = $iata;
+            }
+        }
+
+        // Only accept if similarity is above 70%
+        return $bestScore >= 70 ? $bestIata : null;
     }
 
     public function searchFlights(
@@ -176,36 +187,54 @@ class AviationstackService
         string  $travelClass = 'ECONOMY',
         ?string $returnDate = null
     ): array {
-        $fromLocal = "{$departureDate}T00:00";
-        $toLocal   = "{$departureDate}T23:59";
-
         if (!$this->key) {
             throw new \RuntimeException('Flight API key is not configured. Add AVIATIONSTACK_KEY to your .env file.');
         }
 
-        $response = Http::withHeaders([
-            'x-rapidapi-host' => $this->host,
-            'x-rapidapi-key'  => $this->key,
-        ])->get("{$this->baseUrl}/flights/airports/iata/{$from}/{$fromLocal}/{$toLocal}", [
-            'withLeg'        => 'true',
-            'direction'      => 'Departure',
-            'withCancelled'  => 'false',
-            'withCodeshared' => 'true',
-            'limit'          => 50,
-        ]);
+        // AeroDataBox requires max 12-hour windows — run two 12h searches and merge
+        $windows = [
+            ["{$departureDate}T00:00", "{$departureDate}T11:59"],
+            ["{$departureDate}T12:00", "{$departureDate}T23:59"],
+        ];
 
-        if (!$response->successful()) {
-            Log::error('AeroDataBox searchFlights failed', [
-                'status' => $response->status(),
-                'body'   => $response->body(),
-            ]);
-            throw new \RuntimeException('Unable to connect to flight API: ' . $response->body());
+        $allDepartures = [];
+
+        foreach ($windows as [$fromLocal, $toLocal]) {
+            try {
+                $response = Http::withHeaders([
+                    'x-rapidapi-host' => $this->host,
+                    'x-rapidapi-key'  => $this->key,
+                ])->get("{$this->baseUrl}/flights/airports/iata/{$from}/{$fromLocal}/{$toLocal}", [
+                    'withLeg'        => 'true',
+                    'direction'      => 'Departure',
+                    'withCancelled'  => 'false',
+                    'withCodeshared' => 'true',
+                    'limit'          => 50,
+                ]);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $allDepartures = array_merge($allDepartures, $data['departures'] ?? []);
+                } else {
+                    Log::warning('AeroDataBox window failed', [
+                        'window' => "{$fromLocal}/{$toLocal}",
+                        'status' => $response->status(),
+                        'body'   => $response->body(),
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('AeroDataBox window exception', ['error' => $e->getMessage()]);
+            }
+
+            // Small delay between requests to avoid rate limiting
+            usleep(500000);
         }
 
-        $data       = $response->json();
-        $departures = $data['departures'] ?? [];
+        if (empty($allDepartures)) {
+            throw new \RuntimeException('No flight data returned. The route may not exist or the API limit has been reached.');
+        }
 
-        $filtered = array_filter($departures, fn($f) =>
+        $filtered = array_filter($allDepartures, fn($f) =>
             strtoupper($f['arrival']['airport']['iata'] ?? '') === strtoupper($to)
         );
 
@@ -242,6 +271,11 @@ class AviationstackService
         $depRaw = $dep['scheduledTime']['local'] ?? $dep['scheduledTime']['utc'] ?? null;
         $arrRaw = $arr['scheduledTime']['local'] ?? $arr['scheduledTime']['utc'] ?? null;
 
+        $duration = ($depRaw && $arrRaw) ? $this->calcDuration($depRaw, $arrRaw) : null;
+
+        // Estimate price based on flight duration (AeroDataBox doesn't provide prices)
+        $estimatedPrice = $this->estimatePrice($duration, $travelClass);
+
         return [
             'flight_number'    => $f['number']                        ?? 'N/A',
             'airline'          => $f['airline']['name']               ?? 'Unknown',
@@ -254,15 +288,42 @@ class AviationstackService
             'arrival_airport'  => $arr['airport']['name']             ?? ($arr['airport']['iata'] ?? null),
             'arrival_time'     => $arrRaw ? $this->extractTime($arrRaw) : null,
             'arrival_date'     => $arrRaw ? $this->extractDate($arrRaw) : null,
-            'duration'         => ($depRaw && $arrRaw) ? $this->calcDuration($depRaw, $arrRaw) : null,
+            'duration'         => $duration,
             'stops'            => 0,
             'baggage'          => '1 bag included',
             'travel_class'     => $travelClass,
             'adults'           => $adults,
-            'price'            => null,
-            'currency'         => null,
+            'price'            => $estimatedPrice,
+            'price_note'       => 'Estimated fare',
+            'currency'         => 'USD',
             'status'           => $f['status'] ?? null,
         ];
+    }
+
+    private function estimatePrice(string|null $duration, string $travelClass): int
+    {
+        // Parse duration to minutes
+        $minutes = 120; // default 2h
+        if ($duration && preg_match('/(\d+)h\s*(\d+)?m?/', $duration, $m)) {
+            $minutes = ((int)$m[1]) * 60 + (int)($m[2] ?? 0);
+        }
+
+        // Base price: ~$0.12 per minute for economy
+        $base = max(49, (int)($minutes * 0.12));
+
+        // Add some variance (±15%)
+        $variance = (int)($base * 0.15);
+        $base = $base + rand(-$variance, $variance);
+
+        // Class multipliers
+        $multiplier = match (strtoupper($travelClass)) {
+            'PREMIUM_ECONOMY' => 1.8,
+            'BUSINESS'        => 3.5,
+            'FIRST'           => 6.0,
+            default           => 1.0, // ECONOMY
+        };
+
+        return (int)round($base * $multiplier);
     }
 
     private function extractTime(string $datetime): string

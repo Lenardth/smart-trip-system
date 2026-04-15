@@ -44,6 +44,7 @@
             <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </form>
     @endguest
+    <div class="nav-currency-slot" id="navCurrencySlot"></div>
 </nav>
 
 <div class="mob-overlay" id="mobOverlay"></div>

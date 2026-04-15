@@ -29,7 +29,7 @@
             @if($accommodation->nightly_rate)
             <div style="background:rgba(201,169,110,0.1);border:1px solid var(--gold);border-radius:8px;padding:14px 18px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;">
                 <span style="color:var(--text-muted);font-size:13px;">Nightly rate</span>
-                <span style="font-size:20px;font-weight:700;color:var(--deep);">${{ number_format($accommodation->nightly_rate) }}<span style="font-size:13px;font-weight:normal;color:var(--text-muted);">/night</span></span>
+                <span style="font-size:20px;font-weight:700;color:var(--deep);" data-price-usd="{{ $accommodation->nightly_rate }}">${{ number_format($accommodation->nightly_rate) }}</span><span style="font-size:13px;font-weight:normal;color:var(--text-muted);">/night</span>
             </div>
             @endif
 

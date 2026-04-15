@@ -24,8 +24,8 @@ class FlightController extends Controller
         $validated = $request->validate([
             'from'           => ['required', 'string', 'max:100'],
             'to'             => ['required', 'string', 'max:100'],
-            'departure_date' => ['required', 'date_format:Y-m-d'],
-            'return_date'    => ['nullable', 'date_format:Y-m-d'],
+            'departure_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'return_date'    => ['nullable', 'date_format:Y-m-d', 'after_or_equal:departure_date'],
             'adults'         => ['nullable', 'integer', 'min:1', 'max:9'],
             'travel_class'   => ['nullable', 'string'],
         ]);
@@ -44,7 +44,7 @@ class FlightController extends Controller
                 ], 422);
             }
 
-            usleep(1000000); 
+            usleep(500000);
             $flights = $this->aviationstack->searchFlights(
                 $fromCode,
                 $toCode,

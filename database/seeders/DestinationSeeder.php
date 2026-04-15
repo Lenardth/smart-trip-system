@@ -17,8 +17,8 @@ class DestinationSeeder extends Seeder
         }
 
         if (DB::table('destinations')->count() >= 100) {
-            $this->command->info('Destinations already seeded — skipping.');
-            return;
+            $this->command->info('Destinations already seeded — truncating and re-seeding.');
+            DB::table('destinations')->truncate();
         }
 
         DB::table('destinations')->truncate();

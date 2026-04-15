@@ -84,7 +84,10 @@ window.applyDestinationFilter = function (filter, tagEl) {
 
 function buildCard(d) {
     const image       = d.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(d.name) + '/600/400';
-    const price       = d.price_from ? 'From ' + Number(d.price_from).toLocaleString() : '';
+    const priceUsd    = d.price_from ? Number(d.price_from) : 0;
+    const price       = priceUsd > 0
+        ? 'From <span data-price-usd="' + priceUsd + '">' + (typeof window.Currency !== 'undefined' ? window.Currency.format(priceUsd) : '$' + priceUsd.toLocaleString()) + '</span>'
+        : '';
     const badge       = d.badge ? '<span class="destination-badge">' + d.badge + '</span>' : '';
     const hiddenGem   = Number(d.is_hidden_gem) === 1
         ? '<span class="destination-badge" style="background:rgba(138,43,226,0.85);"><i class="fas fa-gem"></i> Hidden Gem</span>' : '';

@@ -11,9 +11,9 @@
 </section>
 
 <div class="flights-container">
-    <div class="search-card">
-        <h2><i class="fas fa-search"></i> Search Flights</h2>
 
+    {{-- Search card --}}
+    <div class="search-card">
         <div class="trip-type-tabs">
             <div class="trip-type-tab active" data-type="round-trip">
                 <i class="fas fa-exchange-alt"></i> Round Trip
@@ -31,6 +31,11 @@
                 <div class="form-group">
                     <label><i class="fas fa-plane-departure"></i> From</label>
                     <input type="text" class="form-input" id="from" name="from" placeholder="City or Airport" required>
+                </div>
+                <div class="swap-btn-wrap">
+                    <button type="button" class="swap-btn" id="swapBtn" title="Swap airports">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-plane-arrival"></i> To</label>
@@ -72,9 +77,10 @@
         </form>
     </div>
 
-    <div class="results-section" id="resultsSection">
+    {{-- Results --}}
+    <div class="results-section" id="resultsSection" style="display:none;">
         <div class="results-header">
-            <h3><span id="resultsCount">0</span> Flights Found</h3>
+            <h3><i class="fas fa-list"></i> <span id="resultsCount">0</span> Flights Found</h3>
             <div class="sort-filter">
                 <label>Sort by:</label>
                 <select id="sortBy">
@@ -88,40 +94,96 @@
         <div id="flightResults"></div>
     </div>
 
+    {{-- Cheap flight suggestions --}}
+    <section class="cheap-flights-section">
+        <div class="cheap-flights-header">
+            <div>
+                <h3><i class="fas fa-tag"></i> Cheap Flights This Month</h3>
+                <p>Estimated fares — click any deal to search instantly</p>
+            </div>
+            <span class="cheap-flights-note"><i class="fas fa-info-circle"></i> Prices may vary</span>
+        </div>
+        <div class="cheap-flights-grid">
+            @php
+            $deals = [
+                ['from'=>'Johannesburg','to'=>'Cape Town',  'from_code'=>'JNB','to_code'=>'CPT','price'=>'$89', 'duration'=>'2h 00m','airline'=>'FlySafair',   'icon'=>'fa-plane',          'tag'=>'Domestic Deal'],
+                ['from'=>'Dubai',       'to'=>'Bangkok',    'from_code'=>'DXB','to_code'=>'BKK','price'=>'$210','duration'=>'6h 30m','airline'=>'Emirates',     'icon'=>'fa-star',           'tag'=>'Popular Route'],
+                ['from'=>'London',      'to'=>'Lisbon',     'from_code'=>'LHR','to_code'=>'LIS','price'=>'$95', 'duration'=>'2h 30m','airline'=>'TAP Air',      'icon'=>'fa-fire',           'tag'=>'Hot Deal'],
+                ['from'=>'New York',    'to'=>'Cancun',     'from_code'=>'JFK','to_code'=>'CUN','price'=>'$180','duration'=>'4h 15m','airline'=>'JetBlue',      'icon'=>'fa-umbrella-beach', 'tag'=>'Beach Escape'],
+                ['from'=>'Singapore',   'to'=>'Bali',       'from_code'=>'SIN','to_code'=>'DPS','price'=>'$95', 'duration'=>'2h 30m','airline'=>'Scoot',        'icon'=>'fa-leaf',           'tag'=>'Weekend Getaway'],
+                ['from'=>'Paris',       'to'=>'Barcelona',  'from_code'=>'CDG','to_code'=>'BCN','price'=>'$65', 'duration'=>'1h 55m','airline'=>'Vueling',      'icon'=>'fa-bolt',           'tag'=>'Flash Sale'],
+                ['from'=>'Sydney',      'to'=>'Melbourne',  'from_code'=>'SYD','to_code'=>'MEL','price'=>'$79', 'duration'=>'1h 25m','airline'=>'Jetstar',      'icon'=>'fa-plane',          'tag'=>'Domestic Deal'],
+                ['from'=>'Nairobi',     'to'=>'Zanzibar',   'from_code'=>'NBO','to_code'=>'ZNZ','price'=>'$120','duration'=>'1h 45m','airline'=>'Kenya Airways', 'icon'=>'fa-sun',           'tag'=>'Island Escape'],
+            ];
+            @endphp
+            @foreach($deals as $deal)
+            <div class="cheap-flight-card" onclick="fillRoute('{{ $deal['from'] }}', '{{ $deal['to'] }}')">
+                <div class="cheap-flight-tag"><i class="fas {{ $deal['icon'] }}"></i> {{ $deal['tag'] }}</div>
+                <div class="cheap-flight-route">
+                    <div class="cheap-flight-city">
+                        <span class="cheap-city-name">{{ $deal['from'] }}</span>
+                        <span class="cheap-city-code">{{ $deal['from_code'] }}</span>
+                    </div>
+                    <div class="cheap-flight-arrow">
+                        <i class="fas fa-long-arrow-alt-right"></i>
+                        <span class="cheap-duration">{{ $deal['duration'] }}</span>
+                    </div>
+                    <div class="cheap-flight-city cheap-flight-city--right">
+                        <span class="cheap-city-name">{{ $deal['to'] }}</span>
+                        <span class="cheap-city-code">{{ $deal['to_code'] }}</span>
+                    </div>
+                </div>
+                <div class="cheap-flight-footer">
+                    <span class="cheap-airline"><i class="fas fa-plane-departure"></i> {{ $deal['airline'] }}</span>
+                    <span class="cheap-price" data-price-usd="{{ ltrim($deal['price'], '$') }}">{{ $deal['price'] }}</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- Popular routes --}}
     <div class="popular-routes">
-        <h3>Popular Routes</h3>
+        <h3><i class="fas fa-route"></i> Popular Routes</h3>
         <div class="routes-grid">
             <div class="route-card" onclick="fillRoute('New York', 'London')">
-                <div class="route-cities">New York ✈ London</div>
-                <div class="route-price">from $450</div>
-                <div class="route-info">7h 30m • Direct flights available</div>
+                <div class="route-flag"><i class="fas fa-plane"></i></div>
+                <div class="route-cities">New York <i class="fas fa-long-arrow-alt-right"></i> London</div>
+                <div class="route-price">from <span data-price-usd="450">$450</span></div>
+                <div class="route-info"><i class="fas fa-clock"></i> 7h 30m &nbsp;<i class="fas fa-check-circle"></i> Direct</div>
             </div>
             <div class="route-card" onclick="fillRoute('Paris', 'Tokyo')">
-                <div class="route-cities">Paris ✈ Tokyo</div>
-                <div class="route-price">from $680</div>
-                <div class="route-info">12h 45m • 1 stop</div>
+                <div class="route-flag"><i class="fas fa-plane"></i></div>
+                <div class="route-cities">Paris <i class="fas fa-long-arrow-alt-right"></i> Tokyo</div>
+                <div class="route-price">from <span data-price-usd="680">$680</span></div>
+                <div class="route-info"><i class="fas fa-clock"></i> 12h 45m &nbsp;<i class="fas fa-dot-circle"></i> 1 stop</div>
             </div>
             <div class="route-card" onclick="fillRoute('Dubai', 'New York')">
-                <div class="route-cities">Dubai ✈ New York</div>
-                <div class="route-price">from $550</div>
-                <div class="route-info">14h 20m • Direct flights available</div>
+                <div class="route-flag"><i class="fas fa-plane"></i></div>
+                <div class="route-cities">Dubai <i class="fas fa-long-arrow-alt-right"></i> New York</div>
+                <div class="route-price">from <span data-price-usd="550">$550</span></div>
+                <div class="route-info"><i class="fas fa-clock"></i> 14h 20m &nbsp;<i class="fas fa-check-circle"></i> Direct</div>
             </div>
             <div class="route-card" onclick="fillRoute('Los Angeles', 'Sydney')">
-                <div class="route-cities">Los Angeles ✈ Sydney</div>
-                <div class="route-price">from $720</div>
-                <div class="route-info">15h 10m • Direct flights available</div>
+                <div class="route-flag"><i class="fas fa-plane"></i></div>
+                <div class="route-cities">Los Angeles <i class="fas fa-long-arrow-alt-right"></i> Sydney</div>
+                <div class="route-price">from <span data-price-usd="720">$720</span></div>
+                <div class="route-info"><i class="fas fa-clock"></i> 15h 10m &nbsp;<i class="fas fa-check-circle"></i> Direct</div>
             </div>
             <div class="route-card" onclick="fillRoute('Singapore', 'Bali')">
-                <div class="route-cities">Singapore ✈ Bali</div>
-                <div class="route-price">from $180</div>
-                <div class="route-info">2h 30m • Multiple daily flights</div>
+                <div class="route-flag"><i class="fas fa-plane"></i></div>
+                <div class="route-cities">Singapore <i class="fas fa-long-arrow-alt-right"></i> Bali</div>
+                <div class="route-price">from <span data-price-usd="180">$180</span></div>
+                <div class="route-info"><i class="fas fa-clock"></i> 2h 30m &nbsp;<i class="fas fa-check-circle"></i> Multiple daily</div>
             </div>
             <div class="route-card" onclick="fillRoute('London', 'Dubai')">
-                <div class="route-cities">London ✈ Dubai</div>
-                <div class="route-price">from $380</div>
-                <div class="route-info">7h 00m • Direct flights available</div>
+                <div class="route-flag"><i class="fas fa-plane"></i></div>
+                <div class="route-cities">London <i class="fas fa-long-arrow-alt-right"></i> Dubai</div>
+                <div class="route-price">from <span data-price-usd="380">$380</span></div>
+                <div class="route-info"><i class="fas fa-clock"></i> 7h 00m &nbsp;<i class="fas fa-check-circle"></i> Direct</div>
             </div>
         </div>
     </div>
+
 </div>
 @endsection

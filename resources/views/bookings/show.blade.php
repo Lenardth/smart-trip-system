@@ -27,7 +27,7 @@
                     <div class="bshow-row"><label>Status</label><span class="status-badge status-{{ $booking->status }}">{{ ucfirst($booking->status) }}</span></div>
                     <div class="bshow-row"><label>Booked On</label><span>{{ $booking->created_at->format('D, M j, Y H:i') }}</span></div>
                     <div class="bshow-row"><label>Passengers</label><span>{{ $booking->seats_booked ?? 1 }}</span></div>
-                    <div class="bshow-row"><label>Total Paid</label><span style="font-size:18px;font-weight:700;color:var(--deep);">${{ number_format($booking->total_price, 2) }}</span></div>
+                    <div class="bshow-row"><label>Total Paid</label><span style="font-size:18px;font-weight:700;color:var(--deep);"><span data-price-usd="{{ $booking->total_price }}">${{ number_format($booking->total_price, 2) }}</span></span></div>
                 </div>
             </div>
 
@@ -82,9 +82,9 @@
         <div class="booking-show-side">
             <div class="bshow-card">
                 <h3><i class="fas fa-receipt" style="color:var(--gold);margin-right:8px;"></i> Price Breakdown</h3>
-                <div class="bshow-price-row"><span>Base fare</span><span>${{ number_format($booking->total_price * 0.88, 2) }}</span></div>
-                <div class="bshow-price-row"><span>Taxes & fees</span><span>${{ number_format($booking->total_price * 0.12, 2) }}</span></div>
-                <div class="bshow-price-total"><span>Total</span><span>${{ number_format($booking->total_price, 2) }}</span></div>
+                <div class="bshow-price-row"><span>Base fare</span><span><span data-price-usd="{{ $booking->total_price * 0.88 }}">${{ number_format($booking->total_price * 0.88, 2) }}</span></span></div>
+                <div class="bshow-price-row"><span>Taxes & fees</span><span><span data-price-usd="{{ $booking->total_price * 0.12 }}">${{ number_format($booking->total_price * 0.12, 2) }}</span></span></div>
+                <div class="bshow-price-total"><span>Total</span><span><span data-price-usd="{{ $booking->total_price }}">${{ number_format($booking->total_price, 2) }}</span></span></div>
             </div>
 
             <div class="bshow-actions">

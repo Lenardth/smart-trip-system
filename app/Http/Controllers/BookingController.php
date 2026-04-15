@@ -134,8 +134,8 @@ class BookingController extends Controller
         $data = $request->validate([
             'airline'          => 'required|string|max:100',
             'flight_number'    => 'required|string|max:20',
-            'departure_airport'=> 'required|string|max:100',
-            'arrival_airport'  => 'required|string|max:100',
+            'departure_airport'=> 'nullable|string|max:100',
+            'arrival_airport'  => 'nullable|string|max:100',
             'departure_time'   => 'nullable|string',
             'arrival_time'     => 'nullable|string',
             'departure_date'   => 'required|string',

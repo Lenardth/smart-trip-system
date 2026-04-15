@@ -28,7 +28,7 @@ class AiSuggestionController extends Controller
                             'type'       => 'object',
                             'required'   => [
                                 'destination','country','region','description',
-                                'cost_min_usd','cost_max_usd','cost_includes',
+                                'cost_min_usd','cost_max_usd',
                                 'best_months','is_good_right_now','top_activities',
                                 'travel_tip','visa_info','flight_info',
                             ],

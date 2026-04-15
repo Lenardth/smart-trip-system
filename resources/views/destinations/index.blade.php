@@ -73,7 +73,10 @@
 
     function buildCard(d) {
         var img   = d.image_url || 'https://picsum.photos/seed/' + encodeURIComponent(d.name) + '/600/400';
-        var price = d.price_from ? '$' + fmt(d.price_from) : '';
+        var priceUsd = d.price_from ? Number(d.price_from) : 0;
+        var price = priceUsd > 0
+            ? (typeof window.Currency !== 'undefined' ? window.Currency.format(priceUsd) : '$' + fmt(priceUsd))
+            : '';
         var badge = d.badge ? '<span class="card-badge">' + esc(d.badge) + '</span>' : '';
         var gem   = d.is_hidden_gem
             ? '<span class="card-badge" style="background:rgba(138,43,226,.85);color:#fff;left:14px;right:auto;"><i class="fas fa-gem"></i> Hidden Gem</span>'
@@ -95,7 +98,7 @@
                 (tags.length ? '<div class="dest-tags">' + tags.join('') + '</div>' : '') +
                 '<p>' + esc((d.description || '').substring(0, 120)) + (d.description && d.description.length > 120 ? '&hellip;' : '') + '</p>' +
                 '<div class="dest-card-footer">' +
-                    (price ? '<div class="dest-price">' + price + ' <span>/ person</span></div>' : '<div></div>') +
+                    (priceUsd > 0 ? '<div class="dest-price" data-price-usd="' + priceUsd + '">' + price + ' <span>/ person</span></div>' : '<div></div>') +
                     '<a href="/destinations/' + d.id + '" class="primary-button" style="padding:9px 18px;font-size:13px;text-decoration:none;">Explore <i class="fas fa-arrow-right"></i></a>' +
                 '</div>' +
             '</div>' +
