@@ -16,24 +16,23 @@ class NewsController extends Controller
         if (! $apiKey) {
             return response()->json([
                 'articles' => [],
-                'message' => 'Missing GNews API key.',
-            ], 500);
+            ]);
         }
 
-        $response = Http::timeout(20)->get('https://gnews.io/api/v4/search', [
-            'q' => $q,
-            'lang' => 'en',
-            'max' => 6,
-            'sortby' => 'publishedAt',
-            'apikey' => $apiKey,
-        ]);
+        try {
+            $response = Http::timeout(20)->get('https://gnews.io/api/v4/search', [
+                'q'      => $q,
+                'lang'   => 'en',
+                'max'    => 6,
+                'sortby' => 'publishedAt',
+                'apikey' => $apiKey,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['articles' => []]);
+        }
 
         if (! $response->successful()) {
-            return response()->json([
-                'articles' => [],
-                'message' => 'Failed to load news.',
-                'error' => $response->json(),
-            ], $response->status());
+            return response()->json(['articles' => []]);
         }
 
         return response()->json([
