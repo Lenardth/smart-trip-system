@@ -26,6 +26,18 @@ use App\Http\Controllers\Api\TripMoodController;
 // ── Public ────────────────────────────────────────────────────────────────────
 Route::get('/', fn () => view('landing.index'))->name('home');
 
+// ── Database Management API (Protected by secret key) ────────────────────────
+Route::prefix('api/database')->group(function () {
+    Route::post('/migrate',      [\App\Http\Controllers\DatabaseController::class, 'migrate']);
+    Route::post('/seed',         [\App\Http\Controllers\DatabaseController::class, 'seed']);
+    Route::post('/setup',        [\App\Http\Controllers\DatabaseController::class, 'setup']);
+    Route::post('/rollback',     [\App\Http\Controllers\DatabaseController::class, 'rollback']);
+    Route::post('/fresh',        [\App\Http\Controllers\DatabaseController::class, 'fresh']);
+    Route::get('/status',        [\App\Http\Controllers\DatabaseController::class, 'status']);
+    Route::post('/clear-cache',  [\App\Http\Controllers\DatabaseController::class, 'clearCache']);
+    Route::post('/optimize',     [\App\Http\Controllers\DatabaseController::class, 'optimize']);
+});
+
 Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
     ->middleware('throttle:20,1')
     ->name('ai.suggest');
