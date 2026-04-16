@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.flights  !== undefined) document.getElementById('statFlights').textContent = data.flights;
             if (data.hotels   !== undefined) document.getElementById('statHotels').textContent  = data.hotels;
             if (data.bookings !== undefined) document.getElementById('statActive').textContent  = data.bookings;
-            if (data.spent    !== undefined) document.getElementById('statSpent').textContent   = '$' + Number(data.spent).toLocaleString();
+            if (data.spent    !== undefined) document.getElementById('statSpent').textContent = (typeof window.Currency !== 'undefined' ? window.Currency.format(Number(data.spent)) : '$' + Number(data.spent).toLocaleString());
         })
         .catch(() => {});
 

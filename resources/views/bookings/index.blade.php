@@ -35,7 +35,7 @@
     <div class="strip-card">
         <div class="strip-icon spent"><i class="fas fa-dollar-sign"></i></div>
         <div class="strip-info">
-            <h3 id="statSpent">${{ number_format($totalSpent) }}</h3>
+            <h3 id="statSpent" data-price-usd="{{ $totalSpent }}">${{ number_format($totalSpent) }}</h3>
             <p>Total Spent</p>
         </div>
     </div>
@@ -182,3 +182,21 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+(function() {
+    function tryRegister() {
+        if (typeof window.Currency !== 'undefined') {
+            window.Currency.refreshAllPrices();
+            window.Currency.onCurrencyChange(function() {
+                window.Currency.refreshAllPrices();
+            });
+        } else {
+            setTimeout(tryRegister, 100);
+        }
+    }
+    tryRegister();
+})();
+</script>
+@endpush

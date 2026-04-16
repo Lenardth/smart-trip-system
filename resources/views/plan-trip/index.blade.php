@@ -380,13 +380,14 @@
         <div class="form-row">
             <div class="form-group">
                 <label>Trip Duration</label>
-                <select id="duration">
-                    <option value="weekend">Long Weekend (3–4 days)</option>
-                    <option value="week" selected>One Week (7 days)</option>
-                    <option value="two_weeks">Two Weeks (10–14 days)</option>
-                    <option value="month">One Month or more</option>
-                    <option value="flexible">Flexible / Open-ended</option>
-                </select>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="number" id="durationDays" min="1" max="365" value="7"
+                        style="width:80px;padding:11px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;font-family:'Georgia',serif;background:#fff;color:var(--deep);"
+                        oninput="document.getElementById('duration').value=this.value">
+                    <span style="color:var(--text-muted);font-size:13px;">days</span>
+                    <input type="hidden" id="duration" value="7">
+                </div>
+                <small style="color:var(--text-muted);font-size:11.5px;margin-top:4px;display:block;">Enter any number of days (1–365)</small>
             </div>
             <div class="form-group">
                 <label>Travel Companion</label>

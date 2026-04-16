@@ -42,7 +42,7 @@
         </a>
         <a href="{{ route('premium') }}" class="menu-item {{ request()->is('premium') ? 'active' : '' }}" style="color:var(--gold);">
             <i class="fas fa-crown"></i>
-            <span>{{ Auth::user()->is_premium ? '⭐ Premium' : 'Upgrade' }}</span>
+            <span>{{ Auth::user()->is_premium ? 'Premium' : 'Upgrade' }}</span>
         </a>
     </nav>
 

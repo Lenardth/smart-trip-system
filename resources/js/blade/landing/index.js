@@ -446,4 +446,32 @@ ready(function () {
 
     
     fetchDestinations();
+
+    // Re-render destination cards when currency changes
+    if (typeof window.Currency !== 'undefined') {
+        window.Currency.onCurrencyChange(function() {
+            window.Currency.refreshAllPrices();
+            updateLandingBudgetDropdown();
+        });
+        updateLandingBudgetDropdown();
+    }
 });
+
+function updateLandingBudgetDropdown() {
+    var sel = document.getElementById('budgetSelect');
+    if (!sel) return;
+    var fmt = typeof window.Currency !== 'undefined' ? window.Currency.format : function(n) { return '$' + n.toLocaleString(); };
+    var currentVal = sel.value;
+    var opts = [
+        { value: 'backpacker', text: 'Backpacker — under ' + fmt(500) },
+        { value: 'budget',     text: 'Budget — ' + fmt(500) + ' – ' + fmt(1500) },
+        { value: 'mid',        text: 'Mid-range — ' + fmt(1500) + ' – ' + fmt(4000) },
+        { value: 'premium',    text: 'Premium — ' + fmt(4000) + ' – ' + fmt(8000) },
+        { value: 'luxury',     text: 'Luxury — ' + fmt(8000) + '+' },
+    ];
+    opts.forEach(function(o) {
+        var el = sel.querySelector('option[value="' + o.value + '"]');
+        if (el) el.textContent = o.text;
+    });
+    sel.value = currentVal;
+}

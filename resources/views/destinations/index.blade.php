@@ -138,6 +138,10 @@
         .then(function (data) {
             allDest = Array.isArray(data) ? data : (data.data || data.destinations || []);
             render(allDest);
+            // Re-render when currency changes
+            if (typeof window.Currency !== 'undefined') {
+                window.Currency.onCurrencyChange(function() { render(allDest); });
+            }
         })
         .catch(function () {
             var loading = document.getElementById('destLoading');

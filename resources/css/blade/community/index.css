@@ -444,11 +444,45 @@
 
 .story-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 12px;
     margin-top: 14px;
-    font-size: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.story-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    background: var(--card-bg);
     color: var(--text-muted);
+    font-size: 13px;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: border-color .2s, color .2s, background .2s, transform .15s;
+    font-weight: 600;
+}
+
+.story-action-btn:hover {
+    border-color: var(--gold);
+    color: var(--deep);
+    background: var(--gold-dim);
+    transform: translateY(-1px);
+}
+
+.story-action-btn.liked {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: rgba(244,67,54,.06);
+}
+
+.story-action-btn i {
+    font-size: 12px;
 }
 
 .travelers-grid {
@@ -621,4 +655,36 @@
     .community-stats {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+/* Animation for new replies */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reply-item {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Liked state for buttons */
+.story-action-btn.liked,
+.story-action-btn.liked .like-count {
+    color: #f44336;
+}
+
+.story-action-btn.liked i {
+    animation: heartBeat 0.3s ease-in-out;
+}
+
+@keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(1.1); }
 }

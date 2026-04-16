@@ -21,7 +21,6 @@ class SubscriptionController extends Controller
             ->latest()
             ->first();
 
-        
         if ($user->is_premium && !$sub) {
             $user->update(['is_premium' => false, 'premium_until' => null]);
         }
@@ -52,9 +51,6 @@ class SubscriptionController extends Controller
         ]);
 
         $user = Auth::user();
-
-        
-        
 
         $starts = now();
         $ends   = now()->addDays(self::PREMIUM_DAYS);

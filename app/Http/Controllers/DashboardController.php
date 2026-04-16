@@ -63,7 +63,7 @@ class DashboardController extends Controller
                     'icon'  => 'fa-ticket-alt',
                     'color' => '#4caf50',
                     'title' => 'Booking: ' . ($b->title ?? 'Ref #' . $b->booking_reference),
-                    'sub'   => '$' . number_format((float) $b->total_price) . ' · ' . ucfirst($b->status),
+                    'sub'   => '$' . number_format((float) $b->total_price, 2) . ' · ' . ucfirst($b->status),
                     'time'  => $b->created_at->diffForHumans(),
                     'ts'    => $b->created_at->timestamp,
                     'url'   => '/bookings',

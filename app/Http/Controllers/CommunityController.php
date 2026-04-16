@@ -47,6 +47,7 @@ class CommunityController extends Controller
             'user_id'       => $t->user_id,
             'tags'          => is_string($t->tags) ? (json_decode($t->tags, true) ?? []) : ($t->tags ?? []),
             'replies_count' => $t->replies ?? 0,
+            'likes'         => $t->likes   ?? 0,
             'created_at'    => $t->created_at->diffForHumans(),
         ]);
 
@@ -179,6 +180,69 @@ class CommunityController extends Controller
         return response()->json($group, 201);
     }
 
+    public function likeTopic($id): JsonResponse
+    {
+        $userId = Auth::id();
+        $topic = CommunityTopic::findOrFail($id);
+
+        $like = \App\Models\CommunityLike::where('user_id', $userId)
+            ->where('likeable_type', CommunityTopic::class)
+            ->where('likeable_id', $id)
+            ->first();
+
+        if ($like) {
+            // Unlike
+            $like->delete();
+            $topic->decrement('likes');
+            $liked = false;
+        } else {
+            // Like
+            \App\Models\CommunityLike::create([
+                'user_id' => $userId,
+                'likeable_type' => CommunityTopic::class,
+                'likeable_id' => $id,
+            ]);
+            $topic->increment('likes');
+            $liked = true;
+        }
+
+        return response()->json([
+            'likes' => $topic->fresh()->likes,
+            'liked' => $liked,
+        ]);
+    }
+
+    public function likeStory($id): JsonResponse
+    {
+        $userId = Auth::id();
+        $story = CommunityStory::findOrFail($id);
+
+        $like = \App\Models\CommunityLike::where('user_id', $userId)
+            ->where('likeable_type', CommunityStory::class)
+            ->where('likeable_id', $id)
+            ->first();
+
+        if ($like) {
+            // Unlike
+            $like->delete();
+            $story->decrement('likes');
+            $liked = false;
+        } else {
+            // Like
+            \App\Models\CommunityLike::create([
+                'user_id' => $userId,
+                'likeable_type' => CommunityStory::class,
+                'likeable_id' => $id,
+            ]);
+            $story->increment('likes');
+            $liked = true;
+        }
+
+        return response()->json([
+            'likes' => $story->fresh()->likes,
+            'liked' => $liked,
+        ]);
+    }
     public function destroyTopic($id): JsonResponse
     {
         $topic = CommunityTopic::findOrFail($id);
@@ -187,7 +251,10 @@ class CommunityController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
+        // Delete all replies first
         CommunityReply::where('topic_id', $id)->delete();
+
+        // Delete the topic
         $topic->delete();
 
         return response()->json(['success' => true]);
@@ -304,6 +371,145 @@ class CommunityController extends Controller
             ]);
 
         return response()->json(['travelers' => $travelers]);
+    }
+
+    public function storyComments($storyId): JsonResponse
+    {
+        $comments = \App\Models\CommunityStoryComment::with('user:id,name,profile_picture')
+            ->where('story_id', $storyId)
+            ->latest()
+            ->get()
+            ->map(fn($c) => [
+                'id'         => $c->id,
+                'body'       => $c->body,
+                'author'     => $c->user?->name ?? $c->author ?? 'Anonymous',
+                'user_id'    => $c->user_id,
+                'avatar'     => $c->user?->avatar ?? null,
+                'created_at' => $c->created_at->diffForHumans(),
+            ]);
+
+        return response()->json(['comments' => $comments]);
+    }
+
+    public function storeStoryComment(Request $request, $storyId): JsonResponse
+    {
+        $story = CommunityStory::findOrFail($storyId);
+
+        $data = $request->validate([
+            'author' => 'nullable|string|max:100',
+            'body'   => 'required|string|max:2000',
+        ]);
+
+        $data['story_id'] = $story->id;
+        $data['user_id']  = Auth::id();
+
+        if (Auth::check() && empty($data['author'])) {
+            $data['author'] = Auth::user()->name;
+        }
+
+        $comment = \App\Models\CommunityStoryComment::create($data);
+        $story->increment('comments');
+
+        return response()->json([
+            'comment' => [
+                'id'         => $comment->id,
+                'body'       => $comment->body,
+                'author'     => $comment->user?->name ?? $comment->author ?? 'Anonymous',
+                'user_id'    => $comment->user_id,
+                'avatar'     => $comment->user?->avatar ?? null,
+                'created_at' => $comment->created_at->diffForHumans(),
+            ],
+            'comment_count' => $story->fresh()->comments,
+        ], 201);
+    }
+
+    public function joinGroup($groupId): JsonResponse
+    {
+        $group = CommunityGroup::findOrFail($groupId);
+        $userId = Auth::id();
+
+        // Check if already a member
+        $existing = \App\Models\CommunityGroupMember::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are already a member of this group.',
+            ], 422);
+        }
+
+        // Check if group is full
+        $memberCount = \App\Models\CommunityGroupMember::where('group_id', $groupId)
+            ->where('status', 'accepted')
+            ->count();
+
+        if ($memberCount >= $group->spots_left) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This group is full.',
+            ], 422);
+        }
+
+        // Add member
+        \App\Models\CommunityGroupMember::create([
+            'group_id' => $groupId,
+            'user_id'  => $userId,
+            'status'   => 'accepted',
+        ]);
+
+        // Update spots left
+        $group->decrement('spots_left');
+
+        return response()->json([
+            'success'    => true,
+            'message'    => 'Successfully joined the group!',
+            'spots_left' => $group->fresh()->spots_left,
+        ]);
+    }
+
+    public function leaveGroup($groupId): JsonResponse
+    {
+        $userId = Auth::id();
+
+        $member = \App\Models\CommunityGroupMember::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$member) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not a member of this group.',
+            ], 422);
+        }
+
+        $member->delete();
+
+        $group = CommunityGroup::findOrFail($groupId);
+        $group->increment('spots_left');
+
+        return response()->json([
+            'success'    => true,
+            'message'    => 'Successfully left the group.',
+            'spots_left' => $group->fresh()->spots_left,
+        ]);
+    }
+
+    public function groupMembers($groupId): JsonResponse
+    {
+        $members = \App\Models\CommunityGroupMember::with('user:id,name,profile_picture')
+            ->where('group_id', $groupId)
+            ->where('status', 'accepted')
+            ->get()
+            ->map(fn($m) => [
+                'id'     => $m->user->id,
+                'name'   => $m->user->name,
+                'avatar' => $m->user->avatar,
+                'joined' => $m->created_at->diffForHumans(),
+            ]);
+
+        return response()->json(['members' => $members]);
     }
 
     private function broadcast($event): void

@@ -34,6 +34,10 @@ Route::get('/api/travel-advisory', [TravelAdvisoryController::class, 'advisory']
     ->middleware('throttle:30,1')
     ->name('api.travel-advisory');
 
+Route::get('/api/destination-cost', [App\Http\Controllers\DestinationCostController::class, 'breakdown'])
+    ->middleware('throttle:20,1')
+    ->name('api.destination-cost');
+
 Route::get('/api/travel-warning', [App\Http\Controllers\NewsController::class, 'travelWarning'])
     ->middleware('throttle:30,1')
     ->name('api.travel-warning');
@@ -58,9 +62,16 @@ Route::prefix('api/community')->group(function () {
     Route::delete('/topics/{id}',       [CommunityController::class, 'destroyTopic']);
     Route::post('/topics/{id}/replies', [CommunityController::class, 'storeReply']);
     Route::delete('/replies/{id}',      [CommunityController::class, 'destroyReply']);
+    Route::post('/topics/{id}/like',    [CommunityController::class, 'likeTopic']);
+    Route::post('/stories/{id}/like',   [CommunityController::class, 'likeStory']);
+    Route::get('/stories/{id}/comments', [CommunityController::class, 'storyComments']);
+    Route::post('/stories/{id}/comments', [CommunityController::class, 'storeStoryComment']);
     Route::get('/groups',               [CommunityController::class, 'groups']);
     Route::post('/groups',              [CommunityController::class, 'storeGroup']);
     Route::delete('/groups/{id}',       [CommunityController::class, 'destroyGroup']);
+    Route::post('/groups/{id}/join',    [CommunityController::class, 'joinGroup']);
+    Route::post('/groups/{id}/leave',   [CommunityController::class, 'leaveGroup']);
+    Route::get('/groups/{id}/members',  [CommunityController::class, 'groupMembers']);
     Route::get('/tags',                 [CommunityController::class, 'tags']);
     Route::get('/stories',              [CommunityController::class, 'stories']);
     Route::get('/travelers',            [CommunityController::class, 'travelers']);
@@ -139,6 +150,7 @@ Route::middleware('auth')->group(function () {
 
     // Flights
     Route::get('/flights',                  [FlightController::class, 'index'])->name('flights.index');
+    Route::get('/flights/create',           fn() => redirect()->route('flights.index'))->name('flights.create');
     Route::post('/flights/search',          [FlightController::class, 'search'])->name('flights.search');
     Route::get('/flights/airports',         [FlightController::class, 'airports'])->name('flights.airports');
 
@@ -179,6 +191,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/messages',             [MessageController::class, 'send']);
 
         Route::post('/itineraries', [ItineraryController::class, 'store']);
+        Route::get('/itineraries/list', [ItineraryController::class, 'apiIndex']);
 
         Route::get('/media',                   [MediaController::class, 'index']);
         Route::get('/media/{media}',           [MediaController::class, 'show']);

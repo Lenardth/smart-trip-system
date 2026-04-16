@@ -20,6 +20,30 @@ class ItineraryController extends Controller
         return view('itineraries.index', compact('itineraries'));
     }
 
+    public function apiIndex(): \Illuminate\Http\JsonResponse
+    {
+        $itineraries = Itinerary::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($it) {
+                return [
+                    'id'          => $it->id,
+                    'destination' => $it->formatted_destination,
+                    'mood'        => $it->mood,
+                    'companion'   => $it->companion,
+                    'travelers'   => $it->travelers,
+                    'budget'      => $it->budget,
+                    'departure'   => $it->departure_date?->format('M j, Y'),
+                    'return'      => $it->return_date?->format('M j, Y'),
+                    'duration'    => $it->duration,
+                    'created_at'  => $it->created_at->diffForHumans(),
+                ];
+            });
+
+        return response()->json(['itineraries' => $itineraries]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -121,7 +145,6 @@ class ItineraryController extends Controller
 
     private function buildDayPlans(string $destination, string $mood, int $budget): array
     {
-        
         $plans = ItineraryDayPlan::where('destination_code', $destination)
             ->orderBy('day')
             ->get();

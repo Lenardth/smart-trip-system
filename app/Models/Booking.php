@@ -18,12 +18,19 @@ class Booking extends Model
         'booking_reference',
         'seats_booked',
         'total_price',
+        'subtotal',
+        'discount_amount',
+        'service_fee',
+        'coupon_code',
         'status',
         'passenger_details',
     ];
 
     protected $casts = [
         'total_price'       => 'decimal:2',
+        'subtotal'          => 'decimal:2',
+        'discount_amount'   => 'decimal:2',
+        'service_fee'       => 'decimal:2',
         'passenger_details' => AsArrayObject::class,
     ];
 

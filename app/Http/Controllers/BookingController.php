@@ -7,6 +7,7 @@ use App\Services\PricingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -56,11 +57,13 @@ class BookingController extends Controller
             return back()->with('error', 'Booking already cancelled.');
         }
 
-        if ($booking->flight && $booking->seats_booked) {
-            $booking->flight->increment('seats_available', $booking->seats_booked);
-        }
+        \DB::transaction(function () use ($booking) {
+            if ($booking->flight && $booking->seats_booked) {
+                $booking->flight->increment('seats_available', $booking->seats_booked);
+            }
 
-        $booking->update(['status' => 'cancelled']);
+            $booking->update(['status' => 'cancelled']);
+        });
 
         return back()->with('success', 'Booking cancelled successfully.');
     }
@@ -85,48 +88,50 @@ class BookingController extends Controller
             'coupon_code'      => 'nullable|string|max:32',
         ]);
 
-        $accommodation = \App\Models\Accommodation::findOrFail($data['accommodation_id']);
-        $nights        = (int) \Carbon\Carbon::parse($data['check_in'])->diffInDays($data['check_out']);
-        $guests        = (int) ($data['guests'] ?? 1);
-        $subtotal      = ($accommodation->nightly_rate ?? 0) * $nights * $guests;
+        return \DB::transaction(function () use ($data) {
+            $accommodation = \App\Models\Accommodation::findOrFail($data['accommodation_id']);
+            $nights        = (int) \Carbon\Carbon::parse($data['check_in'])->diffInDays($data['check_out']);
+            $guests        = (int) ($data['guests'] ?? 1);
+            $subtotal      = ($accommodation->nightly_rate ?? 0) * $nights * $guests;
 
-        $pricing = $this->pricing->calculate($subtotal, Auth::user(), $data['coupon_code'] ?? null);
+            $pricing = $this->pricing->calculate($subtotal, Auth::user(), $data['coupon_code'] ?? null);
 
-        $booking = Booking::create([
-            'user_id'           => Auth::id(),
-            'subtotal'          => $pricing['subtotal'],
-            'discount_amount'   => $pricing['discount'],
-            'service_fee'       => $pricing['service_fee'],
-            'total_price'       => $pricing['total'],
-            'coupon_code'       => $pricing['coupon']?->code,
-            'seats_booked'      => $guests,
-            'status'            => 'confirmed',
-            'passenger_details' => [
-                'type'             => 'accommodation',
-                'accommodation_id' => $accommodation->id,
-                'name'             => $accommodation->name,
-                'city'             => $accommodation->city,
-                'country'          => $accommodation->country,
-                'style'            => $accommodation->style,
-                'check_in'         => $data['check_in'],
-                'check_out'        => $data['check_out'],
-                'nights'           => $nights,
-                'guests'           => $guests,
-                'nightly_rate'     => $accommodation->nightly_rate,
-            ],
-        ]);
+            $booking = Booking::create([
+                'user_id'           => Auth::id(),
+                'subtotal'          => $pricing['subtotal'],
+                'discount_amount'   => $pricing['discount'],
+                'service_fee'       => $pricing['service_fee'],
+                'total_price'       => $pricing['total'],
+                'coupon_code'       => $pricing['coupon']?->code,
+                'seats_booked'      => $guests,
+                'status'            => 'confirmed',
+                'passenger_details' => [
+                    'type'             => 'accommodation',
+                    'accommodation_id' => $accommodation->id,
+                    'name'             => $accommodation->name,
+                    'city'             => $accommodation->city,
+                    'country'          => $accommodation->country,
+                    'style'            => $accommodation->style,
+                    'check_in'         => $data['check_in'],
+                    'check_out'        => $data['check_out'],
+                    'nights'           => $nights,
+                    'guests'           => $guests,
+                    'nightly_rate'     => $accommodation->nightly_rate,
+                ],
+            ]);
 
-        $this->pricing->recordRevenue($booking, $pricing);
+            $this->pricing->recordRevenue($booking, $pricing);
 
-        return response()->json([
-            'success'           => true,
-            'booking_reference' => $booking->booking_reference,
-            'subtotal'          => $pricing['subtotal'],
-            'discount'          => $pricing['discount'],
-            'service_fee'       => $pricing['service_fee'],
-            'total_price'       => $pricing['total'],
-            'message'           => 'Accommodation booked successfully!',
-        ], 201);
+            return response()->json([
+                'success'           => true,
+                'booking_reference' => $booking->booking_reference,
+                'subtotal'          => $pricing['subtotal'],
+                'discount'          => $pricing['discount'],
+                'service_fee'       => $pricing['service_fee'],
+                'total_price'       => $pricing['total'],
+                'message'           => 'Accommodation booked successfully!',
+            ], 201);
+        });
     }
 
     public function bookFlight(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
@@ -146,48 +151,50 @@ class BookingController extends Controller
             'coupon_code'      => 'nullable|string|max:32',
         ]);
 
-        $adults     = (int) ($data['adults'] ?? 1);
-        $priceEach  = (float) ($data['price'] ?? 0);
-        $subtotal   = $priceEach * $adults;
+        return \DB::transaction(function () use ($data) {
+            $adults     = (int) ($data['adults'] ?? 1);
+            $priceEach  = (float) ($data['price'] ?? 0);
+            $subtotal   = $priceEach * $adults;
 
-        $pricing = $this->pricing->calculate($subtotal, Auth::user(), $data['coupon_code'] ?? null);
+            $pricing = $this->pricing->calculate($subtotal, Auth::user(), $data['coupon_code'] ?? null);
 
-        $booking = Booking::create([
-            'user_id'           => Auth::id(),
-            'flight_id'         => null,
-            'subtotal'          => $pricing['subtotal'],
-            'discount_amount'   => $pricing['discount'],
-            'service_fee'       => $pricing['service_fee'],
-            'total_price'       => $pricing['total'],
-            'coupon_code'       => $pricing['coupon']?->code,
-            'seats_booked'      => $adults,
-            'status'            => 'confirmed',
-            'passenger_details' => [
-                'airline'           => $data['airline'],
-                'flight_number'     => $data['flight_number'],
-                'departure_airport' => $data['departure_airport'],
-                'arrival_airport'   => $data['arrival_airport'],
-                'departure_time'    => $data['departure_time'] ?? null,
-                'arrival_time'      => $data['arrival_time']   ?? null,
-                'departure_date'    => $data['departure_date'],
-                'duration'          => $data['duration']       ?? null,
-                'travel_class'      => $data['travel_class']   ?? 'ECONOMY',
-                'adults'            => $adults,
-                'price_per_person'  => $priceEach,
-            ],
-        ]);
+            $booking = Booking::create([
+                'user_id'           => Auth::id(),
+                'flight_id'         => null,
+                'subtotal'          => $pricing['subtotal'],
+                'discount_amount'   => $pricing['discount'],
+                'service_fee'       => $pricing['service_fee'],
+                'total_price'       => $pricing['total'],
+                'coupon_code'       => $pricing['coupon']?->code,
+                'seats_booked'      => $adults,
+                'status'            => 'confirmed',
+                'passenger_details' => [
+                    'airline'           => $data['airline'],
+                    'flight_number'     => $data['flight_number'],
+                    'departure_airport' => $data['departure_airport'],
+                    'arrival_airport'   => $data['arrival_airport'],
+                    'departure_time'    => $data['departure_time'] ?? null,
+                    'arrival_time'      => $data['arrival_time']   ?? null,
+                    'departure_date'    => $data['departure_date'],
+                    'duration'          => $data['duration']       ?? null,
+                    'travel_class'      => $data['travel_class']   ?? 'ECONOMY',
+                    'adults'            => $adults,
+                    'price_per_person'  => $priceEach,
+                ],
+            ]);
 
-        $this->pricing->recordRevenue($booking, $pricing);
+            $this->pricing->recordRevenue($booking, $pricing);
 
-        return response()->json([
-            'success'           => true,
-            'booking_reference' => $booking->booking_reference,
-            'subtotal'          => $pricing['subtotal'],
-            'discount'          => $pricing['discount'],
-            'service_fee'       => $pricing['service_fee'],
-            'total_price'       => $pricing['total'],
-            'message'           => 'Flight booked successfully!',
-        ], 201);
+            return response()->json([
+                'success'           => true,
+                'booking_reference' => $booking->booking_reference,
+                'subtotal'          => $pricing['subtotal'],
+                'discount'          => $pricing['discount'],
+                'service_fee'       => $pricing['service_fee'],
+                'total_price'       => $pricing['total'],
+                'message'           => 'Flight booked successfully!',
+            ], 201);
+        });
     }
 
     public function agencyBookings()

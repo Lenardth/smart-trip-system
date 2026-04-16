@@ -38,6 +38,9 @@ class CurrencyService
         'NOK' => ['name' => 'Norwegian Krone',     'symbol' => 'kr',  'flag' => 'no'],
         'DKK' => ['name' => 'Danish Krone',        'symbol' => 'kr',  'flag' => 'dk'],
         'TRY' => ['name' => 'Turkish Lira',        'symbol' => '₺',   'flag' => 'tr'],
+        'HUF' => ['name' => 'Hungarian Forint',    'symbol' => 'Ft',  'flag' => 'hu'],
+        'PLN' => ['name' => 'Polish Zloty',        'symbol' => 'zł',  'flag' => 'pl'],
+        'CZK' => ['name' => 'Czech Koruna',        'symbol' => 'Kč',  'flag' => 'cz'],
     ];
 
     public function getRates(string $base = 'USD'): array
@@ -104,7 +107,7 @@ class CurrencyService
             'MXN' => 17.2,   'SGD' => 1.34,  'THB' => 35.1,  'KES' => 129.0,
             'NGN' => 1550.0, 'EGP' => 30.9,  'IDR' => 15600, 'MYR' => 4.72,
             'NZD' => 1.63,   'SEK' => 10.4,  'NOK' => 10.6,  'DKK' => 6.89,
-            'TRY' => 32.1,
+            'TRY' => 32.1,   'HUF' => 356.0, 'PLN' => 4.02,  'CZK' => 23.1,
         ];
     }
 }

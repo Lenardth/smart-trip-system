@@ -104,7 +104,7 @@
 }
 
 .clear-all-btn:hover {
-    background: #c0392b;
+    background: var(--danger);
     transform: translateY(-1px);
 }
 
@@ -173,7 +173,7 @@
 }
 
 .remove-btn:hover {
-    background: #c0392b;
+    background: var(--danger);
     transform: scale(1.1);
 }
 

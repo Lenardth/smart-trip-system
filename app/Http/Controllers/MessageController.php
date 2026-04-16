@@ -47,7 +47,6 @@ class MessageController extends Controller
     {
         $me = Auth::id();
 
-        
         if (!User::where('id', $userId)->exists()) {
             return response()->json(['error' => 'User not found.'], 404);
         }

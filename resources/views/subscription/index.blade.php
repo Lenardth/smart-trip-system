@@ -7,7 +7,7 @@
 
     @if($status['is_premium'])
     <div style="background:linear-gradient(135deg,var(--deep),#4d2a3a);border-radius:14px;padding:32px;margin-bottom:28px;text-align:center;">
-        <div style="font-size:40px;margin-bottom:12px;">⭐</div>
+        <div style="font-size:40px;margin-bottom:12px;"><i class="fas fa-star" style="color:var(--gold);"></i></div>
         <h2 style="color:var(--gold);margin:0 0 8px;font-size:24px;">You're a Premium Member</h2>
         <p style="color:rgba(255,255,255,.7);margin:0;">Active until <strong style="color:var(--gold);">{{ $status['premium_until'] }}</strong>
             ({{ $status['subscription']['days_left'] ?? 0 }} days left)</p>
@@ -17,7 +17,7 @@
     </div>
     @else
     <div style="background:linear-gradient(135deg,var(--deep),#4d2a3a);border-radius:14px;padding:36px;margin-bottom:28px;text-align:center;">
-        <div style="font-size:44px;margin-bottom:14px;">✈️</div>
+        <div style="font-size:44px;margin-bottom:14px;"><i class="fas fa-plane" style="color:var(--gold);"></i></div>
         <h2 style="color:var(--gold);margin:0 0 8px;font-size:26px;">Smart Booking Premium</h2>
         <p style="color:rgba(255,255,255,.75);margin:0 0 20px;font-size:15px;">Unlock the full travel experience</p>
         <div style="font-size:42px;font-weight:700;color:#fff;margin-bottom:4px;">$9.99<span style="font-size:16px;font-weight:400;color:rgba(255,255,255,.6);">/month</span></div>
@@ -107,7 +107,7 @@ async function submitSubscription() {
         });
         const data = await res.json();
         if (data.success) {
-            Swal.fire({ title: 'Welcome to Premium! ⭐', text: data.message, icon: 'success', confirmButtonColor: '#c9a96e' })
+            Swal.fire({ title: 'Welcome to Premium!', text: data.message, icon: 'success', confirmButtonColor: '#c9a96e' })
                 .then(() => location.reload());
         } else {
             Swal.fire('Error', data.message || 'Something went wrong.', 'error');

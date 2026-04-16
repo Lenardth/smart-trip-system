@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
                      Request::HEADER_X_FORWARDED_PROTO |
                      Request::HEADER_X_FORWARDED_AWS_ELB
         );
+
+        // Register custom middleware aliases
+        $middleware->alias([
+            'check.traveler' => \App\Http\Middleware\CheckTraveler::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

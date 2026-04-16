@@ -34,6 +34,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
         loadMediaFromServer();
         loadNotifications();
         loadUpcomingTrips();
+        loadItineraries();
         loadRecentActivity();
 
         if (!notifPollingInterval) {
@@ -43,6 +44,15 @@ window.__dashboardConfig = window.__dashboardConfig || {
         initUploadArea();
         initMenuItems();
         initOutsideClickHandlers();
+
+        // Re-render trip costs when currency changes
+        if (typeof window.Currency !== 'undefined') {
+            window.Currency.onCurrencyChange(function() {
+                loadUpcomingTrips();
+                loadItineraries();
+                window.Currency.refreshAllPrices();
+            });
+        }
         initializeRealTimeChat();
         initNotificationListDelegate();
         initTripSavedListener();
@@ -608,7 +618,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
             var icon = MOOD_ICONS_DASH[t.mood] || 'fa-globe';
             var budget = BUDGET_LABELS[t.budget] || t.budget || '—';
             var dur = DURATION_LABELS[t.duration] || t.duration || '—';
-            var cost = t.estimated_cost ? '$' + Number(t.estimated_cost).toLocaleString() : '—';
+            var cost = t.estimated_cost
+                ? (typeof window.Currency !== 'undefined' ? window.Currency.format(Number(t.estimated_cost)) : '$' + Number(t.estimated_cost).toLocaleString())
+                : '—';
             return '<div class="trip-card">' +
                 '<div class="trip-card-header">' +
                 '<div class="trip-icon"><i class="fas ' + icon + '"></i></div>' +
@@ -656,6 +668,68 @@ window.__dashboardConfig = window.__dashboardConfig || {
 
     window.deleteTrip = deleteTrip;
     window.loadUpcomingTrips = loadUpcomingTrips;
+
+    function loadItineraries() {
+        var section = document.getElementById('itinerariesContent');
+        if (!section) return;
+
+        fetch('/api/itineraries/list', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) { renderItineraries(data.itineraries || []); })
+            .catch(function() { renderItineraries([]); });
+    }
+
+    function renderItineraries(itineraries) {
+        var section = document.getElementById('itinerariesContent');
+        if (!section) return;
+
+        if (!itineraries.length) {
+            section.innerHTML =
+                '<div class="empty-state">' +
+                '<i class="fas fa-map-marked-alt"></i>' +
+                '<h3>No Itineraries Yet</h3>' +
+                '<p>Save a trip plan to see your itineraries here.</p>' +
+                '<a href="/plan-trip" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">' +
+                '<i class="fas fa-plus"></i> Plan a Trip' +
+                '</a>' +
+                '</div>';
+            return;
+        }
+
+        var MOOD_ICONS_IT = {
+            adventurous: 'fa-hiking', relaxed: 'fa-spa', cultural: 'fa-landmark',
+            romantic: 'fa-heart', foodie: 'fa-utensils', 'eco-travel': 'fa-leaf',
+            nature: 'fa-tree', beach: 'fa-umbrella-beach'
+        };
+
+        section.innerHTML = itineraries.map(function(it) {
+            var icon = MOOD_ICONS_IT[it.mood] || 'fa-map-marked-alt';
+            var budget = it.budget
+                ? (typeof window.Currency !== 'undefined' ? window.Currency.format(Number(it.budget)) : '$' + Number(it.budget).toLocaleString())
+                : '—';
+            return '<div class="trip-card">' +
+                '<div class="trip-card-header">' +
+                '<div class="trip-icon"><i class="fas ' + icon + '"></i></div>' +
+                '<div class="trip-info">' +
+                '<h4>' + escapeHtml(it.destination) + '</h4>' +
+                '<p>' + (it.duration ? it.duration + ' days' : '') +
+                (it.departure ? ' &nbsp;·&nbsp; ' + escapeHtml(it.departure) : '') + '</p>' +
+                '</div>' +
+                '<div class="trip-cost" data-price-usd="' + (it.budget || 0) + '">' + budget + '</div>' +
+                '</div>' +
+                '<div class="trip-meta">' +
+                (it.companion ? '<span><i class="fas fa-users"></i> ' + escapeHtml(it.companion.replace(/_/g, ' ')) + '</span>' : '') +
+                (it.travelers ? '<span><i class="fas fa-user-friends"></i> ' + it.travelers + ' traveller' + (it.travelers > 1 ? 's' : '') + '</span>' : '') +
+                '<span><i class="fas fa-clock"></i> ' + escapeHtml(it.created_at) + '</span>' +
+                '</div>' +
+                '<a href="/itineraries/' + it.id + '" class="btn" style="margin-top:10px;font-size:12px;text-decoration:none;">' +
+                '<i class="fas fa-eye"></i> View Itinerary' +
+                '</a>' +
+                '</div>';
+        }).join('');
+    }
+
+    window.loadItineraries = loadItineraries;
     window.loadUserStatistics = loadUserStatistics;
     // Expose mediaLibrary so photo editor can access it
     window.__mediaLibrary = mediaLibrary;

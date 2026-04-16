@@ -1,11 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-CW5skqtk.css",
+    "file": "assets/app-DKaXvDDu.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BpXQlpLJ.js",
+    "file": "assets/app-Bl_suCrD.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -31,7 +31,7 @@
     ]
   },
   "resources/js/blade/accommodations/index.js": {
-    "file": "assets/index-DmWoxG9Y.js",
+    "file": "assets/index-CeLFEYlZ.js",
     "name": "index",
     "src": "resources/js/blade/accommodations/index.js",
     "isDynamicEntry": true
@@ -43,7 +43,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/bookings/index.js": {
-    "file": "assets/index-f26zgMd9.js",
+    "file": "assets/index-CxL27V3u.js",
     "name": "index",
     "src": "resources/js/blade/bookings/index.js",
     "isDynamicEntry": true
@@ -55,13 +55,13 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/community/index.js": {
-    "file": "assets/index-VGU_Ff4E.js",
+    "file": "assets/index-DOb7AH6n.js",
     "name": "index",
     "src": "resources/js/blade/community/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/dashboard/index.js": {
-    "file": "assets/index-B6xbzQLj.js",
+    "file": "assets/index-BuzkW6UY.js",
     "name": "index",
     "src": "resources/js/blade/dashboard/index.js",
     "isDynamicEntry": true
@@ -73,19 +73,19 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/discover/index.js": {
-    "file": "assets/index-ikCcVRxG.js",
+    "file": "assets/index-BWJFjY7j.js",
     "name": "index",
     "src": "resources/js/blade/discover/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/flights/index.js": {
-    "file": "assets/index-DhYLMysw.js",
+    "file": "assets/index-P12vK-zC.js",
     "name": "index",
     "src": "resources/js/blade/flights/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/landing/index.js": {
-    "file": "assets/index-DFj4oxtK.js",
+    "file": "assets/index-C_0E3Ndn.js",
     "name": "index",
     "src": "resources/js/blade/landing/index.js",
     "isDynamicEntry": true
@@ -97,7 +97,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/plan-trip/index.js": {
-    "file": "assets/index-DPkxfjVl.js",
+    "file": "assets/index-CxMOTbyM.js",
     "name": "index",
     "src": "resources/js/blade/plan-trip/index.js",
     "isDynamicEntry": true
@@ -109,7 +109,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/shared/currency.js": {
-    "file": "assets/currency-C54Dg6uk.js",
+    "file": "assets/currency-C0eFTs6L.js",
     "name": "currency",
     "src": "resources/js/blade/shared/currency.js",
     "isEntry": true

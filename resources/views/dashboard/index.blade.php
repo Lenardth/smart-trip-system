@@ -162,6 +162,19 @@
 
         <div class="dashboard-section">
             <div class="section-header">
+                <h2><i class="fas fa-map-marked-alt"></i> My Itineraries</h2>
+                <a href="{{ route('itineraries.index') }}" style="font-size:13px;color:var(--gold);text-decoration:none;">View all</a>
+            </div>
+            <div class="section-content" id="itinerariesContent">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading itineraries…</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <div class="section-header">
                 <h2><i class="fas fa-clock"></i> Recent Activity</h2>
                 <a href="{{ route('bookings.index') }}" style="font-size:13px;color:var(--gold);text-decoration:none;">View all</a>
             </div>

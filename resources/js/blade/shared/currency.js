@@ -30,6 +30,9 @@ const SUPPORTED = {
     NOK: { name: 'Norwegian Krone',   symbol: 'kr',  decimals: 2 },
     DKK: { name: 'Danish Krone',      symbol: 'kr',  decimals: 2 },
     TRY: { name: 'Turkish Lira',      symbol: '₺',   decimals: 2 },
+    HUF: { name: 'Hungarian Forint',  symbol: 'Ft',  decimals: 0 },
+    PLN: { name: 'Polish Zloty',      symbol: 'zł',  decimals: 2 },
+    CZK: { name: 'Czech Koruna',      symbol: 'Kč',  decimals: 2 },
 };
 
 // Fallback rates (USD base) — used until API responds
@@ -40,7 +43,7 @@ const FALLBACK_RATES = {
     MXN: 17.2,   SGD: 1.34,  THB: 35.1,  KES: 129.0,
     NGN: 1550.0, EGP: 30.9,  IDR: 15600, MYR: 4.72,
     NZD: 1.63,   SEK: 10.4,  NOK: 10.6,  DKK: 6.89,
-    TRY: 32.1,
+    TRY: 32.1,   HUF: 356.0, PLN: 4.02,  CZK: 23.1,
 };
 
 let rates      = { ...FALLBACK_RATES };

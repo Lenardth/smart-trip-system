@@ -73,6 +73,8 @@ class AiSuggestionController extends Controller
             'excluded_countries.*'       => 'string|max:100',
         ]);
         $validated['accommodation'] = $this->normaliseAccommodation($validated['accommodation'] ?? null);
+        // Attach user's preferred currency from session
+        $validated['currency'] = session('preferred_currency', 'USD');
 
         try {
             $apiKey = config('services.groq.key') ?: env('GROQ_API_KEY');
@@ -208,21 +210,24 @@ class AiSuggestionController extends Controller
         $month = now()->format('F');
         $year  = now()->year;
 
-        $duration = match ($p['duration']) {
-            'weekend'   => 'a long weekend (3-4 days)',
-            'week'      => 'one week (7 days)',
-            'two_weeks' => 'two weeks (10-14 days)',
-            'month'     => 'one month or longer',
-            'flexible'  => 'a flexible open-ended trip',
-            default     => $p['duration'],
+        $duration = match (true) {
+            is_numeric($p['duration']) => (int)$p['duration'] . ' days',
+            $p['duration'] === 'weekend'   => 'a long weekend (3-4 days)',
+            $p['duration'] === 'week'      => 'one week (7 days)',
+            $p['duration'] === 'two_weeks' => 'two weeks (10-14 days)',
+            $p['duration'] === 'month'     => 'one month or longer',
+            $p['duration'] === 'flexible'  => 'a flexible open-ended trip',
+            default                        => $p['duration'],
         };
 
+        $currency = $p['currency'] ?? 'USD';
+
         $budget = match ($p['budget']) {
-            'backpacker' => 'backpacker (under $500 USD total)',
-            'budget'     => 'budget-friendly ($500-$1,500 USD)',
-            'mid'        => 'mid-range ($1,500-$4,000 USD)',
-            'premium'    => 'premium ($4,000-$8,000 USD)',
-            'luxury'     => 'luxury ($8,000+ USD)',
+            'backpacker' => 'backpacker (under 500 ' . $currency . ' total)',
+            'budget'     => 'budget-friendly (500-1,500 ' . $currency . ')',
+            'mid'        => 'mid-range (1,500-4,000 ' . $currency . ')',
+            'premium'    => 'premium (4,000-8,000 ' . $currency . ')',
+            'luxury'     => 'luxury (8,000+ ' . $currency . ')',
             default      => $p['budget'],
         };
 
@@ -275,7 +280,7 @@ For each destination:
 - travel_tip: one concrete thing most people don't know. Not "book early" or "respect the culture". Something like: "the old town floods with tour groups by 10am - get there at 8" or "skip the famous beach and go to the one 20 minutes south".
 - visa_info: give the actual answer for the traveller's origin country if known. If not known, give the most common scenario. Don't say "check official sources".
 - flight_info: rough flight time, whether direct routes exist, and the most common layover city if not direct.
-- cost_min_usd / cost_max_usd: realistic total per-person cost including return flights, accommodation, food, and activities for the given budget tier and duration. Don't round to suspiciously clean numbers.
+- cost_min_usd / cost_max_usd: realistic total per-person cost in {$currency} including return flights, accommodation, food, and activities for the given budget tier and duration. Don't round to suspiciously clean numbers.
 - best_months: the actual 3-4 best months. Not "spring" or "dry season" - actual month names.
 - top_activities: 4-6 specific things to do. Not "explore the city" or "visit local markets". Real activities with names where possible.
 - is_good_right_now: true only if {$month} is genuinely a decent time to go.
@@ -292,14 +297,17 @@ SYSTEM;
 
     private function normalise(array $d): array
     {
+        $currency = session('preferred_currency', 'USD');
         return [
             'destination'        => $d['destination']  ?? '',
             'country'            => $d['country']       ?? '',
             'region'             => $d['region']        ?? '',
             'description'        => $d['description']   ?? '',
-            'estimated_cost'     => '$' . number_format($d['cost_min_usd'] ?? 0)
-                                  . ' - $' . number_format($d['cost_max_usd'] ?? 0)
-                                  . ' USD (' . ($d['cost_includes'] ?? 'flights, hotel, food') . ')',
+            'cost_min_usd'       => $d['cost_min_usd']  ?? 0,
+            'cost_max_usd'       => $d['cost_max_usd']  ?? 0,
+            'estimated_cost'     => number_format($d['cost_min_usd'] ?? 0)
+                                  . ' - ' . number_format($d['cost_max_usd'] ?? 0)
+                                  . ' ' . $currency . ' (' . ($d['cost_includes'] ?? 'flights, hotel, food') . ')',
             'best_time_to_visit' => implode(', ', $d['best_months']             ?? []),
             'is_good_right_now'  => (bool) ($d['is_good_right_now']             ?? false),
             'top_activities'     => implode(', ', (array) ($d['top_activities'] ?? [])),

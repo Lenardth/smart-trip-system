@@ -20,6 +20,8 @@ class User extends Authenticatable
         'bio',
         'last_login_at',
         'last_login_ip',
+        'is_premium',
+        'premium_until',
     ];
 
     protected $hidden = [
@@ -37,6 +39,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at'     => 'datetime',
+            'premium_until'     => 'datetime',
+            'is_premium'        => 'boolean',
             'password'          => 'hashed',
         ];
     }
@@ -61,6 +65,39 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    public function flights()
+    {
+        return $this->hasMany(Flight::class);
+    }
+
+    public function itineraries()
+    {
+        return $this->hasMany(Itinerary::class);
+    }
+
+    public function media()
+    {
+        return $this->hasMany(Media::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('status', 'active')
+            ->where('ends_at', '>', now())
+            ->latest();
+    }
+
     public function savedDestinations()
     {
         return $this->belongsToMany(
@@ -82,10 +119,8 @@ class User extends Authenticatable
         return $this->agency_name ?: $this->name;
     }
 
-    
     public function getAvatarAttribute(): string
     {
         return $this->profile_picture_url;
     }
-
 }

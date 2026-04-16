@@ -204,7 +204,7 @@ function renderMapMarkers(list) {
         const price = a.price_per_night ?? a.nightly_rate ?? '';
         const m = L.marker([a.lat, a.lng])
             .addTo(map)
-            .bindPopup(`<strong>${esc(a.name)}</strong><br>${price ? '$' + esc(price) : ''}`);
+            .bindPopup('<strong>' + esc(a.name) + '</strong><br>' + (price ? (typeof window.Currency !== 'undefined' ? window.Currency.format(Number(price)) : '$' + esc(price)) : ''));
         markers.push(m);
     });
 }

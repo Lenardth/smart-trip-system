@@ -11,7 +11,7 @@
 <div class="wishlist-stats-row">
     <div class="wstat"><span class="wstat-num">{{ $wishlistItems->count() }}</span><span class="wstat-label">Saved</span></div>
     <div class="wstat"><span class="wstat-num">{{ $wishlistItems->pluck('destination.country')->filter()->unique()->count() }}</span><span class="wstat-label">Countries</span></div>
-    <div class="wstat"><span class="wstat-num">${{ number_format($wishlistItems->avg(fn($i) => $i->destination->price_from ?? 0)) }}</span><span class="wstat-label">Avg. From</span></div>
+    <div class="wstat"><span class="wstat-num" data-price-usd="{{ $wishlistItems->avg(fn($i) => $i->destination->price_from ?? 0) }}">${{ number_format($wishlistItems->avg(fn($i) => $i->destination->price_from ?? 0)) }}</span><span class="wstat-label">Avg. From</span></div>
     <div class="wstat"><span class="wstat-num">{{ $wishlistItems->pluck('destination.category')->filter()->unique()->count() }}</span><span class="wstat-label">Categories</span></div>
 </div>
 
@@ -54,7 +54,7 @@
             <div class="wcard-footer">
                 <div class="wcard-price">
                     @if($d->price_from)
-                        <span>From</span> ${{ number_format($d->price_from) }}
+                        <span>From</span> <span data-price-usd="{{ $d->price_from }}">${{ number_format($d->price_from) }}</span>
                     @endif
                 </div>
                 <div class="wcard-actions">
@@ -197,6 +197,21 @@
 
 @push('scripts')
 <script>
+// Currency refresh on wishlist page
+(function() {
+    function tryRegister() {
+        if (typeof window.Currency !== 'undefined') {
+            window.Currency.refreshAllPrices();
+            window.Currency.onCurrencyChange(function() {
+                window.Currency.refreshAllPrices();
+            });
+        } else {
+            setTimeout(tryRegister, 100);
+        }
+    }
+    tryRegister();
+})();
+
 function filterWishlist() {
     const q    = document.getElementById('wishlistSearch').value.toLowerCase();
     const cat  = document.getElementById('wishlistCategory').value;

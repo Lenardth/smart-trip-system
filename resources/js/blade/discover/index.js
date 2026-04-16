@@ -120,7 +120,7 @@ function renderDestinations(destinations) {
         const imgStyle  = d.image_url ? `background-image:url('${d.image_url}')` : '';
         const inList    = wishlistedIds.has(d.id);
         const priceUsd  = d.price_from ? Number(d.price_from) : 0;
-        const price     = priceUsd > 0
+        const price = priceUsd > 0
             ? '<span data-price-usd="' + priceUsd + '">' + (typeof window.Currency !== 'undefined' ? window.Currency.format(priceUsd) : '$' + priceUsd.toLocaleString()) + '+</span>'
             : '';
 
@@ -276,4 +276,15 @@ if (document.readyState !== 'loading') {
     init();
 } else {
     document.addEventListener('DOMContentLoaded', init);
+}
+
+// Re-render prices when currency changes
+if (typeof window.Currency !== 'undefined') {
+    window.Currency.onCurrencyChange(function() { loadDestinations(); loadHiddenGems(); });
+} else {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.Currency !== 'undefined') {
+            window.Currency.onCurrencyChange(function() { loadDestinations(); loadHiddenGems(); });
+        }
+    });
 }

@@ -35,6 +35,7 @@ function getDurationMinutes(duration) {
 }
 
 function fmt(n) {
+    if (typeof window.Currency !== 'undefined') return window.Currency.format(Number(n));
     return '$' + Number(n).toLocaleString();
 }
 

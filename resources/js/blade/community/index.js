@@ -128,9 +128,15 @@ window.__COMMUNITY__ = (function () {
                             '<span>by <strong>' + authorName + '</strong></span> · ' + (t.created_at || '') +
                         '</div>' +
                         '<div style="margin-top:6px;">' + tags + '</div>' +
-                        (msgBtn || invBtn
-                            ? '<div class="ft-actions" style="display:flex;gap:8px;margin-top:8px;">' + msgBtn + invBtn + '</div>'
-                            : '') +
+                        '<div class="ft-actions" style="display:flex;gap:8px;margin-top:8px;align-items:center;">' +
+                            '<button class="story-action-btn" onclick="Community.likeTopic(' + t.id + ',this)">' +
+                                '<i class="fas fa-heart"></i> <span class="like-count">' + (t.likes || 0) + '</span>' +
+                            '</button>' +
+                            '<button class="story-action-btn" onclick="Community.openTopic(' + t.id + ')">' +
+                                '<i class="fas fa-comment"></i> Reply' +
+                            '</button>' +
+                            (msgBtn || invBtn ? msgBtn + invBtn : '') +
+                        '</div>' +
                     '</div>' +
                     '<div class="ft-stats">' +
                         '<div class="fs-num">' + (t.replies_count || 0) + '</div>' +
@@ -151,24 +157,59 @@ window.__COMMUNITY__ = (function () {
                 return;
             }
             el.innerHTML = groups.map(function (g) {
-                var full     = g.spots_taken >= g.spots_total;
+                var full     = g.spots_left <= 0;
                 var badgeCls = full ? 'gt-badge full' : 'gt-badge';
-                var badgeTxt = full ? 'Full' : (g.spots_available || (g.spots_total - (g.spots_taken || 0))) + ' spots left';
+                var badgeTxt = full ? 'Full' : g.spots_left + ' spots left';
                 var orgId    = g.user_id || null;
                 var orgName  = g.organizer || 'Organizer';
                 var msgBtn   = cfg.isLoggedIn ? messageBtn(orgId, orgName) : '';
+                var joinBtn  = cfg.isLoggedIn && !full ? '<button class="primary-button" style="font-size:12px;padding:6px 12px;margin-top:6px;" onclick="Community.joinGroup(' + g.id + ',this)"><i class="fas fa-user-plus"></i> Join</button>' : '';
 
                 return '<div class="group-trip">' +
                     '<div class="gt-icon"><i class="fas fa-map-marked-alt"></i></div>' +
                     '<div class="gt-info">' +
                         '<h4>' + g.name + '</h4>' +
                         '<p>' + (g.destination || '') + (g.date ? ' · ' + g.date : '') + '</p>' +
-                        (msgBtn ? '<div style="margin-top:6px;">' + msgBtn + '</div>' : '') +
+                        '<div style="display:flex;gap:8px;margin-top:6px;">' +
+                            (msgBtn || '') +
+                            (joinBtn || '') +
+                        '</div>' +
                     '</div>' +
                     '<span class="' + badgeCls + '">' + badgeTxt + '</span>' +
                 '</div>';
             }).join('');
         }).catch(function () {});
+    }
+
+    function joinGroup(groupId, btn) {
+        if (!requireLogin('join groups')) return;
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
+        }
+        
+        apiFetch('/api/community/groups/' + groupId + '/join', { method: 'POST' })
+            .then(function(data) {
+                if (data.success) {
+                    showToast(data.message || 'Joined group!');
+                    loadGroups(); // Refresh groups
+                    loadStats();  // Update stats
+                } else {
+                    showToast(data.message || 'Could not join group');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-user-plus"></i> Join';
+                    }
+                }
+            })
+            .catch(function(err) {
+                showToast('Failed to join group');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-user-plus"></i> Join';
+                }
+            });
     }
 
     function loadTags() {
@@ -211,8 +252,12 @@ window.__COMMUNITY__ = (function () {
                         '<h4>' + s.title + '</h4>' +
                         '<p>' + (s.excerpt || '') + '</p>' +
                         '<div class="story-footer">' +
-                            '<span><i class="fas fa-heart" style="color:var(--gold);"></i> ' + (s.likes || 0) + '</span>' +
-                            '<span><i class="fas fa-comment"></i> ' + (s.comments || 0) + '</span>' +
+                            '<button class="story-action-btn" onclick="Community.likeStory(' + s.id + ',this)">' +
+                                '<i class="fas fa-heart"></i> <span class="like-count">' + (s.likes || 0) + '</span>' +
+                            '</button>' +
+                            '<button class="story-action-btn" onclick="Community.openStoryComments(' + s.id + ',\'' + (s.title || '').replace(/'/g, "\\'") + '\')">' +
+                                '<i class="fas fa-comment"></i> ' + (s.comments || 0) +
+                            '</button>' +
                         '</div>' +
                     '</div>' +
                 '</div>';
@@ -255,21 +300,25 @@ window.__COMMUNITY__ = (function () {
     function openTopic(id) {
         apiFetch('/api/community/topics/' + id).then(function (data) {
             var topic     = data.topic || data;
-            var replyHtml = (topic.replies || []).map(function (r) {
-                var rUserId = r.user_id || null;
-                var rName   = r.author  || 'Traveler';
-                var msgBtn  = cfg.isLoggedIn ? messageBtn(rUserId, rName) : '';
-                return '<div class="reply-item">' +
-                    '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(rName) + '</div>' +
-                    '<div class="reply-body">' +
-                        '<div class="reply-author"><strong>' + rName + '</strong> ' + (r.created_at || '') +
-                            (msgBtn ? ' <span style="margin-left:8px;">' + msgBtn + '</span>' : '') +
+            
+            function renderReplies(replies) {
+                return (replies || []).map(function (r) {
+                    var rUserId = r.user_id || null;
+                    var rName   = r.author  || 'Traveler';
+                    var msgBtn  = cfg.isLoggedIn ? messageBtn(rUserId, rName) : '';
+                    return '<div class="reply-item">' +
+                        '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(rName) + '</div>' +
+                        '<div class="reply-body">' +
+                            '<div class="reply-author"><strong>' + rName + '</strong> ' + (r.created_at || '') +
+                                (msgBtn ? ' <span style="margin-left:8px;">' + msgBtn + '</span>' : '') +
+                            '</div>' +
+                            '<p>' + r.body + '</p>' +
                         '</div>' +
-                        '<p>' + r.body + '</p>' +
-                    '</div>' +
-                '</div>';
-            }).join('');
+                    '</div>';
+                }).join('');
+            }
 
+            var replyHtml = renderReplies(topic.replies);
             var authorId   = topic.user_id || null;
             var authorName = topic.author  || 'Traveler';
             var topicMsgBtn = cfg.isLoggedIn ? messageBtn(authorId, authorName) : '';
@@ -283,29 +332,88 @@ window.__COMMUNITY__ = (function () {
                             (topicMsgBtn ? '<div style="margin-left:auto;">' + topicMsgBtn + '</div>' : '') +
                         '</div>' +
                         '<p style="margin-bottom:16px;">' + (topic.body || '') + '</p>' +
-                        '<div id="threadReplies">' + (replyHtml || '<p style="color:var(--text-muted);font-size:13px;">No replies yet.</p>') + '</div>' +
-                        '<hr style="margin:16px 0;border-color:var(--border);">' +
+                        '<div id="threadReplies" style="max-height:300px;overflow-y:auto;margin-bottom:16px;padding:10px;border:1px solid var(--border);border-radius:6px;">' + 
+                            (replyHtml || '<p style="color:var(--text-muted);font-size:13px;text-align:center;">No replies yet. Be the first!</p>') + 
+                        '</div>' +
                         '<textarea id="replyBody" placeholder="Write a reply…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:14px;resize:vertical;min-height:70px;"></textarea>' +
+                        '<button id="postReplyBtn" style="margin-top:10px;padding:10px 20px;background:var(--gold);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;width:100%;">' +
+                            '<i class="fas fa-paper-plane"></i> Post Reply' +
+                        '</button>' +
                     '</div>',
-                showCancelButton: true,
-                confirmButtonColor: '#c9a96e',
-                cancelButtonColor: '#6b5b4f',
-                confirmButtonText: '<i class="fas fa-paper-plane"></i> Post Reply',
-                cancelButtonText: 'Close',
+                showCancelButton: false,
+                showConfirmButton: false,
                 width: 640,
-                preConfirm: function () {
-                    if (!requireLogin('post replies')) return false;
-                    var body = document.getElementById('replyBody').value.trim();
-                    if (!body) { Swal.showValidationMessage('Please write a reply'); return false; }
-                    return apiFetch('/api/community/topics/' + id + '/replies', {
-                        method: 'POST',
-                        body:   JSON.stringify({ body: body }),
-                    });
-                },
-            }).then(function (r) {
-                if (r.isConfirmed && r.value) {
-                    showToast('Reply posted!');
-                    loadTopics();
+                didOpen: function() {
+                    var postBtn = document.getElementById('postReplyBtn');
+                    var textarea = document.getElementById('replyBody');
+                    
+                    if (postBtn) {
+                        postBtn.addEventListener('click', function() {
+                            if (!requireLogin('post replies')) return;
+                            
+                            var body = textarea.value.trim();
+                            if (!body) {
+                                showToast('Please write a reply');
+                                return;
+                            }
+                            
+                            postBtn.disabled = true;
+                            postBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+                            
+                            apiFetch('/api/community/topics/' + id + '/replies', {
+                                method: 'POST',
+                                body:   JSON.stringify({ body: body }),
+                            }).then(function(response) {
+                                if (response && response.reply) {
+                                    var newReply = response.reply;
+                                    var rUserId = newReply.user_id || null;
+                                    var rName   = newReply.author  || 'Traveler';
+                                    var msgBtn  = cfg.isLoggedIn ? messageBtn(rUserId, rName) : '';
+                                    
+                                    var newReplyHtml = '<div class="reply-item" style="animation: fadeIn 0.3s ease-in;">' +
+                                        '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(rName) + '</div>' +
+                                        '<div class="reply-body">' +
+                                            '<div class="reply-author"><strong>' + rName + '</strong> just now' +
+                                                (msgBtn ? ' <span style="margin-left:8px;">' + msgBtn + '</span>' : '') +
+                                            '</div>' +
+                                            '<p>' + newReply.body + '</p>' +
+                                        '</div>' +
+                                    '</div>';
+                                    
+                                    var repliesContainer = document.getElementById('threadReplies');
+                                    if (repliesContainer) {
+                                        // Remove "No replies yet" message if it exists
+                                        var emptyMsg = repliesContainer.querySelector('p[style*="text-align:center"]');
+                                        if (emptyMsg) {
+                                            repliesContainer.innerHTML = '';
+                                        }
+                                        
+                                        repliesContainer.insertAdjacentHTML('beforeend', newReplyHtml);
+                                        repliesContainer.scrollTop = repliesContainer.scrollHeight;
+                                    }
+                                    
+                                    textarea.value = '';
+                                    showToast('Reply posted!');
+                                    loadTopics(); // Update reply count in topic list
+                                }
+                            }).catch(function() {
+                                showToast('Failed to post reply');
+                            }).finally(function() {
+                                postBtn.disabled = false;
+                                postBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Reply';
+                            });
+                        });
+                    }
+                    
+                    // Allow Enter+Ctrl to submit
+                    if (textarea) {
+                        textarea.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                e.preventDefault();
+                                postBtn.click();
+                            }
+                        });
+                    }
                 }
             });
         }).catch(function () {});
@@ -408,6 +516,146 @@ window.__COMMUNITY__ = (function () {
         });
     }
 
+    function likeTopic(id, btn) {
+        if (!requireLogin('like topics')) return;
+        apiFetch('/api/community/topics/' + id + '/like', { method: 'POST' })
+            .then(function(data) {
+                if (btn) {
+                    var countEl = btn.querySelector('.like-count');
+                    if (countEl) countEl.textContent = data.likes || 0;
+                    
+                    if (data.liked) {
+                        btn.classList.add('liked');
+                        showToast('Liked!');
+                    } else {
+                        btn.classList.remove('liked');
+                        showToast('Unliked');
+                    }
+                }
+            })
+            .catch(function() { showToast('Could not like topic'); });
+    }
+
+    function likeStory(id, btn) {
+        if (!requireLogin('like stories')) return;
+        apiFetch('/api/community/stories/' + id + '/like', { method: 'POST' })
+            .then(function(data) {
+                if (btn) {
+                    var countEl = btn.querySelector('.like-count');
+                    if (countEl) countEl.textContent = data.likes || 0;
+                    
+                    if (data.liked) {
+                        btn.classList.add('liked');
+                        showToast('Liked!');
+                    } else {
+                        btn.classList.remove('liked');
+                        showToast('Unliked');
+                    }
+                }
+            })
+            .catch(function() { showToast('Could not like story'); });
+    }
+
+    function openStoryComments(storyId, storyTitle) {
+        if (!requireLogin('comment on stories')) return;
+        
+        // Load existing comments
+        apiFetch('/api/community/stories/' + storyId + '/comments')
+            .then(function(data) {
+                var comments = data.comments || [];
+                var commentsHtml = comments.map(function(c) {
+                    return '<div class="reply-item" style="margin-bottom:12px;">' +
+                        '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(c.author) + '</div>' +
+                        '<div class="reply-body">' +
+                            '<div class="reply-author"><strong>' + c.author + '</strong> ' + c.created_at + '</div>' +
+                            '<p>' + c.body + '</p>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                Swal.fire({
+                    title: storyTitle || 'Story Comments',
+                    html:
+                        '<div style="text-align:left;">' +
+                        '<div id="storyCommentsList" style="max-height:300px;overflow-y:auto;margin-bottom:16px;padding:10px;border:1px solid var(--border);border-radius:6px;">' +
+                        (commentsHtml || '<p style="color:var(--text-muted);font-size:13px;text-align:center;">No comments yet. Be the first!</p>') +
+                        '</div>' +
+                        '<textarea id="storyCommentBody" placeholder="Write a comment…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:14px;resize:vertical;min-height:70px;"></textarea>' +
+                        '<button id="postCommentBtn" style="margin-top:10px;padding:10px 20px;background:var(--gold);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;width:100%;">' +
+                            '<i class="fas fa-paper-plane"></i> Post Comment' +
+                        '</button>' +
+                        '</div>',
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    width: 560,
+                    didOpen: function() {
+                        var postBtn = document.getElementById('postCommentBtn');
+                        var textarea = document.getElementById('storyCommentBody');
+                        
+                        if (postBtn) {
+                            postBtn.addEventListener('click', function() {
+                                var body = textarea.value.trim();
+                                if (!body) {
+                                    showToast('Please write a comment');
+                                    return;
+                                }
+                                
+                                postBtn.disabled = true;
+                                postBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+                                
+                                apiFetch('/api/community/stories/' + storyId + '/comments', {
+                                    method: 'POST',
+                                    body:   JSON.stringify({ body: body }),
+                                }).then(function(response) {
+                                    if (response && response.comment) {
+                                        var newComment = response.comment;
+                                        var newCommentHtml = '<div class="reply-item" style="margin-bottom:12px;animation: fadeIn 0.3s ease-in;">' +
+                                            '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(newComment.author) + '</div>' +
+                                            '<div class="reply-body">' +
+                                                '<div class="reply-author"><strong>' + newComment.author + '</strong> just now</div>' +
+                                                '<p>' + newComment.body + '</p>' +
+                                            '</div>' +
+                                        '</div>';
+                                        
+                                        var commentsList = document.getElementById('storyCommentsList');
+                                        if (commentsList) {
+                                            var emptyMsg = commentsList.querySelector('p[style*="text-align:center"]');
+                                            if (emptyMsg) {
+                                                commentsList.innerHTML = '';
+                                            }
+                                            commentsList.insertAdjacentHTML('beforeend', newCommentHtml);
+                                            commentsList.scrollTop = commentsList.scrollHeight;
+                                        }
+                                        
+                                        textarea.value = '';
+                                        showToast('Comment posted!');
+                                        loadStories(); // Refresh to update comment count
+                                    }
+                                }).catch(function() {
+                                    showToast('Failed to post comment');
+                                }).finally(function() {
+                                    postBtn.disabled = false;
+                                    postBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment';
+                                });
+                            });
+                        }
+                        
+                        if (textarea) {
+                            textarea.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                    e.preventDefault();
+                                    postBtn.click();
+                                }
+                            });
+                        }
+                    }
+                });
+            })
+            .catch(function() {
+                showToast('Could not load comments');
+            });
+    }
+
     function openTopicModal() {
         if (!requireLogin('post topics')) return;
         document.getElementById('topicModal').classList.add('open');
@@ -464,6 +712,10 @@ window.__COMMUNITY__ = (function () {
         sendInvite:      sendInvite,
         openTopic:       openTopic,
         startChat:       startChat,
+        likeTopic:       likeTopic,
+        likeStory:       likeStory,
+        openStoryComments: openStoryComments,
+        joinGroup:       joinGroup,
     };
 
 }());

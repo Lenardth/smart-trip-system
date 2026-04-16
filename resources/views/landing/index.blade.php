@@ -160,13 +160,12 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-clock"></i> Trip Duration</label>
-                <select id="durationSelect" name="duration">
-                    <option value="weekend">Long Weekend (3–4 days)</option>
-                    <option value="week">One Week (5–7 days)</option>
-                    <option value="two_weeks">Two Weeks (10–14 days)</option>
-                    <option value="month">One Month+</option>
-                    <option value="flexible">Flexible / Open-ended</option>
-                </select>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="number" id="durationSelect" name="duration" min="1" max="365" value="7"
+                        style="width:80px;padding:10px;border:1px solid var(--border-soft);border-radius:4px;font-size:15px;color:var(--deep);background:var(--card-bg);font-family:'Georgia',serif;">
+                    <span style="color:var(--text-muted);font-size:13px;">days</span>
+                </div>
+                <small style="color:var(--text-muted);font-size:11.5px;margin-top:4px;display:block;">Enter any number of days</small>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-dollar-sign"></i> Budget Per Person</label>

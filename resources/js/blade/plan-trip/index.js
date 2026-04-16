@@ -384,13 +384,14 @@ async function generateSuggestions() {
         mood: selectedMood,
         feeling_note: document.getElementById('feelingNote')?.value.trim() || null,
         budget: document.getElementById('budget')?.value || null,
-        duration: document.getElementById('duration')?.value || null,
+        duration: document.getElementById('duration')?.value || document.getElementById('durationDays')?.value || null,
         companion: document.getElementById('companion')?.value || null,
         month: document.getElementById('month')?.value || null,
         region: document.getElementById('region')?.value || null,
         accommodation: document.getElementById('accommodation')?.value || null,
         origin: document.getElementById('origin')?.value.trim() || null,
         experience: document.getElementById('experience')?.value || null,
+        currency: typeof window.Currency !== 'undefined' ? window.Currency.active : 'USD',
     };
 
     try {
@@ -457,7 +458,7 @@ function calculateCostBreakdown(destination, payload) {
         range: {
             low: Math.round(total * 0.85),
             high: Math.round(total * 1.15),
-            display: `$${fmt(Math.round(total * 0.85))} – $${fmt(Math.round(total * 1.15))}`
+            display: `${fmtCurrency(Math.round(total * 0.85))} – ${fmtCurrency(Math.round(total * 1.15))}`
         },
         savings: {
             earlyBird: Math.round(total * 0.10),
@@ -468,6 +469,13 @@ function calculateCostBreakdown(destination, payload) {
 }
 
 function fmt(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+function fmtCurrency(n) {
+    if (typeof window.Currency !== 'undefined') {
+        return window.Currency.format(Number(n));
+    }
+    return '$' + fmt(Math.round(n));
+}
 
 function getFlightDetails(origin, dest) {
     if (!origin) return 'Based on average prices from major hubs';
@@ -523,8 +531,8 @@ function renderResults(destinations) {
             <p>${esc(d.description)}</p>
             <div class="dest-cost">
                 <i class="fas fa-wallet" style="color:var(--gold);margin-right:6px;"></i>
-                <span>${d.costBreakdown.range.display}</span>
-                <span style="font-size:12px;color:var(--text-muted);display:block;margin-top:4px;">per person</span>
+                <span data-price-usd="${d.costBreakdown.range.low}">${d.costBreakdown.range.display}</span>
+                <span style="font-size:12px;color:var(--text-muted);display:block;margin-top:4px;">per person · <em style="font-size:11px;">${d.estimated_cost || ''}</em></span>
             </div>
             <div class="dest-meta">
                 <div class="dest-meta-row"><i class="fas fa-calendar-check"></i><span><strong>Best time:</strong> ${esc(d.best_time_to_visit)}</span></div>
@@ -1258,3 +1266,64 @@ window.generateSuggestions = async function() {
         stopLoadingAnimation();
     }
 };
+
+// Update budget dropdown labels when currency changes
+function updateBudgetDropdowns() {
+    var budgetOptions = [
+        { value: 'backpacker', low: 0,    high: 500,  label: 'Backpacker' },
+        { value: 'budget',     low: 500,  high: 1500, label: 'Budget-Friendly' },
+        { value: 'mid',        low: 1500, high: 4000, label: 'Mid-Range' },
+        { value: 'premium',    low: 4000, high: 8000, label: 'Premium' },
+        { value: 'luxury',     low: 8000, high: null, label: 'Luxury' },
+    ];
+
+    var selects = document.querySelectorAll('select#budget, select#budgetSelect');
+    selects.forEach(function(sel) {
+        var currentVal = sel.value;
+        budgetOptions.forEach(function(opt) {
+            var el = sel.querySelector('option[value="' + opt.value + '"]');
+            if (!el) return;
+            var fmtFn = typeof window.Currency !== 'undefined' ? window.Currency.format : function(n) { return '$' + n.toLocaleString(); };
+            var label;
+            if (opt.value === 'backpacker') {
+                label = opt.label + ' (under ' + fmtFn(opt.high) + ')';
+            } else if (opt.value === 'luxury') {
+                label = opt.label + ' (' + fmtFn(opt.low) + '+)';
+            } else {
+                label = opt.label + ' (' + fmtFn(opt.low) + ' – ' + fmtFn(opt.high) + ')';
+            }
+            el.textContent = label;
+        });
+        sel.value = currentVal;
+    });
+}
+
+// Run on load and on currency change — poll until Currency is ready
+(function() {
+    function tryRegister() {
+        if (typeof window.Currency === 'undefined') { setTimeout(tryRegister, 100); return; }
+        // Update immediately with current currency
+        updateBudgetDropdowns();
+        // Update whenever currency changes
+        window.Currency.onCurrencyChange(function() {
+            updateBudgetDropdowns();
+            // Re-render results if visible
+            if (lastResults && lastResults.length) {
+                lastResults = lastResults.map(function(dest) {
+                    return Object.assign({}, dest, { costBreakdown: calculateCostBreakdown(dest, lastPayload) });
+                });
+                renderResults(lastResults);
+            }
+        });
+        // Also update when rates are fetched (currency module fires refreshAllPrices after fetch)
+        var _origRefresh = window.Currency.refreshAllPrices;
+        if (_origRefresh) {
+            window.Currency.refreshAllPrices = function() {
+                _origRefresh();
+                updateBudgetDropdowns();
+            };
+        }
+    }
+    if (document.readyState !== 'loading') tryRegister();
+    else document.addEventListener('DOMContentLoaded', tryRegister);
+})();

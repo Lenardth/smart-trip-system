@@ -13,3 +13,5 @@
 @import './blade/shared/currency.css';
 
 @import './blade/flights/index.css';
+
+@import './blade/destinations/show.css';

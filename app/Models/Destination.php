@@ -52,4 +52,15 @@ class Destination extends Model
     {
         return $query->where('region', $region);
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'saved_destinations')
+            ->withTimestamps();
+    }
+
+    public function savedBy()
+    {
+        return $this->hasMany(SavedDestination::class);
+    }
 }
