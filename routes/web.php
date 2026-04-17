@@ -53,15 +53,29 @@ Route::post('/setup/migrate', function () {
 
 Route::post('/setup/fresh', function () {
     try {
-        // Reconnect to get a fresh connection without failed transactions
+        // Reconnect to get a fresh connection
         DB::purge('pgsql');
         DB::reconnect('pgsql');
         
         // Rollback any failed transactions
         try { DB::statement('ROLLBACK'); } catch (\Exception $e) {}
         
-        // Drop all tables and re-run migrations
-        Artisan::call('migrate:fresh', ['--force' => true]);
+        // Manually drop all tables to avoid migration conflicts
+        $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+        DB::statement('SET session_replication_role = replica;'); // Disable foreign key checks
+        
+        foreach ($tables as $table) {
+            try {
+                DB::statement("DROP TABLE IF EXISTS \"{$table->tablename}\" CASCADE");
+            } catch (\Exception $e) {
+                // Continue even if drop fails
+            }
+        }
+        
+        DB::statement('SET session_replication_role = DEFAULT;'); // Re-enable foreign key checks
+        
+        // Now run migrations on clean slate
+        Artisan::call('migrate', ['--force' => true]);
         
         // Run seeders
         Artisan::call('db:seed', ['--force' => true]);
@@ -74,7 +88,8 @@ Route::post('/setup/fresh', function () {
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
         ], 500);
     }
 });
