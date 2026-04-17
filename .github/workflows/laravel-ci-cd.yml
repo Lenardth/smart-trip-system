@@ -48,11 +48,11 @@ jobs:
         run: |
           echo "Checking if manifest exists..."
           ls -la public/build/
-          if [ ! -f public/build/manifest.json ]; then
+          if [ ! -f public/build/.vite/manifest.json ]; then
             echo "ERROR: manifest.json not found!"
             exit 1
           fi
-          echo "Build successful, manifest.json exists"
+          echo "Build successful, manifest.json exists at public/build/.vite/manifest.json"
 
       - name: Prepare environment
         run: |
