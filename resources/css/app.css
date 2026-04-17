@@ -15,3 +15,10 @@
 @import './blade/flights/index.css';
 
 @import './blade/destinations/show.css';
+
+@import './blade/itineraries/index.css';
+@import './blade/itineraries/show.css';
+
+@import './blade/settings/index.css';
+
+@import './blade/wishlist/index.css';

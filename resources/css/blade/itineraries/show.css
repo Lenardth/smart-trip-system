@@ -1,0 +1,57 @@
+.itin-show-wrap { max-width: 760px; }
+
+.itin-show-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+}
+
+.itin-show-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 14px; color: var(--text-muted); }
+
+.itin-show-meta span { display: flex; align-items: center; gap: 6px; }
+
+.itin-show-meta i { color: var(--gold); }
+
+.itin-show-ref { font-family: monospace; font-size: 13px; background: var(--gold-dim); color: var(--deep); padding: 4px 10px; border-radius: 4px; }
+
+.itin-show-dates {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.date-block { display: flex; flex-direction: column; gap: 4px; }
+
+.date-block label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); }
+
+.date-block strong { font-size: 15px; color: var(--deep); }
+
+.date-arrow { font-size: 20px; color: var(--gold); }
+
+.itin-notes-box {
+    display: flex;
+    gap: 12px;
+    background: rgba(201,169,110,.08);
+    border: 1px solid rgba(201,169,110,.3);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+}
+
+.itin-notes-box p { margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+.itin-show-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }

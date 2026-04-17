@@ -22,7 +22,8 @@ const routes = {
     '/chat': () => import('./blade/chat/index.js'),
     '/notifications': () => import('./blade/notifications/index.js'),
     '/profile': () => import('./blade/profile/edit.js'),
-    '/settings': () => import('./blade/profile/edit.js'),
+    '/settings': () => import('./blade/settings/index.js'),
+    '/itineraries': () => import('./blade/itineraries/index.js'),
     '/register': () => import('./blade/auth/register.js'),
 };
 
