@@ -29,6 +29,35 @@ Route::get('/', fn () => view('landing.index'))->name('home');
 // ── Setup (temporary for initial deployment) ──────────────────────────────────
 Route::get('/setup', fn () => view('setup'));
 
+Route::get('/setup/status', function () {
+    try {
+        // Purge all connections to get fresh data
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+        
+        $destinationCount = DB::table('destinations')->count();
+        $userCount = DB::table('users')->count();
+        $tripMoodCount = DB::table('trip_moods')->count();
+        $communityTopicCount = DB::table('community_topics')->count();
+        
+        return response()->json([
+            'success' => true,
+            'counts' => [
+                'destinations' => $destinationCount,
+                'users' => $userCount,
+                'trip_moods' => $tripMoodCount,
+                'community_topics' => $communityTopicCount,
+            ],
+            'message' => 'Database is accessible'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 Route::post('/setup/migrate', function () {
     try {
         // Get the current DATABASE_URL
@@ -147,15 +176,37 @@ Route::post('/setup/fresh', function () {
         
         $seedOutput = Artisan::output();
         
+        // Verify data was seeded
+        $destinationCount = DB::connection('pgsql_direct')->table('destinations')->count();
+        $userCount = DB::connection('pgsql_direct')->table('users')->count();
+        
         // Switch back to pooler for normal operations
         config(['database.default' => 'pgsql']);
         DB::purge('pgsql');
+        DB::purge('pgsql_direct');
+        
+        // Force reconnect to pooler to clear any cached state
+        DB::reconnect('pgsql');
+        
+        // Verify pooler can see the data
+        $poolerDestinationCount = DB::table('destinations')->count();
+        $poolerUserCount = DB::table('users')->count();
         
         return response()->json([
             'success' => true,
             'migrate_output' => $migrateOutput,
             'seed_output' => $seedOutput,
-            'message' => 'Database reset and seeded successfully using direct connection'
+            'message' => 'Database reset and seeded successfully using direct connection',
+            'verification' => [
+                'direct_connection' => [
+                    'destinations' => $destinationCount,
+                    'users' => $userCount,
+                ],
+                'pooler_connection' => [
+                    'destinations' => $poolerDestinationCount,
+                    'users' => $poolerUserCount,
+                ]
+            ]
         ]);
     } catch (\Exception $e) {
         return response()->json([

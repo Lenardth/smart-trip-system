@@ -20,6 +20,7 @@
     
     <button class="btn btn-primary" onclick="runMigrations()">Run Migrations</button>
     <button class="btn btn-danger" onclick="freshMigrate()">Fresh Migrate (Drop All Tables)</button>
+    <button class="btn btn-primary" onclick="checkStatus()">Check Database Status</button>
     
     <div id="output" class="output" style="display:none;"></div>
 
@@ -64,6 +65,32 @@
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                output.textContent = JSON.stringify(data, null, 2);
+                if (data.success) {
+                    output.style.background = '#d4edda';
+                } else {
+                    output.style.background = '#f8d7da';
+                }
+            })
+            .catch(err => {
+                output.textContent = 'Error: ' + err.message;
+                output.style.background = '#f8d7da';
+            });
+        }
+
+        function checkStatus() {
+            const output = document.getElementById('output');
+            output.style.display = 'block';
+            output.textContent = 'Checking database status...';
+            
+            fetch('/setup/status', {
+                method: 'GET',
+                headers: {
                     'Accept': 'application/json'
                 }
             })
