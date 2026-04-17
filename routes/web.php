@@ -29,6 +29,44 @@ Route::get('/', fn () => view('landing.index'))->name('home');
 // ── Setup (temporary for initial deployment) ──────────────────────────────────
 Route::get('/setup', fn () => view('setup'));
 
+Route::get('/setup/debug', function () {
+    try {
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+        
+        $total = DB::table('destinations')->count();
+        $active = DB::table('destinations')->where('is_active', 1)->count();
+        $notHidden = DB::table('destinations')->where('is_hidden_gem', 0)->count();
+        $activeNotHidden = DB::table('destinations')
+            ->where('is_active', 1)
+            ->where('is_hidden_gem', 0)
+            ->count();
+        
+        $sample = DB::table('destinations')
+            ->select('id', 'name', 'country', 'is_active', 'is_hidden_gem', 'category', 'region')
+            ->limit(5)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'counts' => [
+                'total' => $total,
+                'is_active_1' => $active,
+                'is_hidden_gem_0' => $notHidden,
+                'active_and_not_hidden' => $activeNotHidden,
+            ],
+            'sample_destinations' => $sample,
+            'query_that_discover_uses' => 'SELECT * FROM destinations WHERE is_active = 1 AND is_hidden_gem = 0'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
 Route::get('/setup/status', function () {
     try {
         // Purge all connections to get fresh data
