@@ -31,89 +31,150 @@ Route::get('/setup', fn () => view('setup'));
 
 Route::post('/setup/migrate', function () {
     try {
-        // Reconnect to get a fresh connection without failed transactions
+        // Get the current DATABASE_URL
+        $dbUrl = env('DATABASE_URL');
+        
+        // Create a direct connection (bypass pooler)
+        $directUrl = str_replace('-pooler.', '.', $dbUrl);
+        
+        // Parse the direct URL
+        $url = parse_url($directUrl);
+        
+        // Create a new direct connection config
+        config(['database.connections.pgsql_direct' => [
+            'driver' => 'pgsql',
+            'host' => $url['host'],
+            'port' => $url['port'] ?? 5432,
+            'database' => ltrim($url['path'], '/'),
+            'username' => $url['user'],
+            'password' => $url['pass'],
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'require',
+        ]]);
+        
+        // Purge existing connections
         DB::purge('pgsql');
-        DB::reconnect('pgsql');
+        DB::purge('pgsql_direct');
         
-        // Try to rollback any failed transactions
-        try { DB::statement('ROLLBACK'); } catch (\Exception $e) {}
+        // Set direct connection as default
+        config(['database.default' => 'pgsql_direct']);
         
+        // Run migrations with direct connection
         Artisan::call('migrate', ['--force' => true]);
+        
+        $output = Artisan::output();
+        
+        // Switch back to pooler
+        config(['database.default' => 'pgsql']);
+        DB::purge('pgsql');
+        
         return response()->json([
             'success' => true,
-            'output' => Artisan::output()
+            'output' => $output,
+            'message' => 'Migrations completed using direct connection'
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => basename($e->getFile())
         ], 500);
     }
 });
 
 Route::post('/setup/fresh', function () {
     try {
-        // Force close all existing connections
-        DB::disconnect('pgsql');
+        // Get the current DATABASE_URL
+        $dbUrl = env('DATABASE_URL');
         
-        // Clear any connection resolver cache
-        app('db')->purge('pgsql');
+        // Create a direct connection (bypass pooler)
+        $directUrl = str_replace('-pooler.', '.', $dbUrl);
         
-        // Wait a moment for connection to fully close
-        usleep(100000); // 100ms
+        // Parse the direct URL
+        $url = parse_url($directUrl);
         
-        // Reconnect with fresh connection
-        DB::reconnect('pgsql');
+        // Create a new direct connection config
+        config(['database.connections.pgsql_direct' => [
+            'driver' => 'pgsql',
+            'host' => $url['host'],
+            'port' => $url['port'] ?? 5432,
+            'database' => ltrim($url['path'], '/'),
+            'username' => $url['user'],
+            'password' => $url['pass'],
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'require',
+        ]]);
         
-        // Explicitly rollback any lingering transactions
-        try { 
-            DB::getPdo()->exec('ROLLBACK');
-        } catch (\Exception $e) {}
+        // Purge ALL existing connections to force fresh connections
+        DB::purge('pgsql');
+        DB::purge('pgsql_direct');
         
-        // Start fresh transaction for dropping tables
-        DB::beginTransaction();
+        // Set direct connection as default BEFORE any DB operations
+        config(['database.default' => 'pgsql_direct']);
         
-        // Get list of tables
-        $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+        // Get a fresh PDO connection and force a new transaction
+        $pdo = DB::connection('pgsql_direct')->getPdo();
         
-        // Drop each table
+        // Terminate any existing backend connections to this database (requires privileges)
+        try {
+            $pdo->exec("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()");
+        } catch (\Exception $e) {
+            // May not have permission, continue anyway
+        }
+        
+        // Start a fresh transaction
+        $pdo->exec('BEGIN');
+        
+        // Drop all tables using raw PDO to avoid Laravel's query builder
+        $tables = $pdo->query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")->fetchAll(\PDO::FETCH_COLUMN);
+        
         foreach ($tables as $table) {
             try {
-                DB::statement("DROP TABLE IF EXISTS \"{$table->tablename}\" CASCADE");
+                $pdo->exec("DROP TABLE IF EXISTS \"{$table}\" CASCADE");
             } catch (\Exception $e) {
                 // Continue even if drop fails
             }
         }
         
         // Commit the drops
-        DB::commit();
+        $pdo->exec('COMMIT');
         
-        // Disconnect and reconnect again for migrations
-        DB::disconnect('pgsql');
-        app('db')->purge('pgsql');
-        usleep(100000);
-        DB::reconnect('pgsql');
+        // Reconnect to get a completely fresh connection
+        DB::purge('pgsql_direct');
+        DB::reconnect('pgsql_direct');
         
-        // Now run migrations on clean slate
+        // Run migrations with the direct connection
         Artisan::call('migrate', ['--force' => true]);
+        
+        $migrateOutput = Artisan::output();
         
         // Run seeders
         Artisan::call('db:seed', ['--force' => true]);
         
+        $seedOutput = Artisan::output();
+        
+        // Switch back to pooler for normal operations
+        config(['database.default' => 'pgsql']);
+        DB::purge('pgsql');
+        
         return response()->json([
             'success' => true,
-            'output' => Artisan::output(),
-            'message' => 'Database reset and seeded successfully'
+            'migrate_output' => $migrateOutput,
+            'seed_output' => $seedOutput,
+            'message' => 'Database reset and seeded successfully using direct connection'
         ]);
     } catch (\Exception $e) {
-        // Rollback if anything fails
-        try { DB::rollback(); } catch (\Exception $ex) {}
-        
         return response()->json([
             'success' => false,
             'error' => $e->getMessage(),
             'line' => $e->getLine(),
-            'file' => basename($e->getFile())
+            'file' => basename($e->getFile()),
+            'trace' => explode("\n", $e->getTraceAsString())
         ], 500);
     }
 });
