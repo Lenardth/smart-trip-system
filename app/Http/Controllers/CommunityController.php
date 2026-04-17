@@ -33,6 +33,10 @@ class CommunityController extends Controller
 
     public function topics(): JsonResponse
     {
+        // Force fresh connection to avoid pooler cache
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+        
         $topics = CommunityTopic::with('user:id,name,profile_picture')
             ->latest()
             ->take(10)

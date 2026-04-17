@@ -17,6 +17,11 @@ class DiscoverController extends Controller
 
     public function destinations(Request $request): JsonResponse
     {
+        // Force fresh connection and disable query result cache
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+        DB::connection()->disableQueryLog();
+        
         $cols = Schema::getColumnListing('destinations');
 
         $query = DB::table('destinations');
@@ -78,6 +83,11 @@ class DiscoverController extends Controller
 
     public function hiddenGems(): JsonResponse
     {
+        // Force fresh connection and disable query result cache
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+        DB::connection()->disableQueryLog();
+        
         $cols  = Schema::getColumnListing('destinations');
         $query = DB::table('destinations');
 
