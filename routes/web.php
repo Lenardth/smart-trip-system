@@ -353,6 +353,7 @@ Route::prefix('api/discover')->group(function () {
     Route::get('/destinations',          [DiscoverController::class, 'destinations'])->name('api.discover.destinations');
     Route::get('/destinations/{id}',     [DiscoverController::class, 'destinationById'])->name('api.discover.destination')->where('id', '[0-9]+');
     Route::get('/hidden-gems',           [DiscoverController::class, 'hiddenGems'])->name('api.discover.hidden-gems');
+    Route::get('/search',                [DiscoverController::class, 'search'])->name('api.discover.search');
 });
 
 Route::get('/destinations',      [DestinationController::class, 'index'])->name('destinations');

@@ -122,7 +122,7 @@ function renderDestinations(destinations) {
         
         // Use the converted price from API with currency symbol
         const price = d.price_from > 0
-            ? '<span>' + (d.currency && typeof window.Currency !== 'undefined' ? window.Currency.symbol(d.currency) : '$') + d.price_from.toLocaleString() + '+</span>'
+            ? '<span class="dest-price">' + (d.currency && typeof window.Currency !== 'undefined' ? window.Currency.symbol(d.currency) : '$') + d.price_from.toLocaleString() + ' <span>/ person</span></span>'
             : '';
 
         return `<div class="destination-card" data-id="${d.id}">
@@ -135,13 +135,15 @@ function renderDestinations(destinations) {
             <div class="destination-content">
                 <h3>${d.name}${d.country ? ', ' + d.country : ''}</h3>
                 <div class="destination-meta">
-                    ${price ? `<span class="price-tag">${price}</span>` : ''}
                     ${moodLabel ? `<span class="mood-indicator"><i class="fas ${moodIcon}"></i> ${moodLabel}</span>` : ''}
                 </div>
                 <p>${d.description ? d.description.substring(0, 110) + (d.description.length > 110 ? '…' : '') : ''}</p>
-                <a href="/destinations/${d.id}" class="primary-button" style="text-decoration:none;width:100%;justify-content:center;">
-                    Explore <i class="fas fa-arrow-right"></i>
-                </a>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
+                    ${price}
+                    <a href="/destinations/${d.id}" class="primary-button" style="text-decoration:none;padding:9px 18px;font-size:13px;">
+                        Explore <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>`;
     }).join('');

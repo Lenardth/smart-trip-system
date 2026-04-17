@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Destination;
 use App\Services\PriceConverter;
+use App\Services\DestinationEnrichmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -11,7 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class DiscoverController extends Controller
 {
-    public function __construct(private PriceConverter $priceConverter) {}
+    public function __construct(
+        private PriceConverter $priceConverter,
+        private DestinationEnrichmentService $enrichment
+    ) {}
     
     public function index()
     {
@@ -138,5 +142,58 @@ class DiscoverController extends Controller
             'is_hidden_gem'=> (bool)($row['is_hidden_gem'] ?? false),
             'match_score'  => $row['match_score'] ?? null,
         ]);
+    }
+
+    /**
+     * Search destinations (database + external API)
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->input('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        // Search in database first
+        $dbResults = DB::table('destinations')
+            ->where(function($q) use ($query) {
+                $q->where('name', 'ILIKE', '%' . $query . '%')
+                  ->orWhere('country', 'ILIKE', '%' . $query . '%')
+                  ->orWhere('description', 'ILIKE', '%' . $query . '%');
+            })
+            ->where('is_active', 1)
+            ->limit(10)
+            ->get();
+
+        $results = $dbResults->map(function($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name,
+                'country' => $row->country,
+                'type' => 'database',
+                'image_url' => $row->image_url,
+                'description' => substr($row->description ?? '', 0, 100),
+            ];
+        })->toArray();
+
+        // If less than 5 results, search external API
+        if (count($results) < 5) {
+            $apiResults = $this->enrichment->searchDestinations($query);
+            
+            foreach ($apiResults as $apiResult) {
+                $results[] = [
+                    'id' => 'api_' . md5($apiResult['name']),
+                    'name' => $apiResult['capital'] ?? $apiResult['name'],
+                    'country' => $apiResult['name'],
+                    'type' => 'api',
+                    'image_url' => $apiResult['flag'] ?? null,
+                    'description' => 'Population: ' . number_format($apiResult['population'] ?? 0),
+                    'api_data' => $apiResult,
+                ];
+            }
+        }
+
+        return response()->json(array_slice($results, 0, 10));
     }
 }

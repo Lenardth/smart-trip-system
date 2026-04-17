@@ -186,6 +186,7 @@
 }
 
 .price-tag {
+    /* Deprecated - use .dest-price instead */
     background: var(--gold);
     color: var(--deep);
     padding: 5px 14px;
@@ -193,6 +194,18 @@
     font-weight: bold;
     font-size: 13px;
     white-space: nowrap;
+}
+
+.dest-price {
+    font-size: 18px;
+    color: var(--deep);
+    font-weight: bold;
+}
+
+.dest-price span {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: normal;
 }
 
 .mood-indicator {

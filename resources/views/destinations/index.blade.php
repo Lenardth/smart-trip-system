@@ -17,7 +17,7 @@
         <div class="cont-tab active" data-filter="all"        onclick="filterDest('all',this)"><i class="fas fa-globe"></i> All</div>
         <div class="cont-tab" data-filter="asia"              onclick="filterDest('asia',this)"><i class="fas fa-globe-asia"></i> Asia</div>
         <div class="cont-tab" data-filter="europe"            onclick="filterDest('europe',this)"><i class="fas fa-globe-europe"></i> Europe</div>
-        <div class="cont-tab" data-filter="america"           onclick="filterDest('america',this)"><i class="fas fa-globe-americas"></i> Americas</div>
+        <div class="cont-tab" data-filter="america"           onclick="filterDest('america',this)"><i class="fas fa-globe-america"></i> America</div>
         <div class="cont-tab" data-filter="africa"            onclick="filterDest('africa',this)"><i class="fas fa-globe-africa"></i> Africa</div>
         <div class="cont-tab" data-filter="middle_east"       onclick="filterDest('middle_east',this)"><i class="fas fa-mosque"></i> Middle East</div>
         <div class="cont-tab" data-filter="oceania"           onclick="filterDest('oceania',this)"><i class="fas fa-water"></i> Oceania</div>
