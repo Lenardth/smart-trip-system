@@ -26,6 +26,23 @@ use App\Http\Controllers\Api\TripMoodController;
 // ── Public ────────────────────────────────────────────────────────────────────
 Route::get('/', fn () => view('landing.index'))->name('home');
 
+// ── Setup (temporary for initial deployment) ──────────────────────────────────
+Route::get('/setup', fn () => view('setup'));
+Route::post('/setup/migrate', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        return response()->json([
+            'success' => true,
+            'output' => Artisan::output()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // ── Database Management API (Protected by secret key) ────────────────────────
 Route::prefix('api/database')->group(function () {
     Route::post('/migrate',      [\App\Http\Controllers\DatabaseController::class, 'migrate']);
