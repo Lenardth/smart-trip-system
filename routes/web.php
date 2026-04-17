@@ -62,17 +62,15 @@ Route::post('/setup/fresh', function () {
         
         // Manually drop all tables to avoid migration conflicts
         $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
-        DB::statement('SET session_replication_role = replica;'); // Disable foreign key checks
         
         foreach ($tables as $table) {
             try {
+                // CASCADE will automatically drop dependent objects
                 DB::statement("DROP TABLE IF EXISTS \"{$table->tablename}\" CASCADE");
             } catch (\Exception $e) {
                 // Continue even if drop fails
             }
         }
-        
-        DB::statement('SET session_replication_role = DEFAULT;'); // Re-enable foreign key checks
         
         // Now run migrations on clean slate
         Artisan::call('migrate', ['--force' => true]);
