@@ -21,6 +21,7 @@
     <button class="btn btn-primary" onclick="runMigrations()">Run Migrations</button>
     <button class="btn btn-danger" onclick="freshMigrate()">Fresh Migrate (Drop All Tables)</button>
     <button class="btn btn-primary" onclick="checkStatus()">Check Database Status</button>
+    <button class="btn btn-primary" onclick="clearCache()">Clear All Caches</button>
     
     <div id="output" class="output" style="display:none;"></div>
 
@@ -91,6 +92,33 @@
             fetch('/setup/status', {
                 method: 'GET',
                 headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                output.textContent = JSON.stringify(data, null, 2);
+                if (data.success) {
+                    output.style.background = '#d4edda';
+                } else {
+                    output.style.background = '#f8d7da';
+                }
+            })
+            .catch(err => {
+                output.textContent = 'Error: ' + err.message;
+                output.style.background = '#f8d7da';
+            });
+        }
+
+        function clearCache() {
+            const output = document.getElementById('output');
+            output.style.display = 'block';
+            output.textContent = 'Clearing all caches...';
+            
+            fetch('/setup/clear-cache', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
                 }
             })

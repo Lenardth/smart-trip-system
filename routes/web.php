@@ -58,6 +58,33 @@ Route::get('/setup/status', function () {
     }
 });
 
+Route::post('/setup/clear-cache', function () {
+    try {
+        // Purge all database connections
+        DB::purge('pgsql');
+        DB::purge('pgsql_direct');
+        
+        // Clear Laravel caches
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+        
+        // Reconnect
+        DB::reconnect('pgsql');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'All caches cleared and connections reset'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 Route::post('/setup/migrate', function () {
     try {
         // Get the current DATABASE_URL
