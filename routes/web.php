@@ -281,7 +281,7 @@ Route::post('/api/currency/convert',    [CurrencyController::class, 'convert'])-
 
 Route::get('/accommodations',           [AccommodationController::class, 'index'])->name('accommodations.index');
 Route::get('/api/accommodations',       [AccommodationController::class, 'list'])->name('api.accommodations.list');
-Route::get('/api/accommodation-news',   [NewsController::class, 'accommodationNews']);
+Route::get('/api/accommodation-news',   [NewsController::class, 'accommodationNews'])->name('api.accommodation-news');
 
 Route::get('/community', [CommunityController::class, 'index'])->name('community');
 
