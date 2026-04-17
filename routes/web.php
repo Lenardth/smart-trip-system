@@ -30,10 +30,37 @@ Route::get('/', fn () => view('landing.index'))->name('home');
 Route::get('/setup', fn () => view('setup'));
 Route::post('/setup/migrate', function () {
     try {
+        // First try to rollback any failed transactions
+        DB::statement('ROLLBACK');
+        
         Artisan::call('migrate', ['--force' => true]);
         return response()->json([
             'success' => true,
             'output' => Artisan::output()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
+Route::post('/setup/fresh', function () {
+    try {
+        // Rollback any failed transactions
+        try { DB::statement('ROLLBACK'); } catch (\Exception $e) {}
+        
+        // Drop all tables and re-run migrations
+        Artisan::call('migrate:fresh', ['--force' => true]);
+        
+        // Run seeders
+        Artisan::call('db:seed', ['--force' => true]);
+        
+        return response()->json([
+            'success' => true,
+            'output' => Artisan::output(),
+            'message' => 'Database reset and seeded successfully'
         ]);
     } catch (\Exception $e) {
         return response()->json([
