@@ -28,10 +28,15 @@ Route::get('/', fn () => view('landing.index'))->name('home');
 
 // ── Setup (temporary for initial deployment) ──────────────────────────────────
 Route::get('/setup', fn () => view('setup'));
+
 Route::post('/setup/migrate', function () {
     try {
-        // First try to rollback any failed transactions
-        DB::statement('ROLLBACK');
+        // Reconnect to get a fresh connection without failed transactions
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+        
+        // Try to rollback any failed transactions
+        try { DB::statement('ROLLBACK'); } catch (\Exception $e) {}
         
         Artisan::call('migrate', ['--force' => true]);
         return response()->json([
@@ -48,6 +53,10 @@ Route::post('/setup/migrate', function () {
 
 Route::post('/setup/fresh', function () {
     try {
+        // Reconnect to get a fresh connection without failed transactions
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+        
         // Rollback any failed transactions
         try { DB::statement('ROLLBACK'); } catch (\Exception $e) {}
         
