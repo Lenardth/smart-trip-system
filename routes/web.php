@@ -60,6 +60,9 @@ Route::post('/setup/fresh', function () {
         // Rollback any failed transactions
         try { DB::statement('ROLLBACK'); } catch (\Exception $e) {}
         
+        // Start a new transaction for dropping tables
+        DB::beginTransaction();
+        
         // Manually drop all tables to avoid migration conflicts
         $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
         
@@ -71,6 +74,13 @@ Route::post('/setup/fresh', function () {
                 // Continue even if drop fails
             }
         }
+        
+        // Commit the drops
+        DB::commit();
+        
+        // Get a fresh connection again after dropping tables
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
         
         // Now run migrations on clean slate
         Artisan::call('migrate', ['--force' => true]);
@@ -84,10 +94,13 @@ Route::post('/setup/fresh', function () {
             'message' => 'Database reset and seeded successfully'
         ]);
     } catch (\Exception $e) {
+        // Rollback if anything fails
+        try { DB::rollback(); } catch (\Exception $ex) {}
+        
         return response()->json([
             'success' => false,
             'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
+            'line' => $e->getLine()
         ], 500);
     }
 });
