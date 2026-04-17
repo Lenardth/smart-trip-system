@@ -71,6 +71,11 @@ try {
 
     $db = $app->make(Illuminate\Database\DatabaseManager::class);
 
+    // Skip automatic migrations if accessing setup page
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    $skipAutoMigrate = str_contains($requestUri, '/setup');
+
+    if (!$skipAutoMigrate) {
     try {
         $schema             = $db->connection()->getSchemaBuilder();
         $hasMigrationsTable = $schema->hasTable('migrations');
@@ -150,6 +155,7 @@ try {
         error_log('[SmartBooking] Migration outer error: ' . $migrateErr->getMessage());
         // Don't rethrow — let the app serve requests even if migrations had issues
     }
+    } // End skip auto migrate check
 
     // ── Seed missing data independently ──────────────────────────────────────
     try {
