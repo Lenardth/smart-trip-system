@@ -24,66 +24,75 @@ class DiscoverController extends Controller
 
     public function destinations(Request $request): JsonResponse
     {
-        // Force fresh connection and use raw PDO to bypass all caching
-        DB::purge('pgsql');
-        DB::reconnect('pgsql');
-        
-        // Get fresh PDO connection
-        $pdo = DB::connection()->getPdo();
-        
-        // Build query
-        $sql = "SELECT * FROM destinations WHERE is_active = 1 AND is_hidden_gem = 0";
-        $params = [];
-        
-        if ($request->filled('category') && $request->category !== 'all') {
-            $sql .= " AND category = ?";
-            $params[] = $request->category;
-        }
-        
-        if ($request->filled('region') && $request->region !== 'all') {
-            $sql .= " AND region = ?";
-            $params[] = $request->region;
-        }
-        
-        if ($request->filled('q')) {
-            $search = '%' . $request->q . '%';
-            $sql .= " AND (name ILIKE ? OR country ILIKE ? OR description ILIKE ?)";
-            $params[] = $search;
-            $params[] = $search;
-            $params[] = $search;
-        }
-        
-        $sql .= " ORDER BY sort_order";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        
-        $currency = $this->priceConverter->getPreferredCurrency();
-        
-        $destinations = array_map(function ($row) use ($currency) {
-            $priceUsd = $row['price_from'] ?? 0;
-            $priceConverted = $priceUsd > 0 ? $this->priceConverter->convert((float) $priceUsd) : 0;
+        try {
+            // Force fresh connection and use raw PDO to bypass all caching
+            DB::purge('pgsql');
+            DB::reconnect('pgsql');
             
-            return [
-                'id'           => $row['id'] ?? null,
-                'name'         => $row['name'] ?? 'Unknown',
-                'country'      => $row['country'] ?? null,
-                'region'       => $row['region'] ?? null,
-                'category'     => $row['category'] ?? 'general',
-                'mood'         => $row['mood'] ?? null,
-                'price_from'   => $priceConverted,
-                'price_usd'    => $priceUsd, // Keep original for frontend conversion
-                'currency'     => $currency,
-                'description'  => $row['description'] ?? '',
-                'image_url'    => $row['image_url'] ?? null,
-                'badge'        => $row['badge'] ?? null,
-                'is_hidden_gem'=> (bool)($row['is_hidden_gem'] ?? false),
-                'match_score'  => $row['match_score'] ?? null,
-            ];
-        }, $rows);
+            // Get fresh PDO connection
+            $pdo = DB::connection()->getPdo();
+            
+            // Build query
+            $sql = "SELECT * FROM destinations WHERE is_active = 1 AND is_hidden_gem = 0";
+            $params = [];
+            
+            if ($request->filled('category') && $request->category !== 'all') {
+                $sql .= " AND category = ?";
+                $params[] = $request->category;
+            }
+            
+            if ($request->filled('region') && $request->region !== 'all') {
+                $sql .= " AND region = ?";
+                $params[] = $request->region;
+            }
+            
+            if ($request->filled('q')) {
+                $search = '%' . $request->q . '%';
+                $sql .= " AND (name ILIKE ? OR country ILIKE ? OR description ILIKE ?)";
+                $params[] = $search;
+                $params[] = $search;
+                $params[] = $search;
+            }
+            
+            $sql .= " ORDER BY sort_order";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            $currency = $this->priceConverter->getPreferredCurrency();
+            
+            $destinations = array_map(function ($row) use ($currency) {
+                $priceUsd = $row['price_from'] ?? 0;
+                $priceConverted = $priceUsd > 0 ? $this->priceConverter->convert((float) $priceUsd) : 0;
+                
+                return [
+                    'id'           => $row['id'] ?? null,
+                    'name'         => $row['name'] ?? 'Unknown',
+                    'country'      => $row['country'] ?? null,
+                    'region'       => $row['region'] ?? null,
+                    'category'     => $row['category'] ?? 'general',
+                    'mood'         => $row['mood'] ?? null,
+                    'price_from'   => $priceConverted,
+                    'price_usd'    => $priceUsd,
+                    'currency'     => $currency,
+                    'description'  => $row['description'] ?? '',
+                    'image_url'    => $row['image_url'] ?? null,
+                    'badge'        => $row['badge'] ?? null,
+                    'is_hidden_gem'=> (bool)($row['is_hidden_gem'] ?? false),
+                    'match_score'  => $row['match_score'] ?? null,
+                ];
+            }, $rows);
 
-        return response()->json($destinations);
+            return response()->json($destinations);
+        } catch (\Exception $e) {
+            \Log::error('Discover destinations error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to load destinations',
+                'message' => $e->getMessage(),
+                'debug' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
+        }
     }
 
     public function hiddenGems(): JsonResponse

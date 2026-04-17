@@ -30,6 +30,12 @@ Route::get('/setup/debug', function () {
             ->limit(5)
             ->get();
         
+        // Test the actual API endpoint
+        $pdo = DB::connection()->getPdo();
+        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM destinations WHERE is_active = 1 AND is_hidden_gem = 0");
+        $stmt->execute();
+        $pdoCount = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
         return response()->json([
             'success' => true,
             'counts' => [
@@ -37,9 +43,11 @@ Route::get('/setup/debug', function () {
                 'is_active_1' => $active,
                 'is_hidden_gem_0' => $notHidden,
                 'active_and_not_hidden' => $activeNotHidden,
+                'pdo_active_not_hidden' => $pdoCount['count'] ?? 0,
             ],
             'sample_destinations' => $sample,
-            'query_that_discover_uses' => 'SELECT * FROM destinations WHERE is_active = 1 AND is_hidden_gem = 0'
+            'query_that_discover_uses' => 'SELECT * FROM destinations WHERE is_active = 1 AND is_hidden_gem = 0',
+            'note' => 'If pdo_active_not_hidden is 0, the data is not in the database'
         ]);
     } catch (\Exception $e) {
         return response()->json([

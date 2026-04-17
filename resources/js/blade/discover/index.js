@@ -138,9 +138,9 @@ function renderDestinations(destinations) {
                     ${moodLabel ? `<span class="mood-indicator"><i class="fas ${moodIcon}"></i> ${moodLabel}</span>` : ''}
                 </div>
                 <p>${d.description ? d.description.substring(0, 110) + (d.description.length > 110 ? '…' : '') : ''}</p>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;gap:12px;">
                     ${price}
-                    <a href="/destinations/${d.id}" class="primary-button" style="text-decoration:none;padding:9px 18px;font-size:13px;">
+                    <a href="/destinations/${d.id}" class="primary-button" style="text-decoration:none;padding:9px 16px;font-size:13px;flex-shrink:0;">
                         Explore <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>

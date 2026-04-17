@@ -11,9 +11,9 @@ const E=window.__dashboardConfig||{};var h;const p=((h=document.querySelector('m
                     ${u?`<span class="mood-indicator"><i class="fas ${a}"></i> ${u}</span>`:""}
                 </div>
                 <p>${t.description?t.description.substring(0,110)+(t.description.length>110?"…":""):""}</p>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;gap:12px;">
                     ${b}
-                    <a href="/destinations/${t.id}" class="primary-button" style="text-decoration:none;padding:9px 18px;font-size:13px;">
+                    <a href="/destinations/${t.id}" class="primary-button" style="text-decoration:none;padding:9px 16px;font-size:13px;flex-shrink:0;">
                         Explore <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
