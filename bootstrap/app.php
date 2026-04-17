@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
                      Request::HEADER_X_FORWARDED_AWS_ELB
         );
 
+        // Exclude setup routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            '/setup/*',
+        ]);
+
         // Register custom middleware aliases
         $middleware->alias([
             'check.traveler' => \App\Http\Middleware\CheckTraveler::class,
