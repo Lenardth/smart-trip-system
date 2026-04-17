@@ -71,6 +71,12 @@
         <a href="{{ route('community') }}"            class="mob-link {{ request()->routeIs('community*')   ? 'active' : '' }}"><i class="fas fa-users"></i> Community</a>
 
         <div class="mob-divider"></div>
+        
+        <div style="padding: 12px 20px;">
+            <div id="mobCurrencySlot"></div>
+        </div>
+
+        <div class="mob-divider"></div>
 
         @guest
             <a href="{{ route('login') }}"    class="mob-link"><i class="fas fa-sign-in-alt"></i> Login</a>

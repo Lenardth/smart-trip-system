@@ -24,7 +24,7 @@
     (function initCurrencySwitchers() {
         function tryInit() {
             if (typeof window.Currency === 'undefined') { setTimeout(tryInit, 100); return; }
-            ['navCurrencySlot','dashCurrencySlot'].forEach(function(id) {
+            ['navCurrencySlot','dashCurrencySlot','mobCurrencySlot'].forEach(function(id) {
                 if (document.getElementById(id)) window.Currency.buildSwitcher(id);
             });
         }

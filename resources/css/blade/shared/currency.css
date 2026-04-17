@@ -146,3 +146,28 @@
 [data-price-usd] {
     transition: opacity .2s;
 }
+
+/* Mobile currency slot styling */
+#mobCurrencySlot .currency-switcher {
+    width: 100%;
+}
+
+#mobCurrencySlot .currency-switcher-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 14px;
+    background: rgba(201,169,110,.15);
+    border-color: var(--gold);
+    color: var(--deep);
+}
+
+#mobCurrencySlot .currency-switcher-btn:hover {
+    background: rgba(201,169,110,.25);
+}
+
+#mobCurrencySlot .currency-dropdown {
+    left: 0;
+    right: 0;
+    width: auto;
+}

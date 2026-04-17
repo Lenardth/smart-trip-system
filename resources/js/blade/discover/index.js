@@ -119,9 +119,10 @@ function renderDestinations(destinations) {
         const badgeHtml = d.badge ? `<span class="dest-badge">${d.badge}</span>` : '';
         const imgStyle  = d.image_url ? `background-image:url('${d.image_url}')` : '';
         const inList    = wishlistedIds.has(d.id);
-        const priceUsd  = d.price_from ? Number(d.price_from) : 0;
-        const price = priceUsd > 0
-            ? '<span data-price-usd="' + priceUsd + '">' + (typeof window.Currency !== 'undefined' ? window.Currency.format(priceUsd) : '$' + priceUsd.toLocaleString()) + '+</span>'
+        
+        // Use the converted price from API with currency symbol
+        const price = d.price_from > 0
+            ? '<span>' + (d.currency && typeof window.Currency !== 'undefined' ? window.Currency.symbol(d.currency) : '$') + d.price_from.toLocaleString() + '+</span>'
             : '';
 
         return `<div class="destination-card" data-id="${d.id}">
@@ -278,13 +279,19 @@ if (document.readyState !== 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 }
 
-// Re-render prices when currency changes
+// When currency changes, reload data from API (which will return new currency)
 if (typeof window.Currency !== 'undefined') {
-    window.Currency.onCurrencyChange(function() { loadDestinations(); loadHiddenGems(); });
+    window.Currency.onCurrencyChange(function() { 
+        loadDestinations(); 
+        loadHiddenGems(); 
+    });
 } else {
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof window.Currency !== 'undefined') {
-            window.Currency.onCurrencyChange(function() { loadDestinations(); loadHiddenGems(); });
+            window.Currency.onCurrencyChange(function() { 
+                loadDestinations(); 
+                loadHiddenGems(); 
+            });
         }
     });
 }

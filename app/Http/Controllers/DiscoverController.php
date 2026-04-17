@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Destination;
+use App\Services\PriceConverter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class DiscoverController extends Controller
 {
+    public function __construct(private PriceConverter $priceConverter) {}
+    
     public function index()
     {
         return view('discover.index');
@@ -52,7 +55,12 @@ class DiscoverController extends Controller
         $stmt->execute($params);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         
-        $destinations = array_map(function ($row) {
+        $currency = $this->priceConverter->getPreferredCurrency();
+        
+        $destinations = array_map(function ($row) use ($currency) {
+            $priceUsd = $row['price_from'] ?? 0;
+            $priceConverted = $priceUsd > 0 ? $this->priceConverter->convert((float) $priceUsd) : 0;
+            
             return [
                 'id'           => $row['id'] ?? null,
                 'name'         => $row['name'] ?? 'Unknown',
@@ -60,7 +68,9 @@ class DiscoverController extends Controller
                 'region'       => $row['region'] ?? null,
                 'category'     => $row['category'] ?? 'general',
                 'mood'         => $row['mood'] ?? null,
-                'price_from'   => $row['price_from'] ?? 0,
+                'price_from'   => $priceConverted,
+                'price_usd'    => $priceUsd, // Keep original for frontend conversion
+                'currency'     => $currency,
                 'description'  => $row['description'] ?? '',
                 'image_url'    => $row['image_url'] ?? null,
                 'badge'        => $row['badge'] ?? null,
@@ -85,7 +95,12 @@ class DiscoverController extends Controller
         $stmt->execute();
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         
-        $gems = array_map(function($row) {
+        $currency = $this->priceConverter->getPreferredCurrency();
+        
+        $gems = array_map(function($row) use ($currency) {
+            $priceUsd = $row['price_from'] ?? 0;
+            $priceConverted = $priceUsd > 0 ? $this->priceConverter->convert((float) $priceUsd) : 0;
+            
             return [
                 'id'          => $row['id'] ?? null,
                 'name'        => $row['name'] ?? 'Unknown',
@@ -93,6 +108,9 @@ class DiscoverController extends Controller
                 'description' => $row['description'] ?? '',
                 'image_url'   => $row['image_url'] ?? null,
                 'match_score' => $row['match_score'] ?? null,
+                'price_from'  => $priceConverted,
+                'price_usd'   => $priceUsd,
+                'currency'    => $currency,
             ];
         }, $rows);
 
