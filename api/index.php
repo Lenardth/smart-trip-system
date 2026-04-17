@@ -17,7 +17,8 @@ $envOverrides = [
     'APP_CONFIG_CACHE'   => '/tmp/bootstrap/cache/config.php',
     'APP_SERVICES_CACHE' => '/tmp/bootstrap/cache/services.php',
     'APP_PACKAGES_CACHE' => '/tmp/bootstrap/cache/packages.php',
-    'APP_ROUTES_CACHE'   => '/tmp/bootstrap/cache/routes-v7.php',
+    // Temporarily disable route caching to allow /setup routes to work
+    // 'APP_ROUTES_CACHE'   => '/tmp/bootstrap/cache/routes-v7.php',
     'APP_EVENTS_CACHE'   => '/tmp/bootstrap/cache/events.php',
     'CACHE_STORE'        => 'array',
     'CACHE_DRIVER'       => 'array',
