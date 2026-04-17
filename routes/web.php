@@ -110,41 +110,30 @@ Route::post('/setup/fresh', function () {
             'sslmode' => 'require',
         ]]);
         
-        // Purge ALL existing connections to force fresh connections
+        // Purge ALL existing connections
         DB::purge('pgsql');
         DB::purge('pgsql_direct');
         
-        // Set direct connection as default BEFORE any DB operations
+        // Set direct connection as default
         config(['database.default' => 'pgsql_direct']);
         
-        // Get a fresh PDO connection and force a new transaction
+        // Get a fresh PDO connection
         $pdo = DB::connection('pgsql_direct')->getPdo();
         
-        // Terminate any existing backend connections to this database (requires privileges)
+        // Rollback any existing transaction
         try {
-            $pdo->exec("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()");
+            $pdo->exec('ROLLBACK');
         } catch (\Exception $e) {
-            // May not have permission, continue anyway
+            // Ignore if no transaction
         }
         
-        // Start a fresh transaction
-        $pdo->exec('BEGIN');
+        // Drop the entire public schema and recreate it (cleanest approach)
+        $pdo->exec('DROP SCHEMA IF EXISTS public CASCADE');
+        $pdo->exec('CREATE SCHEMA public');
+        $pdo->exec('GRANT ALL ON SCHEMA public TO ' . $url['user']);
+        $pdo->exec('GRANT ALL ON SCHEMA public TO public');
         
-        // Drop all tables using raw PDO to avoid Laravel's query builder
-        $tables = $pdo->query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")->fetchAll(\PDO::FETCH_COLUMN);
-        
-        foreach ($tables as $table) {
-            try {
-                $pdo->exec("DROP TABLE IF EXISTS \"{$table}\" CASCADE");
-            } catch (\Exception $e) {
-                // Continue even if drop fails
-            }
-        }
-        
-        // Commit the drops
-        $pdo->exec('COMMIT');
-        
-        // Reconnect to get a completely fresh connection
+        // Purge and reconnect after schema recreation
         DB::purge('pgsql_direct');
         DB::reconnect('pgsql_direct');
         

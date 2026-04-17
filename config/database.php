@@ -43,19 +43,6 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
-    'pgsql' => [
-    'url'     => env('DATABASE_URL'),
-    'driver'  => 'pgsql',
-    'host'    => env('DB_HOST', '127.0.0.1'),
-    'port'    => env('DB_PORT', '5432'),
-    'database'=> env('DB_DATABASE', 'laravel'),
-    'username'=> env('DB_USERNAME', 'root'),
-    'password'=> env('DB_PASSWORD', ''),
-    'charset' => 'utf8',
-    'prefix'  => '',
-    'schema'  => 'public',
-    'sslmode' => 'prefer',
-],
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
@@ -89,6 +76,10 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'options' => [
+                // Disable prepared statements for Neon pooler to avoid "cached plan must not change result type" errors
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ],
         ],
 
         'sqlsrv' => [
