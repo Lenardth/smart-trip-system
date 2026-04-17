@@ -55,6 +55,12 @@ class ProfileController extends Controller
 
     public function uploadProfilePicture(Request $request): RedirectResponse
     {
+        // Check if we're on Vercel (serverless environment)
+        if (env('VERCEL_ENV')) {
+            return Redirect::route('profile.edit')
+                ->with('error', 'File uploads are not available on the serverless deployment. Please configure cloud storage (S3, Cloudinary) to enable profile pictures.');
+        }
+        
         $request->validate([
             'profile_picture' => ['required', 'image', 'max:5120'],
         ]);
