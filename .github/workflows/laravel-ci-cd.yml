@@ -38,8 +38,21 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci --prefer-offline
 
+      - name: Prepare build directory
+        run: mkdir -p public/build
+
       - name: Build assets
         run: npm run build
+
+      - name: Verify build output
+        run: |
+          echo "Checking if manifest exists..."
+          ls -la public/build/
+          if [ ! -f public/build/manifest.json ]; then
+            echo "ERROR: manifest.json not found!"
+            exit 1
+          fi
+          echo "Build successful, manifest.json exists"
 
       - name: Prepare environment
         run: |
