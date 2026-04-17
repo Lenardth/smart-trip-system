@@ -53,22 +53,32 @@ Route::post('/setup/migrate', function () {
 
 Route::post('/setup/fresh', function () {
     try {
-        // Reconnect to get a fresh connection
-        DB::purge('pgsql');
+        // Force close all existing connections
+        DB::disconnect('pgsql');
+        
+        // Clear any connection resolver cache
+        app('db')->purge('pgsql');
+        
+        // Wait a moment for connection to fully close
+        usleep(100000); // 100ms
+        
+        // Reconnect with fresh connection
         DB::reconnect('pgsql');
         
-        // Rollback any failed transactions
-        try { DB::statement('ROLLBACK'); } catch (\Exception $e) {}
+        // Explicitly rollback any lingering transactions
+        try { 
+            DB::getPdo()->exec('ROLLBACK');
+        } catch (\Exception $e) {}
         
-        // Start a new transaction for dropping tables
+        // Start fresh transaction for dropping tables
         DB::beginTransaction();
         
-        // Manually drop all tables to avoid migration conflicts
+        // Get list of tables
         $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
         
+        // Drop each table
         foreach ($tables as $table) {
             try {
-                // CASCADE will automatically drop dependent objects
                 DB::statement("DROP TABLE IF EXISTS \"{$table->tablename}\" CASCADE");
             } catch (\Exception $e) {
                 // Continue even if drop fails
@@ -78,8 +88,10 @@ Route::post('/setup/fresh', function () {
         // Commit the drops
         DB::commit();
         
-        // Get a fresh connection again after dropping tables
-        DB::purge('pgsql');
+        // Disconnect and reconnect again for migrations
+        DB::disconnect('pgsql');
+        app('db')->purge('pgsql');
+        usleep(100000);
         DB::reconnect('pgsql');
         
         // Now run migrations on clean slate
@@ -100,7 +112,8 @@ Route::post('/setup/fresh', function () {
         return response()->json([
             'success' => false,
             'error' => $e->getMessage(),
-            'line' => $e->getLine()
+            'line' => $e->getLine(),
+            'file' => basename($e->getFile())
         ], 500);
     }
 });
