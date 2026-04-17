@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import './blade/global';
+import './blade/shared/currency';
 import './blade/shared/travel-advisory';
 import './bootstrap';
 

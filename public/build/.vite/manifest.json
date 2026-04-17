@@ -5,7 +5,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BsNQSvOX.js",
+    "file": "assets/app-CqxfDOMI.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -65,7 +65,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/destinations/index.js": {
-    "file": "assets/index-DmN-x3yO.js",
+    "file": "assets/index-Ca7Z0EN0.js",
     "name": "index",
     "src": "resources/js/blade/destinations/index.js",
     "isDynamicEntry": true,
@@ -95,7 +95,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/itineraries/index.js": {
-    "file": "assets/index-B16GWCcQ.js",
+    "file": "assets/index-Dn4U84_G.js",
     "name": "index",
     "src": "resources/js/blade/itineraries/index.js",
     "isDynamicEntry": true,
