@@ -17,102 +17,84 @@ class DiscoverController extends Controller
 
     public function destinations(Request $request): JsonResponse
     {
-        // Force fresh connection and disable query result cache
+        // Force fresh connection and use raw PDO to bypass all caching
         DB::purge('pgsql');
         DB::reconnect('pgsql');
-        DB::connection()->disableQueryLog();
         
-        $cols = Schema::getColumnListing('destinations');
-
-        $query = DB::table('destinations');
-
-        if (in_array('is_active', $cols)) {
-            $query->where('is_active', true);
-        }
-        if (in_array('is_hidden_gem', $cols)) {
-            $query->where('is_hidden_gem', false);
-        }
-
+        // Get fresh PDO connection
+        $pdo = DB::connection()->getPdo();
+        
+        // Build query
+        $sql = "SELECT * FROM destinations WHERE is_active = 1 AND is_hidden_gem = 0";
+        $params = [];
+        
         if ($request->filled('category') && $request->category !== 'all') {
-            if (in_array('category', $cols)) {
-                $query->where('category', $request->category);
-            }
+            $sql .= " AND category = ?";
+            $params[] = $request->category;
         }
-
+        
         if ($request->filled('region') && $request->region !== 'all') {
-            if (in_array('region', $cols)) {
-                $query->where('region', $request->region);
-            }
+            $sql .= " AND region = ?";
+            $params[] = $request->region;
         }
-
+        
         if ($request->filled('q')) {
             $search = '%' . $request->q . '%';
-            $query->where(function ($q) use ($search, $cols) {
-                $q->where('name', 'like', $search);
-                if (in_array('country', $cols))     $q->orWhere('country',     'like', $search);
-                if (in_array('description', $cols)) $q->orWhere('description', 'like', $search);
-            });
+            $sql .= " AND (name ILIKE ? OR country ILIKE ? OR description ILIKE ?)";
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
         }
-
-        if (in_array('sort_order', $cols)) {
-            $query->orderBy('sort_order');
-        }
-
-        $rows = $query->get();
-
-        $destinations = $rows->map(function ($row) use ($cols) {
-            $row = (array) $row;
+        
+        $sql .= " ORDER BY sort_order";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        $destinations = array_map(function ($row) {
             return [
                 'id'           => $row['id'] ?? null,
-                'name'         => $row['name'] ?? $row['title'] ?? 'Unknown',
+                'name'         => $row['name'] ?? 'Unknown',
                 'country'      => $row['country'] ?? null,
                 'region'       => $row['region'] ?? null,
                 'category'     => $row['category'] ?? 'general',
-                'mood'         => $row['mood'] ?? $row['type'] ?? null,
-                'price_from'   => $row['price_from'] ?? $row['price'] ?? $row['min_price'] ?? 0,
-                'description'  => $row['description'] ?? $row['summary'] ?? $row['excerpt'] ?? '',
-                'image_url'    => $row['image_url'] ?? $row['image'] ?? $row['photo'] ?? $row['thumbnail'] ?? null,
-                'badge'        => $row['badge'] ?? $row['label'] ?? null,
+                'mood'         => $row['mood'] ?? null,
+                'price_from'   => $row['price_from'] ?? 0,
+                'description'  => $row['description'] ?? '',
+                'image_url'    => $row['image_url'] ?? null,
+                'badge'        => $row['badge'] ?? null,
                 'is_hidden_gem'=> (bool)($row['is_hidden_gem'] ?? false),
                 'match_score'  => $row['match_score'] ?? null,
             ];
-        });
+        }, $rows);
 
         return response()->json($destinations);
     }
 
     public function hiddenGems(): JsonResponse
     {
-        // Force fresh connection and disable query result cache
+        // Force fresh connection and use raw PDO
         DB::purge('pgsql');
         DB::reconnect('pgsql');
-        DB::connection()->disableQueryLog();
         
-        $cols  = Schema::getColumnListing('destinations');
-        $query = DB::table('destinations');
-
-        if (in_array('is_hidden_gem', $cols)) {
-            $query->where('is_hidden_gem', true);
-        } elseif (in_array('featured', $cols)) {
-            $query->where('featured', true);
-        } else {
-            $query->orderByRaw('RANDOM()')->limit(6);
-        }
-
-        if (in_array('match_score', $cols)) {
-            $query->orderByDesc('match_score');
-        }
-
-        $rows = $query->take(6)->get();
-
-        $gems = $rows->map(fn($row) => [
-            'id'          => $row->id ?? null,
-            'name'        => $row->name ?? $row->title ?? 'Unknown',
-            'country'     => $row->country ?? null,
-            'description' => $row->description ?? $row->summary ?? '',
-            'image_url'   => $row->image_url ?? $row->image ?? $row->photo ?? $row->thumbnail ?? null,
-            'match_score' => $row->match_score ?? null,
-        ]);
+        $pdo = DB::connection()->getPdo();
+        
+        $sql = "SELECT * FROM destinations WHERE is_hidden_gem = 1 ORDER BY match_score DESC NULLS LAST LIMIT 6";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        $gems = array_map(function($row) {
+            return [
+                'id'          => $row['id'] ?? null,
+                'name'        => $row['name'] ?? 'Unknown',
+                'country'     => $row['country'] ?? null,
+                'description' => $row['description'] ?? '',
+                'image_url'   => $row['image_url'] ?? null,
+                'match_score' => $row['match_score'] ?? null,
+            ];
+        }, $rows);
 
         return response()->json($gems);
     }

@@ -33,27 +33,36 @@ class CommunityController extends Controller
 
     public function topics(): JsonResponse
     {
-        // Force fresh connection to avoid pooler cache
+        // Force fresh connection and use raw PDO
         DB::purge('pgsql');
         DB::reconnect('pgsql');
         
-        $topics = CommunityTopic::with('user:id,name,profile_picture')
-            ->latest()
-            ->take(10)
-            ->get();
-
-        $mapped = $topics->map(fn($t) => [
-            'id'            => $t->id,
-            'title'         => $t->title,
-            'body'          => $t->body,
-            'author'        => $t->user?->name ?? $t->author ?? 'Anonymous',
-            'author_avatar' => $t->user?->avatar ?? null,
-            'user_id'       => $t->user_id,
-            'tags'          => is_string($t->tags) ? (json_decode($t->tags, true) ?? []) : ($t->tags ?? []),
-            'replies_count' => $t->replies ?? 0,
-            'likes'         => $t->likes   ?? 0,
-            'created_at'    => $t->created_at->diffForHumans(),
-        ]);
+        $pdo = DB::connection()->getPdo();
+        
+        $sql = "SELECT ct.*, u.name as user_name, u.profile_picture as user_avatar 
+                FROM community_topics ct 
+                LEFT JOIN users u ON ct.user_id = u.id 
+                ORDER BY ct.created_at DESC 
+                LIMIT 10";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $topics = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        $mapped = array_map(function($t) {
+            return [
+                'id'            => $t['id'],
+                'title'         => $t['title'],
+                'body'          => $t['body'],
+                'author'        => $t['user_name'] ?? $t['author'] ?? 'Anonymous',
+                'author_avatar' => $t['user_avatar'] ?? null,
+                'user_id'       => $t['user_id'],
+                'tags'          => is_string($t['tags']) ? (json_decode($t['tags'], true) ?? []) : ($t['tags'] ?? []),
+                'replies_count' => $t['replies'] ?? 0,
+                'likes'         => $t['likes'] ?? 0,
+                'created_at'    => \Carbon\Carbon::parse($t['created_at'])->diffForHumans(),
+            ];
+        }, $topics);
 
         return response()->json($mapped);
     }
