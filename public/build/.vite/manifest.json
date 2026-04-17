@@ -1,17 +1,14 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-DITzQiyn.css",
+    "file": "assets/app-CMYrbsRx.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-IGKwiwGj.js",
+    "file": "assets/app-BsNQSvOX.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
-    "imports": [
-      "resources/js/blade/shared/travel-advisory.js"
-    ],
     "dynamicImports": [
       "resources/js/blade/landing/index.js",
       "resources/js/blade/dashboard/index.js",
@@ -26,7 +23,8 @@
       "resources/js/blade/chat/index.js",
       "resources/js/blade/notifications/index.js",
       "resources/js/blade/profile/edit.js",
-      "resources/js/blade/profile/edit.js",
+      "resources/js/blade/settings/index.js",
+      "resources/js/blade/itineraries/index.js",
       "resources/js/blade/auth/register.js"
     ]
   },
@@ -67,9 +65,21 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/destinations/index.js": {
-    "file": "assets/index-DhTw12Yf.js",
+    "file": "assets/index-DmN-x3yO.js",
     "name": "index",
     "src": "resources/js/blade/destinations/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "dynamicImports": [
+      "resources/js/blade/destinations/show.js"
+    ]
+  },
+  "resources/js/blade/destinations/show.js": {
+    "file": "assets/show-BwyzM4w5.js",
+    "name": "show",
+    "src": "resources/js/blade/destinations/show.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/discover/index.js": {
@@ -82,6 +92,24 @@
     "file": "assets/index-P12vK-zC.js",
     "name": "index",
     "src": "resources/js/blade/flights/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/itineraries/index.js": {
+    "file": "assets/index-B16GWCcQ.js",
+    "name": "index",
+    "src": "resources/js/blade/itineraries/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "dynamicImports": [
+      "resources/js/blade/itineraries/show.js"
+    ]
+  },
+  "resources/js/blade/itineraries/show.js": {
+    "file": "assets/show-B-ZoFJ4i.js",
+    "name": "show",
+    "src": "resources/js/blade/itineraries/show.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/landing/index.js": {
@@ -108,17 +136,11 @@
     "src": "resources/js/blade/profile/edit.js",
     "isDynamicEntry": true
   },
-  "resources/js/blade/shared/currency.js": {
-    "file": "assets/currency-C0eFTs6L.js",
-    "name": "currency",
-    "src": "resources/js/blade/shared/currency.js",
-    "isEntry": true
-  },
-  "resources/js/blade/shared/travel-advisory.js": {
-    "file": "assets/travel-advisory-CZ4-n5YD.js",
-    "name": "travel-advisory",
-    "src": "resources/js/blade/shared/travel-advisory.js",
-    "isEntry": true
+  "resources/js/blade/settings/index.js": {
+    "file": "assets/index-DYDLUQkV.js",
+    "name": "index",
+    "src": "resources/js/blade/settings/index.js",
+    "isDynamicEntry": true
   },
   "resources/js/blade/wishlist/index.js": {
     "file": "assets/index-C6YA1MoT.js",
