@@ -71,9 +71,8 @@ try {
 
     $db = $app->make(Illuminate\Database\DatabaseManager::class);
 
-    // Skip automatic migrations if accessing setup page
-    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
-    $skipAutoMigrate = str_contains($requestUri, '/setup');
+    // DISABLE automatic migrations - use /setup page instead
+    $skipAutoMigrate = true;
 
     if (!$skipAutoMigrate) {
     try {
