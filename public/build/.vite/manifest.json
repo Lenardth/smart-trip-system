@@ -1,11 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BntHTzBT.css",
+    "file": "assets/app-CDOT_2aB.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BiS2_dA1.js",
+    "file": "assets/app-CEN0Yvct.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -72,7 +72,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/destinations/index.js": {
-    "file": "assets/index-CoUDCF9c.js",
+    "file": "assets/index-oJAkrK00.js",
     "name": "index",
     "src": "resources/js/blade/destinations/index.js",
     "isDynamicEntry": true,
@@ -90,7 +90,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/discover/index.js": {
-    "file": "assets/index-B3WFo667.js",
+    "file": "assets/index-CT-ks5d8.js",
     "name": "index",
     "src": "resources/js/blade/discover/index.js",
     "isDynamicEntry": true
@@ -102,7 +102,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/itineraries/index.js": {
-    "file": "assets/index-DAF3OnY3.js",
+    "file": "assets/index-ilKhYZAw.js",
     "name": "index",
     "src": "resources/js/blade/itineraries/index.js",
     "isDynamicEntry": true,

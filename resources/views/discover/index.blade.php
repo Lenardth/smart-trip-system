@@ -47,6 +47,55 @@ window.__dashboardConfig.user   = { id: {{ Auth::id() }}, name: @json(Auth::user
 
     <div class="results-info" id="resultsInfo"></div>
 
+    <!-- Destination Insights Section (News, Sites, Attractions) -->
+    <div class="destination-insights" id="destinationInsights" style="display:none;">
+        <div class="insights-header">
+            <h3 id="insightsTitle"><i class="fas fa-info-circle"></i> About <span id="insightsDestination"></span></h3>
+            <button class="insights-close" onclick="closeInsights()"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="insights-grid">
+            <!-- Latest News -->
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <i class="fas fa-newspaper"></i>
+                    <h4>Latest News & Updates</h4>
+                </div>
+                <div class="insight-card-body" id="newsContent">
+                    <div class="insight-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading news...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tourist Sites -->
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <i class="fas fa-landmark"></i>
+                    <h4>Top Tourist Sites</h4>
+                </div>
+                <div class="insight-card-body" id="sitesContent">
+                    <div class="insight-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading sites...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Things to Do -->
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <i class="fas fa-star"></i>
+                    <h4>Things to Do</h4>
+                </div>
+                <div class="insight-card-body" id="thingsContent">
+                    <div class="insight-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading activities...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="destinations-grid" id="destinationsGrid">
         @for ($i = 0; $i < 6; $i++)
         <div class="destination-card">

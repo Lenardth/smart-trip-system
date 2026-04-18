@@ -120,9 +120,14 @@ function renderDestinations(destinations) {
         const imgStyle  = d.image_url ? `background-image:url('${d.image_url}')` : '';
         const inList    = wishlistedIds.has(d.id);
         
-        // Use the converted price from API with currency symbol
+        // Use the converted price from API with proper formatting
         const price = d.price_from > 0
-            ? '<span class="dest-price">' + (d.currency && typeof window.Currency !== 'undefined' ? window.Currency.symbol(d.currency) : '$') + d.price_from.toLocaleString() + ' <span>/ person</span></span>'
+            ? '<span class="dest-price">' + 
+              (d.currency && typeof window.Currency !== 'undefined' 
+                ? window.Currency.symbol(d.currency) 
+                : '$') + 
+              Math.round(d.price_from).toLocaleString() + 
+              ' <span>/ person</span></span>'
             : '';
 
         return `<div class="destination-card" data-id="${d.id}">
@@ -342,6 +347,231 @@ if (typeof window.Currency !== 'undefined') {
                 loadDestinations(); 
                 loadHiddenGems(); 
             });
+        }
+    });
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Destination Insights (News, Sites, Things to Do)
+// ═══════════════════════════════════════════════════════════════════════════
+
+let currentInsightsDestination = null;
+
+function showInsights(destinationName, country) {
+    const insightsSection = document.getElementById('destinationInsights');
+    const insightsDestination = document.getElementById('insightsDestination');
+    
+    if (!insightsSection || !insightsDestination) return;
+    
+    currentInsightsDestination = country || destinationName;
+    insightsDestination.textContent = destinationName + (country ? ', ' + country : '');
+    insightsSection.style.display = 'block';
+    
+    // Scroll to insights
+    insightsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Load all insights
+    loadDestinationNews(currentInsightsDestination);
+    loadTouristSites(currentInsightsDestination);
+    loadThingsToDo(currentInsightsDestination);
+}
+
+function closeInsights() {
+    const insightsSection = document.getElementById('destinationInsights');
+    if (insightsSection) {
+        insightsSection.style.display = 'none';
+    }
+    currentInsightsDestination = null;
+}
+
+window.closeInsights = closeInsights;
+
+async function loadDestinationNews(destination) {
+    const newsContent = document.getElementById('newsContent');
+    if (!newsContent) return;
+    
+    newsContent.innerHTML = '<div class="insight-loading"><i class="fas fa-spinner fa-spin"></i> Loading news...</div>';
+    
+    try {
+        const response = await fetch(`/api/destination-news?destination=${encodeURIComponent(destination)}`);
+        const data = await response.json();
+        
+        if (data.success && data.articles && data.articles.length > 0) {
+            newsContent.innerHTML = data.articles.slice(0, 5).map(article => `
+                <div class="insight-item">
+                    <div class="insight-item-title">
+                        <i class="fas fa-newspaper"></i>
+                        ${escapeHtml(article.title)}
+                    </div>
+                    ${article.description ? `<div class="insight-item-desc">${escapeHtml(article.description)}</div>` : ''}
+                    <div class="insight-item-meta">
+                        ${article.source ? `<span><i class="fas fa-building"></i> ${escapeHtml(article.source)}</span>` : ''}
+                        ${article.publishedAt ? `<span><i class="fas fa-clock"></i> ${formatDate(article.publishedAt)}</span>` : ''}
+                    </div>
+                    ${article.url ? `<a href="${article.url}" target="_blank" rel="noopener" class="insight-item-link">Read more <i class="fas fa-external-link-alt"></i></a>` : ''}
+                </div>
+            `).join('');
+        } else {
+            newsContent.innerHTML = '<div class="insight-empty"><i class="fas fa-newspaper"></i>No recent news available for this destination.</div>';
+        }
+    } catch (error) {
+        console.error('Failed to load news:', error);
+        newsContent.innerHTML = '<div class="insight-empty"><i class="fas fa-exclamation-circle"></i>Failed to load news. Please try again later.</div>';
+    }
+}
+
+async function loadTouristSites(destination) {
+    const sitesContent = document.getElementById('sitesContent');
+    if (!sitesContent) return;
+    
+    sitesContent.innerHTML = '<div class="insight-loading"><i class="fas fa-spinner fa-spin"></i> Loading sites...</div>';
+    
+    try {
+        // Use Wikipedia API to get tourist attractions
+        const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/related/${encodeURIComponent(destination)}`);
+        const data = await response.json();
+        
+        if (data.pages && data.pages.length > 0) {
+            const sites = data.pages.filter(page => 
+                page.description && 
+                (page.description.toLowerCase().includes('museum') ||
+                 page.description.toLowerCase().includes('monument') ||
+                 page.description.toLowerCase().includes('palace') ||
+                 page.description.toLowerCase().includes('temple') ||
+                 page.description.toLowerCase().includes('church') ||
+                 page.description.toLowerCase().includes('castle') ||
+                 page.description.toLowerCase().includes('park') ||
+                 page.description.toLowerCase().includes('landmark'))
+            ).slice(0, 6);
+            
+            if (sites.length > 0) {
+                sitesContent.innerHTML = sites.map(site => `
+                    <div class="insight-item">
+                        <div class="insight-item-title">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${escapeHtml(site.title)}
+                        </div>
+                        ${site.description ? `<div class="insight-item-desc">${escapeHtml(site.description)}</div>` : ''}
+                        ${site.content_urls && site.content_urls.desktop ? `<a href="${site.content_urls.desktop.page}" target="_blank" rel="noopener" class="insight-item-link">Learn more <i class="fas fa-external-link-alt"></i></a>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                loadDefaultTouristSites(destination, sitesContent);
+            }
+        } else {
+            loadDefaultTouristSites(destination, sitesContent);
+        }
+    } catch (error) {
+        console.error('Failed to load tourist sites:', error);
+        loadDefaultTouristSites(destination, sitesContent);
+    }
+}
+
+function loadDefaultTouristSites(destination, sitesContent) {
+    // Fallback: Show generic tourist site categories
+    const categories = [
+        { icon: 'fa-landmark', title: 'Historical Landmarks', desc: 'Explore ancient monuments and historical sites' },
+        { icon: 'fa-building', title: 'Museums & Galleries', desc: 'Discover art, culture, and history' },
+        { icon: 'fa-tree', title: 'Parks & Gardens', desc: 'Enjoy nature and outdoor spaces' },
+        { icon: 'fa-utensils', title: 'Local Markets', desc: 'Experience authentic local culture' },
+        { icon: 'fa-camera', title: 'Photo Spots', desc: 'Capture memorable moments' }
+    ];
+    
+    sitesContent.innerHTML = categories.map(cat => `
+        <div class="insight-item">
+            <div class="insight-item-title">
+                <i class="fas ${cat.icon}"></i>
+                ${cat.title}
+            </div>
+            <div class="insight-item-desc">${cat.desc}</div>
+        </div>
+    `).join('');
+}
+
+async function loadThingsToDo(destination) {
+    const thingsContent = document.getElementById('thingsContent');
+    if (!thingsContent) return;
+    
+    thingsContent.innerHTML = '<div class="insight-loading"><i class="fas fa-spinner fa-spin"></i> Loading activities...</div>';
+    
+    // Show curated activities based on destination type
+    const activities = [
+        { icon: 'fa-walking', title: 'Walking Tours', desc: 'Explore the city on foot with guided tours', popular: true },
+        { icon: 'fa-utensils', title: 'Food & Dining', desc: 'Try local cuisine and restaurants', popular: true },
+        { icon: 'fa-shopping-bag', title: 'Shopping', desc: 'Browse local markets and boutiques', popular: false },
+        { icon: 'fa-camera', title: 'Photography', desc: 'Capture stunning views and landmarks', popular: true },
+        { icon: 'fa-bus', title: 'City Tours', desc: 'Hop-on hop-off bus tours', popular: false },
+        { icon: 'fa-water', title: 'Water Activities', desc: 'Beaches, boats, and water sports', popular: false },
+        { icon: 'fa-mountain', title: 'Outdoor Adventures', desc: 'Hiking, climbing, and nature', popular: false },
+        { icon: 'fa-music', title: 'Nightlife & Entertainment', desc: 'Bars, clubs, and live music', popular: true },
+        { icon: 'fa-spa', title: 'Wellness & Spa', desc: 'Relax and rejuvenate', popular: false },
+        { icon: 'fa-ticket-alt', title: 'Events & Shows', desc: 'Concerts, theater, and performances', popular: false }
+    ];
+    
+    // Shuffle and show 6 activities
+    const shuffled = activities.sort(() => 0.5 - Math.random()).slice(0, 6);
+    
+    thingsContent.innerHTML = shuffled.map(activity => `
+        <div class="insight-item">
+            <div class="insight-item-title">
+                <i class="fas ${activity.icon}"></i>
+                ${activity.title}
+                ${activity.popular ? '<span style="background:var(--gold);color:var(--deep);font-size:10px;padding:2px 6px;border-radius:3px;margin-left:8px;font-weight:600;">POPULAR</span>' : ''}
+            </div>
+            <div class="insight-item-desc">${activity.desc}</div>
+        </div>
+    `).join('');
+}
+
+function formatDate(dateString) {
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Show insights when clicking on a destination card
+document.addEventListener('click', function(e) {
+    const destCard = e.target.closest('.destination-card');
+    if (destCard && !e.target.closest('.wishlist-toggle') && !e.target.closest('.primary-button')) {
+        const heading = destCard.querySelector('h3');
+        if (heading) {
+            const fullText = heading.textContent;
+            const parts = fullText.split(',');
+            const name = parts[0].trim();
+            const country = parts[1] ? parts[1].trim() : '';
+            showInsights(name, country);
+        }
+    }
+});
+
+// Show insights when searching
+const originalSearchBtn = document.getElementById('searchBtn');
+if (originalSearchBtn) {
+    originalSearchBtn.addEventListener('click', function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput && searchInput.value.trim()) {
+            setTimeout(() => {
+                showInsights(searchInput.value.trim(), '');
+            }, 1000);
         }
     });
 }
