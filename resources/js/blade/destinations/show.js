@@ -262,6 +262,118 @@
     if (document.readyState !== 'loading') window.loadCostBreakdown();
     else document.addEventListener('DOMContentLoaded', window.loadCostBreakdown);
 
+    // ── Load destination news ─────────────────────────────────────────────
+    function loadDestinationNews() {
+        const newsContent = document.getElementById('newsContent');
+        if (!newsContent || !DEST) return;
+
+        fetch('/api/destination-news?destination=' + encodeURIComponent(DEST) + '&country=' + encodeURIComponent(COUNTRY), {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            const articles = res.articles || [];
+            if (!articles.length) {
+                newsContent.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">' +
+                    '<i class="fas fa-newspaper" style="font-size:32px;opacity:0.3;"></i>' +
+                    '<p style="margin-top:12px;">No recent news available for this destination.</p>' +
+                '</div>';
+                return;
+            }
+
+            newsContent.innerHTML = '<div style="display:grid;gap:16px;">' +
+                articles.map(function (article) {
+                    const date = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                    const source = article.source?.name || 'News Source';
+                    const img = article.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80';
+                    
+                    return '<a href="' + esc(article.url) + '" target="_blank" rel="noopener noreferrer" class="news-article" style="display:flex;gap:16px;padding:16px;border:1px solid var(--border);border-radius:6px;text-decoration:none;transition:all 0.3s;background:#fff;">' +
+                        '<div style="width:120px;height:80px;flex-shrink:0;border-radius:4px;background:url(\'' + esc(img) + '\') center/cover;"></div>' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<h4 style="margin:0 0 6px;font-size:15px;color:var(--deep);line-height:1.4;">' + esc(article.title) + '</h4>' +
+                            '<p style="margin:0 0 8px;font-size:13px;color:var(--text-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + esc(article.description || '') + '</p>' +
+                            '<div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted);">' +
+                                '<span><i class="fas fa-newspaper"></i> ' + esc(source) + '</span>' +
+                                (date ? '<span><i class="fas fa-calendar"></i> ' + date + '</span>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="display:flex;align-items:center;color:var(--gold);">' +
+                            '<i class="fas fa-external-link-alt"></i>' +
+                        '</div>' +
+                    '</a>';
+                }).join('') +
+            '</div>';
+
+            // Add hover effect via CSS
+            const style = document.createElement('style');
+            style.textContent = '.news-article:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,31,43,0.1); border-color: var(--gold); }';
+            document.head.appendChild(style);
+        })
+        .catch(function (err) {
+            newsContent.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">' +
+                '<i class="fas fa-exclamation-circle" style="font-size:24px;"></i>' +
+                '<p style="margin-top:12px;">Could not load news. Please try again later.</p>' +
+            '</div>';
+        });
+    }
+
+    // Load news on page ready
+    if (document.readyState !== 'loading') loadDestinationNews();
+    else document.addEventListener('DOMContentLoaded', loadDestinationNews);
+
+    // ── Load destination news ─────────────────────────────────────────────
+    function loadDestinationNews() {
+        const newsContent = document.getElementById('newsContent');
+        if (!newsContent || !DEST) return;
+
+        const url = '/api/destination-news?destination=' + encodeURIComponent(DEST) + '&country=' + encodeURIComponent(COUNTRY);
+        
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                const articles = res.articles || [];
+                
+                if (!articles.length) {
+                    newsContent.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">' +
+                        '<i class="fas fa-newspaper" style="font-size:32px;opacity:0.3;"></i>' +
+                        '<p style="margin-top:12px;">No recent news available for this destination.</p>' +
+                    '</div>';
+                    return;
+                }
+
+                newsContent.innerHTML = '<div class="news-grid">' +
+                    articles.map(function (article) {
+                        const date = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                        const source = article.source && article.source.name ? article.source.name : 'News Source';
+                        const img = article.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=80';
+                        
+                        return '<a href="' + esc(article.url) + '" target="_blank" rel="noopener noreferrer" class="news-article">' +
+                            '<div class="news-image" style="background-image:url(\'' + esc(img) + '\')"></div>' +
+                            '<div class="news-content">' +
+                                '<div class="news-meta">' +
+                                    '<span class="news-source"><i class="fas fa-newspaper"></i> ' + esc(source) + '</span>' +
+                                    (date ? '<span class="news-date"><i class="fas fa-clock"></i> ' + date + '</span>' : '') +
+                                '</div>' +
+                                '<h3 class="news-title">' + esc(article.title) + '</h3>' +
+                                (article.description ? '<p class="news-description">' + esc(article.description.substring(0, 120)) + (article.description.length > 120 ? '...' : '') + '</p>' : '') +
+                                '<span class="news-read-more">Read full article <i class="fas fa-external-link-alt"></i></span>' +
+                            '</div>' +
+                        '</a>';
+                    }).join('') +
+                '</div>';
+            })
+            .catch(function (err) {
+                newsContent.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">' +
+                    '<i class="fas fa-exclamation-circle" style="font-size:32px;color:var(--danger);"></i>' +
+                    '<p style="margin-top:12px;">Could not load news. Please try again later.</p>' +
+                '</div>';
+            });
+    }
+
+    // Load news on page ready
+    if (document.readyState !== 'loading') loadDestinationNews();
+    else document.addEventListener('DOMContentLoaded', loadDestinationNews);
+
     // ── Wishlist ──────────────────────────────────────────────────────────
     if (window.__isAuthenticated && DEST_ID) {
         const csrf = document.querySelector('meta[name="csrf-token"]').content;

@@ -54,6 +54,33 @@ class NewsController extends Controller
         ]);
     }
 
+    public function destinationNews(Request $request): JsonResponse
+    {
+        $destination = trim((string) $request->input('destination', ''));
+        $country = trim((string) $request->input('country', ''));
+        
+        if (!$destination && !$country) {
+            return response()->json(['articles' => []]);
+        }
+
+        // Build search query for destination news
+        $query = $destination ? "{$destination}" : "{$country}";
+        if ($country && $destination !== $country) {
+            $query .= " {$country}";
+        }
+        $query .= " travel tourism news";
+
+        // Fetch from news APIs
+        $articles = $this->fetchFromGNews($query);
+        if (empty($articles)) {
+            $articles = $this->fetchFromNewsApi($query);
+        }
+
+        return response()->json([
+            'articles' => array_slice($articles, 0, 6),
+        ]);
+    }
+
     private function fetchFromGNews(string $q): array
     {
         $apiKey = config('services.gnews.key');

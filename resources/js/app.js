@@ -14,6 +14,7 @@ const routes = {
     '/dashboard': () => import('./blade/dashboard/index.js'),
     '/discover': () => import('./blade/discover/index.js'),
     '/destinations': () => import('./blade/destinations/index.js'),
+    '/destination-info': () => import('./blade/destination-info/show.js'),
     '/plan-trip': () => import('./blade/plan-trip/index.js'),
     '/wishlist': () => import('./blade/wishlist/index.js'),
     '/community': () => import('./blade/community/index.js'),

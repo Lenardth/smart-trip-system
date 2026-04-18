@@ -1,11 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BiVDTqlO.css",
+    "file": "assets/app-BntHTzBT.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DMqjgby-.js",
+    "file": "assets/app-BiS2_dA1.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -14,6 +14,7 @@
       "resources/js/blade/dashboard/index.js",
       "resources/js/blade/discover/index.js",
       "resources/js/blade/destinations/index.js",
+      "resources/js/blade/destination-info/show.js",
       "resources/js/blade/plan-trip/index.js",
       "resources/js/blade/wishlist/index.js",
       "resources/js/blade/community/index.js",
@@ -64,8 +65,14 @@
     "src": "resources/js/blade/dashboard/index.js",
     "isDynamicEntry": true
   },
+  "resources/js/blade/destination-info/show.js": {
+    "file": "assets/show-DbCWZoCx.js",
+    "name": "show",
+    "src": "resources/js/blade/destination-info/show.js",
+    "isDynamicEntry": true
+  },
   "resources/js/blade/destinations/index.js": {
-    "file": "assets/index-DDc_tB41.js",
+    "file": "assets/index-CoUDCF9c.js",
     "name": "index",
     "src": "resources/js/blade/destinations/index.js",
     "isDynamicEntry": true,
@@ -77,13 +84,13 @@
     ]
   },
   "resources/js/blade/destinations/show.js": {
-    "file": "assets/show-BwyzM4w5.js",
+    "file": "assets/show-Ck_I-m2f.js",
     "name": "show",
     "src": "resources/js/blade/destinations/show.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/discover/index.js": {
-    "file": "assets/index-CksoWIpt.js",
+    "file": "assets/index-B3WFo667.js",
     "name": "index",
     "src": "resources/js/blade/discover/index.js",
     "isDynamicEntry": true
@@ -95,7 +102,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/itineraries/index.js": {
-    "file": "assets/index-Dy3Vwgnp.js",
+    "file": "assets/index-DAF3OnY3.js",
     "name": "index",
     "src": "resources/js/blade/itineraries/index.js",
     "isDynamicEntry": true,

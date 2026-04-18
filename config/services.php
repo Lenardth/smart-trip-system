@@ -27,6 +27,14 @@ return [
         'key' => env('GEOAPIFY_KEY'),
     ],
 
+    'unsplash' => [
+        'access_key' => env('UNSPLASH_ACCESS_KEY'),
+    ],
+
+    'pexels' => [
+        'api_key' => env('PEXELS_API_KEY'),
+    ],
+
     'gnews' => [
         'key' => env('GNEWS_API_KEY'),
     ],

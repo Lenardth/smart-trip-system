@@ -312,10 +312,29 @@ Route::get('/api/travel-warning', [App\Http\Controllers\NewsController::class, '
     ->middleware('throttle:30,1')
     ->name('api.travel-warning');
 
+Route::get('/api/destination-news', [App\Http\Controllers\NewsController::class, 'destinationNews'])
+    ->middleware('throttle:30,1')
+    ->name('api.destination-news');
+
 // Currency
 Route::get('/api/currency/rates',       [CurrencyController::class, 'rates'])->name('api.currency.rates');
 Route::post('/api/currency/set',        [CurrencyController::class, 'setCurrency'])->name('api.currency.set');
 Route::post('/api/currency/convert',    [CurrencyController::class, 'convert'])->name('api.currency.convert');
+
+// Country Lock (for persisting country selection across pages)
+Route::prefix('api/country-lock')->group(function () {
+    Route::get('/',         [\App\Http\Controllers\CountryLockController::class, 'get'])->name('api.country-lock.get');
+    Route::post('/lock',    [\App\Http\Controllers\CountryLockController::class, 'lock'])->name('api.country-lock.lock');
+    Route::post('/unlock',  [\App\Http\Controllers\CountryLockController::class, 'unlock'])->name('api.country-lock.unlock');
+});
+
+// Location & Airport Detection (privacy-protected, opt-in only)
+Route::prefix('api/location')->group(function () {
+    Route::post('/detect',              [\App\Http\Controllers\LocationController::class, 'detect'])->name('api.location.detect');
+    Route::get('/airports',             [\App\Http\Controllers\LocationController::class, 'airports'])->name('api.location.airports');
+    Route::post('/departure-airport',   [\App\Http\Controllers\LocationController::class, 'setDepartureAirport'])->name('api.location.set-departure');
+    Route::get('/departure-airport',    [\App\Http\Controllers\LocationController::class, 'getDepartureAirport'])->name('api.location.get-departure');
+});
 
 Route::get('/accommodations',           [AccommodationController::class, 'index'])->name('accommodations.index');
 Route::get('/api/accommodations',       [AccommodationController::class, 'list'])->name('api.accommodations.list');
@@ -358,6 +377,7 @@ Route::prefix('api/discover')->group(function () {
 
 Route::get('/destinations',      [DestinationController::class, 'index'])->name('destinations');
 Route::get('/destinations/{id}', [DestinationController::class, 'show'])->name('destinations.show')->where('id', '[0-9]+');
+Route::get('/destination-info/{id}', [App\Http\Controllers\DestinationInfoController::class, 'show'])->name('destination-info.show');
 
 Route::get('/about',   fn() => view('about.index'))->name('about');
 Route::get('/privacy', fn() => view('privacy.index'))->name('privacy');

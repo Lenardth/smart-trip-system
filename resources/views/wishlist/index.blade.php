@@ -61,7 +61,11 @@
                     <a href="{{ route('destinations.show', $d->id) }}" class="primary-button" style="padding:8px 14px;font-size:13px;text-decoration:none;">
                         <i class="fas fa-eye"></i> View
                     </a>
-                    <a href="{{ route('plan-trip') }}?destination={{ urlencode($d->name) }}&mood={{ $d->mood }}" class="secondary-button" style="padding:8px 14px;font-size:13px;text-decoration:none;">
+                    <a href="{{ route('plan-trip') }}?destination={{ urlencode($d->name) }}&country={{ urlencode($d->country ?? '') }}&mood={{ $d->mood }}" 
+                       class="secondary-button" 
+                       style="padding:8px 14px;font-size:13px;text-decoration:none;"
+                       data-destination-country="{{ $d->country ?? '' }}"
+                       data-destination-name="{{ $d->name }}">
                         <i class="fas fa-route"></i> Plan
                     </a>
                 </div>

@@ -1185,7 +1185,7 @@ body {
 }
 
 .page-hero {
-    height: 340px;
+    height: 280px; /* Standardized height across all pages */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1722,7 +1722,7 @@ body {
         margin: 6px 16px;
     }
     .page-hero {
-        height: 180px;
+        height: 200px; /* Standardized mobile height */
     }
     .page-hero h1 {
         font-size: 24px;
@@ -1893,7 +1893,7 @@ body {
 
 @media (max-width: 480px) {
     .page-hero {
-        height: 160px;
+        height: 180px; /* Standardized small mobile height */
     }
     .page-hero h1 {
         font-size: 20px;

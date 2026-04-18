@@ -36,6 +36,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register custom middleware aliases
         $middleware->alias([
             'check.traveler' => \App\Http\Middleware\CheckTraveler::class,
+            'persist.country' => \App\Http\Middleware\PersistCountrySelection::class,
+        ]);
+        
+        // Apply country persistence to web routes
+        $middleware->web(append: [
+            \App\Http\Middleware\PersistCountrySelection::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

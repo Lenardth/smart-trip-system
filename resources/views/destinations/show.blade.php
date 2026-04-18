@@ -58,6 +58,13 @@ window.__isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
             <p class="dest-show-description">
                 {{ $destination->description ?: 'No description available yet for this destination.' }}
             </p>
+            
+            @if(isset($enrichedData['fun_facts']['summary']) && $enrichedData['fun_facts']['summary'])
+                <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+                    <h3 style="font-size:16px;margin-bottom:12px;color:var(--deep);"><i class="fas fa-lightbulb"></i> Did You Know?</h3>
+                    <p style="line-height:1.7;color:var(--text);">{{ $enrichedData['fun_facts']['summary'] }}</p>
+                </div>
+            @endif
         </div>
 
         {{-- AI Cost Breakdown --}}
@@ -79,7 +86,25 @@ window.__isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
             </div>
         </div>
 
-        {{-- Activities Manager --}}
+        {{-- Activities from API --}}
+        @if(isset($enrichedData['activities']) && count($enrichedData['activities']) > 0)
+        <div class="dest-show-card">
+            <h2><i class="fas fa-map-marked-alt"></i> Popular Activities</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px;">
+                @foreach($enrichedData['activities'] as $activity)
+                <div style="padding:16px;border:1px solid var(--border);border-radius:8px;background:#fff;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                        <i class="fas {{ $activity['icon'] }}" style="color:var(--gold);font-size:20px;"></i>
+                        <h4 style="font-size:15px;margin:0;color:var(--deep);">{{ $activity['name'] }}</h4>
+                    </div>
+                    <p style="font-size:13px;color:var(--text-muted);margin:0;">{{ $activity['description'] }}</p>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Activities Manager (AI Cost Breakdown) --}}
         <div class="dest-show-card" id="activitiesCard" style="display:none;">
             <div class="activities-header">
                 <h2><i class="fas fa-map-marked-alt"></i> Activities</h2>
@@ -142,6 +167,44 @@ window.__isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
             </div>
         </div>
 
+        {{-- Local Food & Culture --}}
+        @if(isset($enrichedData['food']) || isset($enrichedData['culture']))
+        <div class="dest-show-card">
+            <h2><i class="fas fa-utensils"></i> Local Food & Culture</h2>
+            
+            @if(isset($enrichedData['food']['popular_dishes']) && count($enrichedData['food']['popular_dishes']) > 0)
+            <div style="margin-bottom:24px;">
+                <h3 style="font-size:15px;margin-bottom:10px;color:var(--deep);"><i class="fas fa-drumstick-bite"></i> Must-Try Dishes</h3>
+                <ul style="list-style:none;padding:0;margin:0;">
+                    @foreach($enrichedData['food']['popular_dishes'] as $dish)
+                    <li style="padding:8px 0;border-bottom:1px solid var(--border-light);color:var(--text);">
+                        <i class="fas fa-check" style="color:var(--gold);margin-right:8px;"></i>{{ $dish }}
+                    </li>
+                    @endforeach
+                </ul>
+                @if(isset($enrichedData['food']['dining_tips']))
+                <p style="margin-top:12px;font-size:13px;color:var(--text-muted);font-style:italic;">
+                    <i class="fas fa-info-circle"></i> {{ $enrichedData['food']['dining_tips'] }}
+                </p>
+                @endif
+            </div>
+            @endif
+
+            @if(isset($enrichedData['culture']['tips']) && count($enrichedData['culture']['tips']) > 0)
+            <div>
+                <h3 style="font-size:15px;margin-bottom:10px;color:var(--deep);"><i class="fas fa-users"></i> Cultural Tips</h3>
+                <ul style="list-style:none;padding:0;margin:0;">
+                    @foreach($enrichedData['culture']['tips'] as $tip)
+                    <li style="padding:8px 0;border-bottom:1px solid var(--border-light);color:var(--text);">
+                        <i class="fas fa-lightbulb" style="color:var(--gold);margin-right:8px;"></i>{{ $tip }}
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+        </div>
+        @endif
+
         
         @if($related->count())
         <div class="dest-show-card">
@@ -176,12 +239,14 @@ window.__isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
                 <span class="dest-cta-per">per person</span>
             </div>
 
-            <a href="{{ route('plan-trip') }}?destination={{ urlencode($destination->name) }}&mood={{ $destination->mood }}&region={{ $destination->region }}"
-               class="primary-button dest-cta-btn">
+            <a href="{{ route('plan-trip') }}?destination={{ urlencode($destination->name) }}&country={{ urlencode($destination->country ?? '') }}&mood={{ $destination->mood }}&region={{ $destination->region }}"
+               class="primary-button dest-cta-btn"
+               data-destination-country="{{ $destination->country ?? '' }}"
+               data-destination-name="{{ $destination->name }}">
                 <i class="fas fa-route"></i> Plan This Trip
             </a>
 
-            <a href="{{ route('flights.index') }}?destination={{ urlencode($destination->name) }}"
+            <a href="{{ route('flights.index') }}?destination={{ urlencode($destination->name) }}&country={{ urlencode($destination->country ?? '') }}"
                class="secondary-button dest-cta-btn">
                 <i class="fas fa-plane"></i> Search Flights
             </a>

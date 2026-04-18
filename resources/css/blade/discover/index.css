@@ -200,6 +200,8 @@
     font-size: 18px;
     color: var(--deep);
     font-weight: bold;
+    flex: 1;
+    min-width: 0;
 }
 
 .dest-price span {
@@ -228,6 +230,29 @@
     flex-grow: 1;
     margin: 0 0 14px;
     text-align: left;
+}
+
+.destination-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    gap: 12px;
+    padding: 8px 0 0 0;
+}
+
+.destination-card-footer .dest-price {
+    flex: 1;
+    min-width: 0;
+}
+
+.destination-card-footer .primary-button {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: 70px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .destination-content .primary-button {

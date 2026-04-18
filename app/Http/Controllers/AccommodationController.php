@@ -61,10 +61,18 @@ class AccommodationController extends Controller
                 $resolvedStyle = $this->resolveStyle($props['categories'] ?? []);
                 $stars         = $props['stars'] ?? null;
 
-                // Only insert if not already in DB — never update existing records
-                Accommodation::firstOrCreate(
-                    ['geoapify_id' => $geoapifyId],
-                    [
+                // Check if accommodation already exists by geoapify_id OR by name+city combination
+                $existing = Accommodation::where('geoapify_id', $geoapifyId)
+                    ->orWhere(function($query) use ($name, $city) {
+                        $query->where('name', 'ILIKE', $name)
+                              ->where('city', 'ILIKE', $city);
+                    })
+                    ->first();
+
+                // Only insert if not already in DB
+                if (!$existing) {
+                    Accommodation::create([
+                        'geoapify_id'  => $geoapifyId,
                         'name'         => $name,
                         'city'         => $city,
                         'country'      => $country,
@@ -76,8 +84,8 @@ class AccommodationController extends Controller
                         'lng'          => $lng,
                         'image_url'    => 'https://picsum.photos/seed/' . urlencode($name) . '/400/280',
                         'is_active'    => true,
-                    ]
-                );
+                    ]);
+                }
             }
         }
 

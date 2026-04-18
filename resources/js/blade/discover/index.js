@@ -138,10 +138,10 @@ function renderDestinations(destinations) {
                     ${moodLabel ? `<span class="mood-indicator"><i class="fas ${moodIcon}"></i> ${moodLabel}</span>` : ''}
                 </div>
                 <p>${d.description ? d.description.substring(0, 110) + (d.description.length > 110 ? '…' : '') : ''}</p>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;gap:12px;">
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:auto;">
                     ${price}
-                    <a href="/destinations/${d.id}" class="primary-button" style="text-decoration:none;padding:9px 16px;font-size:13px;flex-shrink:0;">
-                        Explore <i class="fas fa-arrow-right"></i>
+                    <a href="/destination-info/${d.id}" class="primary-button" style="text-decoration:none;padding:8px 16px;font-size:13px;text-align:center;width:100%;">
+                        View Details
                     </a>
                 </div>
             </div>
@@ -196,7 +196,7 @@ function renderHiddenGems(gems) {
     }
     grid.innerHTML = gems.map(g => {
         const imgStyle = g.image_url ? `background-image:url('${g.image_url}')` : '';
-        return `<a href="/destinations/${g.id}" class="featured-card" style="text-decoration:none;display:block;">
+        return `<a href="/destination-info/${g.id}" class="featured-card" style="text-decoration:none;display:block;">
             <div class="feat-img" style="${imgStyle}"></div>
             <div class="feat-body">
                 <h4>${g.name}${g.country ? ', ' + g.country : ''}</h4>
@@ -256,7 +256,16 @@ function initSearch() {
     const btn   = document.getElementById('searchBtn');
     if (!input || !btn) return;
 
-    const doSearch = () => { state.query = input.value; loadDestinations(); };
+    const doSearch = () => { 
+        state.query = input.value.trim(); 
+        if (state.query.length >= 2) {
+            // Use search endpoint for queries
+            loadSearchResults();
+        } else {
+            // Load regular destinations if query is empty
+            loadDestinations();
+        }
+    };
 
     btn.addEventListener('click', doSearch);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
@@ -264,6 +273,45 @@ function initSearch() {
         clearTimeout(state.debounceTimer);
         state.debounceTimer = setTimeout(doSearch, 450);
     });
+}
+
+function loadSearchResults() {
+    const grid = document.getElementById('destinationsGrid');
+    const info = document.getElementById('resultsInfo');
+    if (!grid) return;
+    if (info) info.textContent = 'Searching...';
+    grid.innerHTML = skeletonGrid();
+
+    apiFetch('/api/discover/search?q=' + encodeURIComponent(state.query))
+        .then(data => {
+            const results = data || [];
+            if (!results.length) {
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>No destinations found for "' + state.query + '". Try a different search.</p></div>';
+                if (info) info.textContent = '';
+                return;
+            }
+
+            if (info) info.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') + ' found';
+
+            // Convert search results to destination format
+            const destinations = results.map(r => ({
+                id: r.id,
+                name: r.name,
+                country: r.country,
+                description: r.description || '',
+                image_url: r.image_url || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80',
+                price_from: 0,
+                mood: 'general',
+                badge: r.type === 'new' ? 'New' : null,
+            }));
+
+            renderDestinations(destinations);
+        })
+        .catch(err => {
+            console.error('Search error:', err);
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Could not search destinations. Please try again.</p><p style="font-size:13px;color:var(--text-muted);margin-top:8px;">Error: ' + err.message + '</p></div>';
+            if (info) info.textContent = '';
+        });
 }
 
 function init() {
