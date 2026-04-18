@@ -369,7 +369,7 @@ All APIs have generous free tiers suitable for development and testing.
 ## Developer Notes
 
 - **Real Data Strategy**  
-  The application prioritizes real embedded data from external APIs over dummy/seed data. See `REAL_DATA_STRATEGY.md` for complete documentation on:
+  The application prioritizes real embedded data from external APIs over dummy/seed data:
   - API integration patterns and fallback strategies
   - Caching recommendations to stay within API limits
   - Image loading from Pexels with Unsplash fallback
@@ -399,7 +399,7 @@ All APIs have generous free tiers suitable for development and testing.
   - NewsAPI: 100 requests/day
   - Aviationstack: 100 requests/month
   
-  Implement caching strategies (24-hour cache recommended) to stay within limits. See `REAL_DATA_STRATEGY.md` for monitoring and best practices.
+
 
 ---
 
