@@ -3,6 +3,19 @@ let lastResults = [];
 let lastPayload = {};
 let selectedDest = null;
 
+// Get locked country and airport from global modules
+function getLockedData() {
+    const lockedCountry = window.countryLock ? window.countryLock.getLockedCountry() : null;
+    const departureAirport = window.locationDetector ? window.locationDetector.departureAirport : null;
+    
+    return {
+        destination: lockedCountry ? (lockedCountry.destination || lockedCountry.country) : '',
+        country: lockedCountry ? lockedCountry.country : '',
+        origin: departureAirport ? (departureAirport.city || departureAirport.name) : '',
+        originCode: departureAirport ? departureAirport.code : ''
+    };
+}
+
 // Expose to window immediately — onclick attributes in blade need these
 // before the module's init() runs. Function declarations are hoisted so
 // this works even though the function bodies appear later in the file.

@@ -27,6 +27,59 @@
             
             // Initialize UI
             this.initUI();
+            
+            // Auto-detect location on relevant pages if consent given and no airport saved
+            this.autoDetectOnLoad();
+        }
+        
+        async autoDetectOnLoad() {
+            // Only auto-detect on relevant pages
+            const currentPage = window.location.pathname;
+            const relevantPages = ['/flights', '/plan-trip', '/accommodations'];
+            const isRelevantPage = relevantPages.some(page => currentPage.includes(page));
+            
+            if (!isRelevantPage) return;
+            
+            // Check if user has given consent before
+            if (!this.hasConsent) return;
+            
+            // Check if we already have a saved airport
+            if (this.departureAirport) return;
+            
+            // Try to detect location silently using real-time GPS
+            try {
+                if (navigator.geolocation) {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: false,
+                            timeout: 5000,
+                            maximumAge: 300000 // 5 minutes cache
+                        });
+                    });
+                    
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    console.log('[Location] Auto-detected GPS:', latitude, longitude);
+                    
+                    // Find nearest airport
+                    const nearestAirport = this.findNearestAirportByCoords(latitude, longitude);
+                    
+                    if (nearestAirport) {
+                        // Save it silently
+                        await this.selectAirport({
+                            code: nearestAirport.code,
+                            name: nearestAirport.name,
+                            city: nearestAirport.city,
+                        });
+                        
+                        console.log('[Location] Auto-detected airport:', nearestAirport.name);
+                    }
+                }
+            } catch (error) {
+                // Silent fail - user can manually select if needed
+                console.log('[Location] Auto-detect on load failed (silent)');
+            }
         }
 
         async loadDepartureAirport() {
@@ -121,8 +174,8 @@
                             <strong style="color: var(--deep);">Privacy Protected</strong>
                         </div>
                         <p style="margin: 0; font-size: 13px; color: var(--deep); line-height: 1.5;">
-                            We can detect your nearest airport automatically, but this requires your consent. 
-                            Your location data is never stored and only used to suggest airports.
+                            We can detect your nearest airport using your device's GPS location (most accurate) 
+                            or IP address. Your location data is never stored and only used to suggest airports.
                         </p>
                         <button id="auto-detect-btn" style="
                             margin-top: 12px;
@@ -137,7 +190,7 @@
                             width: 100%;
                             transition: opacity 0.2s;
                         ">
-                            <i class="fas fa-location-arrow"></i> Auto-Detect My Location
+                            <i class="fas fa-location-crosshairs"></i> Use My Current Location
                         </button>
                     </div>
                     
@@ -262,6 +315,47 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
             
             try {
+                // First try browser geolocation (real-time, more accurate)
+                if (navigator.geolocation) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                enableHighAccuracy: true,
+                                timeout: 10000,
+                                maximumAge: 0
+                            });
+                        });
+                        
+                        // Got real-time coordinates
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        
+                        console.log('[Location] Real-time coordinates:', latitude, longitude);
+                        
+                        // Find nearest airport using coordinates
+                        const nearestAirport = this.findNearestAirportByCoords(latitude, longitude);
+                        
+                        if (nearestAirport) {
+                            // Save consent
+                            localStorage.setItem('location_consent', 'true');
+                            this.hasConsent = true;
+                            
+                            // Select the detected airport
+                            this.selectAirport({
+                                code: nearestAirport.code,
+                                name: nearestAirport.name,
+                                city: nearestAirport.city,
+                            });
+                            
+                            console.log('[Location] Detected from real-time GPS:', nearestAirport.name);
+                            return;
+                        }
+                    } catch (geoError) {
+                        console.warn('[Location] Geolocation failed, falling back to IP:', geoError.message);
+                    }
+                }
+                
+                // Fallback to IP-based detection
                 const response = await fetch('/api/location/detect', {
                     method: 'POST',
                     headers: {
@@ -285,18 +379,58 @@
                         city: data.nearest_airport.city,
                     });
                     
-                    this.showNotification(`Detected: ${data.nearest_airport.name}`, 'success');
+                    console.log('[Location] Detected from IP:', data.nearest_airport.name);
                 } else {
-                    this.showNotification('Could not detect location. Please select manually.', 'info');
+                    console.warn('[Location] Could not detect location. Please select manually.');
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-location-arrow"></i> Auto-Detect My Location';
                 }
             } catch (error) {
-                console.error('Auto-detect failed:', error);
-                this.showNotification('Detection failed. Please select manually.', 'error');
+                console.error('[Location] Auto-detect failed:', error);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-location-arrow"></i> Auto-Detect My Location';
             }
+        }
+        
+        findNearestAirportByCoords(latitude, longitude) {
+            if (!this.airports || this.airports.length === 0) return null;
+            
+            let nearest = null;
+            let minDistance = Infinity;
+            
+            for (const airport of this.airports) {
+                const distance = this.calculateDistance(
+                    latitude,
+                    longitude,
+                    airport.lat,
+                    airport.lng
+                );
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = airport;
+                }
+            }
+            
+            return nearest;
+        }
+        
+        calculateDistance(lat1, lon1, lat2, lon2) {
+            // Haversine formula
+            const R = 6371; // Earth's radius in km
+            const dLat = this.toRad(lat2 - lat1);
+            const dLon = this.toRad(lon2 - lon1);
+            
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                     Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+                     Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+        
+        toRad(degrees) {
+            return degrees * (Math.PI / 180);
         }
 
         async selectAirport(airport) {
