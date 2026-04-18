@@ -435,10 +435,10 @@ function renderRecommendationChips() {
     const shuffled = [...TRENDING_DESTINATIONS].sort(() => Math.random() - 0.5).slice(0, 8);
 
     container.innerHTML = shuffled.map(function(d) {
-        return '<button class="rec-chip" onclick="applyRecommendation(\'' + d.city + '\')">'
+        return '<button class="rec-chip" onclick="applyRecommendation(\'' + esc(d.city) + '\')">'
             + '<span class="rec-chip-icon"><i class="fas ' + d.icon + '"></i></span>'
-            + '<span class="rec-chip-city">' + d.city + '</span>'
-            + '<span class="rec-chip-tag">' + d.tag + '</span>'
+            + '<span class="rec-chip-city">' + esc(d.city) + '</span>'
+            + '<span class="rec-chip-tag">' + esc(d.tag) + '</span>'
             + '</button>';
     }).join('');
 }

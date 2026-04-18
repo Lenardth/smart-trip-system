@@ -766,7 +766,7 @@ function buildReceiptHTML(d) {
             <h3 style="color:#3b1f2b;font-size:16px;font-weight:normal;border-bottom:2px solid #c9a96e;padding-bottom:10px;margin:0 0 18px;">
                 <i class="fas fa-calculator" style="color:#c9a96e;margin-right:8px;"></i>Cost Estimation Breakdown
             </h3>
-            ${[['fas fa-plane','Flights',fmt(bk.flights.amount),bk.flights.description,bk.flights.details],['fas fa-hotel','Accommodation',fmt(bk.accommodation.amount),bk.accommodation.description,`${bk.accommodation.nights} nights`],['fas fa-ticket-alt','Activities',fmt(bk.activities.amount),bk.activities.description,bk.activities.items],['fas fa-utensils','Food & Dining',fmt(bk.food.amount),bk.food.description,`~$${bk.food.perDay}/day`],['fas fa-bus','Local Transport',fmt(bk.transportation.amount),bk.transportation.description,bk.transportation.includes.join(' · ')]].map(([icon,label,amt,desc,detail])=>`
+            ${[['fas fa-plane','Flights',fmtCurrency(bk.flights.amount),bk.flights.description,bk.flights.details],['fas fa-hotel','Accommodation',fmtCurrency(bk.accommodation.amount),bk.accommodation.description,`${bk.accommodation.nights} nights`],['fas fa-ticket-alt','Activities',fmtCurrency(bk.activities.amount),bk.activities.description,bk.activities.items],['fas fa-utensils','Food & Dining',fmtCurrency(bk.food.amount),bk.food.description,`~${fmtCurrency(bk.food.perDay)}/day`],['fas fa-bus','Local Transport',fmtCurrency(bk.transportation.amount),bk.transportation.description,bk.transportation.includes.join(' · ')]].map(([icon,label,amt,desc,detail])=>`
                 <div style="background:#f8f4f0;border-radius:8px;padding:13px 15px;margin-bottom:10px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
                         <div style="display:flex;align-items:center;gap:10px;">
@@ -778,7 +778,7 @@ function buildReceiptHTML(d) {
                     <div style="font-size:11px;color:#6b5b4f;margin-left:28px;">${desc}<br><span style="color:#c9a96e;">${detail}</span></div>
                 </div>`).join('')}
             <div style="margin-top:16px;border-top:2px solid #e2d5c7;padding-top:14px;">
-                ${[['Subtotal',`$${fmt(cost.subtotal)}`],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,`$${fmt(cost.taxes.amount)}`],['Service Fee',`$${fmt(cost.serviceFee.amount)}`]].map(([l,v])=>`
+                ${[['Subtotal',fmtCurrency(cost.subtotal)],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,fmtCurrency(cost.taxes.amount)],['Service Fee',fmtCurrency(cost.serviceFee.amount)]].map(([l,v])=>`
                     <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;">
                         <span style="color:#6b5b4f;">${l}</span><span style="color:#3b1f2b;">${v}</span>
                     </div>`).join('')}
@@ -788,19 +788,19 @@ function buildReceiptHTML(d) {
                     <div style="color:#c9a96e;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Total per person</div>
                     <div style="color:#d4c4b0;font-size:11px;margin-top:3px;">Range: ${cost.range.display}</div>
                 </div>
-                <div style="color:#c9a96e;font-size:30px;font-weight:bold;">$${fmt(cost.total)}</div>
+                <div style="color:#c9a96e;font-size:30px;font-weight:bold;">${fmtCurrency(cost.total)}</div>
             </div>
             <div style="margin-top:16px;background:#e8f4e8;border-radius:8px;padding:14px 16px;border-left:4px solid #4CAF50;">
                 <div style="font-weight:bold;color:#2c5e2c;margin-bottom:10px;font-size:13px;"><i class="fas fa-tag" style="margin-right:6px;color:#4CAF50;"></i>Available Discounts</div>
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;">
                     ${[['Early Bird',cost.savings.earlyBird],['Group Discount',cost.savings.groupDiscount],['Package Deal',cost.savings.packageDeal]].map(([l,v])=>`
                         <div>
-                            <div style="font-size:16px;font-weight:bold;color:#2c5e2c;">$${fmt(v)}</div>
+                            <div style="font-size:16px;font-weight:bold;color:#2c5e2c;">${fmtCurrency(v)}</div>
                             <div style="font-size:10px;color:#6b5b4f;">${l}</div>
                         </div>`).join('')}
                 </div>
                 <div style="text-align:center;font-size:11px;color:#6b5b4f;margin-top:10px;">
-                    Total potential savings: <strong style="color:#2c5e2c;">$${fmt(cost.savings.earlyBird+cost.savings.groupDiscount+cost.savings.packageDeal)}</strong>
+                    Total potential savings: <strong style="color:#2c5e2c;">${fmtCurrency(cost.savings.earlyBird+cost.savings.groupDiscount+cost.savings.packageDeal)}</strong>
                 </div>
             </div>
         </div>
@@ -956,14 +956,14 @@ async function downloadReceiptPdf() {
     }
 
     sectionTitle('Cost Estimation Breakdown');
-    costRow('Flights', fmt(bk.flights.amount), bk.flights.description, bk.flights.details);
-    costRow('Accommodation', fmt(bk.accommodation.amount), bk.accommodation.description, `${bk.accommodation.nights} nights`);
-    costRow('Activities & Tours', fmt(bk.activities.amount), bk.activities.description, bk.activities.items);
-    costRow('Food & Dining', fmt(bk.food.amount), bk.food.description, `~$${bk.food.perDay}/day`);
-    costRow('Local Transport', fmt(bk.transportation.amount), bk.transportation.description, bk.transportation.includes.join(' · '));
+    costRow('Flights', fmtCurrency(bk.flights.amount), bk.flights.description, bk.flights.details);
+    costRow('Accommodation', fmtCurrency(bk.accommodation.amount), bk.accommodation.description, `${bk.accommodation.nights} nights`);
+    costRow('Activities & Tours', fmtCurrency(bk.activities.amount), bk.activities.description, bk.activities.items);
+    costRow('Food & Dining', fmtCurrency(bk.food.amount), bk.food.description, `~${fmtCurrency(bk.food.perDay)}/day`);
+    costRow('Local Transport', fmtCurrency(bk.transportation.amount), bk.transportation.description, bk.transportation.includes.join(' · '));
 
     y += 2; doc.setDrawColor(...gold); doc.setLineWidth(0.4); doc.line(mg, y, mg + cW, y); y += 5;
-    [['Subtotal',`$${fmt(cost.subtotal)}`],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,`$${fmt(cost.taxes.amount)}`],['Service Fee',`$${fmt(cost.serviceFee.amount)}`]].forEach(([l,v]) => {
+    [['Subtotal',fmtCurrency(cost.subtotal)],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,fmtCurrency(cost.taxes.amount)],['Service Fee',fmtCurrency(cost.serviceFee.amount)]].forEach(([l,v]) => {
         newPageIfNeeded(7);
         doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...muted);
         doc.text(l, mg + 4, y); doc.setTextColor(...deep); doc.text(v, mg + cW - 2, y, { align: 'right' }); y += 7;
@@ -976,7 +976,7 @@ async function downloadReceiptPdf() {
     doc.setFontSize(8); doc.setTextColor(212, 196, 176);
     doc.text(`Range: ${cost.range.display}`, mg + 5, y + 14);
     doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...gold);
-    doc.text(`$${fmt(cost.total)}`, mg + cW - 3, y + 14, { align: 'right' });
+    doc.text(fmtCurrency(cost.total), mg + cW - 3, y + 14, { align: 'right' });
     y += 25;
 
     newPageIfNeeded(28);
@@ -986,7 +986,7 @@ async function downloadReceiptPdf() {
     [['Early Bird',cost.savings.earlyBird],['Group Discount',cost.savings.groupDiscount],['Package Deal',cost.savings.packageDeal]].forEach(([l,v],i) => {
         const sx = mg + i * (cW/3) + (cW/3)/2;
         doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...green);
-        doc.text(`$${fmt(v)}`, sx, y+16, { align: 'center' });
+        doc.text(fmtCurrency(v), sx, y+16, { align: 'center' });
         doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...muted);
         doc.text(l, sx, y+21, { align: 'center' });
     });

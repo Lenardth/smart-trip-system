@@ -18,11 +18,17 @@
 
 ## Overview
 
-**Smart Booking** is a full-stack travel planning application I designed and built from scratch using **Laravel 11**. Users describe how they want to feel on holiday — adventurous, relaxed, romantic, cultural — and the system generates a complete personalised day-by-day itinerary, matching them to destinations, activities, and a daily budget schedule automatically.
+**Smart Booking** is a full-stack travel planning application built from scratch using **Laravel 11**. Users describe how they want to feel on holiday — adventurous, relaxed, romantic, cultural — and the system generates a complete personalised day-by-day itinerary, matching them to destinations, activities, and a daily budget schedule automatically.
 
-The project demonstrates end-to-end application development: database design, back-end business logic, a custom AI algorithm, real-time communication, REST API design, role-based access control, automated testing, and a full CI/CD pipeline.
+The project demonstrates end-to-end application development: database design, back-end business logic, AI-powered recommendations, real-time communication, REST API design, role-based access control, multi-currency support, real embedded data from external APIs, and automated testing.
 
-> Built as a graded university project for the course of **Knyihár Gábor**.
+### Latest Updates (2026)
+- ✅ **Real Data Integration**: All accommodations, images, and news now fetched from live APIs (Pexels, OpenStreetMap, NewsAPI)
+- ✅ **Multi-Currency Support**: Real-time currency conversion with 28+ currencies via live exchange rates
+- ✅ **Smart Location Detection**: GPS-based airport detection with 30+ major international airports
+- ✅ **AI-Powered Suggestions**: Groq AI integration for intelligent destination recommendations
+- ✅ **Silent Country Lock**: Seamless destination persistence across plan-trip, flights, and accommodations
+- ✅ **Enhanced Receipt System**: PDF receipts with user-selected currency formatting
 
 ---
 
@@ -74,14 +80,20 @@ Users can upload travel photos and videos which are processed server-side:
 ---
 
 ### Destinations and Discovery
-- Destination database seeded with real locations, mood tags, continent groupings, average daily costs, coordinates, and star ratings
+- **Real embedded data** from OpenStreetMap via Overpass API for accommodations
+- **Live destination insights** with news, tourist sites, and activities from NewsAPI and Wikipedia
+- **Real property images** from Pexels API with Unsplash fallback
 - Up to **3 destinations compared side-by-side** using session-backed state
 - Wishlist with summary stats (destinations saved, continents covered, average budget)
+- **City nickname support** (e.g., "jozi" → Johannesburg, "NYC" → New York)
 
 ---
 
-### PDF Export
-Generated itineraries can be downloaded as formatted PDFs via `barryvdh/laravel-dompdf`, using a dedicated Blade template.
+### PDF Export & Receipts
+- Generated itineraries can be downloaded as formatted PDFs via `barryvdh/laravel-dompdf`
+- **Trip receipts** with complete cost breakdown in user's selected currency
+- Professional PDF generation with jsPDF for client-side export
+- Includes flight details, accommodation costs, activities, taxes, and potential savings
 
 ---
 
@@ -135,11 +147,14 @@ A custom `HealthCheck` artisan command is available for server-side monitoring.
 | **Backend** | Laravel 11, PHP 8.2 | Application framework, ORM, routing |
 | **Frontend** | Blade, Tailwind CSS, Alpine.js | Templating, styling, interactivity |
 | **Build** | Vite, PostCSS | Asset bundling |
-| **Database** | SQLite (dev), MySQL (prod) | Relational data storage |
+| **Database** | SQLite (dev), PostgreSQL (prod) | Relational data storage |
 | **Real-Time** | Pusher, Laravel Echo | WebSocket messaging |
-| **Images** | Intervention Image | Server-side resizing & thumbnails |
-| **PDF** | barryvdh/laravel-dompdf | Itinerary PDF generation |
-| **AI (optional)** | Ollama (Mistral 7B, LLaMA 3.1) | Local LLM narrative summaries |
+| **Images** | Pexels API, Unsplash | Real property and destination images |
+| **PDF** | barryvdh/laravel-dompdf, jsPDF | Server & client-side PDF generation |
+| **AI** | Groq (Mixtral, LLaMA) | AI-powered destination suggestions |
+| **Maps** | Leaflet, OpenStreetMap | Interactive maps & geocoding |
+| **APIs** | Geoapify, NewsAPI, Aviationstack | Places, news, flights data |
+| **Currency** | Live Exchange Rates API | Real-time multi-currency conversion |
 | **Testing** | PHPUnit | Automated test suite |
 | **CI/CD** | GitHub Actions | Continuous integration & deployment |
 
@@ -238,6 +253,14 @@ composer require barryvdh/laravel-dompdf
 npm install
 cp .env.example .env
 touch database/database.sqlite
+
+# Configure API keys in .env
+# GEOAPIFY_KEY=your_key_here
+# PEXELS_API_KEY=your_key_here
+# NEWSAPI_KEY=your_key_here
+# AVIATIONSTACK_KEY=your_key_here
+# GROQ_API_KEY=your_key_here
+
 php artisan key:generate
 php artisan migrate
 php artisan migrate --seed
@@ -249,6 +272,18 @@ php artisan serve
 ```
 
 Open `http://localhost:8000`. A seeded agency account and sample destinations are included.
+
+### Required API Keys
+
+The application uses real embedded data from external APIs. Sign up for free API keys:
+
+- **Geoapify** (Places/Accommodations): https://www.geoapify.com/
+- **Pexels** (Images): https://www.pexels.com/api/
+- **NewsAPI** (News): https://newsapi.org/
+- **Aviationstack** (Flights): https://aviationstack.com/
+- **Groq** (AI): https://console.groq.com/
+
+All APIs have generous free tiers suitable for development and testing.
 
 ---
 
@@ -272,14 +307,37 @@ Open `http://localhost:8000`. A seeded agency account and sample destinations ar
 - **Wishlist**  
   Session-backed and/or user-linked wishlist to quickly store interesting destinations with basic statistics on coverage and average costs.
 
+- **Accommodations & Stays**  
+  Real-time accommodation search powered by OpenStreetMap data via Overpass API. Features include:
+  - Live property data with real images from Pexels API
+  - Interactive maps showing accommodation locations
+  - Local news and travel advisories for searched cities
+  - Direct booking links to Booking.com
+  - Smart city nickname recognition (jozi, NYC, etc.)
+  - Trending destination recommendations
+
+- **Multi-Currency Support**  
+  Global currency conversion system supporting 28+ currencies:
+  - Real-time exchange rates with automatic updates
+  - Persistent currency selection across all pages
+  - Intelligent price formatting with proper symbols and decimals
+  - Currency switcher with search functionality
+  - Applies to flights, accommodations, trip costs, and receipts
+
 - **Community**  
   Front-end community experience with live-feeling forum topics, group trip concepts, trending tags, and travel stories, wired for real-time capabilities via Pusher and `resources/js/blade/community/index.js`.
 
 - **Media & Memories**  
   Upload, resize, and manage travel media associated with trips, including thumbnails, favourites, and metadata editing, with usage stats surfaced to the user.
 
-- **PDF Itinerary Export**  
-  Turn a generated itinerary into a nicely formatted PDF using a dedicated Blade view and `barryvdh/laravel-dompdf`.
+- **PDF Itinerary Export & Receipts**  
+  Turn a generated itinerary into a nicely formatted PDF using a dedicated Blade view and `barryvdh/laravel-dompdf`. Trip receipts include:
+  - Complete cost breakdown (flights, accommodation, activities, food, transport)
+  - Tax calculations and service fees
+  - Potential savings (early bird, group discounts, package deals)
+  - Flight information and recommended activities
+  - Travel tips and booking reference numbers
+  - All prices displayed in user's selected currency
 
 ---
 
@@ -310,6 +368,15 @@ Open `http://localhost:8000`. A seeded agency account and sample destinations ar
 
 ## Developer Notes
 
+- **Real Data Strategy**  
+  The application prioritizes real embedded data from external APIs over dummy/seed data. See `REAL_DATA_STRATEGY.md` for complete documentation on:
+  - API integration patterns and fallback strategies
+  - Caching recommendations to stay within API limits
+  - Image loading from Pexels with Unsplash fallback
+  - Accommodation data from OpenStreetMap via Overpass API
+  - Currency conversion with live exchange rates
+  - News integration from NewsAPI
+
 - **Trip Planning Algorithm**  
   The hybrid scoring engine lives in the PHP domain layer (models/services) and combines mood match, budget fit, companion suitability, and ratings into a single score per destination and activity. When extending it, prefer configurable weights and avoid hard-coding thresholds directly into controllers.
 
@@ -325,11 +392,28 @@ Open `http://localhost:8000`. A seeded agency account and sample destinations ar
 - **Deployment**  
   GitHub Actions workflows already cover building assets, running tests, and deploying on merges to `main`. Any new environment variables or external services should be reflected in `.env.example` and, if necessary, documented in comments within the workflow files.
 
+- **API Rate Limits**  
+  The application uses multiple external APIs with free tier limits:
+  - Geoapify: 3,000 requests/day
+  - Pexels: 200 requests/hour
+  - NewsAPI: 100 requests/day
+  - Aviationstack: 100 requests/month
+  
+  Implement caching strategies (24-hour cache recommended) to stay within limits. See `REAL_DATA_STRATEGY.md` for monitoring and best practices.
+
 ---
 
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
+
+---
+
+## Documentation
+
+- **[REAL_DATA_STRATEGY.md](REAL_DATA_STRATEGY.md)** - Complete guide to API integration, data sources, and fallback strategies
+- **[vercel.json](vercel.json)** - Vercel deployment configuration for serverless hosting
+- **[.env.example](.env.example)** - Environment variables template with all required API keys
 
 ---
 
