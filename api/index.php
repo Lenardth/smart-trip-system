@@ -17,8 +17,6 @@ $envOverrides = [
     'APP_CONFIG_CACHE'   => '/tmp/bootstrap/cache/config.php',
     'APP_SERVICES_CACHE' => '/tmp/bootstrap/cache/services.php',
     'APP_PACKAGES_CACHE' => '/tmp/bootstrap/cache/packages.php',
-    // Temporarily disable route caching to allow /setup routes to work
-    // 'APP_ROUTES_CACHE'   => '/tmp/bootstrap/cache/routes-v7.php',
     'APP_EVENTS_CACHE'   => '/tmp/bootstrap/cache/events.php',
     'CACHE_STORE'        => 'array',
     'CACHE_DRIVER'       => 'array',
@@ -72,17 +70,15 @@ try {
 
     $db = $app->make(Illuminate\Database\DatabaseManager::class);
 
-    // DISABLE automatic migrations - use /setup page instead
-    $skipAutoMigrate = true;
-
-    if (!$skipAutoMigrate) {
+    // ── Migrations ────────────────────────────────────────────────────────────
     try {
+        try { $db->statement('ROLLBACK'); } catch (\Throwable $_) {}
+
         $schema             = $db->connection()->getSchemaBuilder();
         $hasMigrationsTable = $schema->hasTable('migrations');
         $hasUsersTable      = $schema->hasTable('users');
 
         if (!$hasMigrationsTable && $hasUsersTable) {
-            // DB exists but no migrations table — record all as run without executing
             $artisan->call('migrate:install');
             $migrationFiles = glob(__DIR__ . '/../database/migrations/*.php');
             sort($migrationFiles);
@@ -93,21 +89,16 @@ try {
                 }
             }
         } else {
-            // Run pending migrations — each in its own try/catch to avoid
-            // Postgres "transaction aborted" cascade failures
             try {
-                // Reset any aborted transaction before starting
-                try { $db->statement('ROLLBACK'); } catch (\Throwable $_) {}
-
                 $artisan->call('migrate', ['--force' => true]);
+                error_log('[SmartBooking] Migrations ran successfully.');
             } catch (\Throwable $migrateErr) {
                 $msg = $migrateErr->getMessage();
-                if (str_contains($msg, 'already exists') || str_contains($msg, 'Duplicate table')) {
+                if (str_contains($msg, 'already exists') || str_contains($msg, 'Duplicate')) {
                     error_log('[SmartBooking] Some tables already exist — continuing.');
                 } elseif (str_contains($msg, 'transaction is aborted') || str_contains($msg, '25P02')) {
-                    // Postgres aborted transaction — rollback and retry once
                     try { $db->statement('ROLLBACK'); } catch (\Throwable $_) {}
-                    error_log('[SmartBooking] Transaction aborted, retrying migrate after rollback.');
+                    error_log('[SmartBooking] Transaction aborted — retrying migrate.');
                     try {
                         $artisan->call('migrate', ['--force' => true]);
                     } catch (\Throwable $retry) {
@@ -119,20 +110,18 @@ try {
             }
         }
 
-        // Refresh schema builder after migrations
+        // ── Repair stale migration records ────────────────────────────────────
         $schema = $db->connection()->getSchemaBuilder();
-
-        // Check for tables that were recorded as migrated but never actually created
-        $tablesToCheck = [
-            '2025_01_01_000014_create_itineraries_table'             => 'itineraries',
-            '2025_01_01_000016_create_accommodations_table'          => 'accommodations',
-            '2025_01_01_000018_create_trip_moods_table'              => 'trip_moods',
-            '2025_01_01_000019_create_accommodation_searches_table'  => 'accommodation_searches',
-            '2025_01_01_000021_create_monetization_tables'           => 'coupons',
+        $staleChecks = [
+            '2025_01_01_000014_create_itineraries_table'            => 'itineraries',
+            '2025_01_01_000016_create_accommodations_table'         => 'accommodations',
+            '2025_01_01_000018_create_trip_moods_table'             => 'trip_moods',
+            '2025_01_01_000019_create_accommodation_searches_table' => 'accommodation_searches',
+            '2025_01_01_000021_create_monetization_tables'          => 'coupons',
         ];
 
         $removedAny = false;
-        foreach ($tablesToCheck as $migration => $table) {
+        foreach ($staleChecks as $migration => $table) {
             if (!$schema->hasTable($table)) {
                 try {
                     $db->table('migrations')->where('migration', $migration)->delete();
@@ -146,6 +135,7 @@ try {
             try { $db->statement('ROLLBACK'); } catch (\Throwable $_) {}
             try {
                 $artisan->call('migrate', ['--force' => true]);
+                error_log('[SmartBooking] Re-run migrate after stale record cleanup.');
             } catch (\Throwable $e2) {
                 error_log('[SmartBooking] Re-run migrate error: ' . $e2->getMessage());
             }
@@ -153,26 +143,21 @@ try {
 
     } catch (\Throwable $migrateErr) {
         error_log('[SmartBooking] Migration outer error: ' . $migrateErr->getMessage());
-        // Don't rethrow — let the app serve requests even if migrations had issues
     }
-    } // End skip auto migrate check
 
-    // ── Seed missing data independently ──────────────────────────────────────
+    // ── Seeds ─────────────────────────────────────────────────────────────────
     try {
         $schema3 = $db->connection()->getSchemaBuilder();
 
-        // Destinations
         if ($schema3->hasTable('destinations') && $db->table('destinations')->count() < 50) {
             $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\DestinationSeeder', '--force' => true]);
             error_log('[SmartBooking] Destinations seeded.');
         }
 
-        // Users (demo accounts)
         if ($schema3->hasTable('users') && $db->table('users')->count() < 3) {
             $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\DatabaseSeeder', '--force' => true]);
             error_log('[SmartBooking] Full seed run.');
         } else {
-            // Seed individual tables that are empty
             if ($schema3->hasTable('trip_moods') && $db->table('trip_moods')->count() === 0) {
                 $artisan->call('db:seed', ['--class' => 'Database\\Seeders\\TripMoodSeeder', '--force' => true]);
                 error_log('[SmartBooking] TripMoods seeded.');
@@ -190,6 +175,7 @@ try {
         error_log('[SmartBooking] Seed warning: ' . $seedErr->getMessage());
     }
 
+    // ── Handle request ────────────────────────────────────────────────────────
     $kernel   = $app->make(Illuminate\Contracts\Http\Kernel::class);
     $request  = Illuminate\Http\Request::capture();
     $response = $kernel->handle($request);
