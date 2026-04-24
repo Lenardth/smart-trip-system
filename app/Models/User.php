@@ -18,6 +18,8 @@ class User extends Authenticatable
         'agency_name',
         'profile_picture',
         'bio',
+        'location',
+        'phone',
         'last_login_at',
         'last_login_ip',
         'is_premium',
@@ -106,12 +108,12 @@ class User extends Authenticatable
         )->withTimestamps();
     }
 
-    public function getProfilePictureUrlAttribute(): string
+    public function getProfilePictureUrlAttribute(): ?string
     {
         if ($this->profile_picture) {
             return asset('storage/' . $this->profile_picture);
         }
-        return '';
+        return null;
     }
 
     public function getDisplayNameAttribute(): string
@@ -119,8 +121,31 @@ class User extends Authenticatable
         return $this->agency_name ?: $this->name;
     }
 
-    public function getAvatarAttribute(): string
+    public function getAvatarAttribute(): ?string
     {
         return $this->profile_picture_url;
+    }
+
+    // Follow relationships
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'user_follows', 'following_id', 'follower_id')
+            ->withTimestamps();
+    }
+
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'user_follows', 'follower_id', 'following_id')
+            ->withTimestamps();
+    }
+
+    public function isFollowing($userId)
+    {
+        return $this->following()->where('following_id', $userId)->exists();
+    }
+
+    public function isFollowedBy($userId)
+    {
+        return $this->followers()->where('follower_id', $userId)->exists();
     }
 }

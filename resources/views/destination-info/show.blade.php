@@ -13,7 +13,7 @@ window.__destinationData = {
 </script>
 
 {{-- Hero Section --}}
-<section class="info-hero" style="background: linear-gradient(160deg, rgba(10,20,30,0.7) 0%, rgba(59,31,43,0.6) 100%), url('{{ $destination->image_url ?: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1800&q=80' }}') center/cover no-repeat; min-height:400px; display:flex; align-items:center; justify-content:center; color:#fff; text-align:center; padding:60px 20px;">
+<section class="info-hero" style="background: linear-gradient(160deg, rgba(10,20,30,0.7) 0%, rgba(59,31,43,0.6) 100%), url('{{ $destination->image_url ?: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1800&q=80' }}') center/cover no-repeat; min-height: 450px; display: flex; align-items: center; justify-content: center; color: #fff; text-align: center; padding: 60px 20px;">
     <div style="max-width:800px;">
         <a href="{{ route('discover') }}" style="display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;margin-bottom:20px;opacity:0.9;font-size:14px;">
             <i class="fas fa-arrow-left"></i> Back to Discover

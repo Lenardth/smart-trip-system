@@ -239,7 +239,7 @@ class DiscoverController extends Controller
                                     $newImage = $this->getCuratedCityImage($destinationName);
                                 }
                                 
-                                $newPrice = rand(500, 2000);
+                                $newPrice = $this->estimateHiddenGemPrice($destinationCountry);
                                 
                                 $newId = DB::table('destinations')->insertGetId([
                                     'name' => $destinationName,
@@ -473,7 +473,7 @@ class DiscoverController extends Controller
                     'mood' => 'adventurous',
                     'description' => 'A hidden gem waiting to be discovered in ' . $countryName . '.',
                     'image_url' => $image,
-                    'price_from' => rand(400, 1500),
+                    'price_from' => $this->estimateHiddenGemPrice($countryName),
                     'is_active' => true,
                     'is_hidden_gem' => true,
                     'sort_order' => 999,
@@ -515,5 +515,136 @@ class DiscoverController extends Controller
         ];
         
         return $codes[$country] ?? 'none';
+    }
+
+    /**
+     * Estimate hidden gem price using same logic as AI suggestions
+     * Ensures pricing consistency across the platform
+     */
+    private function estimateHiddenGemPrice(string $country): int
+    {
+        $countryLower = strtolower($country);
+        
+        // Use same pricing logic as AiSuggestionController
+        // Calculate based on: flights + accommodation (7 nights) + daily expenses (7 days)
+        
+        // Flight estimates by country (round-trip)
+        $flightEstimates = [
+            // Europe
+            'united kingdom' => rand(750, 900), 'france' => rand(700, 850), 'spain' => rand(650, 800),
+            'italy' => rand(700, 850), 'germany' => rand(750, 900), 'portugal' => rand(650, 800),
+            'greece' => rand(800, 1000), 'netherlands' => rand(750, 900), 'switzerland' => rand(800, 950),
+            'austria' => rand(800, 950), 'poland' => rand(700, 850), 'czech republic' => rand(750, 900),
+            'hungary' => rand(750, 900), 'croatia' => rand(750, 900), 'turkey' => rand(850, 1050),
+            'norway' => rand(800, 1000), 'sweden' => rand(800, 1000), 'denmark' => rand(800, 1000),
+            'iceland' => rand(700, 900), 'romania' => rand(750, 900), 'bulgaria' => rand(750, 900),
+            
+            // Asia
+            'thailand' => rand(1100, 1350), 'vietnam' => rand(1150, 1400), 'indonesia' => rand(1200, 1500),
+            'japan' => rand(1300, 1600), 'south korea' => rand(1250, 1550), 'china' => rand(1200, 1500),
+            'india' => rand(1000, 1300), 'singapore' => rand(1200, 1500), 'malaysia' => rand(1150, 1450),
+            'philippines' => rand(1200, 1500), 'nepal' => rand(1100, 1400), 'sri lanka' => rand(1100, 1400),
+            'cambodia' => rand(1150, 1400), 'laos' => rand(1150, 1400), 'myanmar' => rand(1150, 1400),
+            'taiwan' => rand(1250, 1550),
+            
+            // Middle East
+            'united arab emirates' => rand(900, 1150), 'israel' => rand(850, 1100), 'jordan' => rand(900, 1150),
+            'oman' => rand(950, 1200),
+            
+            // Americas
+            'mexico' => rand(400, 600), 'costa rica' => rand(500, 700), 'panama' => rand(550, 750),
+            'colombia' => rand(800, 1000), 'peru' => rand(850, 1050), 'chile' => rand(900, 1150),
+            'argentina' => rand(950, 1200), 'brazil' => rand(900, 1150), 'ecuador' => rand(800, 1000),
+            'bolivia' => rand(850, 1050), 'guatemala' => rand(500, 700),
+            
+            // Africa
+            'morocco' => rand(700, 900), 'egypt' => rand(900, 1150), 'south africa' => rand(1300, 1650),
+            'kenya' => rand(1200, 1500), 'tanzania' => rand(1250, 1550), 'ethiopia' => rand(1100, 1400),
+            'tunisia' => rand(750, 950), 'uganda' => rand(1200, 1500), 'rwanda' => rand(1250, 1550),
+            
+            // Oceania
+            'australia' => rand(1600, 2000), 'new zealand' => rand(1700, 2100), 'fiji' => rand(1400, 1800),
+        ];
+        
+        // Daily expenses by country (per day)
+        $dailyExpenses = [
+            // Very expensive
+            'switzerland' => rand(165, 195), 'norway' => rand(155, 185), 'denmark' => rand(150, 180),
+            'iceland' => rand(145, 175), 'singapore' => rand(135, 165),
+            
+            // Expensive
+            'japan' => rand(125, 155), 'united kingdom' => rand(120, 150), 'france' => rand(115, 145),
+            'australia' => rand(110, 140), 'new zealand' => rand(105, 135), 'united arab emirates' => rand(105, 135),
+            'netherlands' => rand(100, 130), 'germany' => rand(95, 125), 'austria' => rand(95, 125),
+            'south korea' => rand(80, 110), 'israel' => rand(100, 130),
+            
+            // Moderate
+            'spain' => rand(75, 105), 'italy' => rand(80, 110), 'portugal' => rand(65, 95),
+            'greece' => rand(60, 90), 'czech republic' => rand(55, 85), 'poland' => rand(55, 85),
+            'hungary' => rand(50, 80), 'croatia' => rand(65, 95), 'turkey' => rand(55, 85),
+            'malaysia' => rand(55, 85), 'thailand' => rand(60, 90), 'china' => rand(70, 100),
+            'taiwan' => rand(65, 95), 'mexico' => rand(50, 80), 'costa rica' => rand(70, 100),
+            'chile' => rand(65, 95), 'argentina' => rand(60, 90), 'brazil' => rand(60, 90),
+            'south africa' => rand(60, 90),
+            
+            // Budget
+            'vietnam' => rand(35, 55), 'cambodia' => rand(30, 50), 'laos' => rand(33, 53),
+            'indonesia' => rand(40, 60), 'philippines' => rand(35, 55), 'india' => rand(30, 50),
+            'nepal' => rand(25, 45), 'sri lanka' => rand(40, 60), 'myanmar' => rand(35, 55),
+            'bolivia' => rand(30, 50), 'peru' => rand(50, 70), 'ecuador' => rand(45, 65),
+            'colombia' => rand(45, 65), 'guatemala' => rand(40, 60),
+            'morocco' => rand(45, 65), 'egypt' => rand(40, 60), 'tunisia' => rand(40, 60),
+            'ethiopia' => rand(40, 60), 'kenya' => rand(55, 75), 'tanzania' => rand(60, 80),
+            'romania' => rand(45, 65), 'bulgaria' => rand(40, 60), 'albania' => rand(40, 60),
+        ];
+        
+        // Accommodation per night
+        $accommodationPerNight = [
+            // Very expensive
+            'switzerland' => rand(180, 240), 'norway' => rand(160, 220), 'iceland' => rand(150, 210),
+            'singapore' => rand(140, 200), 'denmark' => rand(140, 200),
+            
+            // Expensive
+            'japan' => rand(110, 160), 'united kingdom' => rand(120, 170), 'france' => rand(110, 160),
+            'australia' => rand(100, 150), 'new zealand' => rand(95, 145), 'united arab emirates' => rand(130, 180),
+            
+            // Moderate
+            'spain' => rand(70, 110), 'italy' => rand(75, 115), 'portugal' => rand(60, 100),
+            'greece' => rand(55, 95), 'germany' => rand(80, 120), 'austria' => rand(80, 120),
+            'south korea' => rand(70, 110), 'thailand' => rand(40, 80), 'malaysia' => rand(35, 75),
+            'mexico' => rand(50, 90), 'costa rica' => rand(60, 100), 'chile' => rand(60, 100),
+            
+            // Budget
+            'vietnam' => rand(20, 50), 'cambodia' => rand(18, 48), 'laos' => rand(18, 48),
+            'indonesia' => rand(25, 55), 'philippines' => rand(22, 52), 'india' => rand(20, 50),
+            'nepal' => rand(15, 45), 'bolivia' => rand(20, 50), 'peru' => rand(30, 60),
+            'morocco' => rand(35, 65), 'egypt' => rand(30, 60), 'bulgaria' => rand(25, 55),
+        ];
+        
+        // Get estimates for this country
+        $flight = $flightEstimates[$countryLower] ?? rand(900, 1200);
+        $daily = $dailyExpenses[$countryLower] ?? rand(75, 105);
+        $accommodation = $accommodationPerNight[$countryLower] ?? rand(60, 100);
+        
+        // Calculate 7-day trip total
+        $total = $flight + ($accommodation * 7) + ($daily * 7);
+        
+        // Hidden gems are typically 10-15% cheaper than mainstream destinations
+        $hiddenGemDiscount = 0.85 + (rand(0, 5) / 100); // 0.85-0.90
+        
+        // Add seasonal variation
+        $month = now()->month;
+        if (in_array($month, [6, 7, 8, 12])) {
+            // Peak season
+            $seasonal = 1.10 + (rand(0, 10) / 100); // 1.10-1.20
+        } elseif (in_array($month, [4, 5, 9, 10])) {
+            // Shoulder season
+            $seasonal = 1.00 + (rand(0, 5) / 100); // 1.00-1.05
+        } else {
+            // Off-peak
+            $seasonal = 0.90 + (rand(0, 8) / 100); // 0.90-0.98
+        }
+        
+        return (int) round($total * $hiddenGemDiscount * $seasonal);
     }
 }

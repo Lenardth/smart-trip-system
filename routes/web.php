@@ -341,6 +341,15 @@ Route::get('/api/accommodations',       [AccommodationController::class, 'list']
 Route::get('/api/accommodation-news',   [NewsController::class, 'accommodationNews'])->name('api.accommodation-news');
 
 Route::get('/community', [CommunityController::class, 'index'])->name('community');
+Route::get('/feed', [App\Http\Controllers\UserProfileController::class, 'showFeed'])->name('feed');
+Route::get('/members', [App\Http\Controllers\UserProfileController::class, 'showMembers'])->name('members');
+
+// User profiles
+Route::get('/users/{id}/profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('user.profile');
+Route::get('/api/users/{id}/profile', [App\Http\Controllers\UserProfileController::class, 'getProfile'])->name('api.user.profile');
+Route::post('/api/users/{id}/follow', [App\Http\Controllers\UserProfileController::class, 'follow'])->name('api.user.follow');
+Route::get('/api/feed', [App\Http\Controllers\UserProfileController::class, 'feed'])->name('api.feed');
+Route::get('/api/community/members', [App\Http\Controllers\UserProfileController::class, 'getMembers'])->name('api.community.members');
 
 Route::prefix('api/community')->group(function () {
     Route::get('/stats',                [CommunityController::class, 'stats']);
@@ -352,17 +361,26 @@ Route::prefix('api/community')->group(function () {
     Route::post('/topics/{id}/replies', [CommunityController::class, 'storeReply']);
     Route::delete('/replies/{id}',      [CommunityController::class, 'destroyReply']);
     Route::post('/topics/{id}/like',    [CommunityController::class, 'likeTopic']);
+    
+    // Stories/Vlogs
+    Route::get('/stories',              [CommunityController::class, 'stories']);
+    Route::post('/stories',             [CommunityController::class, 'storeStory']);
+    Route::get('/stories/{id}',         [CommunityController::class, 'showStory']);
+    Route::delete('/stories/{id}',      [CommunityController::class, 'deleteStory']);
     Route::post('/stories/{id}/like',   [CommunityController::class, 'likeStory']);
     Route::get('/stories/{id}/comments', [CommunityController::class, 'storyComments']);
     Route::post('/stories/{id}/comments', [CommunityController::class, 'storeStoryComment']);
+    Route::delete('/story-comments/{id}', [CommunityController::class, 'deleteStoryComment']);
+    
+    // Groups
     Route::get('/groups',               [CommunityController::class, 'groups']);
     Route::post('/groups',              [CommunityController::class, 'storeGroup']);
     Route::delete('/groups/{id}',       [CommunityController::class, 'destroyGroup']);
     Route::post('/groups/{id}/join',    [CommunityController::class, 'joinGroup']);
     Route::post('/groups/{id}/leave',   [CommunityController::class, 'leaveGroup']);
     Route::get('/groups/{id}/members',  [CommunityController::class, 'groupMembers']);
+    
     Route::get('/tags',                 [CommunityController::class, 'tags']);
-    Route::get('/stories',              [CommunityController::class, 'stories']);
     Route::get('/travelers',            [CommunityController::class, 'travelers']);
 });
 

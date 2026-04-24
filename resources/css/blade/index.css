@@ -11,6 +11,9 @@
 @import './accommodations/index.css';
 @import './bookings/index.css';
 @import './community/index.css';
+@import './community/profile.css';
+@import './community/feed.css';
+@import './community/members.css';
 @import './chat/index.css';
 @import './plan-trip/index.css';
 @import './profile/edit.css';

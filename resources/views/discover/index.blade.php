@@ -13,10 +13,10 @@ window.__dashboardConfig.user   = { id: {{ Auth::id() }}, name: @json(Auth::user
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(160deg, rgba(10,30,20,0.72) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=90'); background-size: cover; background-position: center;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(10,30,20,0.72) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=90'); background-size: cover; background-position: center; min-height: 450px; display: flex; align-items: center;">
     <div>
-        <h1><i class="fas fa-compass"></i> Discover</h1>
-        <p>Explore trending destinations, hidden gems, and AI-curated picks.</p>
+        <h1 style="margin-bottom: 16px;"><i class="fas fa-compass"></i> Discover</h1>
+        <p style="font-size: 15px; max-width: 600px; margin: 0 auto;">Explore trending destinations, hidden gems, and AI-curated picks.</p>
         <div class="hero-search">
             <input type="text" id="searchInput" placeholder="Search destinations, countries, experiences…" autocomplete="off">
             <button id="searchBtn"><i class="fas fa-search"></i> Search</button>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Accommodation;
 use App\Models\AccommodationSearch;
 use App\Services\GeoapifyService;
+use App\Services\AccommodationPricingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\Log;
 
 class AccommodationController extends Controller
 {
-    public function __construct(private GeoapifyService $geoapify) {}
+    public function __construct(
+        private GeoapifyService $geoapify,
+        private AccommodationPricingService $pricingService
+    ) {}
 
     public function index(): \Illuminate\View\View
     {
@@ -90,6 +94,9 @@ class AccommodationController extends Controller
 
                         // Only insert if not already in DB
                         if (!$existing) {
+                            // Get pricing from service (API or estimated)
+                            $pricing = $this->pricingService->getPrice($city, $resolvedStyle, $this->resolveBudgetTier($resolvedStyle));
+                            
                             Accommodation::create([
                                 'geoapify_id'  => $geoapifyId,
                                 'name'         => $name,
@@ -97,7 +104,7 @@ class AccommodationController extends Controller
                                 'country'      => $country,
                                 'style'        => $resolvedStyle,
                                 'budget_tier'  => $this->resolveBudgetTier($resolvedStyle),
-                                'nightly_rate' => $this->estimateNightlyRate($resolvedStyle),
+                                'nightly_rate' => $pricing['price'],
                                 'rating'       => $stars ?? rand(35, 50) / 10,
                                 'lat'          => $lat,
                                 'lng'          => $lng,
@@ -287,17 +294,11 @@ class AccommodationController extends Controller
         };
     }
 
-    private function estimateNightlyRate(string $style): int
+    private function estimateNightlyRate(string $style, string $budgetTier = 'mid'): float
     {
-        return match ($style) {
-            'hostel'      => rand(15, 40),
-            'guest_house' => rand(40, 80),
-            'motel'       => rand(50, 90),
-            'apartment'   => rand(70, 150),
-            'hotel'       => rand(80, 250),
-            'resort'      => rand(200, 600),
-            default       => rand(80, 200),
-        };
+        // Use the pricing service for consistent pricing
+        $pricing = $this->pricingService->getPrice('default', $style, $budgetTier);
+        return $pricing['price'];
     }
 
     private function seedPopularAccommodations(): void
@@ -332,6 +333,9 @@ class AccommodationController extends Controller
         ];
 
         foreach ($popularDestinations as $dest) {
+            // Get pricing from service
+            $pricing = $this->pricingService->getPrice($dest['city'], $dest['style'], $this->resolveBudgetTier($dest['style']));
+            
             Accommodation::create([
                 'geoapify_id'  => 'seed_' . md5($dest['name'] . $dest['city']),
                 'name'         => $dest['name'],
@@ -339,7 +343,7 @@ class AccommodationController extends Controller
                 'country'      => $dest['country'],
                 'style'        => $dest['style'],
                 'budget_tier'  => $this->resolveBudgetTier($dest['style']),
-                'nightly_rate' => $this->estimateNightlyRate($dest['style']),
+                'nightly_rate' => $pricing['price'],
                 'rating'       => rand(40, 50) / 10,
                 'lat'          => $dest['lat'],
                 'lng'          => $dest['lng'],

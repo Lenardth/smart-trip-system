@@ -438,6 +438,55 @@ async function generateSuggestions() {
 }
 
 function calculateCostBreakdown(destination, payload) {
+    // Use AI-provided realistic prices instead of hard-coded regional costs
+    const costMin = destination.cost_min_usd || 0;
+    const costMax = destination.cost_max_usd || 0;
+    
+    // If AI provided realistic prices, use them
+    if (costMin > 0 && costMax > 0) {
+        const avgTotal = Math.round((costMin + costMax) / 2);
+        const nights = getNightsFromDuration(payload.duration);
+        
+        // Break down the total into realistic components
+        const flights = Math.round(avgTotal * 0.42); // Flights typically 40-45% of total
+        const accommodation_c = Math.round(avgTotal * 0.28); // Accommodation 25-30%
+        const food = Math.round(avgTotal * 0.18); // Food 15-20%
+        const activities = Math.round(avgTotal * 0.08); // Activities 5-10%
+        const transportation = Math.round(avgTotal * 0.04); // Local transport 3-5%
+        
+        const subtotal = flights + accommodation_c + activities + food + transportation;
+        const region = payload.region || 'any';
+        const taxRate = REGION_TAX_RATES[region] || 12;
+        const taxes = Math.round(subtotal * (taxRate / 100));
+        const serviceFee = Math.round(subtotal * 0.05);
+        const total = subtotal + taxes + serviceFee;
+        
+        return {
+            breakdown: {
+                flights: { amount: flights, description: 'Round-trip flights (economy)', details: getFlightDetails(payload.origin, destination.destination) },
+                accommodation: { amount: accommodation_c, description: getAccommodationDescription(payload.accommodation), nights },
+                activities: { amount: activities, description: 'Guided tours & activities', items: getActivityCount(destination.top_activities) },
+                food: { amount: food, description: 'Meals & dining experiences', perDay: Math.round(food / (nights || 7)) },
+                transportation: { amount: transportation, description: 'Local transportation', includes: ['Airport transfers', 'Public transport', 'Inter-city travel'] }
+            },
+            subtotal,
+            taxes: { amount: taxes, rate: taxRate, type: 'VAT/GST' },
+            serviceFee: { amount: serviceFee, description: 'Booking & service fee' },
+            total,
+            range: {
+                low: costMin, // Use AI-provided min
+                high: costMax, // Use AI-provided max
+                display: `${fmtCurrency(costMin)} – ${fmtCurrency(costMax)}`
+            },
+            savings: {
+                earlyBird: Math.round(total * 0.10),
+                groupDiscount: (payload.companion || '').includes('family') || (payload.companion || '').includes('friends') ? Math.round(total * 0.08) : 0,
+                packageDeal: Math.round(total * 0.05)
+            }
+        };
+    }
+    
+    // Fallback to old calculation if AI didn't provide prices
     const region = payload.region || 'any';
     const baseCost = REGION_BASE_COSTS[region] || 2000;
     const budgetMult = COST_MULTIPLIERS.budget[payload.budget] || 1.0;
@@ -488,6 +537,15 @@ function fmtCurrency(n) {
         return window.Currency.format(Number(n));
     }
     return '$' + fmt(Math.round(n));
+}
+
+// PDF-specific currency formatter that respects user's currency
+function fmtCurrencyForPDF(n) {
+    if (typeof window.Currency !== 'undefined') {
+        return window.Currency.format(Number(n));
+    }
+    // Fallback without currency symbol if Currency helper not available
+    return fmt(Math.round(n));
 }
 
 function getFlightDetails(origin, dest) {
@@ -610,6 +668,26 @@ async function saveTripToDashboard() {
         origin: lastPayload.origin || null,
         month: lastPayload.month || null,
         estimated_cost: selectedDest.costBreakdown?.total || null,
+        // Save AI suggestion data
+        description: selectedDest.description || null,
+        travel_tip: selectedDest.travel_tip || null,
+        visa_info: selectedDest.visa_info || null,
+        flight_info: selectedDest.flight_info || null,
+        best_time_to_visit: selectedDest.best_time_to_visit || null,
+        is_good_right_now: selectedDest.is_good_right_now || false,
+        // Save pricing breakdown
+        flight_cost: selectedDest.costBreakdown?.breakdown?.flights?.amount || null,
+        accommodation_cost: selectedDest.costBreakdown?.breakdown?.accommodation?.amount || null,
+        activities_cost: selectedDest.costBreakdown?.breakdown?.activities?.amount || null,
+        food_cost: selectedDest.costBreakdown?.breakdown?.food?.amount || null,
+        transport_cost: selectedDest.costBreakdown?.breakdown?.transportation?.amount || null,
+        cost_breakdown: selectedDest.costBreakdown || null,
+        // Save activities as array
+        activities: selectedDest.top_activities ? selectedDest.top_activities.split(',').map(a => a.trim()) : null,
+        // Save validation data
+        validation_data: selectedDest.validation || null,
+        weather_data: selectedDest.weather || null,
+        safety_data: selectedDest.safety || null,
     };
 
     try {
@@ -956,14 +1034,14 @@ async function downloadReceiptPdf() {
     }
 
     sectionTitle('Cost Estimation Breakdown');
-    costRow('Flights', fmtCurrency(bk.flights.amount), bk.flights.description, bk.flights.details);
-    costRow('Accommodation', fmtCurrency(bk.accommodation.amount), bk.accommodation.description, `${bk.accommodation.nights} nights`);
-    costRow('Activities & Tours', fmtCurrency(bk.activities.amount), bk.activities.description, bk.activities.items);
-    costRow('Food & Dining', fmtCurrency(bk.food.amount), bk.food.description, `~${fmtCurrency(bk.food.perDay)}/day`);
-    costRow('Local Transport', fmtCurrency(bk.transportation.amount), bk.transportation.description, bk.transportation.includes.join(' · '));
+    costRow('Flights', fmtCurrencyForPDF(bk.flights.amount), bk.flights.description, bk.flights.details);
+    costRow('Accommodation', fmtCurrencyForPDF(bk.accommodation.amount), bk.accommodation.description, `${bk.accommodation.nights} nights`);
+    costRow('Activities & Tours', fmtCurrencyForPDF(bk.activities.amount), bk.activities.description, bk.activities.items);
+    costRow('Food & Dining', fmtCurrencyForPDF(bk.food.amount), bk.food.description, `~${fmtCurrencyForPDF(bk.food.perDay)}/day`);
+    costRow('Local Transport', fmtCurrencyForPDF(bk.transportation.amount), bk.transportation.description, bk.transportation.includes.join(' · '));
 
     y += 2; doc.setDrawColor(...gold); doc.setLineWidth(0.4); doc.line(mg, y, mg + cW, y); y += 5;
-    [['Subtotal',fmtCurrency(cost.subtotal)],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,fmtCurrency(cost.taxes.amount)],['Service Fee',fmtCurrency(cost.serviceFee.amount)]].forEach(([l,v]) => {
+    [['Subtotal',fmtCurrencyForPDF(cost.subtotal)],[`Taxes (${cost.taxes.rate}% ${cost.taxes.type})`,fmtCurrencyForPDF(cost.taxes.amount)],['Service Fee',fmtCurrencyForPDF(cost.serviceFee.amount)]].forEach(([l,v]) => {
         newPageIfNeeded(7);
         doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...muted);
         doc.text(l, mg + 4, y); doc.setTextColor(...deep); doc.text(v, mg + cW - 2, y, { align: 'right' }); y += 7;
@@ -974,9 +1052,11 @@ async function downloadReceiptPdf() {
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...gold);
     doc.text('TOTAL PER PERSON (ESTIMATED)', mg + 5, y + 8);
     doc.setFontSize(8); doc.setTextColor(212, 196, 176);
-    doc.text(`Range: ${cost.range.display}`, mg + 5, y + 14);
+    // Create range display with correct currency for PDF
+    const rangeDisplay = `${fmtCurrencyForPDF(cost.range.low)} – ${fmtCurrencyForPDF(cost.range.high)}`;
+    doc.text(`Range: ${rangeDisplay}`, mg + 5, y + 14);
     doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...gold);
-    doc.text(fmtCurrency(cost.total), mg + cW - 3, y + 14, { align: 'right' });
+    doc.text(fmtCurrencyForPDF(cost.total), mg + cW - 3, y + 14, { align: 'right' });
     y += 25;
 
     newPageIfNeeded(28);
@@ -986,7 +1066,7 @@ async function downloadReceiptPdf() {
     [['Early Bird',cost.savings.earlyBird],['Group Discount',cost.savings.groupDiscount],['Package Deal',cost.savings.packageDeal]].forEach(([l,v],i) => {
         const sx = mg + i * (cW/3) + (cW/3)/2;
         doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...green);
-        doc.text(fmtCurrency(v), sx, y+16, { align: 'center' });
+        doc.text(fmtCurrencyForPDF(v), sx, y+16, { align: 'center' });
         doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(...muted);
         doc.text(l, sx, y+21, { align: 'center' });
     });

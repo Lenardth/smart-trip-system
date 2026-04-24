@@ -11,10 +11,60 @@
 @endpush
 
 @section('content')
-<section class="page-hero accommodations-hero" style="background: linear-gradient(160deg, rgba(10,25,20,0.72) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1920&q=90'); background-size: cover; background-position: center;">
-    <div>
-        <h1><i class="fas fa-hotel"></i> Find Accommodation</h1>
-        <p>Handpicked stays for every budget — from boutique hotels to eco-lodges.</p>
+{{-- Enhanced Hero Section with Search --}}
+<section class="page-hero accommodations-hero" style="background: linear-gradient(160deg, rgba(10,35,30,0.85) 0%, rgba(30,60,50,0.75) 100%), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=90'); background-size: cover; background-position: center; min-height: 450px; display: flex; align-items: center; position: relative; z-index: 1; padding-top: 100px;">
+    <div style="width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 48px; margin-bottom: 16px; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3); position: relative; z-index: 10;"><i class="fas fa-hotel"></i> Find Your Perfect Stay</h1>
+            <p style="font-size: 15px; opacity: 0.95; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.4); position: relative; z-index: 10; max-width: 600px; margin: 0 auto;">Handpicked accommodations for every budget — from boutique hotels to eco-lodges.</p>
+        </div>
+
+        {{-- Search Form in Hero --}}
+        <div class="search-card" style="background: rgba(255,255,255,0.98); backdrop-filter: blur(10px); border-radius: 16px; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 100%;">
+            <form id="accommodationSearchForm">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 16px; align-items: end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                            <i class="fas fa-map-marker-alt"></i> Where to?
+                        </label>
+                        <input id="searchInput" type="text" placeholder="City, country, or hotel name" 
+                               style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.2s; font-family: inherit;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                            <i class="fas fa-building"></i> Style
+                        </label>
+                        <select id="styleSelect" style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; font-family: inherit; cursor: pointer;">
+                            <option value="any">Any style</option>
+                            <option value="hostel">Hostel</option>
+                            <option value="budget_hotel">Budget Hotel</option>
+                            <option value="boutique">Boutique</option>
+                            <option value="resort">Resort</option>
+                            <option value="villa">Villa</option>
+                            <option value="airbnb">Airbnb</option>
+                            <option value="glamping">Glamping</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">
+                            <i class="fas fa-wallet"></i> Budget
+                        </label>
+                        <select id="budgetSelect" style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; background: white; font-family: inherit; cursor: pointer;">
+                            <option value="any">Any budget</option>
+                            <option value="backpacker">Backpacker</option>
+                            <option value="budget">Budget</option>
+                            <option value="mid">Mid-range</option>
+                            <option value="premium">Premium</option>
+                            <option value="luxury">Luxury</option>
+                        </select>
+                    </div>
+                    <button id="reloadBtn" type="button" 
+                            style="padding: 14px 32px; background: linear-gradient(135deg, #d4af37 0%, #c5a028 100%); color: #1a1a1a; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(212,175,55,0.4); white-space: nowrap; font-family: inherit; height: 50px;">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </section>
 
@@ -34,29 +84,6 @@
         </div>
         <div class="rec-chips" id="recChips"></div>
         <div class="rec-fun-fact" id="recFunFact"></div>
-    </section>
-
-    <section class="filters">
-        <input id="searchInput" type="text" placeholder="Search by city, country, or name">
-        <select id="styleSelect">
-            <option value="any">Any style</option>
-            <option value="hostel">Hostel</option>
-            <option value="budget_hotel">Budget Hotel</option>
-            <option value="boutique">Boutique</option>
-            <option value="resort">Resort</option>
-            <option value="villa">Villa</option>
-            <option value="airbnb">Airbnb</option>
-            <option value="glamping">Glamping</option>
-        </select>
-        <select id="budgetSelect">
-            <option value="any">Any budget</option>
-            <option value="backpacker">Backpacker</option>
-            <option value="budget">Budget</option>
-            <option value="mid">Mid-range</option>
-            <option value="premium">Premium</option>
-            <option value="luxury">Luxury</option>
-        </select>
-        <button id="reloadBtn" type="button"><i class="fas fa-search"></i> Search</button>
     </section>
 
     <section id="aiMatchPanel" class="ai-match" style="display:none;">

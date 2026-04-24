@@ -5,11 +5,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 
 /**
- * Setup Routes - For Initial Deployment Only
- * These routes help with database setup on serverless environments
- * TODO: Remove or protect these routes after initial deployment
+ * Setup Routes - For Initial Deployment and Maintenance
+ * Protected by environment check - only available in local/staging
  */
 
+// Only enable setup routes in non-production environments
+if (!app()->environment('production')) {
+    
 Route::get('/setup', fn () => view('setup'));
 
 Route::get('/setup/debug', function () {
@@ -236,3 +238,5 @@ Route::post('/setup/fresh', function () {
         ], 500);
     }
 });
+
+} // End of non-production environment check

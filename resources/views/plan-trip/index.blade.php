@@ -287,10 +287,10 @@
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(160deg, rgba(5,25,15,0.75) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1920&q=90'); background-size: cover; background-position: center;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(5,25,15,0.75) 0%, rgba(59,31,43,0.50) 100%), url('https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=1920&q=90'); background-size: cover; background-position: center; min-height: 450px; display: flex; align-items: center;">
     <div>
-        <h1><i class="fas fa-route"></i> Plan Your Trip</h1>
-        <p id="heroTagline">Let AI build the perfect itinerary tailored to your mood, budget, and style.</p>
+        <h1 style="margin-bottom: 16px;"><i class="fas fa-route"></i> Plan Your Trip</h1>
+        <p id="heroTagline" style="font-size: 15px; max-width: 600px; margin: 0 auto;">Let AI build the perfect itinerary tailored to your mood, budget, and style.</p>
     </div>
 </section>
 

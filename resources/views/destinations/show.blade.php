@@ -13,7 +13,7 @@ window.__destinationData = {
 window.__isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
 </script>
 
-<section class="dest-show-hero" style="background: linear-gradient(160deg, rgba(10,20,30,0.62) 0%, rgba(59,31,43,0.45) 100%), url('{{ $destination->image_url ?: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1800&q=80' }}') center/cover no-repeat;">
+<section class="dest-show-hero" style="background: linear-gradient(160deg, rgba(10,20,30,0.62) 0%, rgba(59,31,43,0.45) 100%), url('{{ $destination->image_url ?: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1800&q=80' }}') center/cover no-repeat; min-height: 450px; display: flex; align-items: center;">
     <div class="dest-show-hero-inner">
         <a href="{{ route('destinations') }}" class="dest-back-link">
             <i class="fas fa-arrow-left"></i> All Destinations

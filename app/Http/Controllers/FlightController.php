@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\AviationstackService;
+use App\Services\FlightPricingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -10,13 +11,18 @@ use Illuminate\Support\Facades\Log;
 class FlightController extends Controller
 {
     public function __construct(
-        private readonly AviationstackService $aviationstack
+        private readonly AviationstackService $aviationstack,
+        private readonly FlightPricingService $flightPricing
     ) {
     }
 
     public function index()
     {
-        return view('flights.index');
+        // Get popular deals with real-time pricing
+        $deals = $this->flightPricing->getPopularRouteDeals();
+        $popularRoutes = $this->flightPricing->getPopularRoutes();
+        
+        return view('flights.index', compact('deals', 'popularRoutes'));
     }
 
     public function search(Request $request): JsonResponse

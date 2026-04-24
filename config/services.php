@@ -51,4 +51,12 @@ return [
         'key' => env('GROQ_API_KEY'),
     ],
 
+    'skyscanner' => [
+        'key' => env('SKYSCANNER_RAPIDAPI_KEY'),
+    ],
+
+    'booking' => [
+        'key' => env('BOOKING_RAPIDAPI_KEY'),
+    ],
+
 ];

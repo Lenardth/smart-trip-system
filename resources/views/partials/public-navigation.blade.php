@@ -1,7 +1,7 @@
 <header class="main-header">
         <a href="{{ url('/') }}" class="header-brand">
-        <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="logo">
-        <span class="logo-text">Smart <span style="color:var(--gold);">Booking</span></span>
+        <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="logo" style="width: 48px; height: 48px;">
+        <span class="logo-text" style="font-size: 22px; font-weight: 600;">Smart <span style="color:var(--gold);">Booking</span></span>
     </a>
 
     @auth
@@ -53,8 +53,8 @@
 
     <div class="mob-drawer-head">
         <div class="mob-brand">
-            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="mob-logo">
-            <span class="mob-brand-text">Smart <span>Booking</span></span>
+            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="mob-logo" style="width: 40px; height: 40px;">
+            <span class="mob-brand-text" style="font-size: 20px; font-weight: 600;">Smart <span>Booking</span></span>
         </div>
         <button class="mob-drawer-close" id="mobDrawerClose" aria-label="Close menu">
             <i class="fas fa-times"></i>

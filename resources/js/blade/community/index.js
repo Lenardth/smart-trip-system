@@ -236,15 +236,27 @@ window.__COMMUNITY__ = (function () {
             el.innerHTML = stories.map(function (s) {
                 var authorId   = s.user_id || null;
                 var authorName = s.author  || 'Traveler';
-                var msgBtn     = cfg.isLoggedIn ? messageBtn(authorId, authorName) : '';
+                var isOwnPost  = authorId === cfg.authUserId;
+                var msgBtn     = cfg.isLoggedIn && !isOwnPost ? messageBtn(authorId, authorName) : '';
+                var isVideo    = s.media_type === 'video';
+                var mediaUrl   = isVideo ? (s.thumbnail_url || s.video_url) : (s.image_url || s.image);
+                var likedClass = s.is_liked ? 'liked' : '';
 
-                return '<div class="story-card">' +
-                    '<div class="story-img" style="background-image:url(\'' + (s.image_url || s.image || '') + '\');"></div>' +
+                var videoOverlay = isVideo ? '<div class="video-overlay"><i class="fas fa-play-circle"></i>' + 
+                    (s.duration ? '<span class="video-duration">' + formatDuration(s.duration) + '</span>' : '') + 
+                    '</div>' : '';
+
+                var authorLink = authorId ? '<strong style="cursor:pointer;" onclick="Community.viewProfile(' + authorId + ')">' + authorName + '</strong>' : '<strong>' + authorName + '</strong>';
+
+                return '<div class="story-card" onclick="Community.viewStory(' + s.id + ')">' +
+                    '<div class="story-img" style="background-image:url(\'' + mediaUrl + '\');cursor:pointer;position:relative;">' +
+                        videoOverlay +
+                    '</div>' +
                     '<div class="story-body">' +
                         '<div class="story-author">' +
                             avatar({ name: authorName, avatar: s.author_avatar }, 34) +
                             '<div class="sa-info">' +
-                                '<strong>' + authorName + '</strong>' +
+                                authorLink +
                                 (s.created_at || '') +
                             '</div>' +
                             (msgBtn ? '<div style="margin-left:auto;">' + msgBtn + '</div>' : '') +
@@ -252,17 +264,24 @@ window.__COMMUNITY__ = (function () {
                         '<h4>' + s.title + '</h4>' +
                         '<p>' + (s.excerpt || '') + '</p>' +
                         '<div class="story-footer">' +
-                            '<button class="story-action-btn" onclick="Community.likeStory(' + s.id + ',this)">' +
+                            '<button class="story-action-btn ' + likedClass + '" onclick="event.stopPropagation();Community.likeStory(' + s.id + ',this)">' +
                                 '<i class="fas fa-heart"></i> <span class="like-count">' + (s.likes || 0) + '</span>' +
                             '</button>' +
-                            '<button class="story-action-btn" onclick="Community.openStoryComments(' + s.id + ',\'' + (s.title || '').replace(/'/g, "\\'") + '\')">' +
+                            '<button class="story-action-btn" onclick="event.stopPropagation();Community.openStoryComments(' + s.id + ',\'' + (s.title || '').replace(/'/g, "\\'") + '\')">' +
                                 '<i class="fas fa-comment"></i> ' + (s.comments || 0) +
                             '</button>' +
+                            (isVideo ? '<button class="story-action-btn"><i class="fas fa-eye"></i> ' + (s.views || 0) + '</button>' : '') +
                         '</div>' +
                     '</div>' +
                 '</div>';
             }).join('');
         }).catch(function () {});
+    }
+
+    function formatDuration(seconds) {
+        var mins = Math.floor(seconds / 60);
+        var secs = seconds % 60;
+        return mins + ':' + (secs < 10 ? '0' : '') + secs;
     }
 
     function loadTravelers() {
@@ -276,13 +295,14 @@ window.__COMMUNITY__ = (function () {
             }
             el.innerHTML = travelers.map(function (t) {
                 var userId = t.id || null;
-                var msgBtn = cfg.isLoggedIn ? messageBtn(userId, t.name) : '';
-                var invBtn = cfg.isLoggedIn ? inviteBtn(userId, t.name, t.avatar, t.location || 'Traveler') : '';
+                var isOwnProfile = userId === cfg.authUserId;
+                var msgBtn = cfg.isLoggedIn && !isOwnProfile ? messageBtn(userId, t.name) : '';
+                var invBtn = cfg.isLoggedIn && !isOwnProfile ? inviteBtn(userId, t.name, t.avatar, t.location || 'Traveler') : '';
                 var av     = t.avatar
                     ? '<img src="' + t.avatar + '" style="width:100%;height:100%;object-fit:cover;">'
                     : initials(t.name);
 
-                return '<div class="traveler-card">' +
+                return '<div class="traveler-card" onclick="Community.viewProfile(' + userId + ')" style="cursor:pointer;">' +
                     '<div class="traveler-avatar">' + av + '</div>' +
                     '<h4>' + t.name + '</h4>' +
                     '<p class="tc-sub">' + (t.location || t.bio || 'Traveler') + '</p>' +
@@ -291,7 +311,7 @@ window.__COMMUNITY__ = (function () {
                         '<div class="tc-stat"><div class="ts-num">' + (t.countries || 0) + '</div><div class="ts-label">Countries</div></div>' +
                     '</div>' +
                     (t.badge ? '<div class="tc-badge">' + t.badge + '</div>' : '') +
-                    '<div class="tc-actions">' + msgBtn + invBtn + '</div>' +
+                    '<div class="tc-actions" onclick="event.stopPropagation();">' + msgBtn + invBtn + '</div>' +
                 '</div>';
             }).join('');
         }).catch(function () {});
@@ -564,10 +584,18 @@ window.__COMMUNITY__ = (function () {
             .then(function(data) {
                 var comments = data.comments || [];
                 var commentsHtml = comments.map(function(c) {
-                    return '<div class="reply-item" style="margin-bottom:12px;">' +
+                    var deleteBtn = c.can_delete ? 
+                        '<button class="comment-delete-btn" onclick="Community.deleteComment(' + c.id + ', ' + storyId + ')" title="Delete comment">' +
+                            '<i class="fas fa-trash"></i>' +
+                        '</button>' : '';
+                    
+                    return '<div class="reply-item" id="comment-' + c.id + '" style="margin-bottom:12px;">' +
                         '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(c.author) + '</div>' +
                         '<div class="reply-body">' +
-                            '<div class="reply-author"><strong>' + c.author + '</strong> ' + c.created_at + '</div>' +
+                            '<div class="reply-author">' +
+                                '<strong>' + c.author + '</strong> ' + c.created_at +
+                                deleteBtn +
+                            '</div>' +
                             '<p>' + c.body + '</p>' +
                         '</div>' +
                     '</div>';
@@ -609,10 +637,18 @@ window.__COMMUNITY__ = (function () {
                                 }).then(function(response) {
                                     if (response && response.comment) {
                                         var newComment = response.comment;
-                                        var newCommentHtml = '<div class="reply-item" style="margin-bottom:12px;animation: fadeIn 0.3s ease-in;">' +
+                                        var deleteBtn = newComment.can_delete ? 
+                                            '<button class="comment-delete-btn" onclick="Community.deleteComment(' + newComment.id + ', ' + storyId + ')" title="Delete comment">' +
+                                                '<i class="fas fa-trash"></i>' +
+                                            '</button>' : '';
+                                        
+                                        var newCommentHtml = '<div class="reply-item" id="comment-' + newComment.id + '" style="margin-bottom:12px;animation: fadeIn 0.3s ease-in;">' +
                                             '<div class="forum-avatar" style="width:34px;height:34px;font-size:12px;">' + initials(newComment.author) + '</div>' +
                                             '<div class="reply-body">' +
-                                                '<div class="reply-author"><strong>' + newComment.author + '</strong> just now</div>' +
+                                                '<div class="reply-author">' +
+                                                    '<strong>' + newComment.author + '</strong> just now' +
+                                                    deleteBtn +
+                                                '</div>' +
                                                 '<p>' + newComment.body + '</p>' +
                                             '</div>' +
                                         '</div>';
@@ -631,7 +667,7 @@ window.__COMMUNITY__ = (function () {
                                         showToast('Comment posted!');
                                         loadStories(); // Refresh to update comment count
                                     }
-                                }).catch(function() {
+                                }).catch(function(err) {
                                     showToast('Failed to post comment');
                                 }).finally(function() {
                                     postBtn.disabled = false;
@@ -656,6 +692,45 @@ window.__COMMUNITY__ = (function () {
             });
     }
 
+    function deleteComment(commentId, storyId) {
+        Swal.fire({
+            title: 'Delete Comment?',
+            text: 'Are you sure you want to delete this comment?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#c9a96e',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                apiFetch('/api/community/story-comments/' + commentId, {
+                    method: 'DELETE'
+                }).then(function(response) {
+                    if (response.success) {
+                        var commentEl = document.getElementById('comment-' + commentId);
+                        if (commentEl) {
+                            commentEl.style.animation = 'fadeOut 0.3s ease-out';
+                            setTimeout(function() {
+                                commentEl.remove();
+                                
+                                // Check if no comments left
+                                var commentsList = document.getElementById('storyCommentsList');
+                                if (commentsList && commentsList.children.length === 0) {
+                                    commentsList.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;">No comments yet. Be the first!</p>';
+                                }
+                            }, 300);
+                        }
+                        showToast('Comment deleted');
+                        loadStories(); // Refresh to update comment count
+                    }
+                }).catch(function() {
+                    showToast('Failed to delete comment');
+                });
+            }
+        });
+    }
+
     function openTopicModal() {
         if (!requireLogin('post topics')) return;
         document.getElementById('topicModal').classList.add('open');
@@ -666,13 +741,319 @@ window.__COMMUNITY__ = (function () {
         document.getElementById('groupModal').classList.add('open');
     }
 
+    function openStoryModal() {
+        if (!requireLogin('create stories')) return;
+        document.getElementById('storyModal').classList.add('open');
+    }
+
+    function toggleMediaType(type) {
+        var imageGroup = document.getElementById('imageUrlGroup');
+        var videoGroup = document.getElementById('videoUrlGroup');
+        var thumbnailGroup = document.getElementById('thumbnailUrlGroup');
+        var durationGroup = document.getElementById('durationGroup');
+
+        if (type === 'video') {
+            imageGroup.style.display = 'none';
+            videoGroup.style.display = 'block';
+            thumbnailGroup.style.display = 'block';
+            durationGroup.style.display = 'block';
+        } else {
+            imageGroup.style.display = 'block';
+            videoGroup.style.display = 'none';
+            thumbnailGroup.style.display = 'none';
+            durationGroup.style.display = 'none';
+        }
+    }
+
+    function submitStory() {
+        var title = (document.getElementById('storyTitle') || {}).value || '';
+        var excerpt = (document.getElementById('storyExcerpt') || {}).value || '';
+        var mediaType = document.querySelector('input[name="mediaType"]:checked').value;
+        var imageUrl = (document.getElementById('storyImageUrl') || {}).value || '';
+        var videoUrl = (document.getElementById('storyVideoUrl') || {}).value || '';
+        var thumbnailUrl = (document.getElementById('storyThumbnailUrl') || {}).value || '';
+        var duration = (document.getElementById('storyDuration') || {}).value || '';
+
+        if (!title.trim()) {
+            showToast('Please enter a title');
+            return;
+        }
+
+        if (mediaType === 'image' && !imageUrl.trim()) {
+            showToast('Please enter an image URL');
+            return;
+        }
+
+        if (mediaType === 'video' && !videoUrl.trim()) {
+            showToast('Please enter a video URL');
+            return;
+        }
+
+        var btn = document.getElementById('submitStoryBtn');
+        if (btn) btn.disabled = true;
+
+        var payload = {
+            title: title,
+            excerpt: excerpt,
+            media_type: mediaType,
+            image_url: mediaType === 'image' ? imageUrl : null,
+            video_url: mediaType === 'video' ? videoUrl : null,
+            thumbnail_url: thumbnailUrl || null,
+            duration: duration ? parseInt(duration) : null,
+        };
+
+        apiFetch('/api/community/stories', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        }).then(function (response) {
+            closeModal('storyModal');
+            showToast(response.message || 'Story posted!');
+            loadStories();
+            loadStats();
+            // Clear form
+            ['storyTitle', 'storyExcerpt', 'storyImageUrl', 'storyVideoUrl', 'storyThumbnailUrl', 'storyDuration'].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            document.querySelector('input[name="mediaType"][value="image"]').checked = true;
+            toggleMediaType('image');
+        }).catch(function () {
+            showToast('Failed to post story');
+        }).finally(function () {
+            if (btn) btn.disabled = false;
+        });
+    }
+
+    function viewStory(storyId) {
+        apiFetch('/api/community/stories/' + storyId).then(function (story) {
+            var isVideo = story.media_type === 'video';
+            var likedClass = story.is_liked ? 'liked' : '';
+            
+            var mediaHtml = isVideo
+                ? '<video controls style="width:100%;max-height:500px;border-radius:8px;"><source src="' + story.video_url + '" type="video/mp4">Your browser does not support the video tag.</video>'
+                : '<img src="' + story.image_url + '" style="width:100%;border-radius:8px;">';
+
+            var content = '<div style="max-width:800px;margin:0 auto;padding:20px;">' +
+                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">' +
+                    avatar({ name: story.author, avatar: story.author_avatar }, 44) +
+                    '<div>' +
+                        '<strong style="font-size:16px;">' + story.author + '</strong>' +
+                        '<div style="color:var(--text-muted);font-size:13px;">' + story.created_at + '</div>' +
+                    '</div>' +
+                '</div>' +
+                mediaHtml +
+                '<div style="margin-top:16px;">' +
+                    '<h2 style="margin-bottom:8px;">' + story.title + '</h2>' +
+                    '<p style="color:var(--text-muted);margin-bottom:16px;">' + (story.excerpt || '') + '</p>' +
+                    '<div style="display:flex;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">' +
+                        '<button class="story-action-btn ' + likedClass + '" onclick="Community.likeStoryInView(' + story.id + ',this)" style="font-size:16px;">' +
+                            '<i class="fas fa-heart"></i> <span class="like-count">' + (story.likes || 0) + '</span>' +
+                        '</button>' +
+                        '<button class="story-action-btn" onclick="Community.openStoryComments(' + story.id + ',\'' + story.title.replace(/'/g, "\\'") + '\')" style="font-size:16px;">' +
+                            '<i class="fas fa-comment"></i> ' + (story.comments || 0) +
+                        '</button>' +
+                        (isVideo ? '<button class="story-action-btn" style="font-size:16px;"><i class="fas fa-eye"></i> ' + (story.views || 0) + '</button>' : '') +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
+            document.getElementById('storyViewContent').innerHTML = content;
+            document.getElementById('storyViewModal').classList.add('open');
+        }).catch(function () {
+            showToast('Could not load story');
+        });
+    }
+
+    function likeStoryInView(id, btn) {
+        if (!requireLogin('like stories')) return;
+        apiFetch('/api/community/stories/' + id + '/like', { method: 'POST' })
+            .then(function(data) {
+                if (btn) {
+                    var countEl = btn.querySelector('.like-count');
+                    if (countEl) countEl.textContent = data.likes || 0;
+                    
+                    if (data.liked) {
+                        btn.classList.add('liked');
+                        showToast('Liked!');
+                    } else {
+                        btn.classList.remove('liked');
+                        showToast('Unliked');
+                    }
+                }
+                loadStories(); // Refresh grid
+            })
+            .catch(function() { showToast('Could not like story'); });
+    }
+
+    function filterByMembers() {
+        window.location.href = '/members';
+    }
+
+    function filterByStories() {
+        document.getElementById('storiesGrid').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function filterByGroups() {
+        document.getElementById('groupTrips').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function filterByTopics() {
+        document.getElementById('forumTopics').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function viewProfile(userId) {
+        if (!userId) return;
+        window.location.href = '/users/' + userId + '/profile';
+    }
+
+    var currentFeedFilter = 'all';
+    var allFeedItems = [];
+
+    function switchTab(tab) {
+        // Update tab buttons
+        var tabs = document.querySelectorAll('.community-tab');
+        tabs.forEach(function (t) {
+            if (t.getAttribute('data-tab') === tab) {
+                t.classList.add('active');
+            } else {
+                t.classList.remove('active');
+            }
+        });
+
+        // Update tab content
+        var contents = document.querySelectorAll('.community-tab-content');
+        contents.forEach(function (c) {
+            if (c.id === 'tab-' + tab) {
+                c.classList.add('active');
+            } else {
+                c.classList.remove('active');
+            }
+        });
+
+        // Load content based on tab
+        if (tab === 'feed' && cfg.isLoggedIn) {
+            loadFeed();
+        } else if (tab === 'members') {
+            loadMembersInline();
+        }
+    }
+
+    function loadFeed() {
+        apiFetch('/api/feed').then(function (data) {
+            allFeedItems = data.stories || [];
+            
+            if (allFeedItems.length === 0) {
+                document.getElementById('feedContent').style.display = 'none';
+                document.getElementById('emptyFeed').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('feedContent').style.display = 'grid';
+            document.getElementById('emptyFeed').style.display = 'none';
+            renderFeed();
+        }).catch(function () {
+            showToast('Could not load feed');
+        });
+    }
+
+    function renderFeed() {
+        var el = document.getElementById('feedContent');
+        if (!el) return;
+
+        var items = currentFeedFilter === 'all' ? allFeedItems : 
+                    allFeedItems.filter(function(item) {
+                        return item.media_type === currentFeedFilter;
+                    });
+
+        if (items.length === 0) {
+            el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">No posts to show for this filter.</div>';
+            return;
+        }
+
+        el.innerHTML = items.map(function (item) {
+            var isVideo = item.media_type === 'video';
+            var mediaUrl = isVideo ? (item.thumbnail_url || item.video_url) : item.image_url;
+            var likedClass = item.is_liked ? 'liked' : '';
+            var isOwnPost = item.user_id === cfg.authUserId;
+
+            var videoOverlay = isVideo ? '<div class="video-overlay"><i class="fas fa-play-circle"></i>' + 
+                (item.duration ? '<span class="video-duration">' + formatDuration(item.duration) + '</span>' : '') + 
+                '</div>' : '';
+
+            return '<div class="feed-item-card" onclick="Community.viewStory(' + item.id + ')">' +
+                '<div class="feed-item-media" style="background-image:url(\'' + mediaUrl + '\');">' +
+                    videoOverlay +
+                '</div>' +
+                '<div class="feed-item-info">' +
+                    '<div class="feed-item-author" onclick="event.stopPropagation();Community.viewProfile(' + item.user_id + ')">' +
+                        avatar({ name: item.author, avatar: item.author_avatar }, 32) +
+                        '<strong>' + item.author + '</strong>' +
+                    '</div>' +
+                    '<h4>' + item.title + '</h4>' +
+                    '<p>' + (item.excerpt || '').substring(0, 100) + '...</p>' +
+                    '<div class="feed-item-actions" onclick="event.stopPropagation();">' +
+                        '<button class="story-action-btn ' + likedClass + '" onclick="Community.likeStory(' + item.id + ',this)">' +
+                            '<i class="fas fa-heart"></i> ' + (item.likes || 0) +
+                        '</button>' +
+                        '<button class="story-action-btn">' +
+                            '<i class="fas fa-comment"></i> ' + (item.comments || 0) +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    function filterFeed(filter) {
+        currentFeedFilter = filter;
+        
+        // Update active button
+        var buttons = document.querySelectorAll('.filter-btn-inline');
+        buttons.forEach(function (btn) {
+            if (btn.getAttribute('data-filter') === filter) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        renderFeed();
+    }
+
+    function loadMembersInline() {
+        apiFetch('/api/community/members').then(function (data) {
+            var el = document.getElementById('membersGridInline');
+            if (!el) return;
+            
+            var members = (data.members || []).filter(function(m) {
+                return m.id !== cfg.authUserId; // Don't show yourself
+            });
+
+            el.innerHTML = members.map(function (member) {
+                var avatarHtml = member.avatar
+                    ? '<img src="' + member.avatar + '" alt="' + member.name + '">'
+                    : '<div class="member-avatar-initials">' + initials(member.name) + '</div>';
+
+                return '<div class="member-card-inline" onclick="Community.viewProfile(' + member.id + ')">' +
+                    '<div class="member-avatar-inline">' + avatarHtml + '</div>' +
+                    '<h4>' + member.name + '</h4>' +
+                    '<p>' + (member.location || 'Traveler') + '</p>' +
+                    '<div class="member-stats-inline">' +
+                        '<span>' + (member.posts || 0) + ' posts</span>' +
+                        '<span>' + (member.followers || 0) + ' followers</span>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }).catch(function () {});
+    }
+
     function closeModal(id) {
         var el = document.getElementById(id);
         if (el) el.classList.remove('open');
     }
 
     document.addEventListener('click', function (e) {
-        ['topicModal', 'groupModal', 'inviteModal'].forEach(function (id) {
+        ['topicModal', 'groupModal', 'inviteModal', 'storyModal', 'storyViewModal'].forEach(function (id) {
             var el = document.getElementById(id);
             if (el && e.target === el) el.classList.remove('open');
         });
@@ -697,6 +1078,14 @@ window.__COMMUNITY__ = (function () {
         loadStories();
         loadTravelers();
         initPusher();
+        
+        // Load feed if user is logged in and feed tab is active
+        if (cfg.isLoggedIn) {
+            var activeTab = document.querySelector('.community-tab.active');
+            if (activeTab && activeTab.getAttribute('data-tab') === 'feed') {
+                loadFeed();
+            }
+        }
     }
 
     if (document.readyState !== 'loading') init();
@@ -705,17 +1094,30 @@ window.__COMMUNITY__ = (function () {
     window.Community = {
         openTopicModal:  openTopicModal,
         openGroupModal:  openGroupModal,
+        openStoryModal:  openStoryModal,
         openInviteModal: openInviteModal,
         closeModal:      closeModal,
         submitTopic:     submitTopic,
         submitGroup:     submitGroup,
+        submitStory:     submitStory,
         sendInvite:      sendInvite,
         openTopic:       openTopic,
         startChat:       startChat,
         likeTopic:       likeTopic,
         likeStory:       likeStory,
+        likeStoryInView: likeStoryInView,
         openStoryComments: openStoryComments,
+        deleteComment:   deleteComment,
         joinGroup:       joinGroup,
+        viewStory:       viewStory,
+        viewProfile:     viewProfile,
+        toggleMediaType: toggleMediaType,
+        filterByMembers: filterByMembers,
+        filterByStories: filterByStories,
+        filterByGroups:  filterByGroups,
+        filterByTopics:  filterByTopics,
+        switchTab:       switchTab,
+        filterFeed:      filterFeed,
     };
 
 }());

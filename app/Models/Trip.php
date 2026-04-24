@@ -26,6 +26,41 @@ class Trip extends Model
         'start_date',
         'end_date',
         'notes',
+        'description',
+        // Editable pricing
+        'cost_breakdown',
+        'flight_cost',
+        'accommodation_cost',
+        'activities_cost',
+        'food_cost',
+        'transport_cost',
+        // Editable itinerary
+        'daily_itinerary',
+        'activities',
+        'cities_to_visit',
+        // AI metadata
+        'travel_tip',
+        'visa_info',
+        'flight_info',
+        'best_time_to_visit',
+        'is_good_right_now',
+        // Validation data
+        'validation_data',
+        'weather_data',
+        'safety_data',
+    ];
+
+    protected $casts = [
+        'cost_breakdown' => 'array',
+        'daily_itinerary' => 'array',
+        'activities' => 'array',
+        'cities_to_visit' => 'array',
+        'validation_data' => 'array',
+        'weather_data' => 'array',
+        'safety_data' => 'array',
+        'is_good_right_now' => 'boolean',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function user(): BelongsTo

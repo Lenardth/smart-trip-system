@@ -308,14 +308,10 @@ class AviationstackService
             $minutes = ((int)$m[1]) * 60 + (int)($m[2] ?? 0);
         }
 
-        // Base price: ~$0.12 per minute for economy
+        // Base price: ~$0.12 per minute for economy (realistic airline pricing)
         $base = max(49, (int)($minutes * 0.12));
 
-        // Add some variance (±15%)
-        $variance = (int)($base * 0.15);
-        $base = $base + rand(-$variance, $variance);
-
-        // Class multipliers
+        // Class multipliers (industry standard)
         $multiplier = match (strtoupper($travelClass)) {
             'PREMIUM_ECONOMY' => 1.8,
             'BUSINESS'        => 3.5,

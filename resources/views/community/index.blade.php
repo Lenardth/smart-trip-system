@@ -13,28 +13,91 @@ window.__dashboardConfig.user      = { id: {{ Auth::id() }}, name: @json(Auth::u
 @endpush
 
 @section('content')
-<section class="page-hero" style="background: linear-gradient(160deg, rgba(20,10,30,0.72) 0%, rgba(59,31,43,0.55) 100%), url('https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=1920&q=90'); background-size: cover; background-position: center 60%;">
+<section class="page-hero" style="background: linear-gradient(160deg, rgba(20,10,30,0.72) 0%, rgba(59,31,43,0.55) 100%), url('https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=1920&q=90'); background-size: cover; background-position: center 60%; min-height: 450px; display: flex; align-items: center;">
     <div>
-        <h1><i class="fas fa-users"></i> Community</h1>
-        <p>Connect with fellow travellers, share stories, and join group adventures.</p>
+        <h1 style="margin-bottom: 16px;"><i class="fas fa-users"></i> Community</h1>
+        <p style="font-size: 15px; max-width: 600px; margin: 0 auto;">Connect with fellow travellers, share stories, and join group adventures.</p>
     </div>
 </section>
 
 <div class="community-wrap">
+    <!-- Community Tabs -->
+    <div class="community-tabs">
+        <button class="community-tab" data-tab="explore" onclick="Community.switchTab('explore')">
+            <i class="fas fa-compass"></i> Explore
+        </button>
+        @auth
+        <button class="community-tab active" data-tab="feed" onclick="Community.switchTab('feed')">
+            <i class="fas fa-stream"></i> My Feed
+        </button>
+        @else
+        <button class="community-tab active" data-tab="explore" onclick="Community.switchTab('explore')">
+            <i class="fas fa-compass"></i> Explore
+        </button>
+        @endauth
+        <button class="community-tab" data-tab="members" onclick="Community.switchTab('members')">
+            <i class="fas fa-user-friends"></i> Members
+        </button>
+    </div>
+
+    <!-- Feed Tab Content -->
+    @auth
+    <div class="community-tab-content active" id="tab-feed">
+        <div class="feed-section">
+            <div class="feed-header-inline">
+                <h2><i class="fas fa-fire"></i> Latest from People You Follow</h2>
+                <div class="feed-filters-inline">
+                    <button class="filter-btn-inline active" data-filter="all" onclick="Community.filterFeed('all')">
+                        All
+                    </button>
+                    <button class="filter-btn-inline" data-filter="stories" onclick="Community.filterFeed('stories')">
+                        Stories
+                    </button>
+                    <button class="filter-btn-inline" data-filter="topics" onclick="Community.filterFeed('topics')">
+                        Topics
+                    </button>
+                </div>
+            </div>
+
+            <div id="feedContent" class="feed-grid">
+                <!-- Loading skeleton -->
+                @for ($i = 0; $i < 3; $i++)
+                <div class="feed-item-card skeleton-item">
+                    <div class="sk-line skeleton" style="width:100%;height:200px;margin-bottom:12px;"></div>
+                    <div class="sk-line skeleton" style="width:80%;height:16px;margin-bottom:8px;"></div>
+                    <div class="sk-line skeleton" style="width:60%;height:14px;"></div>
+                </div>
+                @endfor
+            </div>
+
+            <div id="emptyFeed" style="display:none;text-align:center;padding:60px 20px;">
+                <i class="fas fa-users" style="font-size:64px;color:var(--text-muted);margin-bottom:20px;"></i>
+                <h3 style="color:var(--deep);margin-bottom:12px;">Your Feed is Empty</h3>
+                <p style="color:var(--text-muted);margin-bottom:24px;">Follow other travelers to see their stories and posts here!</p>
+                <button class="primary-button" onclick="Community.switchTab('members')">
+                    <i class="fas fa-search"></i> Discover People
+                </button>
+            </div>
+        </div>
+    </div>
+    @endauth
+
+    <!-- Explore Tab Content (Default) -->
+    <div class="community-tab-content {{ Auth::guest() ? 'active' : '' }}" id="tab-explore">
     <div class="community-stats">
-        <div class="comm-stat">
+        <div class="comm-stat clickable" onclick="Community.filterByMembers()">
             <div class="cs-num" id="stat-members"><span class="sk-line medium skeleton" style="display:inline-block;width:80px;height:32px;"></span></div>
             <div class="cs-label">Active Members</div>
         </div>
-        <div class="comm-stat">
+        <div class="comm-stat clickable" onclick="Community.filterByStories()">
             <div class="cs-num" id="stat-stories"><span class="sk-line medium skeleton" style="display:inline-block;width:60px;height:32px;"></span></div>
             <div class="cs-label">Travel Stories</div>
         </div>
-        <div class="comm-stat">
+        <div class="comm-stat clickable" onclick="Community.filterByGroups()">
             <div class="cs-num" id="stat-groups"><span class="sk-line medium skeleton" style="display:inline-block;width:60px;height:32px;"></span></div>
             <div class="cs-label">Active Groups</div>
         </div>
-        <div class="comm-stat">
+        <div class="comm-stat clickable" onclick="Community.filterByTopics()">
             <div class="cs-num" id="stat-topics"><span class="sk-line medium skeleton" style="display:inline-block;width:60px;height:32px;"></span></div>
             <div class="cs-label">Forum Topics</div>
         </div>
@@ -84,8 +147,13 @@ window.__dashboardConfig.user      = { id: {{ Auth::id() }}, name: @json(Auth::u
         </div>
     </div>
 
-    <h2 class="section-title">Travel Stories</h2>
-    <p class="section-subtitle">Real experiences from our community — inspiring tales from around the globe.</p>
+    <h2 class="section-title">Travel Stories & Vlogs</h2>
+    <p class="section-subtitle">Real experiences from our community — inspiring tales and videos from around the globe.</p>
+    <div style="text-align:center;margin-bottom:20px;">
+        <button class="primary-button" onclick="Community.openStoryModal()">
+            <i class="fas fa-plus"></i> Create Story/Vlog
+        </button>
+    </div>
     <div class="stories-grid" id="storiesGrid">
         @for ($i = 0; $i < 3; $i++)
         <div class="story-card">
@@ -106,6 +174,23 @@ window.__dashboardConfig.user      = { id: {{ Auth::id() }}, name: @json(Auth::u
         <div class="traveler-card skeleton" style="height:200px;"></div>
         @endfor
     </div>
+    </div>
+    <!-- End Explore Tab -->
+
+    <!-- Members Tab Content -->
+    <div class="community-tab-content" id="tab-members">
+        <div class="members-embed">
+            <div class="members-embed-header">
+                <h2>Active Members</h2>
+                <input type="text" id="searchMembersInline" placeholder="Search members..." class="search-input-inline">
+            </div>
+            <div id="membersGridInline" class="members-grid-inline">
+                <!-- Will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+    <!-- End Members Tab -->
+
 </div>
 
 <div class="modal-overlay" id="topicModal">
@@ -202,6 +287,69 @@ window.__dashboardConfig.user      = { id: {{ Auth::id() }}, name: @json(Auth::u
                     <i class="fas fa-paper-plane"></i> Send &amp; Open Chat
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="storyModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-camera" style="color:var(--gold);margin-right:8px;"></i> Create Story/Vlog</h2>
+            <button class="modal-close" onclick="Community.closeModal('storyModal')">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Media Type</label>
+                <div style="display:flex;gap:12px;margin-top:8px;">
+                    <label style="display:flex;align-items:center;cursor:pointer;">
+                        <input type="radio" name="mediaType" value="image" checked onchange="Community.toggleMediaType('image')" style="margin-right:6px;">
+                        <i class="fas fa-image" style="margin-right:4px;"></i> Photo
+                    </label>
+                    <label style="display:flex;align-items:center;cursor:pointer;">
+                        <input type="radio" name="mediaType" value="video" onchange="Community.toggleMediaType('video')" style="margin-right:6px;">
+                        <i class="fas fa-video" style="margin-right:4px;"></i> Video (Vlog)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="storyTitle">Title</label>
+                <input type="text" id="storyTitle" placeholder="e.g. My Amazing Trip to Bali">
+            </div>
+            <div class="form-group">
+                <label for="storyExcerpt">Description</label>
+                <textarea id="storyExcerpt" rows="3" placeholder="Share a brief description of your story..."></textarea>
+            </div>
+            <div class="form-group" id="imageUrlGroup">
+                <label for="storyImageUrl">Image URL</label>
+                <input type="url" id="storyImageUrl" placeholder="https://example.com/image.jpg">
+            </div>
+            <div class="form-group" id="videoUrlGroup" style="display:none;">
+                <label for="storyVideoUrl">Video URL</label>
+                <input type="url" id="storyVideoUrl" placeholder="https://example.com/video.mp4">
+            </div>
+            <div class="form-group" id="thumbnailUrlGroup" style="display:none;">
+                <label for="storyThumbnailUrl">Video Thumbnail URL (optional)</label>
+                <input type="url" id="storyThumbnailUrl" placeholder="https://example.com/thumbnail.jpg">
+            </div>
+            <div class="form-group" id="durationGroup" style="display:none;">
+                <label for="storyDuration">Video Duration (seconds)</label>
+                <input type="number" id="storyDuration" placeholder="e.g. 120" min="1">
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-button" onclick="Community.closeModal('storyModal')">Cancel</button>
+                <button class="primary-button" id="submitStoryBtn" onclick="Community.submitStory()">
+                    <i class="fas fa-paper-plane"></i> Post
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="storyViewModal">
+    <div class="modal story-view-modal">
+        <button class="modal-close" onclick="Community.closeModal('storyViewModal')" style="position:absolute;top:20px;right:20px;z-index:10;">&#x2715;</button>
+        <div class="story-view-content" id="storyViewContent">
+            <!-- Story content will be loaded here -->
         </div>
     </div>
 </div>

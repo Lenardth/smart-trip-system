@@ -419,3 +419,49 @@ All APIs have generous free tiers suitable for development and testing.
 <p align="center">
   Designed and developed by <strong>Lenard</strong> &nbsp;·&nbsp; 2026
 </p>
+
+
+---
+
+## Documentation
+
+### Quick Links
+- **[CHANGELOG.md](CHANGELOG.md)** - Complete change history and feature list
+- **[docs/CLEANUP_SUMMARY.md](docs/CLEANUP_SUMMARY.md)** - Code cleanup and organization details
+
+### Implementation Details
+Detailed technical documentation is available in `docs/implementation/`:
+- **AI Pricing System** - Realistic pricing with geographic intelligence
+- **Trip Editing System** - Editable itineraries and pricing
+- **Multi-API Validation** - Hallucination prevention with 6 free APIs
+- **PDF Currency Fix** - Proper currency display in receipts
+- **Pricing Synchronization** - Consistent pricing across platform
+- **UI Improvements** - Hero sections, visibility, and logo updates
+
+### Project Structure
+```
+smart-booking/
+├── app/
+│   ├── Http/Controllers/     # Request handlers
+│   ├── Models/                # Database models
+│   ├── Services/              # Business logic
+│   └── View/Components/       # Blade components
+├── database/
+│   ├── migrations/            # Database schema
+│   └── seeders/               # Sample data
+├── resources/
+│   ├── js/blade/              # Page-specific JavaScript
+│   ├── views/                 # Blade templates
+│   └── css/                   # Stylesheets
+├── routes/
+│   ├── web.php                # Web routes
+│   ├── api.php                # API routes
+│   └── setup.php              # Setup routes (non-production)
+├── docs/
+│   ├── implementation/        # Technical documentation
+│   └── CLEANUP_SUMMARY.md     # Code organization
+├── README.md                  # This file
+└── CHANGELOG.md               # Change history
+```
+
+---
