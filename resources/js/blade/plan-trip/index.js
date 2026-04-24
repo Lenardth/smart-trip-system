@@ -851,7 +851,7 @@ function buildReceiptHTML(d) {
                             <i class="${icon}" style="color:#c9a96e;width:18px;text-align:center;"></i>
                             <span style="font-weight:bold;color:#3b1f2b;">${label}</span>
                         </div>
-                        <span style="font-weight:bold;color:#3b1f2b;">$${amt}</span>
+                        <span style="font-weight:bold;color:#3b1f2b;">${amt}</span>
                     </div>
                     <div style="font-size:11px;color:#6b5b4f;margin-left:28px;">${desc}<br><span style="color:#c9a96e;">${detail}</span></div>
                 </div>`).join('')}

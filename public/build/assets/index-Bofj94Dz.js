@@ -73,7 +73,7 @@ let j="",D=[],u={},d=null;window.selectMood=function(t){return ne(t)};window.sub
                             <i class="${s}" style="color:#c9a96e;width:18px;text-align:center;"></i>
                             <span style="font-weight:bold;color:#3b1f2b;">${l}</span>
                         </div>
-                        <span style="font-weight:bold;color:#3b1f2b;">$${f}</span>
+                        <span style="font-weight:bold;color:#3b1f2b;">${f}</span>
                     </div>
                     <div style="font-size:11px;color:#6b5b4f;margin-left:28px;">${m}<br><span style="color:#c9a96e;">${b}</span></div>
                 </div>`).join("")}
