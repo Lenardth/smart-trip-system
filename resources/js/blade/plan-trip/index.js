@@ -1024,7 +1024,7 @@ async function downloadReceiptPdf() {
         newPageIfNeeded(20);
         doc.setFillColor(...cream); doc.roundedRect(mg, y, cW, 18, 2, 2, 'F');
         doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...deep);
-        doc.text(label, mg + 6, y + 7); doc.text(`$${amount}`, mg + cW - 2, y + 7, { align: 'right' });
+        doc.text(label, mg + 6, y + 7); doc.text(String(amount), mg + cW - 2, y + 7, { align: 'right' });
         doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...muted);
         doc.text(String(desc), mg + 6, y + 12.5);
         doc.setTextColor(...gold);
