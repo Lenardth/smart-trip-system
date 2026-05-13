@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Cache;
  * Fetches real-time accommodation prices from external APIs
  * Falls back to intelligent estimation when API is unavailable
  */
-class AccommodationPricingService
+use App\Contracts\AccommodationPricingInterface;
+
+class AccommodationPricingService implements AccommodationPricingInterface
 {
     private ?string $rapidApiKey;
     private string $rapidApiHost = 'booking-com.p.rapidapi.com';

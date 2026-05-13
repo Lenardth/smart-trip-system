@@ -1,7 +1,6 @@
 window.App = {
     init() {
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        this.loadWishlistCount();
     },
     showToast(message, type = 'info') {
         const icons = {
@@ -17,26 +16,6 @@ window.App = {
         toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
-    },
-    updateWishlistBadge(count) {
-        document.querySelectorAll('#wishlistCount, #savedCount, #statSavedCount').forEach(el => {
-            el.textContent = count;
-        });
-    },
-    loadWishlistCount() {
-        fetch('/api/wishlist/count', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(r => {
-                if (!r.ok) return null;
-                return r.json();
-            })
-            .then(data => {
-                if (data) this.updateWishlistBadge(data.count?? 0);
-            })
-            .catch(() => {});
     }
 };
 
@@ -46,10 +25,10 @@ window.toggleSidebar = function() {
 };
 
 window.viewProfile = function() {
-    window.location.href = '/profile';
+    window.location.href = '/dashboard';
 };
 window.openSettings = function() {
-    window.location.href = '/settings';
+    window.location.href = '/dashboard';
 };
 
 window.togglePublicNav = function() {
@@ -103,7 +82,7 @@ window.markAllRead = function() {
 };
 
 window.openComposeMessage = function() {
-    window.location.href = '/chat';
+    window.location.href = '/plan-trip';
 };
 
 window.handleNotificationClick = function(id) {
@@ -137,23 +116,7 @@ window.uploadPhotos = window.uploadPhotos || function() {
     setTimeout(() => document.getElementById('mediaInput')?.click(), 100);
 };
 
-window.__refreshWishlistBadge = function() {
-    App.loadWishlistCount();
-};
-
-document.addEventListener('click', function(e) {
-    const dropdown = document.getElementById('notificationDropdown');
-    const btn = document.querySelector('.notification-btn');
-    if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
-        dropdown.classList.remove('active');
-    }
-});
-
-window.addEventListener('storage', function(e) {
-    if (e.key === 'smartBookingWishlistUpdated' && e.newValue) {
-        App.loadWishlistCount();
-    }
-});
+window.__refreshWishlistBadge = function() {};
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => App.init());

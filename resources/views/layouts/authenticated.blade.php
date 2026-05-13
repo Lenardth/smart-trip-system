@@ -17,7 +17,7 @@ class="dashboard-page"
         firstName: @json(Auth::check() ? explode(' ', Auth::user()->name ?? '')[0] : ''),
         avatar:    @json(Auth::user()->avatar ?? ''),
         type:      @json(Auth::user()->user_type ?? ''),
-        verified:  {{ Auth::user()?->hasVerifiedEmail() ? 'true' : 'false' }}
+        verified:  {{ Auth::user()?->email_verified_at ? 'true' : 'false' }}
     };
 })();
 </script>

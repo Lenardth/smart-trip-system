@@ -112,8 +112,8 @@ function buildCard(d) {
                 '<span style="font-size:12px;color:var(--text-muted);background:rgba(201,169,110,0.12);border:1px solid var(--border);border-radius:20px;padding:3px 10px;">' + moodIconMap(d.mood) + ' ' + formatLabel(d.mood) + '</span>' +
                 (price ? '<div style="font-size:15px;font-weight:700;color:var(--deep);">' + price + '</div>' : '') +
             '</div>' +
-            '<a href="/destinations/' + (d.id || '') + '" class="primary-button" style="text-decoration:none;padding:9px;font-size:13px;margin-top:auto;">' +
-                '<i class="fas fa-compass"></i> Explore' +
+            '<a href="/plan-trip" class="primary-button" style="text-decoration:none;padding:9px;font-size:13px;margin-top:auto;">' +
+                '<i class="fas fa-route"></i> Plan trip' +
             '</a>' +
         '</div>' +
     '</div>';
@@ -135,6 +135,17 @@ function renderGrid(destinations) {
     grid.innerHTML     = destinations.map(d => buildCard(d)).join('');
 }
 
+function getStaticLandingDestinations() {
+    return [
+        { id: 1, name: 'Lisbon', country: 'Portugal', region: 'europe', mood: 'cultural', category: 'general', price_from: 89, description: 'Historic neighborhoods, river views, and Atlantic breezes.', badge: 'Editor pick', image_url: 'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800&q=80' },
+        { id: 2, name: 'Kyoto', country: 'Japan', region: 'east_asia', mood: 'cultural', category: 'historical', price_from: 120, description: 'Temples, gardens, and timeless traditions.', badge: null, image_url: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80' },
+        { id: 3, name: 'Cape Town', country: 'South Africa', region: 'africa', mood: 'adventurous', category: 'mountain', price_from: 95, description: 'Coastline, mountains, and vibrant culture.', badge: 'Adventure', image_url: 'https://images.unsplash.com/photo-1580060839134-75a5dca7b532?w=800&q=80' },
+        { id: 4, name: 'Barcelona', country: 'Spain', region: 'europe', mood: 'foodie', category: 'food_culture', price_from: 102, description: 'Architecture, markets, and Mediterranean flavor.', badge: null, image_url: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80' },
+        { id: 5, name: 'Reykjavik', country: 'Iceland', region: 'europe', mood: 'nature', category: 'general', price_from: 140, description: 'Northern lights, hot springs, and dramatic landscapes.', badge: 'Nature', image_url: 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80' },
+        { id: 6, name: 'Mexico City', country: 'Mexico', region: 'north_america', mood: 'foodie', category: 'food_culture', price_from: 78, description: 'World-class cuisine and buzzing neighborhoods.', badge: null, image_url: 'https://images.unsplash.com/photo-1518659526055-ea5caba8c9ae?w=800&q=80' },
+    ];
+}
+
 async function fetchDestinations() {
     const grid    = document.getElementById('destinationsGrid');
     const loading = document.getElementById('destinationsLoading');
@@ -152,17 +163,18 @@ async function fetchDestinations() {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         const all  = Array.isArray(data) ? data : (data.data || data.destinations || []);
+        if (!all.length) {
+            window._allDestinations = getStaticLandingDestinations();
+            renderGrid(window._allDestinations.slice(0, 8));
+            if (loading) loading.style.display = 'none';
+            return;
+        }
         window._allDestinations = all;
         renderGrid(all.slice(0, 8));
     } catch (err) {
-        if (loading) {
-            loading.style.display = 'block';
-            loading.innerHTML = '<div style="padding:40px;text-align:center;">' +
-                '<i class="fas fa-exclamation-triangle" style="font-size:36px;color:var(--deep);opacity:0.7;"></i>' +
-                '<p style="margin:12px 0 16px;font-size:15px;">Could not load destinations</p>' +
-                '<button class="secondary-button" onclick="window.initDestinations()" style="font-size:13px;">' +
-                    '<i class="fas fa-redo"></i> Retry</button></div>';
-        }
+        window._allDestinations = getStaticLandingDestinations();
+        renderGrid(window._allDestinations.slice(0, 8));
+        if (loading) loading.style.display = 'none';
     }
 }
 

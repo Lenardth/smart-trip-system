@@ -3,20 +3,7 @@
 
 @import './landing/index.css';
 @import './dashboard/index.css';
-@import './dashboard/photo-editor.css';
-@import './discover/index.css';
-@import './destinations/index.css';
-@import './destinations/show.css';
 @import './flights/index.css';
 @import './accommodations/index.css';
 @import './bookings/index.css';
-@import './community/index.css';
-@import './community/profile.css';
-@import './community/feed.css';
-@import './community/members.css';
-@import './chat/index.css';
 @import './plan-trip/index.css';
-@import './profile/edit.css';
-@import './notifications/index.css';
-@import './wishlist/index.css';
-@import './pdf/itinerary.css';

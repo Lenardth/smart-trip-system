@@ -73,11 +73,6 @@ class Trip extends Model
         return $this->hasMany(Booking::class);
     }
 
-    public function media()
-    {
-        return $this->hasMany(Media::class);
-    }
-
     public function getDurationLabelAttribute(): string
     {
         return [

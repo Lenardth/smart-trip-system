@@ -8,7 +8,9 @@ use App\Models\RevenueRecord;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class PricingService
+use App\Contracts\PricingServiceInterface;
+
+class PricingService implements PricingServiceInterface
 {
     const SERVICE_FEE_RATE   = 0.05;  
     const AGENCY_COMMISSION  = 0.10;  

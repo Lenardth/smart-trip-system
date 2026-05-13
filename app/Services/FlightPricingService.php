@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Cache;
  * Fetches real-time flight prices from external APIs
  * Falls back to intelligent estimation when API is unavailable
  */
-class FlightPricingService
+use App\Contracts\FlightPricingInterface;
+
+class FlightPricingService implements FlightPricingInterface
 {
     private ?string $rapidApiKey;
     private string $rapidApiHost = 'sky-scrapper.p.rapidapi.com';

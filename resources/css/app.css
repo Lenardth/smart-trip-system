@@ -4,10 +4,6 @@
 
 @import './blade/auth/shared-auth.css';
 @import './blade/auth/login.css';
-@import './blade/auth/forgot-password.css';
-@import './blade/auth/reset-password.css';
-@import './blade/auth/confirm-password.css';
-@import './blade/auth/verify-email.css';
 
 @import './blade/shared/travel-advisory.css';
 @import './blade/shared/currency.css';

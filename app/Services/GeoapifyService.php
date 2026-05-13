@@ -5,7 +5,9 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class GeoapifyService
+use App\Contracts\GeoapifyInterface;
+
+class GeoapifyService implements GeoapifyInterface
 {
     private array $overpassUrls = [
         'https://overpass.kumi.systems/api/interpreter',

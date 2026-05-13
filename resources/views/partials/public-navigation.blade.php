@@ -28,23 +28,20 @@
 
 <nav class="nav-container desktop-nav">
     <a href="{{ url('/') }}"                     class="{{ request()->is('/')                  ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-    <a href="{{ route('discover') }}"             class="{{ request()->routeIs('discover')      ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>
-    <a href="{{ route('destinations') }}"         class="{{ request()->routeIs('destinations*') ? 'active' : '' }}"><i class="fas fa-map-marker-alt"></i> Destinations</a>
     <a href="{{ route('plan-trip') }}"            class="{{ request()->routeIs('plan-trip')     ? 'active' : '' }}"><i class="fas fa-route"></i> Plan Trip</a>
     <a href="{{ route('flights.index') }}"        class="{{ request()->routeIs('flights.*')     ? 'active' : '' }}"><i class="fas fa-plane"></i> Flights</a>
     <a href="{{ route('accommodations.index') }}" class="{{ request()->routeIs('accommodations.*') ? 'active' : '' }}"><i class="fas fa-hotel"></i> Stays</a>
-    <a href="{{ route('community') }}"            class="{{ request()->routeIs('community*')   ? 'active' : '' }}"><i class="fas fa-users"></i> Community</a>
     @guest
         <a href="{{ route('login') }}"    style="margin-left:auto;"><i class="fas fa-sign-in-alt"></i> Login</a>
         <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i> Register</a>
     @else
         <a href="{{ route('dashboard') }}" style="margin-left:auto;"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{{ route('bookings.index') }}"><i class="fas fa-ticket-alt"></i> Bookings</a>
         <form method="POST" action="{{ route('logout') }}" style="display:contents;">
             @csrf
             <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </form>
     @endguest
-    <div class="nav-currency-slot" id="navCurrencySlot"></div>
 </nav>
 
 <div class="mob-overlay" id="mobOverlay"></div>
@@ -63,18 +60,9 @@
 
     <div class="mob-drawer-links">
         <a href="{{ url('/') }}"                     class="mob-link {{ request()->is('/')                  ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-        <a href="{{ route('discover') }}"             class="mob-link {{ request()->routeIs('discover')      ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>
-        <a href="{{ route('destinations') }}"         class="mob-link {{ request()->routeIs('destinations*') ? 'active' : '' }}"><i class="fas fa-map-marker-alt"></i> Destinations</a>
         <a href="{{ route('plan-trip') }}"            class="mob-link {{ request()->routeIs('plan-trip')     ? 'active' : '' }}"><i class="fas fa-route"></i> Plan Trip</a>
         <a href="{{ route('flights.index') }}"        class="mob-link {{ request()->routeIs('flights.*')     ? 'active' : '' }}"><i class="fas fa-plane"></i> Flights</a>
         <a href="{{ route('accommodations.index') }}" class="mob-link {{ request()->routeIs('accommodations.*') ? 'active' : '' }}"><i class="fas fa-hotel"></i> Stays</a>
-        <a href="{{ route('community') }}"            class="mob-link {{ request()->routeIs('community*')   ? 'active' : '' }}"><i class="fas fa-users"></i> Community</a>
-
-        <div class="mob-divider"></div>
-        
-        <div style="padding: 12px 20px;">
-            <div id="mobCurrencySlot"></div>
-        </div>
 
         <div class="mob-divider"></div>
 
@@ -84,7 +72,6 @@
         @else
             <a href="{{ route('dashboard') }}"      class="mob-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             <a href="{{ route('bookings.index') }}"  class="mob-link"><i class="fas fa-ticket-alt"></i> My Bookings</a>
-            <a href="{{ route('wishlist.index') }}"  class="mob-link"><i class="fas fa-heart"></i> Wishlist</a>
             <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                 @csrf
                 <button type="submit" class="mob-link mob-link-btn">

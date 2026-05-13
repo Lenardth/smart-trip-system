@@ -332,7 +332,7 @@
 <section class="discover-section">
     <div class="discover-header">
         <h2 class="section-title">Discover Trending Destinations</h2>
-        <button class="secondary-button" onclick="window.location.href='/discover'">View All <i class="fas fa-arrow-right"></i></button>
+        <button class="secondary-button" onclick="window.location.href='/plan-trip'">Plan with AI <i class="fas fa-arrow-right"></i></button>
     </div>
     <div class="filter-tags">
         <span class="filter-tag active" data-filter="all"         onclick="window.applyDestinationFilter('all', this)"><i class="fas fa-globe"></i> All</span>
@@ -421,7 +421,7 @@
         <p>No destinations found for this style.</p>
     </div>
     <div id="styleViewAll" style="display:none; text-align:center; margin-top:28px;">
-        <a href="/destinations" class="secondary-button" style="text-decoration:none; padding:10px 28px;">
+        <a href="/plan-trip" class="secondary-button" style="text-decoration:none; padding:10px 28px;">
             <i class="fas fa-compass"></i> View All Destinations
         </a>
     </div>

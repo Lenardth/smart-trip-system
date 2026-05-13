@@ -5,7 +5,9 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class AviationstackService
+use App\Contracts\FlightSearchInterface;
+
+class AviationstackService implements FlightSearchInterface
 {
     private string $host    = 'aerodatabox.p.rapidapi.com';
     private string $baseUrl = 'https://aerodatabox.p.rapidapi.com';

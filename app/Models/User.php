@@ -72,42 +72,6 @@ class User extends Authenticatable
         return $this->hasMany(Flight::class);
     }
 
-    public function itineraries()
-    {
-        return $this->hasMany(Itinerary::class);
-    }
-
-    public function media()
-    {
-        return $this->hasMany(Media::class);
-    }
-
-    public function messages()
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
-
-    public function subscriptions()
-    {
-        return $this->hasMany(Subscription::class);
-    }
-
-    public function activeSubscription()
-    {
-        return $this->hasOne(Subscription::class)
-            ->where('status', 'active')
-            ->where('ends_at', '>', now())
-            ->latest();
-    }
-
-    public function savedDestinations()
-    {
-        return $this->belongsToMany(
-            Destination::class,
-            'saved_destinations'
-        )->withTimestamps();
-    }
-
     public function getProfilePictureUrlAttribute(): ?string
     {
         if ($this->profile_picture) {
@@ -124,28 +88,5 @@ class User extends Authenticatable
     public function getAvatarAttribute(): ?string
     {
         return $this->profile_picture_url;
-    }
-
-    // Follow relationships
-    public function followers()
-    {
-        return $this->belongsToMany(User::class, 'user_follows', 'following_id', 'follower_id')
-            ->withTimestamps();
-    }
-
-    public function following()
-    {
-        return $this->belongsToMany(User::class, 'user_follows', 'follower_id', 'following_id')
-            ->withTimestamps();
-    }
-
-    public function isFollowing($userId)
-    {
-        return $this->following()->where('following_id', $userId)->exists();
-    }
-
-    public function isFollowedBy($userId)
-    {
-        return $this->followers()->where('follower_id', $userId)->exists();
     }
 }

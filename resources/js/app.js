@@ -1,7 +1,5 @@
 import Alpine from 'alpinejs';
 import './blade/global';
-import './blade/shared/currency';
-import './blade/shared/travel-advisory';
 import './bootstrap';
 
 window.Alpine = Alpine;
@@ -10,26 +8,13 @@ Alpine.start();
 const path = window.location.pathname.replace(/\/$/, '') || '/';
 
 const routes = {
-    '/': () => import('./blade/landing/index.js'),
-    '/dashboard': () => import('./blade/dashboard/index.js'),
-    '/discover': () => import('./blade/discover/index.js'),
-    '/destinations': () => import('./blade/destinations/index.js'),
-    '/destination-info': () => import('./blade/destination-info/show.js'),
-    '/plan-trip': () => import('./blade/plan-trip/index.js'),
-    '/wishlist': () => import('./blade/wishlist/index.js'),
-    '/community': () => import('./blade/community/index.js'),
-    '/feed': () => import('./blade/community/feed.js'),
-    '/members': () => import('./blade/community/members.js'),
-    '/users': () => import('./blade/community/profile.js'),
-    '/accommodations': () => import('./blade/accommodations/index.js'),
-    '/bookings': () => import('./blade/bookings/index.js'),
-    '/flights': () => import('./blade/flights/index.js'),
-    '/chat': () => import('./blade/chat/index.js'),
-    '/notifications': () => import('./blade/notifications/index.js'),
-    '/profile': () => import('./blade/profile/edit.js'),
-    '/settings': () => import('./blade/settings/index.js'),
-    '/itineraries': () => import('./blade/itineraries/index.js'),
-    '/register': () => import('./blade/auth/register.js'),
+    '/':              () => import('./blade/landing/index.js'),
+    '/dashboard':     () => import('./blade/dashboard/index.js'),
+    '/plan-trip':     () => import('./blade/plan-trip/index.js'),
+    '/accommodations':() => import('./blade/accommodations/index.js'),
+    '/bookings':      () => import('./blade/bookings/index.js'),
+    '/flights':       () => import('./blade/flights/index.js'),
+    '/register':      () => import('./blade/auth/register.js'),
 };
 
 const loader = routes[path] ??
@@ -42,11 +27,7 @@ if (loader) {
         const _orig = document.addEventListener.bind(document);
         document.addEventListener = function(type, fn, opts) {
             if (type === 'DOMContentLoaded') {
-                try {
-                    fn();
-                } catch (e) {
-                    console.error(e);
-                }
+                try { fn(); } catch (e) { console.error(e); }
             } else {
                 _orig(type, fn, opts);
             }

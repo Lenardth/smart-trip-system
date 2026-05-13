@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AviationstackService;
-use App\Services\FlightPricingService;
+use App\Contracts\FlightSearchInterface;
+use App\Contracts\FlightPricingInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Log;
 class FlightController extends Controller
 {
     public function __construct(
-        private readonly AviationstackService $aviationstack,
-        private readonly FlightPricingService $flightPricing
+        private readonly FlightSearchInterface $aviationstack,
+        private readonly FlightPricingInterface $flightPricing
     ) {
     }
 
@@ -71,14 +71,10 @@ class FlightController extends Controller
                     : null,
             ]);
         } catch (\Exception $e) {
-            Log::error('Flight search failed', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
-
+            Log::error('Flight search failed', ['message' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage(),
+                'message' => 'Flight search failed. Please try again.',
                 'flights' => [],
             ], 500);
         }

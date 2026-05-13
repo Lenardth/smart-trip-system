@@ -3,15 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Services\PricingService;
-use Carbon\Carbon;
+use App\Contracts\PricingServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
-    public function __construct(private PricingService $pricing) {}
+    public function __construct(private PricingServiceInterface $pricing) {}
     public function index()
     {
         $bookings = Booking::with(['flight', 'trip'])
@@ -66,16 +64,6 @@ class BookingController extends Controller
         });
 
         return back()->with('success', 'Booking cancelled successfully.');
-    }
-
-    public function create(Request $request)
-    {
-        $accommodationId = $request->query('accommodation_id');
-        $accommodation   = $accommodationId
-            ? \App\Models\Accommodation::find($accommodationId)
-            : null;
-
-        return view('bookings.create', compact('accommodation'));
     }
 
     public function storeAccommodation(Request $request): \Illuminate\Http\JsonResponse
@@ -195,20 +183,5 @@ class BookingController extends Controller
                 'message'           => 'Flight booked successfully!',
             ], 201);
         });
-    }
-
-    public function agencyBookings()
-    {        if (! Auth::user()->isAgency()) {
-            return redirect()->route('dashboard');
-        }
-
-        $bookings = Booking::with(['user', 'flight'])
-            ->whereHas('flight', function ($query) {
-                $query->where('user_id', Auth::id());
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
-        return view('bookings.agency-bookings', compact('bookings'));
     }
 }

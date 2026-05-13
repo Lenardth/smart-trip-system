@@ -12,44 +12,11 @@
     <div class="dash-header-right">
         <div class="dash-search">
             <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search…" id="dashSearchInput"
-                   onkeydown="if(event.key==='Enter'&&this.value.trim())window.location='/discover?q='+encodeURIComponent(this.value.trim())">
+            <input type="text" placeholder="Search flights or plan a trip…" id="dashSearchInput"
+                   onkeydown="if(event.key==='Enter'&&this.value.trim()){window.location='/flights?q='+encodeURIComponent(this.value.trim());}">
         </div>
 
-        <div class="dash-notif-wrap">
-            <button class="dash-icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
-                <i class="fas fa-bell"></i>
-                <span class="dash-badge" id="notificationCount" style="display:none;">0</span>
-            </button>
-            <div class="notification-dropdown" id="notificationDropdown">
-                <div class="notification-header">
-                    <h3><i class="fas fa-bell"></i> Notifications</h3>
-                    <div class="notification-actions">
-                        <button class="compose-message-btn" onclick="openComposeMessage()" title="New message">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                        <button class="mark-all-read" onclick="markAllRead()">Mark all read</button>
-                    </div>
-                </div>
-                <div class="notification-tabs">
-                    <div class="notification-tab active" data-tab="all"      onclick="switchNotificationTab('all')"><i class="fas fa-th-large"></i> All</div>
-                    <div class="notification-tab"        data-tab="chat"     onclick="switchNotificationTab('chat')"><i class="fas fa-comments"></i> Chat</div>
-                    <div class="notification-tab"        data-tab="activity" onclick="switchNotificationTab('activity')"><i class="fas fa-bell"></i> Activity</div>
-                </div>
-                <div class="notification-list" id="notificationList"></div>
-                <div class="notification-footer">
-                    <a href="{{ route('notifications.index') }}" class="view-all-notifications">View all</a>
-                </div>
-            </div>
-        </div>
-
-        <a href="{{ route('chat.index') }}" class="dash-icon-btn" aria-label="Messages">
-            <i class="fas fa-comment-dots"></i>
-        </a>
-
-        <div class="dash-currency-slot" id="dashCurrencySlot"></div>
-
-        <a href="{{ route('profile.edit') }}" class="dash-profile-chip">
+        <a href="{{ route('dashboard') }}" class="dash-profile-chip" title="Dashboard">
             @auth
             <div class="dash-avatar-wrap">
                 @if(Auth::user()->profile_picture)
