@@ -115,7 +115,7 @@
 
     <p class="legal-meta">
         <i class="fas fa-calendar-alt"></i> Last updated: {{ date('F j, Y') }} &nbsp;·&nbsp;
-        <i class="fas fa-globe"></i> Applies to smart-trip-system.vercel.app
+        <i class="fas fa-globe"></i> Applies to smart-trip-system.com
     </p>
 
     <div class="terms-highlight">

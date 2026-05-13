@@ -54,5 +54,5 @@ Thumbs.db
 /storage/framework/views/*
 !/storage/framework/views/.gitignore
 # Your existing entries
-# NOTE: public/build is intentionally NOT ignored — Vercel needs compiled assets
+# NOTE: public/build is intentionally committed — needed for deployment
 /storage/pail
