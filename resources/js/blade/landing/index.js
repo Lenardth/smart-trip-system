@@ -157,7 +157,7 @@ async function fetchDestinations() {
     if (empty)   empty.style.display   = 'none';
 
     try {
-        const res  = await fetch('/api/discover/destinations?active=1', {
+        const res  = await fetch('/api/landing/destinations', {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);

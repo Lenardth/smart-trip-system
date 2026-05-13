@@ -27,18 +27,6 @@
     <script src="{{ asset('js/location-detector.js') }}"></script>
     
     @stack('scripts')
-    <script>
-    (function initCurrencySwitchers() {
-        function tryInit() {
-            if (typeof window.Currency === 'undefined') { setTimeout(tryInit, 100); return; }
-            ['navCurrencySlot','dashCurrencySlot','mobCurrencySlot'].forEach(function(id) {
-                if (document.getElementById(id)) window.Currency.buildSwitcher(id);
-            });
-        }
-        if (document.readyState !== 'loading') tryInit();
-        else document.addEventListener('DOMContentLoaded', tryInit);
-    })();
-    </script>
 
 </body>
 </html>

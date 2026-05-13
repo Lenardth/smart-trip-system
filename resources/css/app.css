@@ -1,20 +1,3 @@
 @import './blade/base.css';
 
 @import './blade/index.css';
-
-@import './blade/auth/shared-auth.css';
-@import './blade/auth/login.css';
-
-@import './blade/shared/travel-advisory.css';
-@import './blade/shared/currency.css';
-
-@import './blade/flights/index.css';
-
-@import './blade/destinations/show.css';
-
-@import './blade/itineraries/index.css';
-@import './blade/itineraries/show.css';
-
-@import './blade/settings/index.css';
-
-@import './blade/wishlist/index.css';

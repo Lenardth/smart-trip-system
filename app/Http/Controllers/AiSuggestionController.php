@@ -306,13 +306,6 @@ SYSTEM;
         ];
     }
 
-        if (empty($months) && $weather) {
-            $avg = (($weather['avg_high'] ?? 20) + ($weather['avg_low'] ?? 10)) / 2;
-            $months = $avg > 25
-                ? ['November', 'December', 'January', 'February']
-                : ($avg < 10 ? ['June', 'July', 'August', 'September'] : ['April', 'May', 'September', 'October']);
-        }
-
     private function validateCosts(string $destination, int $aiMin, int $aiMax): array
     {
         try {

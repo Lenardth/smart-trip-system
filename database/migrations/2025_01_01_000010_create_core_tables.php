@@ -164,11 +164,6 @@ return new class extends Migration
                 $table->boolean('is_premium')->default(false)->after('remember_token');
                 $table->timestamp('premium_until')->nullable()->after('is_premium');
                 $table->string('agency_name')->nullable()->after('name');
-                $table->string('user_type')->default('user')->after('agency_name');
-                $table->string('profile_picture')->nullable()->after('user_type');
-                $table->text('bio')->nullable()->after('profile_picture');
-                $table->timestamp('last_login_at')->nullable()->after('bio');
-                $table->string('last_login_ip')->nullable()->after('last_login_at');
             });
         }
     }

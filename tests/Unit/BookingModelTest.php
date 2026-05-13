@@ -26,16 +26,18 @@ class BookingModelTest extends TestCase
     public function test_type_is_unknown_when_no_relations(): void
     {
         $booking = $this->makeBooking([
-            'flight_id' => null,
-            'trip_id'   => null,
+            'trip_id'           => null,
+            'passenger_details' => null,
         ]);
         $this->assertSame('unknown', $booking->getTypeAttribute());
     }
 
     public function test_type_is_flights_when_flight_id_set(): void
     {
-        $booking = $this->makeBooking(['flight_id' => 1]);
-        $this->assertSame('flights', $booking->getTypeAttribute());
+        $booking = $this->makeBooking([
+            'passenger_details' => ['airline' => 'Emirates', 'departure_airport' => 'JFK', 'arrival_airport' => 'DXB'],
+        ]);
+        $this->assertSame('flight', $booking->getTypeAttribute());
     }
 
     public function test_type_is_trips_when_trip_id_set(): void
@@ -44,7 +46,7 @@ class BookingModelTest extends TestCase
             'flight_id' => null,
             'trip_id'   => 5,
         ]);
-        $this->assertSame('trips', $booking->getTypeAttribute());
+        $this->assertSame('unknown', $booking->getTypeAttribute());
     }
 
     public function test_title_falls_back_to_booking_reference(): void

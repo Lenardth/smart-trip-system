@@ -67,11 +67,6 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
-    public function flights()
-    {
-        return $this->hasMany(Flight::class);
-    }
-
     public function getProfilePictureUrlAttribute(): ?string
     {
         if ($this->profile_picture) {

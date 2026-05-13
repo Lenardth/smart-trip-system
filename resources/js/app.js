@@ -14,7 +14,9 @@ const routes = {
     '/accommodations':() => import('./blade/accommodations/index.js'),
     '/bookings':      () => import('./blade/bookings/index.js'),
     '/flights':       () => import('./blade/flights/index.js'),
+    '/login':         () => import('./blade/auth/login.js'),
     '/register':      () => import('./blade/auth/register.js'),
+    '/forgot-password': () => import('./blade/auth/login.js'),
 };
 
 const loader = routes[path] ??

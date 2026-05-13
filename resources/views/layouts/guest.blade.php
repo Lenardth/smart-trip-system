@@ -13,8 +13,8 @@
         <div class="auth-brand-features">
             <div class="auth-feature"><i class="fas fa-route"></i> Plan trips with AI</div>
             <div class="auth-feature"><i class="fas fa-plane"></i> Search & book flights</div>
-            <div class="auth-feature"><i class="fas fa-heart"></i> Save your dream destinations</div>
-            <div class="auth-feature"><i class="fas fa-users"></i> Connect with travellers</div>
+            <div class="auth-feature"><i class="fas fa-hotel"></i> Find accommodations</div>
+            <div class="auth-feature"><i class="fas fa-ticket-alt"></i> Manage your bookings</div>
         </div>
     </div>
 

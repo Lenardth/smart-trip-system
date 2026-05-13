@@ -13,7 +13,6 @@ class Booking extends Model
 
     protected $fillable = [
         'user_id',
-        'flight_id',
         'trip_id',
         'booking_reference',
         'seats_booked',
@@ -43,41 +42,27 @@ class Booking extends Model
         });
     }
 
-    public function user()   { return $this->belongsTo(User::class);   }
-    public function flight() { return $this->belongsTo(Flight::class); }
-    public function trip()   { return $this->belongsTo(Trip::class);   }
+    public function user() { return $this->belongsTo(User::class); }
+    public function trip() { return $this->belongsTo(Trip::class); }
 
     public function getTypeAttribute(): string
     {
-        if ($this->flight_id) return 'flights';
-        if ($this->trip_id)   return 'trips';
-        if ($this->passenger_details && ($this->passenger_details['type'] ?? '') === 'accommodation') return 'hotels';
+        if ($this->passenger_details && ($this->passenger_details['type'] ?? '') === 'accommodation') return 'accommodation';
+        if ($this->passenger_details && isset($this->passenger_details['airline'])) return 'flight';
         return 'unknown';
     }
 
     public function getTitleAttribute(): string
     {
-        if ($this->flight) {
-            $from = $this->flight->departure_city ?? '';
-            $to   = $this->flight->arrival_city   ?? '';
-            return "{$from} → {$to}";
-        }
-        if ($this->trip) return $this->trip->name ?? 'Trip';
-
         $pd = $this->passenger_details;
         if ($pd) {
-            // AsArrayObject — use array access, not property access
+            $dep = $pd['departure_airport'] ?? null;
+            $arr = $pd['arrival_airport']   ?? null;
+            if ($dep && $arr) return "{$dep} → {$arr}";
+
             $name = $pd['name'] ?? null;
             if ($name) return $name;
 
-            // Flight booking stored in passenger_details
-            $airline = $pd['airline'] ?? null;
-            $dep     = $pd['departure_airport'] ?? null;
-            $arr     = $pd['arrival_airport']   ?? null;
-            if ($airline && $dep && $arr) return "{$dep} → {$arr} ({$airline})";
-            if ($dep && $arr)             return "{$dep} → {$arr}";
-
-            // Accommodation booking
             $city = $pd['city'] ?? null;
             if ($city) return "Stay in {$city}";
         }

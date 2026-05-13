@@ -5,11 +5,15 @@ use App\Http\Controllers\AccommodationController;
 use App\Http\Controllers\AiSuggestionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FlightController;
 
 // ── Landing ───────────────────────────────────────────────────────────────────
-Route::get('/', fn () => view('landing.index'))->name('home');
+Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('home');
+Route::get('/api/landing/destinations', [\App\Http\Controllers\LandingController::class, 'destinations'])
+    ->middleware('throttle:60,1')
+    ->name('api.landing.destinations');
 
 // ── AI Suggestions (public, throttled) ───────────────────────────────────────
 Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
@@ -19,6 +23,18 @@ Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
 // ── Accommodations (public browse) ───────────────────────────────────────────
 Route::get('/accommodations',     [AccommodationController::class, 'index'])->name('accommodations.index');
 Route::get('/api/accommodations', [AccommodationController::class, 'list'])->name('api.accommodations.list');
+
+// ── Static / Footer pages ─────────────────────────────────────────────────────
+Route::get('/about',   fn () => view('about.index'))->name('about');
+Route::get('/privacy', fn () => view('privacy.index'))->name('privacy');
+Route::get('/terms',   fn () => view('terms.index'))->name('terms');
+Route::get('/contact',  [\App\Http\Controllers\ContactController::class, 'show'])->name('contact');
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'send'])->name('contact.send')->middleware('throttle:5,1');
+
+// ── Currency (public) ─────────────────────────────────────────────────────────
+Route::get('/api/currency/rates',    [CurrencyController::class, 'rates'])->name('api.currency.rates');
+Route::post('/api/currency/set',     [CurrencyController::class, 'setCurrency'])->name('api.currency.set');
+Route::post('/api/currency/convert', [CurrencyController::class, 'convert'])->name('api.currency.convert');
 
 // ── Guest only ────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {

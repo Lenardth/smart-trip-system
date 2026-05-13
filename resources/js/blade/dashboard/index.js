@@ -352,6 +352,8 @@ window.__dashboardConfig = window.__dashboardConfig || {
                     : 'No bookings yet'
             );
             set('bookingsCount', data.bookings);
+            var bc = document.getElementById('bookingsCount');
+            if (bc) bc.style.display = data.bookings > 0 ? '' : 'none';
         }
         if (data.stay_searches !== undefined) {
             set('statStaySearchesCount', data.stay_searches);

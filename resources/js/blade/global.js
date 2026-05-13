@@ -27,6 +27,7 @@ window.toggleSidebar = function() {
 window.viewProfile = function() {
     window.location.href = '/dashboard';
 };
+
 window.openSettings = function() {
     window.location.href = '/dashboard';
 };
@@ -48,75 +49,6 @@ window.logout = function() {
     document.body.appendChild(form);
     form.submit();
 };
-
-window.toggleNotifications = function() {
-    document.getElementById('notificationDropdown')?.classList.toggle('active');
-};
-
-window.switchNotificationTab = function(tab) {
-    document.querySelectorAll('.notification-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.notification-tab[data-tab="${tab}"]`)?.classList.add('active');
-};
-
-window.markAllRead = function() {
-    fetch('/api/notifications/mark-all-read', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-        }
-    }).then(() => {
-        document.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
-        const badge = document.getElementById('notificationCount');
-        if (badge) badge.style.display = 'none';
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'All marked as read',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false,
-                confirmButtonColor: '#c9a96e'
-            });
-        }
-    }).catch(console.error);
-};
-
-window.openComposeMessage = function() {
-    window.location.href = '/plan-trip';
-};
-
-window.handleNotificationClick = function(id) {
-    fetch(`/api/notifications/${id}/read`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-            'Content-Type': 'application/json'
-        }
-    }).catch(() => {});
-};
-
-window.openGallery = window.openGallery || function() {
-    const modal = document.getElementById('galleryModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.add('active');
-    }
-};
-
-window.closeGallery = window.closeGallery || function() {
-    const modal = document.getElementById('galleryModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.remove('active');
-    }
-};
-
-window.uploadPhotos = window.uploadPhotos || function() {
-    window.openGallery();
-    setTimeout(() => document.getElementById('mediaInput')?.click(), 100);
-};
-
-window.__refreshWishlistBadge = function() {};
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => App.init());

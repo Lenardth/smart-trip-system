@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -87,55 +85,6 @@ class AuthController extends Controller
         return response()->json([
             'active' => Auth::check(),
         ]);
-    }
-
-    public function showVerifyEmail(Request $request)
-    {
-        return $request->user()->hasVerifiedEmail()
-            ? redirect()->intended(route('dashboard'))
-            : view('auth.verify-email');
-    }
-
-    public function verifyEmail(EmailVerificationRequest $request)
-    {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard') . '?verified=1');
-        }
-
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
-        }
-
-        return redirect()->intended(route('dashboard') . '?verified=1');
-    }
-
-    public function resendVerification(Request $request)
-    {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard'));
-        }
-
-        $request->user()->sendEmailVerificationNotification();
-
-        return back()->with('status', 'verification-link-sent');
-    }
-
-    public function showConfirmPassword()
-    {
-        return view('auth.confirm-password');
-    }
-
-    public function confirmPassword(Request $request)
-    {
-        if (!Hash::check($request->password, $request->user()->password)) {
-            return back()->withErrors([
-                'password' => __('The provided password does not match our records.'),
-            ]);
-        }
-
-        $request->session()->put('auth.password_confirmed_at', time());
-
-        return redirect()->intended(route('dashboard'));
     }
 
     public function showForgotPassword()

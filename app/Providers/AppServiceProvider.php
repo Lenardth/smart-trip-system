@@ -12,8 +12,11 @@ use App\Contracts\FlightSearchInterface;
 use App\Contracts\GeoapifyInterface;
 use App\Contracts\PricingServiceInterface;
 
+use App\Contracts\CurrencyServiceInterface;
+
 use App\Services\AccommodationPricingService;
 use App\Services\AviationstackService;
+use App\Services\CurrencyService;
 use App\Services\FlightPricingService;
 use App\Services\GeoapifyService;
 use App\Services\PricingService;
@@ -27,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FlightPricingInterface::class,        FlightPricingService::class);
         $this->app->bind(FlightSearchInterface::class,         AviationstackService::class);
         $this->app->bind(GeoapifyInterface::class,             GeoapifyService::class);
+        $this->app->bind(CurrencyServiceInterface::class,      CurrencyService::class);
     }
 
     public function boot(): void
