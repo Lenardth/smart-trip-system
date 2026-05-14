@@ -1155,3 +1155,7 @@
 .qb-step-line-hidden.qb-step-line-visible {
     display: block;
 }
+.ai-recommendations-hidden {
+    display: none;
+}
+

@@ -236,12 +236,7 @@
     </div>
 </div>
 
-<div id="aiRecommendations" class="ai-recommendations">
-    <div class="loading-spinner" id="loadingSpinner">
-        <i class="fas fa-spinner fa-spin"></i> AI is analyzing your preferences...
-    </div>
-    <div id="recommendationsContent"></div>
-</div>
+
 
 <div class="tile-grid">
     <div class="tile">
