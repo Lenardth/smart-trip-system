@@ -1,11 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-CaSBBoqM.css",
+    "file": "assets/app-B_rMFvH9.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DV7fORPZ.js",
+    "file": "assets/app-mpWUJVsk.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -58,7 +58,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/landing/index.js": {
-    "file": "assets/index-Bf4aeLbe.js",
+    "file": "assets/index-DFlwqjMR.js",
     "name": "index",
     "src": "resources/js/blade/landing/index.js",
     "isDynamicEntry": true

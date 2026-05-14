@@ -11,6 +11,7 @@
             <button class="primary-button" onclick="window.location.href='/plan-trip'">
                 <i class="fas fa-magic"></i> Start Planning Now
             </button>
+            <button class="hero-btn-secondary" onclick="toggleQuickBuilder()"><i class="fas fa-bolt"></i> Quick Builder</button>
             <button class="hero-btn-flights" onclick="window.location.href='/flights'">
                 <i class="fas fa-plane"></i> Book Flights
             </button>
@@ -18,7 +19,7 @@
     </div>
 </section>
 
-<div class="quick-plan">
+<div id="quickBuilderWrapper" class="quick-plan-wrapper"><div class="quick-plan">
     <h2 class="section-title">Quick Trip Builder</h2>
     <p class="section-subtitle">Tell us about your ideal trip and our AI will find the perfect destinations for you</p>
 
@@ -27,13 +28,13 @@
             <span class="qb-step-num">1</span>
             <span class="qb-step-label">Who & Mood</span>
         </div>
-        <div class="qb-step-line"></div>
-        <div class="qb-step" data-step="2">
+        <div class="qb-step-line qb-step-line-hidden"></div>
+        <div class="qb-step qb-step-hidden" data-step="2">
             <span class="qb-step-num">2</span>
             <span class="qb-step-label">Trip Details</span>
         </div>
-        <div class="qb-step-line"></div>
-        <div class="qb-step" data-step="3">
+        <div class="qb-step-line qb-step-line-hidden"></div>
+        <div class="qb-step qb-step-hidden" data-step="3">
             <span class="qb-step-num">3</span>
             <span class="qb-step-label">Preferences</span>
         </div>

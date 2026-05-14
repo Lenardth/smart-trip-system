@@ -57,8 +57,20 @@ window.showStep = function (step) {
         if (stepEl) {
             stepEl.classList.toggle('active', n === step);
             stepEl.classList.toggle('done', n < step);
+            // Reveal step when it becomes reachable
+            if (n <= step) {
+                stepEl.classList.remove('qb-step-hidden');
+                stepEl.classList.add('qb-step-visible');
+            }
         }
-        if (lines[n - 1]) lines[n - 1].classList.toggle('done', n < step);
+        if (lines[n - 1]) {
+            lines[n - 1].classList.toggle('done', n < step);
+            // Reveal connecting line when step before it is reached
+            if (n <= step) {
+                lines[n - 1].classList.remove('qb-step-line-hidden');
+                lines[n - 1].classList.add('qb-step-line-visible');
+            }
+        }
     });
 };
 
@@ -330,6 +342,7 @@ window.subscribeNewsletter = function () {
 };
 
 ready(function () {
+    window.showStep(1);
 
     
     const wrapper  = document.getElementById('moodSelectWrapper');

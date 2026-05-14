@@ -1139,3 +1139,19 @@
         right: 15px;
     }
 }
+/* Quick builder step visibility */
+.qb-step-hidden {
+    display: none;
+}
+
+.qb-step-hidden.qb-step-visible {
+    display: flex;
+}
+
+.qb-step-line-hidden {
+    display: none;
+}
+
+.qb-step-line-hidden.qb-step-line-visible {
+    display: block;
+}
