@@ -5,11 +5,11 @@
 @endpush
 
 @section('body')
-    <div style="min-height:100vh;display:flex;flex-direction:column;">
+    <div class="public-layout-wrap">
 
         @include('partials.public-navigation')
 
-        <main style="flex:1;">
+        <main class="public-layout-main">
             @yield('content')
         </main>
 

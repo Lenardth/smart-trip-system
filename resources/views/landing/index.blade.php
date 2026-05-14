@@ -3,7 +3,7 @@
 @section('title', 'Smart booking')
 
 @section('content')
-<section class="hero" style="background: linear-gradient(170deg, rgba(10, 30, 60, 0.65) 0%, rgba(5, 15, 10, 0.45) 60%, rgba(60, 20, 5, 0.30) 100%), url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80'); background-size: cover; background-position: center; min-height: 450px; display: flex; align-items: center;">
+<section class="hero">
     <div class="hero-content">
         <h1>Plan Your Perfect Journey with AI</h1>
         <p>Personalized travel recommendations based on your mood, preferences, and budget. Discover destinations you'll love.</p>
@@ -61,7 +61,7 @@
                         <span class="custom-select-text">Adventurous — Thrills & outdoors</span>
                         <i class="fas fa-chevron-down custom-select-arrow"></i>
                     </div>
-                    <div class="custom-select-dropdown" id="moodDropdown" style="display:none;">
+                    <div class="custom-select-dropdown" id="moodDropdown">
                         <div class="custom-select-group">Popular Moods</div>
                         <div class="custom-select-option selected" data-value="adventurous"><i class="fas fa-hiking"></i> Adventurous — Thrills &amp; outdoors</div>
                         <div class="custom-select-option" data-value="relaxed"><i class="fas fa-umbrella-beach"></i> Relaxed — Rest &amp; recharge</div>
@@ -139,7 +139,7 @@
         </div>
     </div>
 
-    <div class="qb-panel" id="qbPanel2" style="display:none;">
+    <div class="qb-panel" id="qbPanel2">
         <div class="quick-plan-form">
             <div class="form-group">
                 <label><i class="fas fa-calendar-alt"></i> Departure Month</label>
@@ -188,7 +188,7 @@
         </div>
     </div>
 
-    <div class="qb-panel" id="qbPanel3" style="display:none;">
+    <div class="qb-panel" id="qbPanel3">
         <div class="quick-plan-form">
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Preferred Region</label>
@@ -235,8 +235,8 @@
     </div>
 </div>
 
-<div id="aiRecommendations" class="ai-recommendations" style="display: none;">
-    <div class="loading-spinner" id="loadingSpinner" style="display: none;">
+<div id="aiRecommendations" class="ai-recommendations">
+    <div class="loading-spinner" id="loadingSpinner">
         <i class="fas fa-spinner fa-spin"></i> AI is analyzing your preferences...
     </div>
     <div id="recommendationsContent"></div>
@@ -262,49 +262,49 @@
     <p class="section-subtitle">Discover handpicked destinations curated by our travel experts</p>
     <div class="slideshow-container">
         <div class="slides">
-            <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1516496636080-14fb876e029d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+            <div class="slide active">
                 <div class="slide-content">
                     <h3>Amalfi Coast, Italy</h3>
                     <p>Experience the breathtaking beauty of Italy's coastline with its colorful cliffside villages, delicious cuisine, and Mediterranean charm.</p>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1516483638261-f4dbaf036963?ixlib=rb-4.0.3&auto=format&fit=crop&w=2067&q=80');">
+            <div class="slide">
                 <div class="slide-content">
                     <h3>Bali, Indonesia</h3>
                     <p>Find your inner peace in Bali's spiritual retreats, lush rice terraces, and pristine beaches. Perfect for relaxation and adventure.</p>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+            <div class="slide">
                 <div class="slide-content">
                     <h3>Santorini, Greece</h3>
                     <p>Marvel at the iconic white-washed buildings, stunning sunsets, and crystal-clear waters of this romantic Greek island paradise.</p>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2064&q=80');">
+            <div class="slide">
                 <div class="slide-content">
                     <h3>Kyoto, Japan</h3>
                     <p>Step back in time with ancient temples, traditional tea houses, and the magical beauty of cherry blossom season in Kyoto.</p>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1579530190412-b35a65e17c8d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2066&q=80');">
+            <div class="slide">
                 <div class="slide-content">
                     <h3>Swiss Alps</h3>
                     <p>Embrace adventure in the majestic Swiss Alps with breathtaking mountain views, skiing, and luxury mountain resorts.</p>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1513326738677-b964603b136d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+            <div class="slide">
                 <div class="slide-content">
                     <h3>Marrakech, Morocco</h3>
                     <p>Discover vibrant souks, stunning palaces, and rich cultural heritage in this enchanting North African city.</p>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+            <div class="slide">
                 <div class="slide-content">
                     <h3>Maldives Overwater Bungalows</h3>
                     <p>Experience ultimate luxury in crystal-clear turquoise waters with private villas and world-class diving.</p>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1543832923-44667a44c804?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+            <div class="slide">
                 <div class="slide-content">
                     <h3>New York City, USA</h3>
                     <p>Explore the city that never sleeps with iconic landmarks, Broadway shows, and diverse culinary experiences.</p>
@@ -347,12 +347,12 @@
         <span class="filter-tag" data-filter="hidden_gem"         onclick="window.applyDestinationFilter('hidden_gem', this)"><i class="fas fa-gem"></i> Hidden Gems</span>
     </div>
     <div id="destinationsLoading" style="text-align:center; padding: 60px 20px;">
-        <i class="fas fa-spinner fa-spin" style="font-size:28px;"></i>
+        <i class="fas fa-spinner fa-spin"></i>
         <p>Loading destinations...</p>
     </div>
-    <div class="destinations-grid" id="destinationsGrid" style="display:none;"></div>
+    <div class="destinations-grid" id="destinationsGrid"></div>
     <div id="destinationsEmpty" style="display:none; text-align:center; padding:60px 20px;">
-        <i class="fas fa-map-marked-alt" style="font-size:40px; opacity:0.3;"></i>
+        <i class="fas fa-map-marked-alt"></i>
         <p>No destinations found for this filter.</p>
     </div>
 </section>
@@ -378,7 +378,7 @@
         </div>
     </div>
     <div style="text-align: center; margin-top: 40px;">
-        <button class="primary-button" onclick="window.location.href='/flights'" style="padding: 15px 40px; font-size: 16px;">
+        <button class="primary-button" onclick="window.location.href='/flights'">
             <i class="fas fa-plane"></i> Start Booking Flights Now
         </button>
     </div>
@@ -388,22 +388,22 @@
     <h2 class="section-title">Explore By Travel Style</h2>
     <p class="section-subtitle">Find destinations that match your preferred travel experience</p>
     <div class="explore-categories">
-        <div class="category-card active-style" data-style="adventure" onclick="filterByStyle('adventure', this)">
+        <div class="category-card active-style" data- onclick="filterByStyle('adventure', this)">
             <div class="category-icon"><i class="fas fa-hiking"></i></div>
             <h3>Adventure Travel</h3>
             <p>Hiking, trekking, and extreme sports destinations</p>
         </div>
-        <div class="category-card" data-style="beach" onclick="filterByStyle('beach', this)">
+        <div class="category-card" data- onclick="filterByStyle('beach', this)">
             <div class="category-icon"><i class="fas fa-umbrella-beach"></i></div>
             <h3>Beach &amp; Relaxation</h3>
             <p>Perfect spots for sunbathing and unwinding</p>
         </div>
-        <div class="category-card" data-style="cultural" onclick="filterByStyle('cultural', this)">
+        <div class="category-card" data- onclick="filterByStyle('cultural', this)">
             <div class="category-icon"><i class="fas fa-landmark"></i></div>
             <h3>Cultural Immersion</h3>
             <p>Historical sites and cultural experiences</p>
         </div>
-        <div class="category-card" data-style="food" onclick="filterByStyle('food', this)">
+        <div class="category-card" data- onclick="filterByStyle('food', this)">
             <div class="category-icon"><i class="fas fa-utensils"></i></div>
             <h3>Culinary Tours</h3>
             <p>Foodie paradises and cooking experiences</p>
@@ -415,13 +415,13 @@
             <span id="styleResultsCount" style="font-size:13px;"></span>
         </div>
     </div>
-    <div class="destinations-grid" id="styleDestinationsGrid" style="display:none; margin-top:24px;"></div>
+    <div class="destinations-grid" id="styleDestinationsGrid"></div>
     <div id="styleEmpty" style="display:none; text-align:center; padding:40px;">
-        <i class="fas fa-map-marked-alt" style="font-size:36px; opacity:0.3;"></i>
+        <i class="fas fa-map-marked-alt"></i>
         <p>No destinations found for this style.</p>
     </div>
     <div id="styleViewAll" style="display:none; text-align:center; margin-top:28px;">
-        <a href="/plan-trip" class="secondary-button" style="text-decoration:none; padding:10px 28px;">
+        <a href="/plan-trip" class="secondary-button">
             <i class="fas fa-compass"></i> View All Destinations
         </a>
     </div>

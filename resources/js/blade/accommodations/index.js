@@ -493,3 +493,5 @@ ready(function() {
         });
     }
 });
+
+document.addEventListener('currency:changed', function() { if (window.Currency) window.Currency.refresh(); });

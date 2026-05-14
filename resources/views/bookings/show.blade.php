@@ -20,7 +20,7 @@
         {{-- Main details --}}
         <div class="booking-show-main">
             <div class="bshow-card">
-                <h3><i class="fas fa-info-circle" style="color:var(--gold);margin-right:8px;"></i> Booking Summary</h3>
+                <h3><i class="fas fa-info-circle"></i> Booking Summary</h3>
                 <div class="bshow-rows">
                     <div class="bshow-row"><label>Type</label><span>{{ ucfirst($booking->type) }}</span></div>
                     <div class="bshow-row"><label>Reference</label><span style="font-family:monospace;font-weight:700;">{{ $booking->booking_reference }}</span></div>
@@ -33,7 +33,7 @@
 
             @if($booking->flight)
             <div class="bshow-card">
-                <h3><i class="fas fa-plane" style="color:var(--gold);margin-right:8px;"></i> Flight Details</h3>
+                <h3><i class="fas fa-plane"></i> Flight Details</h3>
                 <div class="bshow-flight-route">
                     <div class="bfr-point">
                         <div class="bfr-time">{{ $booking->flight->departure_time ? \Carbon\Carbon::parse($booking->flight->departure_time)->format('H:i') : '--:--' }}</div>
@@ -50,7 +50,7 @@
                         <div class="bfr-date">{{ $booking->flight->arrival_time ? \Carbon\Carbon::parse($booking->flight->arrival_time)->format('M j, Y') : '' }}</div>
                     </div>
                 </div>
-                <div class="bshow-rows" style="margin-top:16px;">
+                <div class="bshow-rows">
                     <div class="bshow-row"><label>Airline</label><span>{{ $booking->flight->airline ?? '—' }}</span></div>
                     <div class="bshow-row"><label>Flight No.</label><span>{{ $booking->flight->flight_number ?? '—' }}</span></div>
                     <div class="bshow-row"><label>Class</label><span>{{ ucfirst($booking->flight->class ?? 'Economy') }}</span></div>
@@ -63,7 +63,7 @@
 
             @if($booking->hotel)
             <div class="bshow-card">
-                <h3><i class="fas fa-hotel" style="color:var(--gold);margin-right:8px;"></i> Hotel Details</h3>
+                <h3><i class="fas fa-hotel"></i> Hotel Details</h3>
                 <div class="bshow-rows">
                     <div class="bshow-row"><label>Hotel</label><span>{{ $booking->hotel->name }}</span></div>
                     <div class="bshow-row"><label>Room</label><span>{{ $booking->hotel->room_type ?? 'Standard' }}</span></div>
@@ -81,20 +81,20 @@
         {{-- Sidebar --}}
         <div class="booking-show-side">
             <div class="bshow-card">
-                <h3><i class="fas fa-receipt" style="color:var(--gold);margin-right:8px;"></i> Price Breakdown</h3>
+                <h3><i class="fas fa-receipt"></i> Price Breakdown</h3>
                 <div class="bshow-price-row"><span>Base fare</span><span><span data-price-usd="{{ $booking->total_price * 0.88 }}">${{ number_format($booking->total_price * 0.88, 2) }}</span></span></div>
                 <div class="bshow-price-row"><span>Taxes & fees</span><span><span data-price-usd="{{ $booking->total_price * 0.12 }}">${{ number_format($booking->total_price * 0.12, 2) }}</span></span></div>
                 <div class="bshow-price-total"><span>Total</span><span><span data-price-usd="{{ $booking->total_price }}">${{ number_format($booking->total_price, 2) }}</span></span></div>
             </div>
 
             <div class="bshow-actions">
-                <a href="{{ route('bookings.index') }}" class="secondary-button" style="text-decoration:none;display:flex;align-items:center;gap:8px;justify-content:center;">
+                <a href="{{ route('bookings.index') }}" class="secondary-button">
                     <i class="fas fa-arrow-left"></i> All Bookings
                 </a>
                 @if($booking->isActive())
                 <form method="POST" action="{{ route('bookings.cancel', $booking) }}">
                     @csrf
-                    <button type="submit" class="primary-button" style="width:100%;background:var(--danger);justify-content:center;"
+                    <button type="submit" class="primary-button"
                             onclick="return confirm('Cancel this booking?')">
                         <i class="fas fa-times"></i> Cancel Booking
                     </button>
@@ -109,55 +109,5 @@
 @endsection
 
 @push('styles')
-<style>
-.booking-show-wrap { max-width: 900px; }
 
-.booking-status-banner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 20px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 24px;
-}
-.booking-status-banner.status-confirmed { background: var(--success-bg); color: #2e7d32; }
-.booking-status-banner.status-pending   { background: var(--warning-bg); color: #e65100; }
-.booking-status-banner.status-cancelled { background: #fdf0f0; color: var(--danger); }
-.booking-status-banner.status-completed { background: rgba(201,169,110,.12); color: var(--deep); }
-.bsb-ref { margin-left: auto; font-family: monospace; font-size: 13px; opacity: .7; }
-
-.booking-show-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
-@media (max-width: 768px) { .booking-show-grid { grid-template-columns: 1fr; } }
-
-.bshow-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px;
-    margin-bottom: 16px;
-}
-.bshow-card h3 { font-size: 16px; font-weight: 700; color: var(--deep); margin: 0 0 16px; }
-
-.bshow-rows { display: flex; flex-direction: column; gap: 10px; }
-.bshow-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.bshow-row:last-child { border-bottom: none; padding-bottom: 0; }
-.bshow-row label { color: var(--text-muted); font-weight: 600; }
-.bshow-row span { color: var(--deep); }
-
-.bshow-flight-route { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--cream); border-radius: 8px; }
-.bfr-point { text-align: center; flex: 1; }
-.bfr-time { font-size: 24px; font-weight: 700; color: var(--deep); }
-.bfr-airport { font-size: 13px; color: var(--text-muted); margin: 4px 0; }
-.bfr-date { font-size: 12px; color: var(--text-sub); }
-.bfr-line { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gold); font-size: 20px; flex-shrink: 0; }
-.bfr-line span { font-size: 11px; color: var(--text-muted); }
-
-.bshow-price-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted); padding: 8px 0; border-bottom: 1px solid var(--border); }
-.bshow-price-total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 700; color: var(--deep); padding-top: 12px; margin-top: 4px; }
-
-.bshow-actions { display: flex; flex-direction: column; gap: 10px; }
-.bshow-actions form { margin: 0; }
-</style>
 @endpush

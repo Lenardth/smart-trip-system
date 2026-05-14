@@ -86,7 +86,7 @@
 
         <div class="auth-divider"><span>Already have an account?</span></div>
 
-        <a href="{{ route('login') }}" class="auth-link" style="text-align:center;display:block;">
+        <a href="{{ route('login') }}" class="auth-link">
             Sign in instead
         </a>
     </form>

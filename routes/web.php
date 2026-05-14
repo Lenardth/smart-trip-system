@@ -87,3 +87,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/bookings/accommodation', [BookingController::class, 'storeAccommodation'])->middleware('throttle:10,1');
     Route::post('/api/coupon/validate',        [\App\Http\Controllers\CouponController::class, 'validate']);
 });
+
+    // Profile
+    Route::post('/profile/picture',   [\App\Http\Controllers\ProfileController::class, 'uploadPicture'])->name('profile.picture.upload');
+    Route::delete('/profile/picture', [\App\Http\Controllers\ProfileController::class, 'deletePicture'])->name('profile.picture.delete');
+    Route::put('/profile/password',   [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::delete('/profile',         [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');

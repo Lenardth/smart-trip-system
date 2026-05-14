@@ -21,8 +21,7 @@
                     @php
                         $badgeVal = \App\Models\Booking::where('user_id', Auth::id())->whereIn('status',['confirmed','pending'])->count();
                     @endphp
-                    <span class="menu-badge" id="bookingsCount"
-                          style="{{ $badgeVal > 0 ? '' : 'display:none;' }}">{{ $badgeVal ?: 0 }}</span>
+                    <span class="menu-badge" id="bookingsCount">{{ $badgeVal ?: 0 }}</span>
                 @endif
             </a>
         @endforeach
@@ -36,7 +35,7 @@
                          alt="{{ Auth::user()->name }}"
                          style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                    <div class="avatar-placeholder" style="display:none;">
+                    <div class="avatar-placeholder">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
                 @else

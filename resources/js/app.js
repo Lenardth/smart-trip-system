@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import './blade/global';
+import './blade/shared/currency';
 import './bootstrap';
 
 window.Alpine = Alpine;

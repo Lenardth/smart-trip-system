@@ -1420,3 +1420,5 @@ function updateBudgetDropdowns() {
     if (document.readyState !== 'loading') tryRegister();
     else document.addEventListener('DOMContentLoaded', tryRegister);
 })();
+
+document.addEventListener('currency:changed', function() { if (window.Currency) window.Currency.refresh(); });

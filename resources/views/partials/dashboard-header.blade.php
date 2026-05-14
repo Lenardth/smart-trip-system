@@ -24,7 +24,7 @@
                          alt="{{ Auth::user()->name }}"
                          class="dash-avatar-img"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                    <span class="dash-avatar-init" style="display:none;">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
+                    <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
                 @else
                     <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
                 @endif

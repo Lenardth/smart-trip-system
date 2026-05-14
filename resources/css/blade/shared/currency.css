@@ -1,0 +1,91 @@
+.currency-picker-wrapper {
+    position: relative;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.currency-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(201, 169, 110, 0.15);
+    border: 1.5px solid rgba(201, 169, 110, 0.4);
+    border-radius: 6px;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s;
+    white-space: nowrap;
+}
+
+.currency-btn:hover {
+    background: rgba(201, 169, 110, 0.25);
+    border-color: var(--gold);
+}
+
+.currency-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 240px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: var(--deep);
+    border: 1.5px solid rgba(201, 169, 110, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    padding: 6px 0;
+}
+
+.currency-dropdown.open {
+    display: block;
+}
+
+.currency-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 16px;
+    background: none;
+    border: none;
+    color: var(--text-sub);
+    font-size: 13px;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+}
+
+.currency-option:hover {
+    background: rgba(201, 169, 110, 0.12);
+    color: #fff;
+}
+
+.currency-option.active {
+    background: rgba(201, 169, 110, 0.18);
+    color: var(--gold);
+}
+
+.currency-symbol {
+    width: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.currency-name {
+    flex: 1;
+    font-size: 12px;
+}
+
+.currency-code {
+    font-size: 11px;
+    opacity: 0.6;
+    font-weight: 600;
+}

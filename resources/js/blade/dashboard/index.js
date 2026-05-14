@@ -401,3 +401,21 @@ window.__dashboardConfig = window.__dashboardConfig || {
     window.loadUserStatistics = loadUserStatistics;
     window.logout = logout;
 })();
+
+
+window.previewAvatar = function(input) {
+    if (!input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var preview = document.getElementById('avatarPreview');
+        var initial = document.getElementById('avatarInitial');
+        if (!preview) {
+            preview = document.createElement('img');
+            preview.id = 'avatarPreview';
+            preview.className = 'avatar-preview-img';
+            if (initial) initial.replaceWith(preview);
+        }
+        preview.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+};

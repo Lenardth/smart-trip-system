@@ -12,6 +12,6 @@
             @error('email') <div class="input-error">{{ $message }}</div> @enderror
         </div>
         <button type="submit" class="auth-btn"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
-        <a href="{{ route('login') }}" class="auth-link" style="text-align:center;display:block;margin-top:14px;">Back to Login</a>
+        <a href="{{ route('login') }}" class="auth-link">Back to Login</a>
     </form>
 </x-guest-layout>

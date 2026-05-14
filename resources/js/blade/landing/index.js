@@ -487,3 +487,4 @@ function updateLandingBudgetDropdown() {
     });
     sel.value = currentVal;
 }
+document.addEventListener('currency:changed', function() { if (window._allDestinations) { renderGrid(window._allDestinations.slice(0, 8)); } });

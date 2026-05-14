@@ -185,18 +185,11 @@
 
 @push('scripts')
 <script>
-(function() {
-    function tryRegister() {
-        if (typeof window.Currency !== 'undefined') {
-            window.Currency.refreshAllPrices();
-            window.Currency.onCurrencyChange(function() {
-                window.Currency.refreshAllPrices();
-            });
-        } else {
-            setTimeout(tryRegister, 100);
-        }
-    }
-    tryRegister();
-})();
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.Currency) window.Currency.refresh();
+});
+document.addEventListener('currency:changed', function() {
+    if (window.Currency) window.Currency.refresh();
+});
 </script>
 @endpush

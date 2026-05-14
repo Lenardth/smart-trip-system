@@ -316,3 +316,4 @@ ready(function () {
         setTimeout(function() { searchFlights(); }, 500);
     }
 });
+document.addEventListener('currency:changed', function() { if (window.Currency) window.Currency.refresh(); });
