@@ -4,10 +4,6 @@
 
 @php
     $allBookings = $bookings ?? collect();
-    $flightCount = $flightCount ?? $allBookings->whereNotNull('flight_id')->count();
-    $hotelCount  = $hotelCount  ?? $allBookings->whereNotNull('hotel_id')->count();
-    $activeCount = $activeCount ?? $allBookings->whereIn('status', ['confirmed', 'pending'])->count();
-    $totalSpent  = $totalSpent  ?? $allBookings->whereNotIn('status', ['cancelled'])->sum('total_price');
 @endphp
 
 <div class="stats-strip">
@@ -43,15 +39,15 @@
 
 <div class="filter-bar">
     <div class="filter-tabs" id="filterTabs">
-        <button class="ftab active" data-filter="all"       onclick="filterBookings('all')">      <i class="fas fa-th-large"></i> All</button>
-        <button class="ftab"        data-filter="flights"   onclick="filterBookings('flights')">  <i class="fas fa-plane"></i> Flights</button>
-        <button class="ftab"        data-filter="hotels"    onclick="filterBookings('hotels')">   <i class="fas fa-hotel"></i> Hotels</button>
-        <button class="ftab"        data-filter="trips"     onclick="filterBookings('trips')">    <i class="fas fa-route"></i> Trips</button>
-        <button class="ftab"        data-filter="confirmed" onclick="filterBookings('confirmed')"><i class="fas fa-check-circle"></i> Confirmed</button>
-        <button class="ftab"        data-filter="pending"   onclick="filterBookings('pending')">  <i class="fas fa-clock"></i> Pending</button>
+        <button class="ftab active" data-filter="all" data-action="filterBookings" data-params='{"args":["all"]}'><i class="fas fa-th-large"></i> All</button>
+        <button class="ftab" data-filter="flights" data-action="filterBookings" data-params='{"args":["flights"]}'><i class="fas fa-plane"></i> Flights</button>
+        <button class="ftab" data-filter="hotels" data-action="filterBookings" data-params='{"args":["hotels"]}'><i class="fas fa-hotel"></i> Hotels</button>
+        <button class="ftab" data-filter="trips" data-action="filterBookings" data-params='{"args":["trips"]}'><i class="fas fa-route"></i> Trips</button>
+        <button class="ftab" data-filter="confirmed" data-action="filterBookings" data-params='{"args":["confirmed"]}'><i class="fas fa-check-circle"></i> Confirmed</button>
+        <button class="ftab" data-filter="pending" data-action="filterBookings" data-params='{"args":["pending"]}'><i class="fas fa-clock"></i> Pending</button>
     </div>
     <div class="filter-right">
-        <select class="filter-select" id="sortSelect" onchange="sortBookings()">
+        <select class="filter-select" id="sortSelect" data-change-action="sortBookings">
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
             <option value="price-high">Price: High → Low</option>
@@ -60,7 +56,7 @@
         </select>
         <div class="search-mini">
             <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search bookings…" id="bookingSearch" oninput="searchBookings(this.value)">
+            <input type="text" placeholder="Search bookings…" id="bookingSearch" data-input-action="searchBookings">
         </div>
     </div>
 </div>
@@ -71,7 +67,11 @@
         @forelse($allBookings as $booking)
             @php
                 $type       = $booking->type;
-                $typeIcon   = $type === 'flights' ? 'fa-plane' : ($type === 'trips' ? 'fa-route' : 'fa-hotel');
+                $typeIcon   = match ($type) {
+                    'flights' => 'fa-plane',
+                    'trips'   => 'fa-route',
+                    default   => 'fa-hotel',
+                };
                 $passengers = $booking->seats_booked ?? 1;
             @endphp
 
@@ -88,11 +88,8 @@
                     <div class="booking-info">
                         <h3>{{ $booking->title }}</h3>
                         <div class="booking-meta">
-                            @if($booking->flight?->departure_time)
-                                <span><i class="fas fa-calendar-alt"></i> {{ $booking->flight->departure_time->format('M j, Y') }}</span>
-                            @endif
-                            @if($booking->flight?->arrival_time)
-                                <span><i class="fas fa-calendar-check"></i> {{ $booking->flight->arrival_time->format('M j, Y') }}</span>
+                            @if(isset($booking->passenger_details['departure_date']))
+                                <span><i class="fas fa-calendar-alt"></i> {{ \Carbon\Carbon::parse($booking->passenger_details['departure_date'])->format('M j, Y') }}</span>
                             @endif
                             @if(isset($booking->passenger_details['check_in']))
                                 <span><i class="fas fa-calendar-alt"></i> {{ \Carbon\Carbon::parse($booking->passenger_details['check_in'])->format('M j, Y') }}</span>
@@ -104,8 +101,8 @@
                                 <i class="fas fa-users"></i>
                                 {{ $passengers }} {{ Str::plural('Passenger', $passengers) }}
                             </span>
-                            @if($booking->flight?->airline)
-                                <span><i class="fas fa-plane-departure"></i> {{ $booking->flight->airline }}</span>
+                            @if(isset($booking->passenger_details['airline']))
+                                <span><i class="fas fa-plane-departure"></i> {{ $booking->passenger_details['airline'] }}</span>
                             @endif
                             @if(($booking->passenger_details && isset($booking->passenger_details['name'])) && $booking->type === 'hotels')
                                 <span><i class="fas fa-bed"></i> {{ $booking->passenger_details['name'] }}</span>
@@ -123,19 +120,19 @@
                             {{ ucfirst($booking->status) }}
                         </span>
                         <div class="action-btns">
-                            <button class="action-btn" onclick="toggleDetail('{{ $booking->id }}')">
+                            <button class="action-btn" data-action="toggleDetail" data-params='{"args":["{{ $booking->id }}"]}'>
                                 <i class="fas fa-chevron-down"></i> Details
                             </button>
                             @if(in_array($booking->status, ['confirmed', 'pending']))
-                                <button class="action-btn danger" onclick="cancelBooking('{{ $booking->id }}')">
+                                <button class="action-btn danger" data-action="cancelBooking" data-params='{"args":["{{ $booking->id }}"]}'>
                                     <i class="fas fa-times"></i>
                                 </button>
                             @elseif($booking->status === 'completed')
-                                <button class="action-btn primary" onclick="leaveReview('{{ $booking->id }}')">
+                                <button class="action-btn primary" data-action="leaveReview" data-params='{"args":["{{ $booking->id }}"]}'>
                                     <i class="fas fa-star"></i> Review
                                 </button>
                             @elseif($booking->status === 'cancelled')
-                                <button class="action-btn primary" onclick="rebookBooking('{{ $booking->id }}')">
+                                <button class="action-btn primary" data-action="rebookBooking" data-params='{"args":["{{ $booking->id }}"]}'>
                                     <i class="fas fa-redo"></i> Rebook
                                 </button>
                             @endif
@@ -149,9 +146,9 @@
                         <div class="detail-item"><label>Booking Date</label><span>{{ $booking->created_at->format('M j, Y H:i') }}</span></div>
                         <div class="detail-item"><label>Reference</label><span>{{ $booking->booking_reference }}</span></div>
                         <div class="detail-item"><label>Status</label><span>{{ ucfirst($booking->status) }}</span></div>
-                        @if($booking->flight)
-                            <div class="detail-item"><label>Flight</label><span>{{ $booking->flight->flight_number }} — {{ $booking->flight->airline }}</span></div>
-                            <div class="detail-item"><label>Class</label><span>{{ ucfirst($booking->flight->class) }}</span></div>
+                        @if($type === 'flights' && $booking->passenger_details)
+                            <div class="detail-item"><label>Flight</label><span>{{ $booking->passenger_details['flight_number'] ?? '—' }} — {{ $booking->passenger_details['airline'] ?? '—' }}</span></div>
+                            <div class="detail-item"><label>Class</label><span>{{ ucfirst(strtolower($booking->passenger_details['travel_class'] ?? 'economy')) }}</span></div>
                         @endif
                         @if($booking->type === 'hotels' && $booking->passenger_details)
                             <div class="detail-item"><label>Accommodation</label><span>{{ $booking->passenger_details['name'] ?? '—' }}</span></div>

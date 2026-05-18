@@ -4,22 +4,6 @@
 @section('page-class', 'main-content')
 @section('page-id', 'mainContent')
 
-@push('scripts')
-<script>
-    window.__dashboardConfig = {
-        userId: {{ Auth::id() ?? 'null' }},
-        user: {
-            id:        {{ Auth::id() ?? 'null' }},
-            name:      @json(Auth::user()->name ?? ''),
-            firstName: @json(Auth::check() ? explode(' ', Auth::user()->name)[0] : ''),
-            avatar:    @json(Auth::user()->avatar ?? ''),
-            type:      @json(Auth::user()->user_type ?? ''),
-            verified:  {{ Auth::user()->email_verified_at ? 'true' : 'false' }}
-        }
-    };
-</script>
-@endpush
-
 @section('content')
 
 @php
@@ -41,8 +25,8 @@
             <img src="{{ asset('storage/'.$user->profile_picture) }}"
                  alt="{{ $user->name }}"
                  class="welcome-avatar-img"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-            <span class="welcome-avatar-init" style="display:none;">{{ strtoupper(substr($user->name,0,1)) }}</span>
+                 data-error-action="hide-show-next">
+            <span class="welcome-avatar-init hidden">{{ strtoupper(substr($user->name,0,1)) }}</span>
         @else
             <span class="welcome-avatar-init">{{ strtoupper(substr($user->name,0,1)) }}</span>
         @endif
@@ -62,23 +46,11 @@
     </a>
 </div>
 
-{{-- Dashboard tabs --}}
-<div class="dash-tabs">
-    <a href="{{ route('dashboard') }}?tab=overview"
-       class="dash-tab {{ $activeTab === 'overview' ? 'active' : '' }}">
-        <i class="fas fa-tachometer-alt"></i> Overview
-    </a>
-    <a href="{{ route('dashboard') }}?tab=settings"
-       class="dash-tab {{ $activeTab === 'settings' ? 'active' : '' }}">
-        <i class="fas fa-cog"></i> Settings
-    </a>
-</div>
-
-{{-- ── OVERVIEW TAB ──────────────────────────────────────────────────────── --}}
+{{-- ── OVERVIEW ──────────────────────────────────────────────────────────── --}}
 @if($activeTab === 'overview')
 
 <div class="stats-grid">
-    <div class="stat-card" onclick="window.location.href='/plan-trip'">
+    <div class="stat-card clickable" data-action="navigate" data-url="/plan-trip">
         <div class="stat-icon trips"><i class="fas fa-route"></i></div>
         <div class="stat-info">
             <h3 id="statTripsCount">{{ $tripsCount }}</h3>
@@ -88,7 +60,7 @@
             </div>
         </div>
     </div>
-    <div class="stat-card" onclick="window.location.href='/bookings'">
+    <div class="stat-card clickable" data-action="navigate" data-url="/bookings">
         <div class="stat-icon bookings"><i class="fas fa-ticket-alt"></i></div>
         <div class="stat-info">
             <h3 id="statBookingsCount">{{ $bookingsCount }}</h3>
@@ -98,7 +70,7 @@
             </div>
         </div>
     </div>
-    <div class="stat-card" onclick="window.location.href='/accommodations'">
+    <div class="stat-card clickable" data-action="navigate" data-url="/accommodations">
         <div class="stat-icon saved"><i class="fas fa-hotel"></i></div>
         <div class="stat-info">
             <h3 id="statStaySearchesCount">{{ $staySearchesCount }}</h3>
@@ -111,16 +83,16 @@
 </div>
 
 <div class="actions-grid">
-    <div class="action-btn" onclick="window.location.href='/plan-trip'">
+    <div class="action-btn clickable" data-action="navigate" data-url="/plan-trip">
         <i class="fas fa-plus-circle"></i><span>Plan Trip</span>
     </div>
-    <div class="action-btn" onclick="window.location.href='/flights'">
+    <div class="action-btn clickable" data-action="navigate" data-url="/flights">
         <i class="fas fa-plane"></i><span>Book Flights</span>
     </div>
-    <div class="action-btn" onclick="window.location.href='/accommodations'">
+    <div class="action-btn clickable" data-action="navigate" data-url="/accommodations">
         <i class="fas fa-hotel"></i><span>Find Stays</span>
     </div>
-    <div class="action-btn" onclick="window.location.href='/bookings'">
+    <div class="action-btn clickable" data-action="navigate" data-url="/bookings">
         <i class="fas fa-ticket-alt"></i><span>My Bookings</span>
     </div>
 </div>
@@ -129,7 +101,7 @@
     <div class="dashboard-section">
         <div class="section-header">
             <h2><i class="fas fa-route"></i> Upcoming Trips</h2>
-            <button class="btn" onclick="window.location.href='/plan-trip'">
+            <button class="btn" data-action="navigate" data-url="/plan-trip">
                 <i class="fas fa-plus"></i> New Trip
             </button>
         </div>
@@ -195,7 +167,7 @@
                 <label class="file-upload-label">
                     <i class="fas fa-upload"></i> Choose image
                     <input type="file" name="profile_picture" accept="image/*"
-                           onchange="previewAvatar(this)" class="file-input-hidden">
+                           data-change-action="previewAvatar" class="file-input-hidden">
                 </label>
                 @error('profile_picture')
                     <p class="form-error">{{ $message }}</p>

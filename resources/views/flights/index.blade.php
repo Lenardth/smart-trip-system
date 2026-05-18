@@ -3,15 +3,14 @@
 @section('title', 'Book Flights — Smart Booking')
 
 @section('content')
-{{-- Enhanced Hero Section with Search --}}
-<section class="page-hero flights-hero">
-    <div style="width: 100%; max-width: 950px; margin: 0 auto;">
-        <div style="text-align: center; margin-bottom: 28px;">
-            <h1 style="font-size: 40px; margin-bottom: 14px; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3); position: relative; z-index: 10;"><i class="fas fa-plane-departure"></i> Book Your Flight</h1>
-            <p style="font-size: 15px; opacity: 0.95; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.4); position: relative; z-index: 10; max-width: 600px; margin: 0 auto;">Search hundreds of airlines. Find the best price for your next journey.</p>
+<section class="hero hero-with-image hero-pattern" 
+         style="background-image: url('{{ $heroImage ?? 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80' }}');">
+    <div class="hero-search-wrap">
+        <div class="hero-search-intro">
+            <h1 class="hero-search-title"><i class="fas fa-plane-departure"></i> Book Your Flight</h1>
+            <p class="hero-search-subtitle">Search hundreds of airlines. Find the best price for your next journey.</p>
         </div>
 
-        {{-- Search Form in Hero --}}
         <div class="search-card">
             <div class="trip-type-tabs">
                 <div class="trip-type-tab active" data-type="round-trip">
@@ -26,54 +25,36 @@
             </div>
 
             <form id="flightSearchForm">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="hero-form-grid">
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
-                            <i class="fas fa-plane-departure"></i> From
-                        </label>
-                        <input type="text" id="from" name="from" placeholder="City or Airport" required
-                               style="width: 100%; padding: 11px 13px; border: 2px solid #e0e0e0; border-radius: 7px; font-size: 14px; transition: all 0.2s; font-family: inherit;">
+                        <label><i class="fas fa-plane-departure"></i> From</label>
+                        <input type="text" id="from" name="from" class="form-input" placeholder="City or Airport" required>
                     </div>
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
-                            <i class="fas fa-plane-arrival"></i> To
-                        </label>
-                        <input type="text" id="to" name="to" placeholder="City or Airport" required
-                               style="width: 100%; padding: 11px 13px; border: 2px solid #e0e0e0; border-radius: 7px; font-size: 14px; transition: all 0.2s; font-family: inherit;">
+                        <label><i class="fas fa-plane-arrival"></i> To</label>
+                        <input type="text" id="to" name="to" class="form-input" placeholder="City or Airport" required>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="hero-form-grid">
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
-                            <i class="fas fa-calendar-alt"></i> Departure
-                        </label>
-                        <input type="date" id="departure_date" name="departure_date" required
-                               style="width: 100%; padding: 11px 13px; border: 2px solid #e0e0e0; border-radius: 7px; font-size: 14px; transition: all 0.2s; font-family: inherit; cursor: pointer;">
+                        <label><i class="fas fa-calendar-alt"></i> Departure</label>
+                        <input type="date" id="departure_date" name="departure_date" class="form-input" required>
                     </div>
                     <div class="form-group" id="returnDateGroup">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
-                            <i class="fas fa-calendar-check"></i> Return
-                        </label>
-                        <input type="date" id="return_date" name="return_date"
-                               style="width: 100%; padding: 11px 13px; border: 2px solid #e0e0e0; border-radius: 7px; font-size: 14px; transition: all 0.2s; font-family: inherit; cursor: pointer;">
+                        <label><i class="fas fa-calendar-check"></i> Return</label>
+                        <input type="date" id="return_date" name="return_date" class="form-input">
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div class="hero-form-grid">
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
-                            <i class="fas fa-users"></i> Passengers
-                        </label>
-                        <input type="number" id="passengers" name="passengers" min="1" max="9" value="1" required
-                               style="width: 100%; padding: 11px 13px; border: 2px solid #e0e0e0; border-radius: 7px; font-size: 14px; transition: all 0.2s; font-family: inherit;">
+                        <label><i class="fas fa-users"></i> Passengers</label>
+                        <input type="number" id="passengers" name="passengers" class="form-input" min="1" max="9" value="1" required>
                     </div>
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px;">
-                            <i class="fas fa-chair"></i> Class
-                        </label>
-                        <select id="class" name="class" required
-                                style="width: 100%; padding: 11px 13px; border: 2px solid #e0e0e0; border-radius: 7px; font-size: 14px; background: white; font-family: inherit; cursor: pointer;">
+                        <label><i class="fas fa-chair"></i> Class</label>
+                        <select id="class" name="class" class="form-input" required>
                             <option value="economy">Economy</option>
                             <option value="premium_economy">Premium Economy</option>
                             <option value="business">Business</option>
@@ -93,7 +74,6 @@
 
 <div class="flights-container">
 
-    {{-- Results --}}
     <div class="results-section" id="resultsSection">
         <div class="results-header">
             <h3><i class="fas fa-list"></i> <span id="resultsCount">0</span> Flights Found</h3>
@@ -110,7 +90,6 @@
         <div id="flightResults"></div>
     </div>
 
-    {{-- Cheap flight suggestions --}}
     <section class="cheap-flights-section">
         <div class="cheap-flights-header">
             <div>
@@ -121,16 +100,13 @@
         </div>
         <div class="cheap-flights-grid">
             @foreach($deals as $deal)
-            @php
-                $aviationService = app(\App\Services\AviationstackService::class);
-                $fromCity = collect($aviationService->searchAirports($deal['from']))->first()['city'] ?? $deal['from'];
-                $toCity = collect($aviationService->searchAirports($deal['to']))->first()['city'] ?? $deal['to'];
-            @endphp
-            <div class="cheap-flight-card" onclick="fillRoute('{{ $fromCity }}', '{{ $toCity }}')">
+            <button type="button" class="cheap-flight-card"
+                    data-action="fillRoute"
+                    data-params='{"args":["{{ $deal['from_city'] }}", "{{ $deal['to_city'] }}"]}'>
                 <div class="cheap-flight-tag"><i class="fas {{ $deal['icon'] }}"></i> {{ $deal['tag'] }}</div>
                 <div class="cheap-flight-route">
                     <div class="cheap-flight-city">
-                        <span class="cheap-city-name">{{ $fromCity }}</span>
+                        <span class="cheap-city-name">{{ $deal['from_city'] }}</span>
                         <span class="cheap-city-code">{{ $deal['from'] }}</span>
                     </div>
                     <div class="cheap-flight-arrow">
@@ -138,7 +114,7 @@
                         <span class="cheap-duration">{{ $deal['duration'] }}</span>
                     </div>
                     <div class="cheap-flight-city cheap-flight-city--right">
-                        <span class="cheap-city-name">{{ $toCity }}</span>
+                        <span class="cheap-city-name">{{ $deal['to_city'] }}</span>
                         <span class="cheap-city-code">{{ $deal['to'] }}</span>
                     </div>
                 </div>
@@ -146,30 +122,26 @@
                     <span class="cheap-airline"><i class="fas fa-plane-departure"></i> {{ $deal['airline'] }}</span>
                     <span class="cheap-price" data-price-usd="{{ $deal['price'] }}">${{ $deal['price'] }}</span>
                 </div>
-            </div>
+            </button>
             @endforeach
         </div>
     </section>
 
-    {{-- Popular routes --}}
     <div class="popular-routes">
         <h3><i class="fas fa-route"></i> Popular Routes</h3>
         <div class="routes-grid">
             @foreach($popularRoutes as $route)
-            @php
-                $aviationService = app(\App\Services\AviationstackService::class);
-                $fromCity = collect($aviationService->searchAirports($route['from']))->first()['city'] ?? $route['from'];
-                $toCity = collect($aviationService->searchAirports($route['to']))->first()['city'] ?? $route['to'];
-            @endphp
-            <div class="route-card" onclick="fillRoute('{{ $fromCity }}', '{{ $toCity }}')">
+            <button type="button" class="route-card"
+                    data-action="fillRoute"
+                    data-params='{"args":["{{ $route['from_city'] }}", "{{ $route['to_city'] }}"]}'>
                 <div class="route-flag"><i class="fas fa-plane"></i></div>
-                <div class="route-cities">{{ $fromCity }} <i class="fas fa-long-arrow-alt-right"></i> {{ $toCity }}</div>
+                <div class="route-cities">{{ $route['from_city'] }} <i class="fas fa-long-arrow-alt-right"></i> {{ $route['to_city'] }}</div>
                 <div class="route-price">from <span data-price-usd="{{ $route['price'] }}">${{ $route['price'] }}</span></div>
                 <div class="route-info">
                     <i class="fas fa-clock"></i> {{ $route['duration'] }} &nbsp;
                     <i class="fas {{ $route['direct'] ? 'fa-check-circle' : 'fa-dot-circle' }}"></i> {{ $route['direct'] ? 'Direct' : '1 stop' }}
                 </div>
-            </div>
+            </button>
             @endforeach
         </div>
     </div>

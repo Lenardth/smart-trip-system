@@ -1,6 +1,6 @@
 <header class="dash-header">
     <div class="dash-header-left">
-        <button class="dash-menu-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <button class="dash-menu-btn" data-action="toggleSidebar" aria-label="Toggle sidebar">
             <i class="fas fa-bars"></i>
         </button>
 
@@ -13,7 +13,7 @@
         <div class="dash-search">
             <i class="fas fa-search"></i>
             <input type="text" placeholder="Search flights or plan a trip…" id="dashSearchInput"
-                   onkeydown="if(event.key==='Enter'&&this.value.trim()){window.location='/flights?q='+encodeURIComponent(this.value.trim());}">
+                   data-keydown-action="dashboardSearch" data-key="Enter">
         </div>
 
         <a href="{{ route('dashboard') }}" class="dash-profile-chip" title="Dashboard">
@@ -23,8 +23,8 @@
                     <img src="{{ asset('storage/'.Auth::user()->profile_picture) }}"
                          alt="{{ Auth::user()->name }}"
                          class="dash-avatar-img"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                    <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
+                         data-error-action="hide-show-next">
+                    <span class="dash-avatar-init hidden">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
                 @else
                     <span class="dash-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
                 @endif

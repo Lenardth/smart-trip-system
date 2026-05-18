@@ -47,8 +47,18 @@ class Booking extends Model
 
     public function getTypeAttribute(): string
     {
-        if ($this->passenger_details && ($this->passenger_details['type'] ?? '') === 'accommodation') return 'accommodation';
-        if ($this->passenger_details && isset($this->passenger_details['airline'])) return 'flight';
+        if ($this->trip_id) {
+            return 'trips';
+        }
+
+        if ($this->passenger_details && ($this->passenger_details['type'] ?? '') === 'accommodation') {
+            return 'hotels';
+        }
+
+        if ($this->passenger_details && isset($this->passenger_details['airline'])) {
+            return 'flights';
+        }
+
         return 'unknown';
     }
 

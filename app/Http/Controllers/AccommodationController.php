@@ -26,9 +26,21 @@ class AccommodationController extends Controller
 
     public function list(Request $request): JsonResponse
     {
-        $q          = trim((string) ($request->input('q') ?? $request->input('search', '')));
-        $style      = $request->input('style');
-        $budgetTier = $request->input('budget_tier');
+        $validated = $request->validate([
+            'q'           => 'nullable|string|max:120',
+            'search'      => 'nullable|string|max:120',
+            'style'       => 'nullable|string|max:40',
+            'budget'      => 'nullable|string|max:20',
+            'budget_tier' => 'nullable|string|max:20',
+        ]);
+
+        $q          = trim((string) ($validated['q'] ?? $validated['search'] ?? ''));
+        $style      = $validated['style'] ?? null;
+        $budgetTier = $validated['budget_tier'] ?? $validated['budget'] ?? null;
+
+        if ($budgetTier === 'any') {
+            $budgetTier = null;
+        }
 
         if (!$q || strlen($q) < 2) {
             $results = Accommodation::active()

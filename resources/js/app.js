@@ -1,16 +1,18 @@
-import Alpine from 'alpinejs';
 import './blade/global';
 import './blade/shared/currency';
+import './blade/shared/event-delegation';
 import './bootstrap';
 
-window.Alpine = Alpine;
-Alpine.start();
+// Initialize event delegation system
+import { init as initEventDelegation } from './blade/shared/event-delegation';
+initEventDelegation();
 
 const path = window.location.pathname.replace(/\/$/, '') || '/';
 
 const routes = {
     '/':              () => import('./blade/landing/index.js'),
     '/dashboard':     () => import('./blade/dashboard/index.js'),
+    '/discover':      () => import('./blade/landing/index.js'), // Reuse landing JS
     '/plan-trip':     () => import('./blade/plan-trip/index.js'),
     '/accommodations':() => import('./blade/accommodations/index.js'),
     '/bookings':      () => import('./blade/bookings/index.js'),
@@ -26,19 +28,5 @@ const loader = routes[path] ??
     )?.[1];
 
 if (loader) {
-    if (document.readyState !== 'loading') {
-        const _orig = document.addEventListener.bind(document);
-        document.addEventListener = function(type, fn, opts) {
-            if (type === 'DOMContentLoaded') {
-                try { fn(); } catch (e) { console.error(e); }
-            } else {
-                _orig(type, fn, opts);
-            }
-        };
-        loader().then(() => {
-            document.addEventListener = _orig;
-        }).catch(err => console.error('[app] page module failed:', err));
-    } else {
-        loader().catch(err => console.error('[app] page module failed:', err));
-    }
+    loader().catch(err => console.error('[app] page module failed:', err));
 }

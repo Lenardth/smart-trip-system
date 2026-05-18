@@ -3,18 +3,21 @@
 @section('title', 'Smart booking')
 
 @section('content')
-<section class="hero">
+<section class="hero hero-with-image hero-pattern" 
+         style="background-image: url('{{ $heroImage ?? 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80' }}');">
     <div class="hero-content">
-        <h1>Plan Your Perfect Journey with AI</h1>
-        <p>Personalized travel recommendations based on your mood, preferences, and budget. Discover destinations you'll love.</p>
+        <h1 class="hero-title">Plan Your Perfect Journey with AI</h1>
+        <p class="hero-subtitle">Personalized travel recommendations based on your mood, preferences, and budget. Discover destinations you'll love.</p>
         <div class="hero-buttons">
-            <button class="primary-button" onclick="window.location.href='/plan-trip'">
+            <a href="{{ route('plan-trip') }}" class="primary-button">
                 <i class="fas fa-magic"></i> Start Planning Now
+            </a>
+            <button class="hero-btn-secondary" data-action="toggleQuickBuilder">
+                <i class="fas fa-bolt"></i> Quick Builder
             </button>
-            <button class="hero-btn-secondary" onclick="toggleQuickBuilder()"><i class="fas fa-bolt"></i> Quick Builder</button>
-            <button class="hero-btn-flights" onclick="window.location.href='/flights'">
+            <a href="{{ route('flights.index') }}" class="hero-btn-flights">
                 <i class="fas fa-plane"></i> Book Flights
-            </button>
+            </a>
         </div>
     </div>
 </section>
@@ -134,7 +137,7 @@
             </div>
         </div>
         <div class="qb-nav">
-            <button class="primary-button qb-next-btn" data-next="2" onclick="window.showStep(2)">
+            <button class="primary-button qb-next-btn" data-next="2" data-action="showStep" data-params='{"args":[2]}'>
                 Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -161,12 +164,11 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-clock"></i> Trip Duration</label>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="number" id="durationSelect" name="duration" min="1" max="365" value="7"
-                        style="width:80px;padding:10px;border:1px solid var(--border-soft);border-radius:4px;font-size:15px;color:var(--deep);background:var(--card-bg);font-family:'Georgia',serif;">
-                    <span style="color:var(--text-muted);font-size:13px;">days</span>
+                <div class="flex-gap-8-center">
+                    <input type="number" id="durationSelect" name="duration" min="1" max="365" value="7" class="form-input-number-sm">
+                    <span class="text-muted fs-13">days</span>
                 </div>
-                <small style="color:var(--text-muted);font-size:11.5px;margin-top:4px;display:block;">Enter any number of days</small>
+                <small class="text-muted fs-11 mt-4 d-block">Enter any number of days</small>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-dollar-sign"></i> Budget Per Person</label>
@@ -180,10 +182,10 @@
             </div>
         </div>
         <div class="qb-nav">
-            <button class="secondary-button qb-back-btn" data-back="1" onclick="window.showStep(1)">
+            <button class="secondary-button qb-back-btn" data-back="1" data-action="showStep" data-params='{"args":[1]}'>
                 <i class="fas fa-arrow-left"></i> Back
             </button>
-            <button class="primary-button qb-next-btn" data-next="3" onclick="window.showStep(3)">
+            <button class="primary-button qb-next-btn" data-next="3" data-action="showStep" data-params='{"args":[3]}'>
                 Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -226,10 +228,10 @@
             </div>
         </div>
         <div class="qb-nav">
-            <button class="secondary-button qb-back-btn" data-back="2" onclick="window.showStep(2)">
+            <button class="secondary-button qb-back-btn" data-back="2" data-action="showStep" data-params='{"args":[2]}'>
                 <i class="fas fa-arrow-left"></i> Back
             </button>
-            <button class="primary-button" id="generatePlanBtn" onclick="window.generateQuickPlan(event)">
+            <button class="primary-button" id="generatePlanBtn" data-action="generateQuickPlan">
                 <i class="fas fa-robot"></i> Generate AI Suggestions
             </button>
         </div>
@@ -328,102 +330,102 @@
 <section class="discover-section">
     <div class="discover-header">
         <h2 class="section-title">Discover Trending Destinations</h2>
-        <button class="secondary-button" onclick="window.location.href='/plan-trip'">Plan with AI <i class="fas fa-arrow-right"></i></button>
+        <a href="{{ route('plan-trip') }}" class="secondary-button">Plan with AI <i class="fas fa-arrow-right"></i></a>
     </div>
     <div class="filter-tags">
-        <span class="filter-tag active" data-filter="all"         onclick="window.applyDestinationFilter('all', this)"><i class="fas fa-globe"></i> All</span>
-        <span class="filter-tag" data-filter="trending"           onclick="window.applyDestinationFilter('trending', this)"><i class="fas fa-fire"></i> Trending</span>
-        <span class="filter-tag" data-filter="beach"              onclick="window.applyDestinationFilter('beach', this)"><i class="fas fa-umbrella-beach"></i> Beach</span>
-        <span class="filter-tag" data-filter="mountain"           onclick="window.applyDestinationFilter('mountain', this)"><i class="fas fa-mountain"></i> Mountain</span>
-        <span class="filter-tag" data-filter="historical"         onclick="window.applyDestinationFilter('historical', this)"><i class="fas fa-landmark"></i> Historical</span>
-        <span class="filter-tag" data-filter="food_culture"       onclick="window.applyDestinationFilter('food_culture', this)"><i class="fas fa-utensils"></i> Food & Culture</span>
-        <span class="filter-tag" data-filter="eco_tourism"        onclick="window.applyDestinationFilter('eco_tourism', this)"><i class="fas fa-leaf"></i> Eco-Tourism</span>
-        <span class="filter-tag" data-filter="romantic"           onclick="window.applyDestinationFilter('romantic', this)"><i class="fas fa-heart"></i> Romantic</span>
-        <span class="filter-tag" data-filter="adventurous"        onclick="window.applyDestinationFilter('adventurous', this)"><i class="fas fa-hiking"></i> Adventure</span>
-        <span class="filter-tag" data-filter="hidden_gem"         onclick="window.applyDestinationFilter('hidden_gem', this)"><i class="fas fa-gem"></i> Hidden Gems</span>
+        <span class="filter-tag active" data-filter="all"       data-action="applyDestinationFilter"><i class="fas fa-globe"></i> All</span>
+        <span class="filter-tag" data-filter="trending"         data-action="applyDestinationFilter"><i class="fas fa-fire"></i> Trending</span>
+        <span class="filter-tag" data-filter="beach"            data-action="applyDestinationFilter"><i class="fas fa-umbrella-beach"></i> Beach</span>
+        <span class="filter-tag" data-filter="mountain"         data-action="applyDestinationFilter"><i class="fas fa-mountain"></i> Mountain</span>
+        <span class="filter-tag" data-filter="historical"       data-action="applyDestinationFilter"><i class="fas fa-landmark"></i> Historical</span>
+        <span class="filter-tag" data-filter="food_culture"     data-action="applyDestinationFilter"><i class="fas fa-utensils"></i> Food &amp; Culture</span>
+        <span class="filter-tag" data-filter="eco_tourism"      data-action="applyDestinationFilter"><i class="fas fa-leaf"></i> Eco-Tourism</span>
+        <span class="filter-tag" data-filter="romantic"         data-action="applyDestinationFilter"><i class="fas fa-heart"></i> Romantic</span>
+        <span class="filter-tag" data-filter="adventurous"      data-action="applyDestinationFilter"><i class="fas fa-hiking"></i> Adventure</span>
+        <span class="filter-tag" data-filter="hidden_gem"       data-action="applyDestinationFilter"><i class="fas fa-gem"></i> Hidden Gems</span>
     </div>
-    <div id="destinationsLoading" style="text-align:center; padding: 60px 20px;">
+    <div id="destinationsLoading" class="loading-placeholder">
         <i class="fas fa-spinner fa-spin"></i>
         <p>Loading destinations...</p>
     </div>
     <div class="destinations-grid" id="destinationsGrid"></div>
-    <div id="destinationsEmpty" style="display:none; text-align:center; padding:60px 20px;">
+    <div id="destinationsEmpty" class="empty-placeholder hidden">
         <i class="fas fa-map-marked-alt"></i>
         <p>No destinations found for this filter.</p>
     </div>
 </section>
 
-<div style="max-width: 1200px; margin: 60px auto; padding: 40px; background: #fff; border-radius: 6px; border: 1px solid #e0e0e0;">
+<div class="ready-to-fly-section">
     <h2 class="section-title">Ready to Fly?</h2>
     <p class="section-subtitle">Find and book flights to your dream destinations</p>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px;">
-        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.location.href='/flights'">
-            <div style="font-size: 48px; color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-search"></i></div>
-            <h3 style="color: #2c3e50; margin-bottom: 10px;">Search Flights</h3>
-            <p style="color: #666;">Find flights worldwide with flexible dates</p>
-        </div>
-        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.location.href='/flights/create'">
-            <div style="font-size: 48px; color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-plus-circle"></i></div>
-            <h3 style="color: #2c3e50; margin-bottom: 10px;">Create Flight</h3>
-            <p style="color: #666;">Add custom flight options</p>
-        </div>
-        <div style="text-align: center; padding: 30px; background: rgba(201,169,110,0.1); border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer;" onclick="window.location.href='/bookings'">
-            <div style="font-size: 48px; color: #2c3e50; margin-bottom: 20px;"><i class="fas fa-ticket-alt"></i></div>
-            <h3 style="color: #2c3e50; margin-bottom: 10px;">My Bookings</h3>
-            <p style="color: #666;">View and manage your bookings</p>
-        </div>
+    <div class="ready-to-fly-grid">
+        <a href="{{ route('flights.index') }}" class="ready-to-fly-card">
+            <div class="ready-to-fly-icon"><i class="fas fa-search"></i></div>
+            <h3>Search Flights</h3>
+            <p>Find flights worldwide with flexible dates</p>
+        </a>
+        <a href="{{ route('discover') }}" class="ready-to-fly-card">
+            <div class="ready-to-fly-icon"><i class="fas fa-compass"></i></div>
+            <h3>Discover Places</h3>
+            <p>Explore destinations from around the world</p>
+        </a>
+        <a href="{{ route('bookings.index') }}" class="ready-to-fly-card">
+            <div class="ready-to-fly-icon"><i class="fas fa-ticket-alt"></i></div>
+            <h3>My Bookings</h3>
+            <p>View and manage your bookings</p>
+        </a>
     </div>
-    <div style="text-align: center; margin-top: 40px;">
-        <button class="primary-button" onclick="window.location.href='/flights'">
+    <div class="ready-to-fly-cta">
+        <a href="{{ route('flights.index') }}" class="primary-button">
             <i class="fas fa-plane"></i> Start Booking Flights Now
-        </button>
+        </a>
     </div>
 </div>
 
-<div style="max-width: 1200px; margin: 60px auto; padding: 0 20px;">
+<div class="explore-style-section">
     <h2 class="section-title">Explore By Travel Style</h2>
     <p class="section-subtitle">Find destinations that match your preferred travel experience</p>
     <div class="explore-categories">
-        <div class="category-card active-style" data- onclick="filterByStyle('adventure', this)">
+        <div class="category-card active-style" data-style="adventure" data-action="filterByStyle">
             <div class="category-icon"><i class="fas fa-hiking"></i></div>
             <h3>Adventure Travel</h3>
             <p>Hiking, trekking, and extreme sports destinations</p>
         </div>
-        <div class="category-card" data- onclick="filterByStyle('beach', this)">
+        <div class="category-card" data-style="beach" data-action="filterByStyle">
             <div class="category-icon"><i class="fas fa-umbrella-beach"></i></div>
             <h3>Beach &amp; Relaxation</h3>
             <p>Perfect spots for sunbathing and unwinding</p>
         </div>
-        <div class="category-card" data- onclick="filterByStyle('cultural', this)">
+        <div class="category-card" data-style="cultural" data-action="filterByStyle">
             <div class="category-icon"><i class="fas fa-landmark"></i></div>
             <h3>Cultural Immersion</h3>
             <p>Historical sites and cultural experiences</p>
         </div>
-        <div class="category-card" data- onclick="filterByStyle('food', this)">
+        <div class="category-card" data-style="food" data-action="filterByStyle">
             <div class="category-icon"><i class="fas fa-utensils"></i></div>
             <h3>Culinary Tours</h3>
             <p>Foodie paradises and cooking experiences</p>
         </div>
     </div>
-    <div id="styleResultsHeader" style="display:none; margin: 30px 0 16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 id="styleResultsTitle" style="margin:0; font-size:18px;"></h3>
-            <span id="styleResultsCount" style="font-size:13px;"></span>
+    <div id="styleResultsHeader" class="style-results-header">
+        <div class="style-results-header-inner">
+            <h3 id="styleResultsTitle"></h3>
+            <span id="styleResultsCount"></span>
         </div>
     </div>
     <div class="destinations-grid" id="styleDestinationsGrid"></div>
-    <div id="styleEmpty" style="display:none; text-align:center; padding:40px;">
+    <div id="styleEmpty" class="style-empty">
         <i class="fas fa-map-marked-alt"></i>
         <p>No destinations found for this style.</p>
     </div>
-    <div id="styleViewAll" style="display:none; text-align:center; margin-top:28px;">
+    <div id="styleViewAll" class="style-view-all">
         <a href="/plan-trip" class="secondary-button">
             <i class="fas fa-compass"></i> View All Destinations
         </a>
     </div>
 </div>
 
-<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+<div class="how-it-works-section">
     <h2 class="section-title">How It Works</h2>
     <div class="how-it-works-grid">
         <div class="how-step">
@@ -445,7 +447,7 @@
 </div>
 
 <div class="ai-features-banner">
-    <div style="text-align: center;">
+    <div class="ai-banner-header">
         <h2>Powered by Advanced AI</h2>
         <p>Our intelligent algorithms analyze millions of data points to create your perfect trip</p>
     </div>
@@ -469,7 +471,7 @@
     </div>
 </div>
 
-<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+<div class="smart-features-section">
     <h2 class="section-title">Advanced Smart Features</h2>
     <p class="section-subtitle">Experience the future of travel planning with our AI-powered tools</p>
     <div class="smart-features-grid">
@@ -519,7 +521,7 @@
     <p class="section-subtitle">Subscribe to receive weekly destination ideas, travel tips, and exclusive deals</p>
     <div class="newsletter-input">
         <input type="email" id="newsletterEmail" placeholder="Enter your email address">
-        <button onclick="subscribeNewsletter()">
+        <button data-action="subscribeNewsletter">
             <i class="fas fa-paper-plane"></i> Subscribe
         </button>
     </div>

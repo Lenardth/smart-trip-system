@@ -15,6 +15,19 @@ Route::get('/api/landing/destinations', [\App\Http\Controllers\LandingController
     ->middleware('throttle:60,1')
     ->name('api.landing.destinations');
 
+// ── Discover ──────────────────────────────────────────────────────────────────
+Route::get('/discover', [\App\Http\Controllers\DiscoverController::class, 'index'])->name('discover');
+Route::get('/discover/place/{destination}', [\App\Http\Controllers\DiscoverController::class, 'show'])
+    ->name('discover.place.show');
+// Primary JSON endpoint — mirrors /api/accommodations
+Route::get('/api/discover', [\App\Http\Controllers\DiscoverController::class, 'list'])
+    ->middleware('throttle:60,1')
+    ->name('api.discover.list');
+// Legacy alias kept for backward compat
+Route::get('/api/discover/search', [\App\Http\Controllers\DiscoverController::class, 'search'])
+    ->middleware('throttle:60,1')
+    ->name('api.discover.search');
+
 // ── AI Suggestions (public, throttled) ───────────────────────────────────────
 Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
     ->middleware('throttle:20,1')
@@ -73,7 +86,7 @@ Route::middleware('auth')->group(function () {
 
     // Flights
     Route::get('/flights',           [FlightController::class, 'index'])->name('flights.index');
-    Route::post('/flights/search',   [FlightController::class, 'search'])->name('flights.search');
+    Route::post('/flights/search',   [FlightController::class, 'search'])->middleware('throttle:30,1')->name('flights.search');
     Route::get('/flights/airports',  [FlightController::class, 'airports'])->name('flights.airports');
 
     // Accommodations (search history, auth required)
@@ -86,10 +99,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/bookings/flight',        [BookingController::class, 'bookFlight'])->middleware('throttle:10,1');
     Route::post('/api/bookings/accommodation', [BookingController::class, 'storeAccommodation'])->middleware('throttle:10,1');
     Route::post('/api/coupon/validate',        [\App\Http\Controllers\CouponController::class, 'validate']);
-});
 
     // Profile
     Route::post('/profile/picture',   [\App\Http\Controllers\ProfileController::class, 'uploadPicture'])->name('profile.picture.upload');
     Route::delete('/profile/picture', [\App\Http\Controllers\ProfileController::class, 'deletePicture'])->name('profile.picture.delete');
     Route::put('/profile/password',   [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::delete('/profile',         [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
+});

@@ -66,14 +66,13 @@
         _currency = code;
         localStorage.setItem(STORAGE_KEY, code);
 
-        // Update picker UI
         document.querySelectorAll('.currency-option').forEach(el => {
             el.classList.toggle('active', el.dataset.code === code);
         });
-        const label = document.getElementById('currencyLabel');
-        if (label) label.textContent = code;
+        document.querySelectorAll('[data-currency-label]').forEach(el => {
+            el.textContent = code;
+        });
 
-        // Persist to server session
         try {
             await fetch(API_SET, {
                 method:  'POST',
@@ -86,21 +85,21 @@
         document.dispatchEvent(new CustomEvent('currency:changed', { detail: { currency: code } }));
     }
 
-    function buildPicker(currencies) {
-        const wrapper = document.getElementById('currencyPickerWrapper');
-        if (!wrapper) return;
+    function buildPicker(currencies, wrapper) {
+        if (!wrapper || wrapper.dataset.currencyBuilt === '1') return;
+        wrapper.dataset.currencyBuilt = '1';
 
         const btn = document.createElement('button');
-        btn.id        = 'currencyBtn';
+        btn.type      = 'button';
         btn.className = 'currency-btn';
-        btn.innerHTML = '<i class="fas fa-coins"></i> <span id="currencyLabel">' + _currency + '</span> <i class="fas fa-chevron-down" style="font-size:10px;"></i>';
+        btn.innerHTML = '<i class="fas fa-coins"></i> <span data-currency-label>' + _currency + '</span> <i class="fas fa-chevron-down" style="font-size:10px;"></i>';
 
         const dropdown = document.createElement('div');
-        dropdown.id        = 'currencyDropdown';
         dropdown.className = 'currency-dropdown';
 
         Object.entries(currencies).forEach(([code, info]) => {
             const opt = document.createElement('button');
+            opt.type             = 'button';
             opt.className        = 'currency-option' + (code === _currency ? ' active' : '');
             opt.dataset.code     = code;
             opt.innerHTML        = '<span class="currency-symbol">' + (info.symbol || code) + '</span><span class="currency-name">' + info.name + '</span><span class="currency-code">' + code + '</span>';
@@ -119,8 +118,13 @@
         wrapper.appendChild(dropdown);
     }
 
+    function buildAllPickers(currencies) {
+        document.querySelectorAll('.currency-picker-wrapper').forEach(wrapper => {
+            buildPicker(currencies, wrapper);
+        });
+    }
+
     async function init() {
-        // Load supported currencies for picker
         try {
             const res  = await fetch(API_RATES + '?base=USD', { headers: { 'Accept': 'application/json' } });
             const data = await res.json();
@@ -128,7 +132,7 @@
                 _rates  = data.rates;
                 _loaded = true;
             }
-            if (data.currencies) buildPicker(data.currencies);
+            if (data.currencies) buildAllPickers(data.currencies);
         } catch (e) {
             console.warn('[Currency] Init failed:', e.message);
         }

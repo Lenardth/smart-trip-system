@@ -73,15 +73,22 @@ class DashboardController extends Controller
     public function statistics(): JsonResponse
     {
         $userId = Auth::id();
+        $all    = Booking::where('user_id', $userId)->get();
 
         $trips        = Trip::where('user_id', $userId)->where('status', 'planned')->count();
-        $bookings     = Booking::where('user_id', $userId)->whereIn('status', ['confirmed', 'pending'])->count();
+        $bookings     = $all->whereIn('status', ['confirmed', 'pending'])->count();
         $staySearches = AccommodationSearch::where('user_id', $userId)->count();
+        $flights      = $all->where('type', 'flights')->count();
+        $hotels       = $all->where('type', 'hotels')->count();
+        $spent        = $all->whereNotIn('status', ['cancelled'])->sum('total_price');
 
         return response()->json([
             'trips'         => $trips,
             'bookings'      => $bookings,
             'stay_searches' => $staySearches,
+            'flights'       => $flights,
+            'hotels'        => $hotels,
+            'spent'         => round((float) $spent, 2),
         ]);
     }
 }

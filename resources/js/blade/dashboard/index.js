@@ -181,9 +181,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
         section.innerHTML = activities
             .map(function (a) {
                 return (
-                    '<div class="activity-item" onclick="window.location.href=\'' +
+                    '<div class="activity-item clickable" data-action="navigate" data-url="' +
                     (a.url || '#') +
-                    '\'" style="cursor:pointer;">' +
+                    '">' +
                     '<div class="activity-icon" style="background:' +
                     (a.color || 'var(--gold)') +
                     '22;color:' +
@@ -218,7 +218,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
                 '<i class="fas fa-route"></i>' +
                 '<h3>No Trips Planned Yet</h3>' +
                 '<p>Start planning your next adventure!</p>' +
-                '<button class="btn" onclick="window.location.href=\'/plan-trip\'">' +
+                '<button class="btn" data-action="navigate" data-url="/plan-trip">' +
                 '<i class="fas fa-plus"></i> Create Your First Trip' +
                 '</button>' +
                 '</div>';
@@ -268,9 +268,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
                     (t.feeling_note
                         ? '<div class="trip-feeling"><i class="fas fa-heart"></i> ' + escapeHtml(t.feeling_note) + '</div>'
                         : '') +
-                    '<button class="trip-delete-btn" onclick="deleteTrip(' +
+                    '<button class="trip-delete-btn" data-action="deleteTrip" data-params=\'{"args":[' +
                     t.id +
-                    ')">' +
+                    ']}\'>' +
                     '<i class="fas fa-trash-alt"></i>' +
                     '</button>' +
                     '</div>'
@@ -400,6 +400,14 @@ window.__dashboardConfig = window.__dashboardConfig || {
     window.loadUpcomingTrips = loadUpcomingTrips;
     window.loadUserStatistics = loadUserStatistics;
     window.logout = logout;
+    
+    // Dashboard search handler
+    window.dashboardSearch = function() {
+        var input = document.getElementById('dashSearchInput');
+        if (input && input.value.trim()) {
+            window.location.href = '/flights?q=' + encodeURIComponent(input.value.trim());
+        }
+    };
 })();
 
 

@@ -1,5 +1,7 @@
 @import './auth/shared-auth.css';
 @import './auth/login.css';
+@import './shared/hero-search.css';
+@import './shared/static-pages.css';
 
 @import './landing/index.css';
 @import './dashboard/index.css';

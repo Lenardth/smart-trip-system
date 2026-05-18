@@ -8,16 +8,16 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    background: rgba(201, 169, 110, 0.15);
+    padding: 8px 16px;
+    background: rgba(201, 169, 110, 0.12);
     border: 1.5px solid rgba(201, 169, 110, 0.4);
-    border-radius: 6px;
+    border-radius: 9999px;
     color: var(--gold);
     font-size: 13px;
     font-weight: 600;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
     cursor: pointer;
-    transition: background 0.18s, border-color 0.18s;
+    transition: all 0.2s ease;
     white-space: nowrap;
 }
 
@@ -29,17 +29,18 @@
 .currency-dropdown {
     display: none;
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 8px);
     right: 0;
     width: 240px;
     max-height: 320px;
     overflow-y: auto;
-    background: var(--deep);
-    border: 1.5px solid rgba(201, 169, 110, 0.3);
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, var(--deep), var(--deep-alt));
+    border: 1px solid rgba(201, 169, 110, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
     z-index: 1000;
-    padding: 6px 0;
+    padding: 8px;
+    backdrop-filter: blur(12px);
 }
 
 .currency-dropdown.open {
@@ -51,15 +52,17 @@
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 9px 16px;
+    padding: 10px 16px;
     background: none;
     border: none;
+    border-radius: 10px;
     color: var(--text-sub);
     font-size: 13px;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
     cursor: pointer;
     text-align: left;
-    transition: background 0.15s, color 0.15s;
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
 }
 
 .currency-option:hover {

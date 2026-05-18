@@ -16,14 +16,13 @@
         </section>
 
         <section>
-            <h2>Our Core Features</h2>
-            <ul>
-                <li><strong>AI Trip Planner</strong> — Tell us your mood, budget, and travel style. Our AI suggests personalised destinations with real cost estimates.</li>
-                <li><strong>Flight Search</strong> — Search live flight data across hundreds of routes with real-time pricing.</li>
-                <li><strong>Accommodation Search</strong> — Find hotels, hostels, resorts, and apartments powered by live API data.</li>
-                <li><strong>Booking Management</strong> — Book flights and stays, apply coupons, and track all your bookings in one dashboard.</li>
-                <li><strong>Currency Converter</strong> — See prices in your preferred currency with live exchange rates.</li>
-                <li><strong>Dashboard</strong> — A personalised overview of your trips, bookings, and recent activity.</li>
+            <h2>Core Features</h2>
+            <ul class="feature-list">
+                <li><strong>AI Trip Planning</strong> — Mood, budget, and companion scoring with Groq-powered day-by-day ideas.</li>
+                <li><strong>Flights &amp; Bookings</strong> — Search live fares, book seats, and manage everything in one place.</li>
+                <li><strong>Itineraries &amp; PDFs</strong> — Build editable plans and export polished PDFs and receipts.</li>
+                <li><strong>Destinations &amp; Discovery</strong> — Explore places, save a wishlist, and compare destinations side by side.</li>
+                <li><strong>Multi-Currency &amp; Pricing</strong> — Live exchange rates and receipts in the currency you choose.</li>
             </ul>
         </section>
 

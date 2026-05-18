@@ -1,16 +1,17 @@
 .trip-card {
-    background: linear-gradient(135deg, white, var(--card-bg, #fff8f2));
-    border: 1px solid var(--border, #e2d5c7);
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin-bottom: 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
     position: relative;
-    transition: box-shadow .25s, transform .25s;
+    transition: all .3s ease;
+    box-shadow: 0 4px 16px rgba(59, 31, 43, .04);
 }
 
 .trip-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(59, 31, 43, .12);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(59, 31, 43, .08);
 }
 
 .trip-card-header {
@@ -24,11 +25,11 @@
     width: 44px;
     height: 44px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #c9a96e, #b8955a);
+    background: linear-gradient(135deg, var(--gold), var(--gold-hover));
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--deep);
     font-size: 18px;
     flex-shrink: 0;
 }
@@ -39,25 +40,27 @@
 }
 
 .trip-info h4 {
-    margin: 0 0 3px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #3b1f2b;
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--deep);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-family: inherit;
+    letter-spacing: -0.2px;
 }
 
 .trip-info p {
     margin: 0;
-    font-size: 12px;
-    color: #6b5b4f;
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
 .trip-cost {
     font-size: 17px;
     font-weight: 700;
-    color: #3b1f2b;
+    color: var(--deep);
     flex-shrink: 0;
 }
 
@@ -66,7 +69,7 @@
     flex-wrap: wrap;
     gap: 10px;
     font-size: 12px;
-    color: #6b5b4f;
+    color: var(--text-muted);
 }
 
 .trip-meta span {
@@ -76,14 +79,14 @@
 }
 
 .trip-meta i {
-    color: #c9a96e;
+    color: var(--gold);
 }
 
 .trip-feeling {
     margin-top: 10px;
     font-size: 12px;
-    color: #6b5b4f;
-    background: rgba(201, 169, 110, .09);
+    color: var(--text-muted);
+    background: var(--gold-dim);
     border: 1px solid rgba(201, 169, 110, .25);
     border-radius: 8px;
     padding: 8px 10px;
@@ -91,7 +94,7 @@
 }
 
 .trip-feeling i {
-    color: #c9a96e;
+    color: var(--gold);
     margin-right: 6px;
 }
 
@@ -101,7 +104,7 @@
     right: 12px;
     background: none;
     border: none;
-    color: #d4c4b0;
+    color: var(--border-soft);
     font-size: 13px;
     cursor: pointer;
     padding: 4px;
@@ -109,7 +112,7 @@
 }
 
 .trip-delete-btn:hover {
-    color: #f44336;
+    color: var(--danger);
 }
 
 .sidebar {
@@ -151,11 +154,11 @@
 }
 
 .sidebar-brand-text {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
     color: #fff;
-    font-family: 'Georgia', serif;
-    letter-spacing: .5px;
+    font-family: inherit;
+    letter-spacing: .3px;
     white-space: nowrap;
 }
 
@@ -178,32 +181,78 @@
 }
 
 .sidebar-menu {
-    padding: 20px 0;
+    padding: 12px 0 8px;
     flex: 1;
     overflow-y: auto;
+}
+
+.sidebar-section-label {
+    margin: 16px 25px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(212, 196, 176, .55);
+}
+
+.sidebar-section-label:first-child {
+    margin-top: 4px;
+}
+
+.sidebar-utilities {
+    padding: 8px 20px 16px;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    flex-shrink: 0;
+}
+
+.sidebar-utilities .sidebar-section-label {
+    margin: 0 5px 10px;
+}
+
+.currency-picker-sidebar {
+    margin: 0;
+    width: 100%;
+}
+
+.currency-picker-sidebar .currency-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.currency-picker-sidebar .currency-dropdown {
+    left: 0;
+    right: 0;
+    width: 100%;
+}
+
+.user-type-label {
+    font-size: 11px;
+    color: var(--text-sub);
+    text-transform: capitalize;
 }
 
 .menu-item {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 16px 25px;
+    padding: 14px 20px;
     color: var(--text-sub);
     text-decoration: none;
-    transition: all .3s ease;
-    font-weight: 500;
+    transition: all .25s ease;
+    font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
-    border-left: 4px solid transparent;
-    margin: 5px 0;
+    border-radius: 12px;
+    margin: 4px 12px;
     position: relative;
+    border-left: none;
 }
 
 .menu-item:hover,
 .menu-item.active {
-    background: var(--sidebar-hover);
-    color: var(--text-light);
-    border-left: 4px solid var(--gold);
-    box-shadow: inset 5px 0 10px rgba(0, 0, 0, .1);
+    background: rgba(201, 169, 110, .12);
+    color: #fff;
+    box-shadow: none;
 }
 
 .menu-item i {
@@ -300,6 +349,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-family: inherit;
 }
 
 .user-badges {
@@ -413,12 +463,15 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 5px;
+    font-family: inherit;
+    letter-spacing: -0.5px;
 }
 
 .nav-left p {
     color: var(--text-muted);
     font-size: 14px;
     font-weight: 500;
+    font-family: inherit;
 }
 
 .nav-right {
@@ -434,12 +487,13 @@
 .search-box input {
     padding: 14px 20px 14px 50px;
     border: 2px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 15px;
     width: 320px;
     background: white;
     transition: all .3s ease;
     font-weight: 500;
+    font-family: inherit;
 }
 
 .search-box input:focus {
@@ -539,6 +593,7 @@
     color: white;
     font-weight: 700;
     font-size: 18px;
+    font-family: inherit;
 }
 
 .notification-dropdown {
@@ -1547,7 +1602,7 @@ input[type="file"] {
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
     transition: all .2s;
     white-space: nowrap;
 }
@@ -1604,7 +1659,7 @@ input[type="file"] {
     color: var(--deep);
     font-size: 22px;
     font-weight: 700;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
 }
 
 .welcome-avatar img {
@@ -1623,7 +1678,8 @@ input[type="file"] {
     font-weight: 700;
     color: var(--text-light);
     margin: 0 0 4px;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
+    letter-spacing: -0.3px;
 }
 
 .welcome-text p {
@@ -1641,8 +1697,8 @@ input[type="file"] {
     color: var(--deep);
     border-radius: 6px;
     font-size: 14px;
-    font-weight: 700;
-    font-family: 'Georgia', serif;
+    font-weight: 600;
+    font-family: inherit;
     text-decoration: none;
     white-space: nowrap;
     transition: background .2s;
@@ -1691,7 +1747,7 @@ input[type="file"] {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-muted);
-    font-family: 'Georgia', serif;
+    font-family: inherit;
 }
 
 .upload-option-btn i {

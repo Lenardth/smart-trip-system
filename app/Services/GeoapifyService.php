@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -86,6 +87,391 @@ class GeoapifyService implements GeoapifyInterface
 
         Log::error('All Overpass mirrors failed', ['city' => $city]);
         return [];
+    }
+
+    public function searchPlaces(string $query, ?string $countryCode = null, ?string $mood = null, int $limit = 50): array
+    {
+        $limit = min(max($limit, 1), 100);
+        $params = [
+            'q' => $query,
+            'format' => 'json',
+            'addressdetails' => 1,
+            'limit' => $limit,
+            'extratags' => 1,
+            'namedetails' => 1,
+        ];
+
+        if ($countryCode) {
+            $params['countrycodes'] = strtolower($countryCode);
+        }
+
+        try {
+            $response = Http::timeout(12)
+                ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
+                ->get("{$this->nominatimUrl}/search", $params);
+
+            if (! $response->successful() || empty($response->json())) {
+                Log::warning('Nominatim search failed', [
+                    'query' => $query,
+                    'country' => $countryCode,
+                    'status' => $response->status(),
+                ]);
+                return [];
+            }
+
+            $places = array_map(fn(array $item) => $this->mapNominatimPlace($item), $response->json());
+
+            if ($mood) {
+                $places = $this->filterPlacesByMood($places, $mood);
+            }
+
+            return array_slice($places, 0, $limit);
+        } catch (\Throwable $e) {
+            Log::warning('Nominatim search exception', ['query' => $query, 'error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    /**
+     * Search for travel destinations (cities, tourist attractions, landmarks).
+     * Returns clean destination data suitable for the Discover page.
+     * Uses multiple Nominatim queries to find the best results.
+     */
+    public function searchDestinations(string $query, ?string $countryCode = null, ?string $mood = null, int $limit = 20): array
+    {
+        $limit = min(max($limit, 1), 50);
+
+        // Map mood to OSM tourism/amenity types for better results
+        $moodTypeMap = [
+            'Cultural'    => ['museum', 'artwork', 'gallery', 'theatre', 'historic', 'monument', 'castle', 'ruins'],
+            'Adventurous' => ['peak', 'camp_site', 'viewpoint', 'waterfall', 'national_park', 'nature_reserve'],
+            'Relaxed'     => ['beach', 'spa', 'park', 'garden', 'resort', 'hot_spring'],
+            'Romantic'    => ['viewpoint', 'castle', 'garden', 'beach', 'monument', 'historic'],
+            'Foodie'      => ['restaurant', 'market', 'food_court', 'cafe', 'brewery', 'winery'],
+            'Eco-Travel'  => ['nature_reserve', 'national_park', 'forest', 'wetland', 'protected_area'],
+            'Beach'       => ['beach', 'bay', 'coast', 'island', 'lagoon'],
+            'Nature'      => ['peak', 'forest', 'waterfall', 'lake', 'river', 'national_park', 'nature_reserve'],
+        ];
+
+        $results = [];
+
+        // Strategy 1: Search for cities matching the query
+        $cityResults = $this->nominatimSearch($query, $countryCode, ['city', 'town', 'village', 'administrative'], $limit);
+        $results = array_merge($results, $cityResults);
+
+        // Strategy 2: If mood given, search for mood-specific attractions
+        if ($mood && isset($moodTypeMap[$mood])) {
+            $attractionQuery = $query ?: $mood . ' destination';
+            $attractionResults = $this->nominatimSearch($attractionQuery, $countryCode, ['tourism', 'natural', 'leisure', 'amenity'], min($limit, 15));
+            $results = array_merge($results, $attractionResults);
+        }
+
+        // Strategy 3: If no results yet, broaden the search
+        if (empty($results) && $query) {
+            $broadResults = $this->nominatimSearch($query, $countryCode, [], $limit);
+            $results = array_merge($results, $broadResults);
+        }
+
+        // Deduplicate by name+country
+        $seen = [];
+        $unique = [];
+        foreach ($results as $place) {
+            $key = strtolower(($place['name'] ?? '') . '|' . ($place['country'] ?? ''));
+            if (!isset($seen[$key]) && !empty($place['name']) && $place['name'] !== 'Unknown place') {
+                $seen[$key] = true;
+                $unique[] = $place;
+            }
+        }
+
+        // Filter by mood if specified
+        if ($mood && !empty($unique)) {
+            $moodFiltered = $this->filterPlacesByMood($unique, $mood);
+            // Only use mood filter if it returns results, otherwise keep all
+            if (!empty($moodFiltered)) {
+                $unique = $moodFiltered;
+            }
+        }
+
+        return array_slice($unique, 0, $limit);
+    }
+
+    /**
+     * Run a Nominatim search filtered by OSM classes/types.
+     */
+    private function nominatimSearch(string $query, ?string $countryCode, array $featureTypes, int $limit): array
+    {
+        if (empty($query)) {
+            return [];
+        }
+
+        $params = [
+            'q'              => $query,
+            'format'         => 'json',
+            'addressdetails' => 1,
+            'limit'          => min($limit * 2, 50), // fetch extra, we'll filter
+            'extratags'      => 1,
+            'namedetails'    => 1,
+        ];
+
+        if ($countryCode) {
+            $params['countrycodes'] = strtolower($countryCode);
+        }
+
+        try {
+            $response = Http::timeout(12)
+                ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
+                ->get("{$this->nominatimUrl}/search", $params);
+
+            if (! $response->successful() || empty($response->json())) {
+                return [];
+            }
+
+            $items = $response->json();
+
+            // Filter to useful feature types if specified
+            if (!empty($featureTypes)) {
+                $items = array_filter($items, function (array $item) use ($featureTypes) {
+                    $class = $item['class'] ?? '';
+                    $type  = $item['type'] ?? '';
+                    foreach ($featureTypes as $ft) {
+                        if ($class === $ft || $type === $ft || str_contains($class, $ft) || str_contains($type, $ft)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+            }
+
+            return array_values(array_map(
+                fn(array $item) => $this->mapNominatimDestination($item),
+                array_slice($items, 0, $limit)
+            ));
+        } catch (\Throwable $e) {
+            Log::warning('Nominatim destination search failed', ['query' => $query, 'error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    /**
+     * Map a Nominatim result to a clean destination array.
+     */
+    private function mapNominatimDestination(array $item): array
+    {
+        $address = $item['address'] ?? [];
+        $nameDetails = $item['namedetails'] ?? [];
+        $extraTags = $item['extratags'] ?? [];
+
+        // Prefer the proper name over display_name (which includes full address)
+        $name = $nameDetails['name:en']
+            ?? $nameDetails['name']
+            ?? $address['city']
+            ?? $address['town']
+            ?? $address['village']
+            ?? $address['county']
+            ?? null;
+
+        // If name is still the full display_name, extract just the first part
+        if (!$name && isset($item['display_name'])) {
+            $name = explode(',', $item['display_name'])[0];
+        }
+
+        $city    = $address['city'] ?? $address['town'] ?? $address['village'] ?? null;
+        $region  = $address['state'] ?? $address['region'] ?? $address['county'] ?? null;
+        $country = $address['country'] ?? null;
+        $countryCode = isset($address['country_code']) ? strtoupper($address['country_code']) : null;
+
+        // Build a meaningful description
+        $type = $item['type'] ?? $item['class'] ?? 'place';
+        $typeLabel = ucwords(str_replace('_', ' ', $type));
+        $description = $extraTags['description'] ?? $extraTags['wikipedia'] ?? null;
+        if (!$description) {
+            $parts = array_filter([$typeLabel, $city, $country]);
+            $description = implode(' · ', $parts);
+        }
+
+        // Build location label
+        $locationParts = array_filter([$city ?: $region, $country]);
+        $location = implode(', ', $locationParts) ?: ($country ?? 'Global');
+
+        return [
+            'id'           => 'osm_' . ($item['osm_type'] ?? 'n') . '_' . ($item['osm_id'] ?? uniqid()),
+            'name'         => $name ?: 'Unknown place',
+            'type'         => $type,
+            'category'     => $item['class'] ?? $type,
+            'city'         => $city,
+            'region'       => $region ?? $country,
+            'country'      => $country,
+            'country_code' => $countryCode,
+            'location'     => $location,
+            'address'      => $item['display_name'] ?? null,
+            'description'  => $description,
+            'lat'          => isset($item['lat']) ? (float) $item['lat'] : null,
+            'lon'          => isset($item['lon']) ? (float) $item['lon'] : null,
+            'source'       => 'openstreetmap',
+            'wikipedia'    => $extraTags['wikipedia'] ?? null,
+            'website'      => $extraTags['website'] ?? null,
+            'population'   => $extraTags['population'] ?? null,
+        ];
+    }
+
+    public function getCountries(): array
+    {
+        return Cache::remember('geoapify_countries', now()->addDay(), function () {
+            try {
+                $response = Http::timeout(10)
+                    ->get('https://restcountries.com/v3.1/all?fields=name,cca2');
+
+                if (! $response->successful() || empty($response->json())) {
+                    return [];
+                }
+
+                return collect($response->json())
+                    ->map(fn(array $country) => [
+                        'name' => $country['name']['common'] ?? $country['name']['official'] ?? '',
+                        'code' => $country['cca2'] ?? '',
+                    ])
+                    ->filter(fn(array $country) => ! empty($country['name']) && ! empty($country['code']))
+                    ->sortBy('name')
+                    ->values()
+                    ->all();
+            } catch (\Throwable $e) {
+                Log::warning('RestCountries API exception', ['error' => $e->getMessage()]);
+                return [];
+            }
+        });
+    }
+
+    public function countryDetails(string $countryCode): array
+    {
+        try {
+            $response = Http::timeout(10)
+                ->get("https://restcountries.com/v3.1/alpha/{$countryCode}");
+
+            if (! $response->successful() || empty($response->json())) {
+                return [];
+            }
+
+            $country = $response->json()[0] ?? $response->json();
+
+            return [
+                'name' => $country['name']['common'] ?? $country['name']['official'] ?? null,
+                'capital' => is_array($country['capital']) ? implode(', ', $country['capital']) : ($country['capital'] ?? null),
+                'region' => $country['region'] ?? null,
+                'subregion' => $country['subregion'] ?? null,
+                'population' => $country['population'] ?? null,
+                'currency' => $this->formatCurrencies($country['currencies'] ?? []),
+                'languages' => $this->formatLanguages($country['languages'] ?? []),
+                'flag' => $country['flags']['svg'] ?? $country['flags']['png'] ?? null,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('RestCountries country details failed', ['code' => $countryCode, 'error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    public function searchWikipediaSummary(string $query): array
+    {
+        $query = trim($query);
+        if ($query === '') {
+            return [];
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
+                ->get("https://en.wikipedia.org/api/rest_v1/page/summary/" . rawurlencode($query));
+
+            if (! $response->successful()) {
+                return [];
+            }
+
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::warning('Wikipedia summary fetch failed', ['query' => $query, 'error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    private function formatCurrencies(array $currencies): string
+    {
+        return implode(', ', array_map(fn($currency) => ($currency['name'] ?? '') . ' (' . ($currency['symbol'] ?? '') . ')', $currencies));
+    }
+
+    private function formatLanguages(array $languages): string
+    {
+        return implode(', ', array_values($languages));
+    }
+
+    private function mapNominatimPlace(array $item): array
+    {
+        $address = $item['address'] ?? [];
+        $city = $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['hamlet'] ?? null;
+        $region = $address['state'] ?? $address['region'] ?? $address['county'] ?? null;
+        $country = $address['country'] ?? null;
+
+        $fqName = $item['namedetails']['name'] ?? $address['attraction'] ?? $address['building'] ?? $item['display_name'] ?? null;
+
+        return [
+            'id' => 'nominatim_' . ($item['osm_type'] ?? 'place') . '_' . ($item['osm_id'] ?? uniqid()),
+            'name' => $fqName ?: 'Unknown place',
+            'type' => $item['type'] ?? $item['class'] ?? 'place',
+            'category' => $item['class'] ?? $item['type'] ?? 'place',
+            'city' => $city,
+            'region' => $region,
+            'country' => $country,
+            'country_code' => isset($address['country_code']) ? strtoupper($address['country_code']) : null,
+            'address' => $item['display_name'] ?? null,
+            'description' => $item['type'] ? ucwords(str_replace('_', ' ', $item['type'])) : null,
+            'lat' => isset($item['lat']) ? (float) $item['lat'] : null,
+            'lon' => isset($item['lon']) ? (float) $item['lon'] : null,
+            'image_url' => $this->imageUrlForPlace($item),
+            'source' => 'openstreetmap',
+        ];
+    }
+
+    private function filterPlacesByMood(array $places, string $mood): array
+    {
+        $mood = ucwords(strtolower($mood));
+        $moodMap = [
+            'Cultural' => ['historic', 'tourism', 'arts_centre', 'museum', 'theatre', 'gallery', 'library'],
+            'Adventurous' => ['natural', 'tourism', 'peak', 'trailhead', 'waterfall', 'camp_site', 'mountain'],
+            'Relaxed' => ['leisure', 'park', 'garden', 'spa', 'beach', 'resort'],
+            'Romantic' => ['park', 'garden', 'viewpoint', 'hotel', 'castle', 'historic', 'monument'],
+            'Foodie' => ['amenity', 'restaurant', 'cafe', 'market', 'food_court', 'brewery'],
+            'Eco-Travel' => ['natural', 'protected_area', 'park', 'nature_reserve'],
+            'Beach' => ['beach', 'coast', 'bay', 'lagoon', 'island'],
+            'Nature' => ['natural', 'forest', 'waterway', 'river', 'lake', 'mountain'],
+        ];
+
+        $filters = $moodMap[$mood] ?? [];
+        if (empty($filters)) {
+            return $places;
+        }
+
+        return array_values(array_filter($places, function (array $place) use ($filters, $mood) {
+            $type = strtolower($place['type'] ?? '');
+            $category = strtolower($place['category'] ?? '');
+            $address = strtolower($place['address'] ?? '');
+
+            if (in_array($type, $filters, true) || in_array($category, $filters, true)) {
+                return true;
+            }
+
+            foreach ($filters as $filter) {
+                if (str_contains($address, $filter) || str_contains($address, strtolower($mood))) {
+                    return true;
+                }
+            }
+
+            return false;
+        }));
+    }
+
+    private function imageUrlForPlace(array $item): string
+    {
+        $term = $item['display_name'] ?? $item['type'] ?? 'travel destination';
+        $term = preg_replace('/[^a-z0-9\s]/i', ' ', $term);
+        return 'https://source.unsplash.com/800x600/?' . urlencode($term);
     }
 
     private function mapElement(array $el, string $city): array

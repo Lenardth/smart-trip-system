@@ -40,5 +40,19 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Vite::useManifestFilename('.vite/manifest.json');
+
+        // Register view composers for hero images
+        view()->composer(
+            [
+                'discover.index',
+                'plan-trip.index',
+                'flights.index',
+                'accommodations.index',
+                'bookings.index',
+                'dashboard.index',
+                'landing.index',
+            ],
+            \App\View\Composers\HeroImageComposer::class
+        );
     }
 }

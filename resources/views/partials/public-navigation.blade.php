@@ -1,5 +1,5 @@
 <header class="main-header">
-        <a href="{{ url('/') }}" class="header-brand">
+    <a href="{{ url('/') }}" class="header-brand">
         <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="logo logo-nav">
         <span class="logo-text logo-text-nav">Smart <span class="logo-text-gold">Booking</span></span>
     </a>
@@ -27,29 +27,38 @@
 </header>
 
 <nav class="nav-container desktop-nav">
-    <a href="{{ url('/') }}"                     class="{{ request()->is('/')                  ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-    <a href="{{ route('plan-trip') }}"            class="{{ request()->routeIs('plan-trip')     ? 'active' : '' }}"><i class="fas fa-route"></i> Plan Trip</a>
-    <a href="{{ route('flights.index') }}"        class="{{ request()->routeIs('flights.*')     ? 'active' : '' }}"><i class="fas fa-plane"></i> Flights</a>
-    <a href="{{ route('accommodations.index') }}" class="{{ request()->routeIs('accommodations.*') ? 'active' : '' }}"><i class="fas fa-hotel"></i> Stays</a>
-    @guest
-        <a href="{{ route('login') }}"    class="nav-link-ml-auto"><i class="fas fa-sign-in-alt"></i> Login</a>
-        <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i> Register</a>
-    @else
-        <a href="{{ route('dashboard') }}" class="nav-link-ml-auto"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="{{ route('bookings.index') }}"><i class="fas fa-ticket-alt"></i> Bookings</a>
-        <form method="POST" action="{{ route('logout') }}" class="nav-form-inline">
-            @csrf
-            <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </form>
-    @endguest
+    <div class="nav-group nav-group-travel">
+        <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
+        <a href="{{ route('discover') }}" class="{{ request()->routeIs('discover') ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>
+        <a href="{{ route('plan-trip') }}" class="{{ request()->routeIs('plan-trip') ? 'active' : '' }}"><i class="fas fa-route"></i> Plan Trip</a>
+        <a href="{{ route('flights.index') }}" class="{{ request()->routeIs('flights.*') ? 'active' : '' }}"><i class="fas fa-plane"></i> Flights</a>
+        <a href="{{ route('accommodations.index') }}" class="{{ request()->routeIs('accommodations.*') ? 'active' : '' }}"><i class="fas fa-hotel"></i> Stays</a>
+    </div>
 
-    <div id="currencyPickerWrapper" class="currency-picker-wrapper"></div>
+    @auth
+    <div class="nav-group nav-group-account">
+        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') && request('tab', 'overview') !== 'settings' ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{{ route('bookings.index') }}" class="{{ request()->routeIs('bookings.*') ? 'active' : '' }}"><i class="fas fa-ticket-alt"></i> Bookings</a>
+    </div>
+    @endauth
+
+    <div class="nav-group nav-group-utils">
+        <div class="currency-picker-wrapper"></div>
+        @guest
+            <a href="{{ route('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i> Register</a>
+        @else
+            <form method="POST" action="{{ route('logout') }}" class="nav-form-inline">
+                @csrf
+                <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </form>
+        @endguest
+    </div>
 </nav>
 
 <div class="mob-overlay" id="mobOverlay"></div>
 
 <nav class="mob-drawer" id="mobDrawer">
-
     <div class="mob-drawer-head">
         <div class="mob-brand">
             <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="mob-logo mob-logo-size">
@@ -61,20 +70,29 @@
     </div>
 
     <div class="mob-drawer-links">
-        <a href="{{ url('/') }}"                     class="mob-link {{ request()->is('/')                  ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-        <a href="{{ route('plan-trip') }}"            class="mob-link {{ request()->routeIs('plan-trip')     ? 'active' : '' }}"><i class="fas fa-route"></i> Plan Trip</a>
-        <a href="{{ route('flights.index') }}"        class="mob-link {{ request()->routeIs('flights.*')     ? 'active' : '' }}"><i class="fas fa-plane"></i> Flights</a>
+        <p class="mob-section-label">Travel</p>
+        <a href="{{ url('/') }}" class="mob-link {{ request()->is('/') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
+        <a href="{{ route('discover') }}" class="mob-link {{ request()->routeIs('discover') ? 'active' : '' }}"><i class="fas fa-compass"></i> Discover</a>
+        <a href="{{ route('plan-trip') }}" class="mob-link {{ request()->routeIs('plan-trip') ? 'active' : '' }}"><i class="fas fa-route"></i> Plan Trip</a>
+        <a href="{{ route('flights.index') }}" class="mob-link {{ request()->routeIs('flights.*') ? 'active' : '' }}"><i class="fas fa-plane"></i> Flights</a>
         <a href="{{ route('accommodations.index') }}" class="mob-link {{ request()->routeIs('accommodations.*') ? 'active' : '' }}"><i class="fas fa-hotel"></i> Stays</a>
 
+        @auth
         <div class="mob-divider"></div>
+        <p class="mob-section-label">Account</p>
+        <a href="{{ route('dashboard') }}" class="mob-link {{ request()->routeIs('dashboard') && request('tab', 'overview') !== 'settings' ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{{ route('bookings.index') }}" class="mob-link {{ request()->routeIs('bookings.*') ? 'active' : '' }}"><i class="fas fa-ticket-alt"></i> Bookings</a>
+        @endauth
+
+        <div class="mob-divider"></div>
+        <p class="mob-section-label">Preferences</p>
+        <div class="currency-picker-wrapper mob-currency-picker"></div>
 
         @guest
-            <a href="{{ route('login') }}"    class="mob-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="{{ route('login') }}" class="mob-link"><i class="fas fa-sign-in-alt"></i> Login</a>
             <a href="{{ route('register') }}" class="mob-link"><i class="fas fa-user-plus"></i> Register</a>
         @else
-            <a href="{{ route('dashboard') }}"      class="mob-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-            <a href="{{ route('bookings.index') }}"  class="mob-link"><i class="fas fa-ticket-alt"></i> My Bookings</a>
-            <form method="POST" action="{{ route('logout') }}" class="mob-form-reset">
+            <form method="POST" action="{{ route('logout') }}" class="mob-form-reset mob-logout-form">
                 @csrf
                 <button type="submit" class="mob-link mob-link-btn">
                     <i class="fas fa-sign-out-alt"></i> Logout
@@ -82,7 +100,6 @@
             </form>
         @endguest
     </div>
-
 </nav>
 
 @push('scripts')

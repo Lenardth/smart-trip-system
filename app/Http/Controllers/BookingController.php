@@ -4,30 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Contracts\PricingServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
     public function __construct(private PricingServiceInterface $pricing) {}
+
     public function index()
     {
-        $bookings = Booking::with(['flight', 'trip'])
+        $bookings = Booking::with('trip')
             ->byUser(Auth::id())
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->paginate(10);
 
         $all = Booking::byUser(Auth::id())->get();
 
-        $flightCount = $all->filter(fn($b) =>
-            $b->flight_id !== null ||
-            ($b->passenger_details && ($b->passenger_details['type'] ?? '') !== 'accommodation')
-        )->count();
-
-        $hotelCount = $all->filter(fn($b) =>
-            ($b->passenger_details && ($b->passenger_details['type'] ?? '') === 'accommodation')
-        )->count();
-
+        $flightCount = $all->where('type', 'flights')->count();
+        $hotelCount  = $all->where('type', 'hotels')->count();
         $activeCount = $all->whereIn('status', ['confirmed', 'pending'])->count();
         $totalSpent  = $all->whereNotIn('status', ['cancelled'])->sum('total_price');
 
@@ -40,33 +36,42 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $booking->load(['flight', 'trip', 'user']);
+        $booking->load(['trip', 'user']);
 
         return view('bookings.show', compact('booking'));
     }
 
-    public function cancel(Booking $booking)
+    public function cancel(Request $request, Booking $booking): JsonResponse|\Illuminate\Http\RedirectResponse
     {
         if ($booking->user_id !== Auth::id()) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+            }
+
             return back()->with('error', 'Unauthorized.');
         }
 
         if ($booking->status === 'cancelled') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Booking already cancelled.'], 422);
+            }
+
             return back()->with('error', 'Booking already cancelled.');
         }
 
-        \DB::transaction(function () use ($booking) {
-            if ($booking->flight && $booking->seats_booked) {
-                $booking->flight->increment('seats_available', $booking->seats_booked);
-            }
+        DB::transaction(fn () => $booking->update(['status' => 'cancelled']));
 
-            $booking->update(['status' => 'cancelled']);
-        });
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking cancelled successfully.',
+            ]);
+        }
 
         return back()->with('success', 'Booking cancelled successfully.');
     }
 
-    public function storeAccommodation(Request $request): \Illuminate\Http\JsonResponse
+    public function storeAccommodation(Request $request): JsonResponse
     {
         $data = $request->validate([
             'accommodation_id' => 'required|exists:accommodations,id',
@@ -76,7 +81,7 @@ class BookingController extends Controller
             'coupon_code'      => 'nullable|string|max:32',
         ]);
 
-        return \DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data) {
             $accommodation = \App\Models\Accommodation::findOrFail($data['accommodation_id']);
             $nights        = (int) \Carbon\Carbon::parse($data['check_in'])->diffInDays($data['check_out']);
             $guests        = (int) ($data['guests'] ?? 1);
@@ -122,33 +127,32 @@ class BookingController extends Controller
         });
     }
 
-    public function bookFlight(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    public function bookFlight(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'airline'          => 'required|string|max:100',
-            'flight_number'    => 'required|string|max:20',
-            'departure_airport'=> 'nullable|string|max:100',
-            'arrival_airport'  => 'nullable|string|max:100',
-            'departure_time'   => 'nullable|string',
-            'arrival_time'     => 'nullable|string',
-            'departure_date'   => 'required|string',
-            'duration'         => 'nullable|string',
-            'price'            => 'nullable|numeric|min:0',
-            'adults'           => 'nullable|integer|min:1|max:9',
-            'travel_class'     => 'nullable|string',
-            'coupon_code'      => 'nullable|string|max:32',
+            'airline'           => 'required|string|max:100',
+            'flight_number'     => 'required|string|max:20',
+            'departure_airport' => 'nullable|string|max:100',
+            'arrival_airport'   => 'nullable|string|max:100',
+            'departure_time'    => 'nullable|string',
+            'arrival_time'      => 'nullable|string',
+            'departure_date'    => 'required|string',
+            'duration'          => 'nullable|string',
+            'price'             => 'required|numeric|min:0',
+            'adults'            => 'nullable|integer|min:1|max:9',
+            'travel_class'      => 'nullable|string',
+            'coupon_code'       => 'nullable|string|max:32',
         ]);
 
-        return \DB::transaction(function () use ($data) {
-            $adults     = (int) ($data['adults'] ?? 1);
-            $priceEach  = (float) ($data['price'] ?? 0);
-            $subtotal   = $priceEach * $adults;
+        return DB::transaction(function () use ($data) {
+            $adults    = (int) ($data['adults'] ?? 1);
+            $priceEach = max(0, (float) $data['price']);
+            $subtotal  = $priceEach * $adults;
 
             $pricing = $this->pricing->calculate($subtotal, Auth::user(), $data['coupon_code'] ?? null);
 
             $booking = Booking::create([
                 'user_id'           => Auth::id(),
-                'flight_id'         => null,
                 'subtotal'          => $pricing['subtotal'],
                 'discount_amount'   => $pricing['discount'],
                 'service_fee'       => $pricing['service_fee'],
@@ -162,10 +166,10 @@ class BookingController extends Controller
                     'departure_airport' => $data['departure_airport'],
                     'arrival_airport'   => $data['arrival_airport'],
                     'departure_time'    => $data['departure_time'] ?? null,
-                    'arrival_time'      => $data['arrival_time']   ?? null,
+                    'arrival_time'      => $data['arrival_time'] ?? null,
                     'departure_date'    => $data['departure_date'],
-                    'duration'          => $data['duration']       ?? null,
-                    'travel_class'      => $data['travel_class']   ?? 'ECONOMY',
+                    'duration'          => $data['duration'] ?? null,
+                    'travel_class'      => $data['travel_class'] ?? 'ECONOMY',
                     'adults'            => $adults,
                     'price_per_person'  => $priceEach,
                 ],

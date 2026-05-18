@@ -1,0 +1,173 @@
+/* Shared hero search forms (flights, accommodations) */
+
+.hero-search-wrap {
+    width: 100%;
+    max-width: 950px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;          /* above hero ::before and ::after overlays */
+}
+
+.hero-search-wrap--wide {
+    max-width: 1200px;
+    padding: 0 24px;
+}
+
+.hero-search-intro {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.accommodations-hero .hero-search-intro {
+    margin-bottom: 40px;
+}
+
+/* Title & subtitle visible on any hero background */
+.hero-search-title {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, .55), 0 4px 20px rgba(0, 0, 0, .35);
+    position: relative;
+    z-index: 10;
+    line-height: 1.2;
+}
+
+.hero-search-subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    opacity: 1;
+    color: rgba(255, 255, 255, .95);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, .5);
+    position: relative;
+    z-index: 10;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Legacy selectors kept for backward compat */
+.page-hero .hero-search-title {
+    font-size: 40px;
+    margin-bottom: 14px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .5), 0 4px 16px rgba(0, 0, 0, .3);
+    position: relative;
+    z-index: 10;
+}
+
+.accommodations-hero .hero-search-title {
+    font-size: clamp(28px, 5vw, 48px);
+    margin-bottom: 16px;
+}
+
+.page-hero .hero-search-subtitle {
+    font-size: 15px;
+    opacity: .95;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, .4);
+    position: relative;
+    z-index: 10;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.hero-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.hero-form-grid--stay {
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 16px;
+    align-items: end;
+    margin-bottom: 0;
+}
+
+.search-card .form-group {
+    position: relative;
+}
+
+.search-card .form-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 7px;
+    color: var(--deep);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.search-card .form-group label i {
+    color: var(--gold);
+    font-size: 11px;
+}
+
+.search-card .form-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: 'Georgia', serif;
+    background: #fff;
+    color: var(--deep);
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.search-card .form-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, .15);
+}
+
+.accommodations-hero .search-card .form-input,
+.accommodations-hero .search-card select.form-input {
+    padding: 14px 16px;
+    font-size: 15px;
+    border-radius: 8px;
+}
+
+.hero-search-btn {
+    padding: 14px 32px;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+    white-space: nowrap;
+    font-family: 'Georgia', serif;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.hero-search-btn:hover {
+    background: var(--gold-hover);
+}
+
+@media (max-width: 900px) {
+    .hero-form-grid--stay {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .hero-form-grid--stay .hero-search-btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero-form-grid,
+    .hero-form-grid--stay {
+        grid-template-columns: 1fr;
+    }
+}

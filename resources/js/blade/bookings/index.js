@@ -2,7 +2,7 @@ function toggleDetail(id) {
     const row = document.getElementById('detail-' + id);
     if (!row) return;
     row.classList.toggle('open');
-    const btn = row.previousElementSibling.querySelector('[onclick*="toggleDetail"]');
+    const btn = row.previousElementSibling.querySelector('[data-action*="toggleDetail"]');
     if (btn) {
         const icon = btn.querySelector('i');
         icon.classList.toggle('fa-chevron-down');
@@ -37,8 +37,8 @@ function filterBookings(filter) {
     });
 }
 
-function searchBookings(query) {
-    const q = query.toLowerCase();
+function searchBookings(value) {
+    const q = (value || '').toLowerCase();
     document.querySelectorAll('.booking-card').forEach(card => {
         card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
     });
@@ -181,12 +181,19 @@ function cancelBooking(id) {
             fetch('/bookings/' + id + '/cancel', {
                 method: 'POST',
                 headers: {
+                    'Accept': 'application/json',
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
             })
-            .then(r => r.json())
-            .then(data => {
+            .then(async (r) => {
+                const data = await r.json();
+                if (!r.ok) {
+                    throw new Error(data.message || 'Could not cancel booking');
+                }
+                return data;
+            })
+            .then((data) => {
                 if (data.success) {
                     Swal.fire({ title: 'Cancelled', icon: 'success', confirmButtonColor: '#c9a96e', timer: 2000 })
                         .then(() => location.reload());
