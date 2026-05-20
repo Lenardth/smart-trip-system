@@ -12,7 +12,7 @@ class CouponController extends Controller
 {
     public function __construct(private PricingService $pricing) {}
 
-    public function validate(Request $request): JsonResponse
+    public function check(Request $request): JsonResponse
     {
         $request->validate([
             'code'     => 'required|string|max:32',

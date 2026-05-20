@@ -37,12 +37,12 @@
 
         <div class="mood-section-label"><i class="fas fa-th-large"></i> Quick picks</div>
         <div class="mood-grid">
-            <div class="mood-card" data-mood="adventurous" data-action="selectMood"><div class="mood-icon"><i class="fas fa-hiking"></i></div><h4>Adventurous</h4><p>Thrills & exploration</p></div>
-            <div class="mood-card" data-mood="relaxed" data-action="selectMood"><div class="mood-icon"><i class="fas fa-spa"></i></div><h4>Relaxed</h4><p>Peace & tranquility</p></div>
-            <div class="mood-card" data-mood="cultural" data-action="selectMood"><div class="mood-icon"><i class="fas fa-landmark"></i></div><h4>Cultural</h4><p>History & art</p></div>
-            <div class="mood-card" data-mood="romantic" data-action="selectMood"><div class="mood-icon"><i class="fas fa-heart"></i></div><h4>Romantic</h4><p>Love & escape</p></div>
-            <div class="mood-card" data-mood="foodie" data-action="selectMood"><div class="mood-icon"><i class="fas fa-utensils"></i></div><h4>Foodie</h4><p>Cuisine & flavor</p></div>
-            <div class="mood-card" data-mood="eco-travel" data-action="selectMood"><div class="mood-icon"><i class="fas fa-leaf"></i></div><h4>Eco-Travel</h4><p>Nature & sustainability</p></div>
+            <div class="mood-card" data-mood="adventurous"><div class="mood-icon"><i class="fas fa-hiking"></i></div><h4>Adventurous</h4><p>Thrills & exploration</p></div>
+            <div class="mood-card" data-mood="relaxed"><div class="mood-icon"><i class="fas fa-spa"></i></div><h4>Relaxed</h4><p>Peace & tranquility</p></div>
+            <div class="mood-card" data-mood="cultural"><div class="mood-icon"><i class="fas fa-landmark"></i></div><h4>Cultural</h4><p>History & art</p></div>
+            <div class="mood-card" data-mood="romantic"><div class="mood-icon"><i class="fas fa-heart"></i></div><h4>Romantic</h4><p>Love & escape</p></div>
+            <div class="mood-card" data-mood="foodie"><div class="mood-icon"><i class="fas fa-utensils"></i></div><h4>Foodie</h4><p>Cuisine & flavor</p></div>
+            <div class="mood-card" data-mood="eco-travel"><div class="mood-icon"><i class="fas fa-leaf"></i></div><h4>Eco-Travel</h4><p>Nature & sustainability</p></div>
         </div>
 
         <div class="community-moods">
@@ -73,7 +73,7 @@
                     placeholder="e.g. burnt out and craving somewhere wild and disconnected…"
                     autocomplete="off"
                 />
-                <button class="btn-add-mood" id="btnAddMood" data-action="submitCustomMood">
+                <button class="btn-add-mood" id="btnAddMood">
                     <i class="fas fa-plus"></i> Add &amp; Use
                 </button>
             </div>
@@ -97,10 +97,10 @@
         </div>
 
         <div class="btn-row">
-            <button class="secondary-button surprise-btn" data-action="surpriseMe">
+            <button class="secondary-button surprise-btn" id="surpriseMeBtn">
                 <i class="fas fa-dice"></i> Surprise Me!
             </button>
-            <button class="primary-button" data-action="goStep" data-params='{"args":[2]}'>Next <i class="fas fa-arrow-right"></i></button>
+            <button class="primary-button" id="step1NextBtn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
     </div>
 
@@ -111,8 +111,7 @@
                 <label>Trip Duration</label>
                 <div class="flex-gap-8-center">
                     <input type="number" id="durationDays" min="1" max="365" value="7"
-                        class="form-input-number-sm"
-                        data-input-action="syncDuration">
+                        class="form-input-number-sm">
                     <span class="text-muted fs-13">days</span>
                     <input type="hidden" id="duration" value="7">
                 </div>
@@ -154,8 +153,8 @@
             </div>
         </div>
         <div class="btn-row">
-            <button class="secondary-button" data-action="goStep" data-params='{"args":[1]}'><i class="fas fa-arrow-left"></i> Back</button>
-            <button class="primary-button" data-action="goStep" data-params='{"args":[3]}'>Next <i class="fas fa-arrow-right"></i></button>
+            <button class="secondary-button" id="step2BackBtn"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="primary-button" id="step2NextBtn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
     </div>
 
@@ -209,14 +208,14 @@
             </div>
         </div>
         <div class="btn-row">
-            <button class="secondary-button" data-action="goStep" data-params='{"args":[2]}'><i class="fas fa-arrow-left"></i> Back</button>
-            <button class="primary-button" data-action="generateSuggestions">
+            <button class="secondary-button" id="step3BackBtn"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="primary-button" id="step3FindBtn">
                 <i class="fas fa-magic"></i> Find My Destinations
             </button>
         </div>
     </div>
 
-    <div id="step4" class="hidden" style="display:none">
+    <div id="step4" style="display:none">
         <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
             <p id="loadingMsg">Finding your perfect destinations…</p>
@@ -231,10 +230,10 @@
             <div id="travelAdvisoryContainer" class="hidden"></div>
         </div>
         <div class="btn-row">
-            <button class="secondary-button" data-action="goStep" data-params='{"args":[3]}'><i class="fas fa-arrow-left"></i> Adjust Preferences</button>
-            <button class="primary-button" data-action="generateSuggestions"><i class="fas fa-sync-alt"></i> Regenerate</button>
-            <button class="pdf-button" id="receiptBtn" data-action="openReceipt"><i class="fas fa-receipt"></i> View &amp; Print Receipt</button>
-            <button class="primary-button" id="saveBtn"><i class="fas fa-bookmark"></i> Save to Dashboard</button>
+            <button class="secondary-button" id="step4BackBtn"><i class="fas fa-arrow-left"></i> Adjust Preferences</button>
+            <button class="primary-button" id="step4RegenerateBtn"><i class="fas fa-sync-alt"></i> Regenerate</button>
+            <button class="pdf-button" id="receiptBtn" style="display:none"><i class="fas fa-receipt"></i> View &amp; Print Receipt</button>
+            <button class="primary-button" id="saveBtn" style="display:none"><i class="fas fa-bookmark"></i> Save to Dashboard</button>
         </div>
     </div>
 </div>
@@ -243,14 +242,14 @@
     <div class="modal">
         <div class="modal-header">
             <h2><i class="fas fa-receipt"></i>Trip Receipt</h2>
-            <button class="modal-close" data-action="closeReceipt">&#x2715;</button>
+            <button class="modal-close" id="closeReceiptBtn">&#x2715;</button>
         </div>
         <div class="modal-body">
             <div class="receipt" id="receiptContent"></div>
             <div class="btn-row">
-                <button class="secondary-button" data-action="closeReceipt"><i class="fas fa-times"></i> Close</button>
-                <button class="primary-button" data-action="printReceipt"><i class="fas fa-print"></i> Print</button>
-                <button class="pdf-button" data-action="downloadReceiptPdf"><i class="fas fa-file-pdf"></i> Save PDF</button>
+                <button class="secondary-button" id="closeReceiptBtn2"><i class="fas fa-times"></i> Close</button>
+                <button class="primary-button" id="printReceiptBtn"><i class="fas fa-print"></i> Print</button>
+                <button class="pdf-button" id="downloadPdfBtn"><i class="fas fa-file-pdf"></i> Save PDF</button>
             </div>
         </div>
     </div>

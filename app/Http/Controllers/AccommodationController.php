@@ -44,8 +44,8 @@ class AccommodationController extends Controller
 
         if (!$q || strlen($q) < 2) {
             $results = Accommodation::active()
-                ->when($style,      fn($query) => $query->byStyle($style))
-                ->when($budgetTier, fn($query) => $query->byBudget($budgetTier))
+                ->when($style,      fn($q) => $q->byStyle($style))
+                ->when($budgetTier, fn($q) => $q->byBudget($budgetTier))
                 ->limit(20)
                 ->get()
                 ->map(fn($a) => $this->format($a->toArray()))
@@ -62,8 +62,8 @@ class AccommodationController extends Controller
 
         $results = Accommodation::active()
             ->byCity($city)
-            ->when($style,      fn($query) => $query->byStyle($style))
-            ->when($budgetTier, fn($query) => $query->byBudget($budgetTier))
+            ->when($style,      fn($q) => $q->byStyle($style))
+            ->when($budgetTier, fn($q) => $q->byBudget($budgetTier))
             ->get()
             ->map(fn($a) => $this->format($a->toArray()))
             ->toArray();
@@ -87,16 +87,20 @@ class AccommodationController extends Controller
     {
         try {
             $places = $this->geoapify->placesByCity($city, [], 100);
+
             foreach ($places as $feature) {
                 $props      = $feature['properties'] ?? [];
                 $geom       = $feature['geometry']['coordinates'] ?? null;
                 $name       = $props['name'] ?? null;
                 $geoapifyId = $props['place_id'] ?? null;
 
-                if (!$name || !$geoapifyId) continue;
+                if (!$name || !$geoapifyId) {
+                    continue;
+                }
 
-                $exists = Accommodation::where('geoapify_id', $geoapifyId)->exists();
-                if ($exists) continue;
+                if (Accommodation::where('geoapify_id', $geoapifyId)->exists()) {
+                    continue;
+                }
 
                 $resolvedCity  = $props['city'] ?? $city;
                 $resolvedStyle = $this->resolveStyle($props['categories'] ?? []);
@@ -111,7 +115,7 @@ class AccommodationController extends Controller
                     'style'        => $resolvedStyle,
                     'budget_tier'  => $tier,
                     'nightly_rate' => $pricing['price'],
-                    'rating'       => $props['stars'] ?? (rand(35, 50) / 10),
+                    'rating'       => $props['stars'] ?? null,
                     'lat'          => is_array($geom) && isset($geom[1]) ? (float) $geom[1] : null,
                     'lng'          => is_array($geom) && isset($geom[0]) ? (float) $geom[0] : null,
                     'is_active'    => true,
@@ -150,6 +154,7 @@ class AccommodationController extends Controller
     private function fetchImage(string $name, string $city): string
     {
         $key = config('services.pexels.api_key');
+
         if ($key) {
             try {
                 $response = Http::timeout(5)
@@ -159,6 +164,7 @@ class AccommodationController extends Controller
                         'per_page'    => 5,
                         'orientation' => 'landscape',
                     ]);
+
                 if ($response->successful()) {
                     $photos = $response->json()['photos'] ?? [];
                     if (!empty($photos)) {
@@ -174,6 +180,7 @@ class AccommodationController extends Controller
         try {
             $response = Http::timeout(5)
                 ->get('https://en.wikipedia.org/api/rest_v1/page/summary/' . urlencode($city));
+
             if ($response->successful()) {
                 $data = $response->json();
                 if (!empty($data['originalimage']['source'])) return $data['originalimage']['source'];
@@ -183,41 +190,36 @@ class AccommodationController extends Controller
             Log::warning('Wikipedia image fetch failed', ['error' => $e->getMessage()]);
         }
 
-        return "https://source.unsplash.com/800x600/?" . urlencode("{$city} hotel");
+        return config('services.image_fallback.base_url', 'https://placehold.co/800x600') . '?' . urlencode("{$city} hotel");
     }
 
     private function defaultAmenities(string $style): array
     {
-        return match ($style) {
-            'hostel'      => ['Free WiFi', 'Shared Kitchen', 'Lockers', 'Common Room'],
-            'guest_house' => ['Free WiFi', 'Breakfast', 'Private Bathroom', 'Garden'],
-            'boutique'    => ['Free WiFi', 'Breakfast', 'Concierge', 'Bar'],
-            'resort'      => ['Pool', 'Spa', 'Restaurant', 'Beach Access', 'Free WiFi'],
-            'villa'       => ['Private Pool', 'Kitchen', 'Free WiFi', 'Garden', 'Parking'],
-            'apartment'   => ['Kitchen', 'Free WiFi', 'Washing Machine', 'Self Check-in'],
-            default       => ['Free WiFi', 'Air Conditioning', 'Reception 24/7', 'Parking'],
-        };
+        $map = config('accommodation.amenities', []);
+
+        return $map[$style] ?? $map['default'] ?? [];
     }
 
     private function resolveStyle(array $categories): string
     {
+        $map = config('accommodation.category_style_map', []);
+
         foreach ($categories as $cat) {
-            if (str_contains($cat, 'hostel'))      return 'hostel';
-            if (str_contains($cat, 'apartment'))   return 'apartment';
-            if (str_contains($cat, 'guest_house')) return 'guest_house';
-            if (str_contains($cat, 'motel'))       return 'motel';
-            if (str_contains($cat, 'resort'))      return 'resort';
+            foreach ($map as $fragment => $style) {
+                if (str_contains((string) $cat, $fragment)) {
+                    return $style;
+                }
+            }
         }
-        return 'hotel';
+
+        return config('accommodation.default_style', 'hotel');
     }
 
     private function resolveBudgetTier(string $style): string
     {
-        return match ($style) {
-            'hostel', 'guest_house', 'motel' => 'budget',
-            'resort'                         => 'premium',
-            default                          => 'mid',
-        };
+        $map = config('accommodation.style_budget_tier', []);
+
+        return $map[$style] ?? config('accommodation.default_budget_tier', 'mid');
     }
 
     private function logSearch(Request $request, string $q, ?string $style, ?string $budgetTier, int $count): void

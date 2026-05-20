@@ -2,61 +2,64 @@
 
 return [
 
-    'postmark' => [
-        'key' => env('POSTMARK_API_KEY'),
-    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Third Party Services
+    |--------------------------------------------------------------------------
+    |
+    | This file is for storing the credentials for third party services such
+    | as Mailgun, Postmark, AWS and more. This file provides the de facto
+    | location for this type of information, allowing packages to have
+    | a conventional file to locate the various service credentials.
+    |
+    */
 
-    'resend' => [
-        'key' => env('RESEND_API_KEY'),
+    'postmark' => [
+        'token' => env('POSTMARK_TOKEN'),
     ],
 
     'ses' => [
-        'key'    => env('AWS_ACCESS_KEY_ID'),
+        'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+    ],
+
+    'resend' => [
+        'key' => env('RESEND_KEY'),
     ],
 
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel'              => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
 
-    'geoapify' => [
-        'key' => env('GEOAPIFY_KEY'),
-    ],
-
-    'unsplash' => [
-        'access_key' => env('UNSPLASH_ACCESS_KEY'),
-    ],
-
-    'pexels' => [
-        'api_key' => env('PEXELS_API_KEY'),
-    ],
-
-    'gnews' => [
-        'key' => env('GNEWS_API_KEY'),
-    ],
-
-    'newsapi' => [
-        'key' => env('NEWSAPI_KEY'),
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'url' => env('GROQ_URL', 'https://api.groq.com/openai/v1/chat/completions'),
+        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+        'max_tokens' => env('GROQ_MAX_TOKENS', 2048),
     ],
 
     'aviationstack' => [
         'key' => env('AVIATIONSTACK_KEY'),
     ],
 
-    'groq' => [
-        'key' => env('GROQ_API_KEY'),
+    'geoapify' => [
+        'key' => env('GEOAPIFY_KEY'),
     ],
 
-    'skyscanner' => [
-        'key' => env('SKYSCANNER_RAPIDAPI_KEY'),
+    'gnews' => [
+        'api_key' => env('GNEWS_API_KEY'),
     ],
 
-    'booking' => [
-        'key' => env('BOOKING_RAPIDAPI_KEY'),
+    'newsapi' => [
+        'key' => env('NEWSAPI_KEY'),
+    ],
+
+    'pexels' => [
+        'api_key' => env('PEXELS_API_KEY'),
     ],
 
 ];

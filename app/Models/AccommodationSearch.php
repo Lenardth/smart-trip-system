@@ -16,6 +16,10 @@ class AccommodationSearch extends Model
         'ip_address',
     ];
 
+    protected $casts = [
+        'results_count' => 'integer',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

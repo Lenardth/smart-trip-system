@@ -3,109 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Destination;
+use App\Models\DestinationSearch;
 use App\Models\MoodCategory;
 use App\Services\PexelsService;
 use App\Contracts\GeoapifyInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class DiscoverController extends Controller
 {
-    /**
-     * Common city nicknames / aliases → canonical search term.
-     * Nominatim understands the canonical name; we resolve before querying.
-     */
-    private const ALIASES = [
-        // South Africa
-        'jozi'          => 'Johannesburg',
-        'joburg'        => 'Johannesburg',
-        'jhb'           => 'Johannesburg',
-        'pta'           => 'Pretoria',
-        'cpt'           => 'Cape Town',
-        'dbn'           => 'Durban',
-        'the mother city'=> 'Cape Town',
-        // USA
-        'nyc'           => 'New York City',
-        'new york'      => 'New York City',
-        'the big apple' => 'New York City',
-        'la'            => 'Los Angeles',
-        'l.a.'          => 'Los Angeles',
-        'chi-town'      => 'Chicago',
-        'the windy city'=> 'Chicago',
-        'sf'            => 'San Francisco',
-        'sin city'      => 'Las Vegas',
-        'vegas'         => 'Las Vegas',
-        'nola'          => 'New Orleans',
-        'dc'            => 'Washington DC',
-        'philly'        => 'Philadelphia',
-        // UK
-        'london'        => 'London',
-        'brum'          => 'Birmingham',
-        'manc'          => 'Manchester',
-        'edinburgh'     => 'Edinburgh',
-        // Europe
-        'paris'         => 'Paris',
-        'rome'          => 'Rome',
-        'the eternal city' => 'Rome',
-        'barcelona'     => 'Barcelona',
-        'barca'         => 'Barcelona',
-        'amsterdam'     => 'Amsterdam',
-        'dam'           => 'Amsterdam',
-        'berlin'        => 'Berlin',
-        'vienna'        => 'Vienna',
-        'prague'        => 'Prague',
-        'lisbon'        => 'Lisbon',
-        'athens'        => 'Athens',
-        // Asia
-        'bkk'           => 'Bangkok',
-        'bangkok'       => 'Bangkok',
-        'hk'            => 'Hong Kong',
-        'sg'            => 'Singapore',
-        'kl'            => 'Kuala Lumpur',
-        'tokyo'         => 'Tokyo',
-        'osaka'         => 'Osaka',
-        'beijing'       => 'Beijing',
-        'shanghai'      => 'Shanghai',
-        'mumbai'        => 'Mumbai',
-        'bombay'        => 'Mumbai',
-        'delhi'         => 'New Delhi',
-        'calcutta'      => 'Kolkata',
-        'dubai'         => 'Dubai',
-        // Africa
-        'nairobi'       => 'Nairobi',
-        'accra'         => 'Accra',
-        'lagos'         => 'Lagos',
-        'cairo'         => 'Cairo',
-        'marrakech'     => 'Marrakech',
-        'marrakesh'     => 'Marrakech',
-        'casablanca'    => 'Casablanca',
-        'addis'         => 'Addis Ababa',
-        // Australia
-        'sydney'        => 'Sydney',
-        'melbs'         => 'Melbourne',
-        'melbourne'     => 'Melbourne',
-        'brisbane'      => 'Brisbane',
-        // Americas
-        'rio'           => 'Rio de Janeiro',
-        'buenos aires'  => 'Buenos Aires',
-        'ba'            => 'Buenos Aires',
-        'bogota'        => 'Bogotá',
-        'cdmx'          => 'Mexico City',
-        'mexico city'   => 'Mexico City',
-        'toronto'       => 'Toronto',
-        'van'           => 'Vancouver',
-        'vancouver'     => 'Vancouver',
-        'montreal'      => 'Montreal',
-    ];
-
     public function __construct(
         private PexelsService     $pexels,
         private GeoapifyInterface $geoapify,
     ) {}
-
-    // ── Page ─────────────────────────────────────────────────────────────────
 
     public function index(Request $request)
     {
@@ -115,8 +28,6 @@ class DiscoverController extends Controller
             'heroImage'      => $this->pexels->getHeroImage('discover'),
         ]);
     }
-
-    // ── JSON list endpoint (mirrors /api/accommodations) ─────────────────────
 
     public function list(Request $request): JsonResponse
     {
@@ -128,10 +39,9 @@ class DiscoverController extends Controller
         ]);
 
         $rawQuery   = trim((string) ($validated['q'] ?? $validated['search'] ?? ''));
-        $regionCode = $validated['region'] ? strtoupper($validated['region']) : null;
+        $regionCode = !empty($validated['region']) ? strtoupper($validated['region']) : null;
         $mood       = $validated['mood'] ?? null;
 
-        // No filters → return featured/cached destinations
         if (!$rawQuery && !$regionCode && !$mood) {
             $destinations = Destination::active()
                 ->ordered()
@@ -143,29 +53,27 @@ class DiscoverController extends Controller
             return response()->json(['destinations' => $destinations, 'source' => 'featured']);
         }
 
-        // Resolve nickname → canonical city name for API + DB search
         $resolvedQuery = $this->resolveAlias($rawQuery);
+        $searchTerms   = array_unique(array_filter([$rawQuery, $resolvedQuery]));
+        $dbCount       = $this->dbQuery($searchTerms, $regionCode, $mood)->count();
 
-        // Build all search terms: original + resolved (if different)
-        $searchTerms = array_unique(array_filter([$rawQuery, $resolvedQuery]));
-
-        // Check DB with all terms
-        $dbCount = $this->dbQuery($searchTerms, $regionCode, $mood)->count();
-
+        // Resolve country code from query if not already provided (e.g. user typed "Algeria")
+        $resolvedCountryCode = $regionCode;
         if ($dbCount < 5) {
-            // Fetch from live API using the resolved (canonical) name
-            $this->fetchAndStoreFromApi($resolvedQuery ?: $rawQuery, $regionCode, $mood);
+            $resolvedCountryCode = $this->fetchAndStoreFromApi($resolvedQuery ?: $rawQuery, $regionCode, $mood);
         }
 
-        // Re-query DB with all terms after potential API fetch
-        $destinations = $this->dbQuery($searchTerms, $regionCode, $mood)
+        // Build final effective region code (original or resolved from country name)
+        $effectiveRegion = $resolvedCountryCode ?? $regionCode;
+
+        $destinations = $this->dbQuery($searchTerms, $effectiveRegion, $mood)
             ->orderBy('display_order')
             ->limit(24)
             ->get()
             ->map(fn($d) => $this->format($d->toArray()))
             ->toArray();
 
-        $this->logSearch($request, $rawQuery, $resolvedQuery, $regionCode, $mood, count($destinations));
+        $this->logSearch($request, $rawQuery, $resolvedQuery, $effectiveRegion, $mood, count($destinations));
 
         return response()->json([
             'destinations'   => $destinations,
@@ -174,8 +82,6 @@ class DiscoverController extends Controller
             'source'         => 'database',
         ]);
     }
-
-    // ── Destination detail page ───────────────────────────────────────────────
 
     public function show(Destination $destination)
     {
@@ -194,34 +100,37 @@ class DiscoverController extends Controller
         return view('discover.show', compact('destination', 'details', 'tourism', 'highlights', 'heroImage'));
     }
 
-    // ── Legacy alias ──────────────────────────────────────────────────────────
-
     public function search(Request $request): JsonResponse
     {
         return $this->list($request);
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
     /**
-     * Resolve a nickname/alias to its canonical city name.
-     * Falls back to the original query if no alias found.
+     * Get recent destination searches for the authenticated user
      */
+    public function recentSearches(): JsonResponse
+    {
+        $searches = DestinationSearch::byUser(Auth::id())
+            ->recent(20)
+            ->get(['id', 'query', 'resolved_query', 'region_code', 'mood', 'results_count', 'created_at']);
+
+        return response()->json(['searches' => $searches]);
+    }
+
     private function resolveAlias(string $query): string
     {
         if (!$query) {
             return $query;
         }
 
-        $lower = strtolower(trim($query));
+        $aliases = config('discover.aliases', []);
+        $lower   = strtolower(trim($query));
 
-        // Direct alias lookup
-        if (isset(self::ALIASES[$lower])) {
-            return self::ALIASES[$lower];
+        if (isset($aliases[$lower])) {
+            return $aliases[$lower];
         }
 
-        // Partial match — if the query is a prefix of an alias key
-        foreach (self::ALIASES as $alias => $canonical) {
+        foreach ($aliases as $alias => $canonical) {
             if (str_starts_with($alias, $lower) || str_starts_with($lower, $alias)) {
                 return $canonical;
             }
@@ -230,42 +139,66 @@ class DiscoverController extends Controller
         return $query;
     }
 
-    /**
-     * Build a DB query that searches across multiple terms.
-     */
     private function dbQuery(array $terms, ?string $regionCode, ?string $mood)
     {
         return Destination::active()
             ->when(!empty($terms), function ($query) use ($terms) {
                 $query->where(function ($q) use ($terms) {
                     foreach ($terms as $term) {
-                        $q->orWhere('name', 'like', "%{$term}%")
-                          ->orWhere('country', 'like', "%{$term}%")
+                        // Prioritize exact country matches
+                        $q->orWhere('country', 'like', "%{$term}%")
+                          ->orWhere('name', 'like', "%{$term}%")
                           ->orWhere('region', 'like', "%{$term}%")
                           ->orWhere('description', 'like', "%{$term}%");
                     }
                 });
             })
             ->when($regionCode, fn($q) => $q->where('country_code', $regionCode))
-            ->when($mood, fn($q) => $q->whereJsonContains('tags', $mood));
+            ->when($mood,       fn($q) => $q->whereJsonContains('tags', $mood));
     }
 
-    /**
-     * Fetch destinations from live API and store in DB.
-     * Uses the canonical/resolved query for best API results.
-     */
-    private function fetchAndStoreFromApi(string $query, ?string $countryCode, ?string $mood): void
+    private function fetchAndStoreFromApi(string $query, ?string $countryCode, ?string $mood): ?string
     {
         try {
+            // Resolve whether the query is a country name → get its ISO code
+            // so we can search for cities *within* that country
+            $resolvedCountryCode = $countryCode;
+            $cityQuery           = $query;
+
+            if ($query && !$countryCode) {
+                $geo = Http::timeout(8)
+                    ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
+                    ->get('https://nominatim.openstreetmap.org/search', [
+                        'q'              => $query,
+                        'format'         => 'json',
+                        'limit'          => 1,
+                        'addressdetails' => 1,
+                        'featuretype'    => 'country',
+                    ]);
+
+                if ($geo->successful() && !empty($geo->json())) {
+                    $hit  = $geo->json()[0];
+                    $type = $hit['type'] ?? '';
+                    // If Nominatim says this is a country-level result, switch to city search
+                    if (in_array($type, ['country', 'administrative'], true) &&
+                        isset($hit['address']['country_code'])) {
+                        $resolvedCountryCode = strtoupper($hit['address']['country_code']);
+                        $cityQuery           = 'city';   // search for cities inside the country
+                    }
+                }
+            }
+
             $places = $this->geoapify->searchDestinations(
-                $query ?: 'popular travel city',
-                $countryCode,
+                $cityQuery ?: 'popular travel city',
+                $resolvedCountryCode,
                 $mood,
-                20
+                30
             );
 
+            $addedCount = 0;
             foreach ($places as $place) {
                 $sourceId = $place['id'] ?? null;
+
                 if (!$sourceId || empty($place['name']) || $place['name'] === 'Unknown place') {
                     continue;
                 }
@@ -275,14 +208,20 @@ class DiscoverController extends Controller
                     'source_id' => $sourceId,
                 ]);
 
+                // Skip if already fully populated
+                if ($destination->exists && !empty($destination->name)) {
+                    $addedCount++;
+                    continue;
+                }
+
                 $imageQuery = trim(($place['name'] ?? '') . ' ' . ($place['country'] ?? '') . ' travel');
                 $imageUrl   = $this->pexels->getRandomPhoto($imageQuery)
-                    ?? "https://source.unsplash.com/800x600/?" . urlencode($imageQuery);
+                    ?? $this->imageFallback($imageQuery);
 
                 $destination->fill([
                     'name'         => $place['name'],
                     'country'      => $place['country'] ?? ($place['region'] ?? 'Unknown'),
-                    'country_code' => $place['country_code'] ?? null,
+                    'country_code' => $place['country_code'] ?? ($resolvedCountryCode ?? null),
                     'region'       => $place['region'] ?? $place['country'] ?? 'Global',
                     'description'  => $this->buildDescription($place),
                     'image_url'    => $destination->image_url ?: $imageUrl,
@@ -295,19 +234,31 @@ class DiscoverController extends Controller
                 ]);
 
                 if (!$destination->display_order) {
-                    $destination->display_order = 100;
+                    $destination->display_order = 100 + $addedCount;
                 }
 
                 $destination->save();
+                $addedCount++;
+
+                if ($addedCount >= 20) {
+                    break;
+                }
             }
+
+            Log::info('Discover API fetch completed', [
+                'query'        => $query,
+                'country_code' => $resolvedCountryCode,
+                'added'        => $addedCount,
+                'fetched'      => count($places),
+            ]);
+
+            return $resolvedCountryCode;
         } catch (\Throwable $e) {
             Log::warning('Discover API fetch failed', ['query' => $query, 'error' => $e->getMessage()]);
+            return $countryCode;
         }
     }
 
-    /**
-     * Format a destination row for the JSON response.
-     */
     private function format(array $d): array
     {
         $name    = $d['name'] ?? '';
@@ -320,7 +271,7 @@ class DiscoverController extends Controller
             'country_code' => $d['country_code'] ?? null,
             'region'       => $d['region'] ?? $country,
             'description'  => $d['description'] ?? '',
-            'image_url'    => $d['image_url'] ?: "https://source.unsplash.com/800x600/?" . urlencode("{$name} {$country} travel"),
+            'image_url'    => $d['image_url'] ?: $this->imageFallback("{$name} {$country} travel"),
             'price_from'   => $d['price_from'] ?? 0,
             'tags'         => is_array($d['tags']) ? $d['tags'] : (json_decode($d['tags'] ?? '[]', true) ?? []),
             'lat'          => $d['lat'] ?? null,
@@ -341,39 +292,18 @@ class DiscoverController extends Controller
         $type     = ucwords(str_replace('_', ' ', $place['type'] ?? $place['category'] ?? ''));
         $location = implode(', ', $parts);
 
-        return $type && $location ? "{$type} in {$location}." : ($location ?: 'A destination worth exploring.');
+        return $type && $location
+            ? "{$type} in {$location}."
+            : ($location ?: 'A destination worth exploring.');
     }
 
     private function buildTags(array $place, ?string $mood): array
     {
-        $tags = $mood ? [$mood] : [];
+        $tags    = $mood ? [$mood] : [];
+        $typeMap = config('discover.type_tags', []);
+        $type    = strtolower($place['type'] ?? $place['category'] ?? '');
 
-        $typeTagMap = [
-            'museum'         => 'Cultural',
-            'gallery'        => 'Cultural',
-            'historic'       => 'Cultural',
-            'castle'         => 'Cultural',
-            'monument'       => 'Cultural',
-            'beach'          => 'Beach',
-            'bay'            => 'Beach',
-            'island'         => 'Beach',
-            'peak'           => 'Adventurous',
-            'waterfall'      => 'Nature',
-            'national_park'  => 'Nature',
-            'nature_reserve' => 'Eco-Travel',
-            'forest'         => 'Nature',
-            'park'           => 'Relaxed',
-            'garden'         => 'Relaxed',
-            'spa'            => 'Relaxed',
-            'restaurant'     => 'Foodie',
-            'market'         => 'Foodie',
-            'viewpoint'      => 'Romantic',
-            'city'           => 'Cultural',
-            'town'           => 'Cultural',
-        ];
-
-        $type = strtolower($place['type'] ?? $place['category'] ?? '');
-        foreach ($typeTagMap as $keyword => $tag) {
+        foreach ($typeMap as $keyword => $tag) {
             if (str_contains($type, $keyword)) {
                 $tags[] = $tag;
                 break;
@@ -383,27 +313,48 @@ class DiscoverController extends Controller
         return array_values(array_unique(array_filter($tags)));
     }
 
-    private function logSearch(Request $request, string $rawQuery, string $resolvedQuery, ?string $regionCode, ?string $mood, int $count): void
+    private function imageFallback(string $query): string
     {
+        $base = config('services.image_fallback.base_url', 'https://placehold.co/800x600');
+
+        return $base . '?' . urlencode($query);
+    }
+
+    private function logSearch(
+        Request $request,
+        string  $rawQuery,
+        string  $resolvedQuery,
+        ?string $regionCode,
+        ?string $mood,
+        int     $count
+    ): void {
         if (!$rawQuery) {
             return;
         }
 
         try {
-            \App\Models\AccommodationSearch::firstOrCreate(
-                [
-                    'user_id'     => Auth::id(),
-                    'query'       => $rawQuery,
-                    'style'       => 'discover:' . ($mood ?? 'any'),
-                    'budget_tier' => $regionCode,
-                ],
-                [
-                    'results_count' => $count,
-                    'ip_address'    => $request->ip(),
-                ]
+            // Check if a similar search was already logged today
+            $alreadyLogged = \App\Models\DestinationSearch::alreadyLoggedToday(
+                Auth::id(),
+                $rawQuery,
+                $regionCode,
+                $mood
             );
+
+            if (!$alreadyLogged) {
+                \App\Models\DestinationSearch::create([
+                    'user_id'        => Auth::id(),
+                    'query'          => $rawQuery,
+                    'resolved_query' => $resolvedQuery !== $rawQuery ? $resolvedQuery : null,
+                    'region_code'    => $regionCode,
+                    'mood'           => $mood,
+                    'results_count'  => $count,
+                    'ip_address'     => $request->ip(),
+                    'source'         => 'web',
+                ]);
+            }
         } catch (\Throwable $e) {
-            Log::warning('DiscoverSearch log failed: ' . $e->getMessage());
+            Log::warning('DestinationSearch log failed: ' . $e->getMessage());
         }
     }
 

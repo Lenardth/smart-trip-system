@@ -4,16 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Contracts\FlightPricingInterface;
 use App\Contracts\AccommodationPricingInterface;
+use App\Http\Concerns\NormalisesAccommodation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AiSuggestionController extends Controller
 {
-    private const API_URL    = 'https://api.groq.com/openai/v1/chat/completions';
-    private const MODEL      = 'llama-3.3-70b-versatile';
-    private const MAX_TOKENS = 2048;
-    private const MAX_TRIES  = 3;
+    use NormalisesAccommodation;
+
+    private const MAX_TRIES = 3;
 
     private const TOOL = [
         'type'     => 'function',
@@ -57,7 +59,7 @@ class AiSuggestionController extends Controller
     ];
 
     public function __construct(
-        private FlightPricingInterface $flightPricing,
+        private FlightPricingInterface        $flightPricing,
         private AccommodationPricingInterface $accommodationPricing
     ) {}
 
@@ -84,29 +86,33 @@ class AiSuggestionController extends Controller
         $validated['currency']      = session('preferred_currency', 'USD');
 
         try {
-            $apiKey = config('services.groq.key');
+            $apiKey = config('services.groq.api_key');
+
             if (empty($apiKey)) {
                 throw new \RuntimeException('GROQ_API_KEY is not configured.');
             }
 
             $result = $this->callGroqWithRetry($validated, $apiKey);
-            return response()->json(['success' => true, 'data' => $result]);
 
+            return response()->json(['success' => true, 'data' => $result]);
         } catch (\Throwable $e) {
             Log::error('AiSuggestionController failed', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => config('app.debug') ? $e->getMessage() : 'Could not generate suggestions right now.',
+                'message' => config('app.debug')
+                    ? $e->getMessage()
+                    : 'Could not generate suggestions right now.',
             ], 500);
         }
     }
 
     private function callGroqWithRetry(array $p, string $apiKey): array
     {
-        $norm             = fn($s) => strtolower(trim(preg_replace('/\s+/', ' ', $s)));
-        $exclDests        = array_map($norm, $p['excluded_destinations'] ?? []);
-        $exclCountries    = array_map($norm, $p['excluded_countries'] ?? []);
-        $accumulated      = [];
+        $norm          = fn($s) => strtolower(trim(preg_replace('/\s+/', ' ', $s)));
+        $exclDests     = array_map($norm, $p['excluded_destinations'] ?? []);
+        $exclCountries = array_map($norm, $p['excluded_countries'] ?? []);
+        $accumulated   = [];
 
         for ($try = 1; $try <= self::MAX_TRIES; $try++) {
             $batch = $this->callGroq(array_merge($p, [
@@ -117,17 +123,25 @@ class AiSuggestionController extends Controller
             foreach ($batch as $dest) {
                 $dNorm = $norm($dest['destination'] ?? '');
                 $cNorm = $norm($dest['country'] ?? '');
-                if (in_array($dNorm, $exclDests, true) || in_array($cNorm, $exclCountries, true)) continue;
+
+                if (in_array($dNorm, $exclDests, true) || in_array($cNorm, $exclCountries, true)) {
+                    continue;
+                }
+
                 $accumulated[]   = $dest;
                 $exclDests[]     = $dNorm;
                 $exclCountries[] = $cNorm;
             }
 
-            if (count($accumulated) >= 5) return array_slice($accumulated, 0, 5);
+            if (count($accumulated) >= 5) {
+                return array_slice($accumulated, 0, 5);
+            }
         }
 
         if (empty($accumulated)) {
-            throw new \RuntimeException('Could not generate non-duplicate destinations after ' . self::MAX_TRIES . ' attempts.');
+            throw new \RuntimeException(
+                'Could not generate non-duplicate destinations after ' . self::MAX_TRIES . ' attempts.'
+            );
         }
 
         return array_slice($accumulated, 0, 5);
@@ -138,8 +152,8 @@ class AiSuggestionController extends Controller
         [$system, $user] = $this->buildPrompts($p);
 
         $payload = [
-            'model'       => self::MODEL,
-            'max_tokens'  => self::MAX_TOKENS,
+            'model'       => config('services.groq.model', 'llama-3.3-70b-versatile'),
+            'max_tokens'  => config('services.groq.max_tokens', 2048),
             'temperature' => 1.1,
             'tools'       => [self::TOOL],
             'tool_choice' => ['type' => 'function', 'function' => ['name' => 'suggest_destinations']],
@@ -149,35 +163,28 @@ class AiSuggestionController extends Controller
             ],
         ];
 
-        $ch = curl_init(self::API_URL);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => json_encode($payload),
-            CURLOPT_HTTPHEADER     => [
-                'Content-Type: application/json',
-                'Accept: application/json',
-                "Authorization: Bearer {$apiKey}",
-            ],
-            CURLOPT_TIMEOUT        => 60,
-            CURLOPT_CONNECTTIMEOUT => 15,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-        ]);
+        $apiUrl   = config('services.groq.url', 'https://api.groq.com/openai/v1/chat/completions');
+        $response = Http::withHeaders(['Authorization' => "Bearer {$apiKey}"])
+            ->timeout(60)
+            ->connectTimeout(15)
+            ->post($apiUrl, $payload);
 
-        $body   = curl_exec($ch);
-        $err    = curl_error($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        if ($response->status() === 401) {
+            throw new \RuntimeException('Groq authentication failed.');
+        }
 
-        if ($body === false) throw new \RuntimeException("cURL error: {$err}");
-        if ($status === 401) throw new \RuntimeException('Groq authentication failed.');
-        if ($status >= 400) throw new \RuntimeException("Groq API error {$status}: " . substr($body, 0, 300));
+        if ($response->failed()) {
+            throw new \RuntimeException(
+                "Groq API error {$response->status()}: " . Str::limit($response->body(), 300)
+            );
+        }
 
-        $decoded  = json_decode($body, true);
-        $toolCall = $decoded['choices'][0]['message']['tool_calls'][0] ?? null;
+        $data     = $response->json();
+        $toolCall = $data['choices'][0]['message']['tool_calls'][0] ?? null;
 
-        if (!$toolCall) throw new \RuntimeException('Unexpected response from Groq.');
+        if (!$toolCall) {
+            throw new \RuntimeException('Unexpected response from Groq.');
+        }
 
         $input = json_decode($toolCall['function']['arguments'] ?? '{}', true);
 
@@ -194,35 +201,18 @@ class AiSuggestionController extends Controller
         $year     = now()->year;
         $currency = $p['currency'] ?? 'USD';
 
-        $duration = match (true) {
-            is_numeric($p['duration'])     => (int) $p['duration'] . ' days',
-            $p['duration'] === 'weekend'   => 'a long weekend (3-4 days)',
-            $p['duration'] === 'week'      => 'one week (7 days)',
-            $p['duration'] === 'two_weeks' => 'two weeks (10-14 days)',
-            $p['duration'] === 'month'     => 'one month or longer',
-            $p['duration'] === 'flexible'  => 'a flexible open-ended trip',
-            default                        => $p['duration'],
-        };
+        $durationLabels = config('trips.duration_prompt_labels', []);
+        $duration = is_numeric($p['duration'])
+            ? (int) $p['duration'] . ' days'
+            : ($durationLabels[$p['duration']] ?? $p['duration']);
 
-        $budget = match ($p['budget']) {
-            'backpacker' => "backpacker (under 500 {$currency} total)",
-            'budget'     => "budget-friendly (500-1,500 {$currency})",
-            'mid'        => "mid-range (1,500-4,000 {$currency})",
-            'premium'    => "premium (4,000-8,000 {$currency})",
-            'luxury'     => "luxury (8,000+ {$currency})",
-            default      => $p['budget'],
-        };
+        $budgetLabels = config('trips.budget_prompt_labels', []);
+        $budget = isset($budgetLabels[$p['budget']])
+            ? sprintf($budgetLabels[$p['budget']], $currency)
+            : $p['budget'];
 
-        $companion = match ($p['companion']) {
-            'solo'          => 'solo traveller',
-            'couple'        => 'couple',
-            'family_young'  => 'family with young children',
-            'family_teens'  => 'family with teenagers',
-            'friends_small' => 'small group of friends (2-4)',
-            'friends_large' => 'large group of friends (5+)',
-            'business'      => 'business traveller',
-            default         => $p['companion'],
-        };
+        $companionLabels = config('trips.companion_prompt_labels', []);
+        $companion = $companionLabels[$p['companion']] ?? $p['companion'];
 
         $extras = [];
         if (!empty($p['month']))                                           $extras[] = "departure month: {$p['month']}";
@@ -231,21 +221,25 @@ class AiSuggestionController extends Controller
         if (!empty($p['origin']))                                          $extras[] = "flying from: {$p['origin']}";
         if (!empty($p['experience']))                                      $extras[] = "experience level: {$p['experience']}";
         if (!empty($p['feeling_note']))                                    $extras[] = "what they said: \"{$p['feeling_note']}\"";
+
         $extrasStr = $extras ? "\nAdditional context: " . implode(' | ', $extras) . '.' : '';
 
-        $excludedStr = '';
+        $excludedStr   = '';
         $exclDests     = array_filter($p['excluded_destinations'] ?? []);
-        $exclCountries = array_filter($p['excluded_countries'] ?? []);
+        $exclCountries = array_filter($p['excluded_countries']    ?? []);
+
         if (!empty($exclDests) || !empty($exclCountries)) {
+            $sanitise    = fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d);
             $excludedStr = "\n\nDo not repeat any of these:";
+
             if (!empty($exclDests)) {
-                $safe = array_map(fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d), $exclDests);
-                $excludedStr .= "\nDestinations: " . implode(', ', $safe) . '.';
+                $excludedStr .= "\nDestinations: " . implode(', ', array_map($sanitise, $exclDests)) . '.';
             }
+
             if (!empty($exclCountries)) {
-                $safe = array_map(fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d), $exclCountries);
-                $excludedStr .= "\nCountries: " . implode(', ', $safe) . '.';
+                $excludedStr .= "\nCountries: " . implode(', ', array_map($sanitise, $exclCountries)) . '.';
             }
+
             $excludedStr .= "\nAll 5 picks must be from different countries not listed above.";
         }
 
@@ -281,9 +275,9 @@ SYSTEM;
         $country  = $d['country']     ?? '';
         $costs    = $this->validateCosts($dest, $d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0);
         $months   = $d['best_months'] ?? [];
-        $weather  = $d['weather_data'] ?? null;
-        if (empty($months) && is_array($weather) && $weather) {
-            $avg = (($weather['avg_high'] ?? 20) + ($weather['avg_low'] ?? 10)) / 2;
+
+        if (empty($months) && is_array($d['weather_data'] ?? null)) {
+            $avg    = (($d['weather_data']['avg_high'] ?? 20) + ($d['weather_data']['avg_low'] ?? 10)) / 2;
             $months = $avg > 25
                 ? ['November', 'December', 'January', 'February']
                 : ($avg < 10 ? ['June', 'July', 'August', 'September'] : ['April', 'May', 'September', 'October']);
@@ -322,34 +316,14 @@ SYSTEM;
 
             $min = (int) round($aiMin * 0.6 + $ourMin * 0.4);
             $max = (int) round($aiMax * 0.6 + $ourMax * 0.4);
-            if ($max - $min < 200) $max = $min + 500;
+
+            if ($max - $min < 200) {
+                $max = $min + 500;
+            }
 
             return ['min' => $min, 'max' => $max];
         } catch (\Throwable $e) {
             return ['min' => $aiMin, 'max' => $aiMax];
         }
-    }
-
-    private function normaliseAccommodation(?string $value): ?string
-    {
-        if (!$value) return null;
-        return match ($value) {
-            'hotel'  => 'budget_hotel',
-            'bnb'    => 'boutique',
-            default  => $value,
-        };
-    }
-
-    private function accommodationLabel(string $value): string
-    {
-        return match ($value) {
-            'budget_hotel' => 'budget hotel',
-            'boutique'     => 'boutique / B&B',
-            'hostel'       => 'hostel',
-            'resort'       => 'resort',
-            'villa'        => 'villa / private rental',
-            'apartment'    => 'apartment',
-            default        => $value,
-        };
     }
 }

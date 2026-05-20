@@ -20,7 +20,7 @@ class CurrencyController extends Controller
             'base'       => $rates['base'],
             'rates'      => $rates['rates'],
             'updated_at' => $rates['updated_at'],
-            'currencies' => \App\Services\CurrencyService::$SUPPORTED,
+            'currencies' => $this->currency->getSupportedCurrencies(),
         ]);
     }
 
@@ -28,17 +28,19 @@ class CurrencyController extends Controller
     {
         $currency = strtoupper($request->input('currency', 'USD'));
 
-        if (!isset(\App\Services\CurrencyService::$SUPPORTED[$currency])) {
+        if (!$this->currency->isSupported($currency)) {
             return response()->json(['success' => false, 'message' => 'Unsupported currency.'], 422);
         }
 
         session(['preferred_currency' => $currency]);
 
+        $supportedCurrencies = $this->currency->getSupportedCurrencies();
+        
         return response()->json([
             'success'  => true,
             'currency' => $currency,
             'symbol'   => $this->currency->getSymbol($currency),
-            'name'     => \App\Services\CurrencyService::$SUPPORTED[$currency]['name'],
+            'name'     => $supportedCurrencies[$currency]['name'] ?? $currency,
         ]);
     }
 

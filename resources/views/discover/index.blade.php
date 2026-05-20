@@ -53,6 +53,35 @@
     </div>
 </section>
 
+{{-- Recent Searches --}}
+<div class="section section-light" id="recentSearchesSection">
+    <div class="section-container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i> Recent Searches
+            </h2>
+            <p class="section-description">
+                Your recent destination searches are saved to help you rediscover places you've explored.
+            </p>
+        </div>
+        
+        <div id="recentSearchesList" class="recent-searches-list">
+            <div class="recent-searches-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading your recent searches…</p>
+            </div>
+        </div>
+        
+        <div id="recentSearchesEmpty" class="empty-state hidden">
+            <i class="fas fa-search empty-state-icon"></i>
+            <h3 class="empty-state-title">No recent searches</h3>
+            <p class="empty-state-text">
+                Your destination searches will appear here after you start exploring.
+            </p>
+        </div>
+    </div>
+</div>
+
 {{-- Main Content --}}
 <div class="section">
     <div class="section-container">
@@ -66,7 +95,7 @@
                 <i class="fas fa-star"></i> Featured Destinations
             </span>
             <h2 class="section-title">Handpicked destinations to inspire you</h2>
-            <p class="section-description">
+            <p class="empty-state-text">
                 Use the search above to explore any destination, country, or travel mood.
             </p>
         </div>
@@ -152,6 +181,9 @@
     const resultsInfo   = document.getElementById('discoverResultsInfo');
     const sectionHeader = document.getElementById('discoverSectionHeader');
     const moodSection   = document.getElementById('discoverMoodSection');
+    const recentSearchesList = document.getElementById('recentSearchesList');
+    const recentSearchesEmpty = document.getElementById('recentSearchesEmpty');
+    const recentSearchesSection = document.getElementById('recentSearchesSection');
 
     // ── Tag icons map ─────────────────────────────────────────────────────────
     const TAG_ICONS = {

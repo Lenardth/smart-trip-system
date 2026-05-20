@@ -15,6 +15,9 @@ class Accommodation extends Model
         'budget_tier',
         'nightly_rate',
         'rating',
+        'review_count',
+        'amenities',
+        'description',
         'lat',
         'lng',
         'image_url',
@@ -23,7 +26,9 @@ class Accommodation extends Model
 
     protected $casts = [
         'nightly_rate' => 'float',
-        'rating'       => 'integer',
+        'rating'       => 'float',
+        'review_count' => 'integer',
+        'amenities'    => 'array',
         'lat'          => 'float',
         'lng'          => 'float',
         'is_active'    => 'boolean',

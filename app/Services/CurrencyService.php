@@ -83,6 +83,16 @@ class CurrencyService implements CurrencyServiceInterface
         return $this->getSymbol($currency) . number_format($amount, $decimals);
     }
 
+    public function getSupportedCurrencies(): array
+    {
+        return self::$SUPPORTED;
+    }
+
+    public function isSupported(string $currency): bool
+    {
+        return isset(self::$SUPPORTED[strtoupper($currency)]);
+    }
+
     private function fallbackRates(): array
     {
         return [

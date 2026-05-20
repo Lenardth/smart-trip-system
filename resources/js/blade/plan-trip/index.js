@@ -493,7 +493,10 @@ function calculateCostBreakdown(destination, payload) {
     const region = payload.region || 'any';
     const baseCost = REGION_BASE_COSTS[region] || 2000;
     const budgetMult = COST_MULTIPLIERS.budget[payload.budget] || 1.0;
-    const durationMult = COST_MULTIPLIERS.duration[payload.duration] || 1.0;
+    // Support numeric duration (days) as well as legacy string keys
+    const durationMult = (!isNaN(Number(payload.duration)) && Number(payload.duration) > 0)
+        ? Math.max(0.3, Number(payload.duration) / 7)
+        : (COST_MULTIPLIERS.duration[payload.duration] || 1.0);
     const companionMult = COST_MULTIPLIERS.companion[payload.companion] || 1.0;
 
     const flights = Math.round(baseCost * 0.40 * budgetMult);
@@ -574,6 +577,7 @@ function getAccommodationDescription(p) {
 }
 
 function getNightsFromDuration(d) {
+    if (d && !isNaN(Number(d))) return Math.max(1, Number(d));
     return { weekend: 3, week: 7, two_weeks: 12, month: 28, flexible: 7 }[d] || 7;
 }
 
@@ -796,7 +800,9 @@ function buildReceiptHTML(d) {
     const bk = cost.breakdown;
     const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
     const bud = budgetLabels[lastPayload.budget] || lastPayload.budget || '—';
-    const dur = durLabels[lastPayload.duration] || lastPayload.duration || '—';
+    const dur = (lastPayload.duration && !isNaN(Number(lastPayload.duration)))
+        ? `${lastPayload.duration} days`
+        : (durLabels[lastPayload.duration] || lastPayload.duration || '—');
     const comp = compLabels[lastPayload.companion] || lastPayload.companion || '—';
 
     return `
@@ -1002,7 +1008,7 @@ async function downloadReceiptPdf() {
     y += 20;
 
     const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
-    const cards2 = [['Mood',mood],['Duration',(durLabels[lastPayload.duration]||lastPayload.duration||'—')+` (${bk.accommodation.nights}n)`],['Companion',compLabels[lastPayload.companion]||lastPayload.companion||'—'],['Budget',budgetLabels[lastPayload.budget]||lastPayload.budget||'—']];
+    const cards2 = [['Mood',mood],['Duration',((lastPayload.duration && !isNaN(Number(lastPayload.duration))) ? `${lastPayload.duration} days` : (durLabels[lastPayload.duration]||lastPayload.duration||'—'))+` (${bk.accommodation.nights}n)`],['Companion',compLabels[lastPayload.companion]||lastPayload.companion||'—'],['Budget',budgetLabels[lastPayload.budget]||lastPayload.budget||'—']];
     const cardW = cW / 4 - 2;
     y += 5;
     cards2.forEach(([label, val], i) => {
@@ -1129,40 +1135,69 @@ function esc(str) {
 }
 
 function init() {
+    // ── Step navigation ───────────────────────────────────────────────────────
+    document.getElementById('step1NextBtn')?.addEventListener('click', () => goStep(2));
+    document.getElementById('step2BackBtn')?.addEventListener('click', () => goStep(1));
+    document.getElementById('step2NextBtn')?.addEventListener('click', () => goStep(3));
+    document.getElementById('step3BackBtn')?.addEventListener('click', () => goStep(2));
+    document.getElementById('step3FindBtn')?.addEventListener('click', () => generateSuggestions());
+    document.getElementById('step4BackBtn')?.addEventListener('click', () => goStep(3));
+    document.getElementById('step4RegenerateBtn')?.addEventListener('click', () => generateSuggestions());
+
+    // ── Mood cards ────────────────────────────────────────────────────────────
+    document.querySelectorAll('.mood-card').forEach(card => {
+        card.addEventListener('click', () => selectMood(card));
+    });
+
+    // ── Custom mood ───────────────────────────────────────────────────────────
+    document.getElementById('btnAddMood')?.addEventListener('click', () => submitCustomMood());
+    document.getElementById('customMoodInput')?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); submitCustomMood(); }
+    });
+
+    // ── Surprise Me ───────────────────────────────────────────────────────────
+    document.getElementById('surpriseMeBtn')?.addEventListener('click', () => window.surpriseMe());
+
+    // ── Duration sync ─────────────────────────────────────────────────────────
+    document.getElementById('durationDays')?.addEventListener('input', function() {
+        const hidden = document.getElementById('duration');
+        if (hidden) hidden.value = this.value;
+    });
+
+    // ── Receipt modal ─────────────────────────────────────────────────────────
+    document.getElementById('receiptBtn')?.addEventListener('click', () => openReceipt());
+    document.getElementById('closeReceiptBtn')?.addEventListener('click', () => closeReceipt());
+    document.getElementById('closeReceiptBtn2')?.addEventListener('click', () => closeReceipt());
+    document.getElementById('printReceiptBtn')?.addEventListener('click', () => printReceipt());
+    document.getElementById('downloadPdfBtn')?.addEventListener('click', () => downloadReceiptPdf());
+
     const receiptModal = document.getElementById('receiptModal');
     if (receiptModal) {
         receiptModal.addEventListener('click', function(e) { if (e.target === this) closeReceipt(); });
     }
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const modal = document.getElementById('receiptModal');
             if (modal && modal.classList.contains('open')) closeReceipt();
         }
     });
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
 
-    document.getElementById('customMoodInput')?.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') { e.preventDefault(); submitCustomMood(); }
-    });
+    // ── Save to dashboard ─────────────────────────────────────────────────────
+    document.getElementById('saveBtn')?.addEventListener('click', () => saveTripToDashboard());
 
+    // ── Hero tagline rotation ─────────────────────────────────────────────────
+    const tagline = document.getElementById('heroTagline');
+    if (tagline) {
+        tagline.textContent = HERO_TAGLINES[Math.floor(Math.random() * HERO_TAGLINES.length)];
+    }
+
+    // ── Load community moods ──────────────────────────────────────────────────
     loadCommunityMoods();
 }
 
 if (document.readyState !== 'loading') init();
 else document.addEventListener('DOMContentLoaded', init);
-
-window.selectMood = selectMood;
-window.submitCustomMood = submitCustomMood;
-window.goStep = goStep;
-window.generateSuggestions = generateSuggestions;
-window.selectDestination = selectDestination;
-window.openReceipt = openReceipt;
-window.closeReceipt = closeReceipt;
-window.printReceipt = printReceipt;
-window.downloadReceiptPdf = downloadReceiptPdf;
-
-// ── Fun & Realistic Enhancements ─────────────────────────────────────────────
 
 window.surpriseMe = function() {
     const moods = ['adventurous', 'relaxed', 'cultural', 'romantic', 'foodie', 'eco-travel'];

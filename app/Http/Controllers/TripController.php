@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\NormalisesAccommodation;
 use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 
 class TripController extends Controller
 {
+    use NormalisesAccommodation;
+
     public function index(): JsonResponse
     {
         $trips = Trip::where('user_id', Auth::id())
@@ -44,28 +47,25 @@ class TripController extends Controller
             'month'              => 'nullable|string|max:50',
             'estimated_cost'     => 'nullable|numeric|min:0',
             'description'        => 'nullable|string|max:2000',
-            // Pricing breakdown
             'flight_cost'        => 'nullable|numeric|min:0',
             'accommodation_cost' => 'nullable|numeric|min:0',
             'activities_cost'    => 'nullable|numeric|min:0',
             'food_cost'          => 'nullable|numeric|min:0',
             'transport_cost'     => 'nullable|numeric|min:0',
             'cost_breakdown'     => 'nullable|array',
-            // Itinerary
             'daily_itinerary'    => 'nullable|array',
             'activities'         => 'nullable|array',
             'cities_to_visit'    => 'nullable|array',
-            // AI metadata
             'travel_tip'         => 'nullable|string|max:1000',
             'visa_info'          => 'nullable|string|max:1000',
             'flight_info'        => 'nullable|string|max:500',
             'best_time_to_visit' => 'nullable|string|max:255',
             'is_good_right_now'  => 'nullable|boolean',
-            // Validation data
             'validation_data'    => 'nullable|array',
             'weather_data'       => 'nullable|array',
             'safety_data'        => 'nullable|array',
         ]);
+
         $data['accommodation'] = $this->normaliseAccommodation($data['accommodation'] ?? null);
 
         $exists = Trip::where('user_id', Auth::id())
@@ -82,13 +82,7 @@ class TripController extends Controller
             ], 409);
         }
 
-        $days = match ($data['duration'] ?? 'week') {
-            'weekend'   => 4,
-            'week'      => 7,
-            'two_weeks' => 14,
-            'month'     => 30,
-            default     => 7,
-        };
+        $days = config('trips.duration_days.' . ($data['duration'] ?? ''), config('trips.default_duration_days', 7));
 
         $trip = Trip::create([
             ...$data,
@@ -108,11 +102,16 @@ class TripController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        Trip::where('user_id', Auth::id())
+        $trip = Trip::where('user_id', Auth::id())
             ->where('id', $id)
-            ->delete();
+            ->firstOrFail();
 
-        return response()->json(['success' => true]);
+        $trip->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trip deleted successfully.',
+        ]);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -137,18 +136,15 @@ class TripController extends Controller
             'start_date'         => 'nullable|date',
             'end_date'           => 'nullable|date|after_or_equal:start_date',
             'description'        => 'nullable|string|max:2000',
-            // Editable pricing
             'flight_cost'        => 'nullable|numeric|min:0',
             'accommodation_cost' => 'nullable|numeric|min:0',
             'activities_cost'    => 'nullable|numeric|min:0',
             'food_cost'          => 'nullable|numeric|min:0',
             'transport_cost'     => 'nullable|numeric|min:0',
             'cost_breakdown'     => 'nullable|array',
-            // Editable itinerary
             'daily_itinerary'    => 'nullable|array',
             'activities'         => 'nullable|array',
             'cities_to_visit'    => 'nullable|array',
-            // AI metadata
             'travel_tip'         => 'nullable|string|max:1000',
             'visa_info'          => 'nullable|string|max:1000',
             'flight_info'        => 'nullable|string|max:500',
@@ -159,40 +155,25 @@ class TripController extends Controller
             $data['accommodation'] = $this->normaliseAccommodation($data['accommodation']);
         }
 
-        // Recalculate estimated_cost if individual costs are updated
-        if (isset($data['flight_cost']) || isset($data['accommodation_cost']) || 
+        if (isset($data['flight_cost']) || isset($data['accommodation_cost']) ||
             isset($data['activities_cost']) || isset($data['food_cost']) || isset($data['transport_cost'])) {
-            $data['estimated_cost'] = 
-                ($data['flight_cost'] ?? $trip->flight_cost ?? 0) +
+            $data['estimated_cost'] =
+                ($data['flight_cost']        ?? $trip->flight_cost        ?? 0) +
                 ($data['accommodation_cost'] ?? $trip->accommodation_cost ?? 0) +
-                ($data['activities_cost'] ?? $trip->activities_cost ?? 0) +
-                ($data['food_cost'] ?? $trip->food_cost ?? 0) +
-                ($data['transport_cost'] ?? $trip->transport_cost ?? 0);
+                ($data['activities_cost']    ?? $trip->activities_cost    ?? 0) +
+                ($data['food_cost']          ?? $trip->food_cost          ?? 0) +
+                ($data['transport_cost']     ?? $trip->transport_cost     ?? 0);
         }
 
         $trip->update($data);
 
         return response()->json(['success' => true, 'trip' => $trip->fresh()]);
     }
-    
-    /**
-     * Get a single trip for editing
-     */
+
     public function show(int $id): JsonResponse
     {
         $trip = Trip::where('user_id', Auth::id())->findOrFail($id);
-        
+
         return response()->json(['trip' => $trip]);
-    }
-
-    private function normaliseAccommodation(?string $value): ?string
-    {
-        if (!$value) return null;
-
-        return match ($value) {
-            'hotel' => 'budget_hotel',
-            'bnb' => 'boutique',
-            default => $value,
-        };
     }
 }

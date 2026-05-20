@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class Booking extends Model
@@ -30,6 +31,7 @@ class Booking extends Model
         'subtotal'          => 'decimal:2',
         'discount_amount'   => 'decimal:2',
         'service_fee'       => 'decimal:2',
+        'seats_booked'      => 'integer',
         'passenger_details' => AsArrayObject::class,
     ];
 
@@ -42,8 +44,15 @@ class Booking extends Model
         });
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function trip() { return $this->belongsTo(Trip::class); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function trip(): BelongsTo
+    {
+        return $this->belongsTo(Trip::class);
+    }
 
     public function getTypeAttribute(): string
     {
@@ -65,6 +74,7 @@ class Booking extends Model
     public function getTitleAttribute(): string
     {
         $pd = $this->passenger_details;
+
         if ($pd) {
             $dep = $pd['departure_airport'] ?? null;
             $arr = $pd['arrival_airport']   ?? null;
@@ -80,10 +90,33 @@ class Booking extends Model
         return 'Booking #' . $this->booking_reference;
     }
 
-    public function scopeConfirmed($query)       { return $query->where('status', 'confirmed'); }
-    public function scopePending($query)         { return $query->where('status', 'pending');   }
-    public function scopeCancelled($query)       { return $query->where('status', 'cancelled'); }
-    public function scopeCompleted($query)       { return $query->where('status', 'completed'); }
-    public function scopeActive($query)          { return $query->whereIn('status', ['confirmed', 'pending']); }
-    public function scopeByUser($query, $userId) { return $query->where('user_id', $userId); }
+    public function scopeConfirmed($query)
+    {
+        return $query->where('status', 'confirmed');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', 'cancelled');
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', ['confirmed', 'pending']);
+    }
+
+    public function scopeByUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
 }

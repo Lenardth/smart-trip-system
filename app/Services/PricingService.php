@@ -12,9 +12,6 @@ use App\Contracts\PricingServiceInterface;
 
 class PricingService implements PricingServiceInterface
 {
-    const SERVICE_FEE_RATE   = 0.05;  
-    const AGENCY_COMMISSION  = 0.10;  
-
     public function calculate(float $subtotal, User $user, ?string $couponCode = null): array
     {
         $discount   = 0;
@@ -37,8 +34,8 @@ class PricingService implements PricingServiceInterface
 
         $afterDiscount = max(0, $subtotal - $discount);
 
-        
-        $serviceFee = $user->is_premium ? 0 : round($afterDiscount * self::SERVICE_FEE_RATE, 2);
+        $serviceFeeRate = config('pricing.service_fee_rate', 0.05);
+        $serviceFee = $user->is_premium ? 0 : round($afterDiscount * $serviceFeeRate, 2);
 
         $total = $afterDiscount + $serviceFee;
 
@@ -55,7 +52,8 @@ class PricingService implements PricingServiceInterface
 
     public function recordRevenue(\App\Models\Booking $booking, array $pricing): void
     {
-        $agencyCommission = round($pricing['subtotal'] * self::AGENCY_COMMISSION, 2);
+        $agencyCommissionRate = config('pricing.agency_commission', 0.10);
+        $agencyCommission = round($pricing['subtotal'] * $agencyCommissionRate, 2);
         $netRevenue       = $pricing['service_fee'] + $agencyCommission - $pricing['discount'];
 
         RevenueRecord::create([

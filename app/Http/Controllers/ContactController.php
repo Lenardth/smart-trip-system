@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ContactMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -23,14 +24,13 @@ class ContactController extends Controller
         ]);
 
         try {
-            Mail::raw(
-                "Name: {$data['name']}\nEmail: {$data['email']}\nSubject: {$data['subject']}\n\n{$data['message']}",
-                function ($m) use ($data) {
-                    $m->to(config('mail.from.address'))
-                      ->replyTo($data['email'], $data['name'])
-                      ->subject('[Smart Booking] ' . $data['subject']);
-                }
-            );
+            Mail::to(config('mail.from.address'))
+                ->send(new ContactMail(
+                    senderName:  $data['name'],
+                    senderEmail: $data['email'],
+                    subject:     $data['subject'],
+                    body:        $data['message'],
+                ));
         } catch (\Throwable $e) {
             Log::warning('Contact mail failed: ' . $e->getMessage());
         }

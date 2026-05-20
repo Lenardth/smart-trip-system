@@ -95,14 +95,14 @@ Route::middleware('auth')->group(function () {
     // Bookings
     Route::get('/bookings',                   [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/{booking}',         [BookingController::class, 'show'])->name('bookings.show');
-    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->middleware('throttle:10,1')->name('bookings.cancel');
     Route::post('/api/bookings/flight',        [BookingController::class, 'bookFlight'])->middleware('throttle:10,1');
     Route::post('/api/bookings/accommodation', [BookingController::class, 'storeAccommodation'])->middleware('throttle:10,1');
-    Route::post('/api/coupon/validate',        [\App\Http\Controllers\CouponController::class, 'validate']);
+    Route::post('/api/coupon/validate',        [\App\Http\Controllers\CouponController::class, 'validate'])->middleware('throttle:30,1');
 
     // Profile
-    Route::post('/profile/picture',   [\App\Http\Controllers\ProfileController::class, 'uploadPicture'])->name('profile.picture.upload');
-    Route::delete('/profile/picture', [\App\Http\Controllers\ProfileController::class, 'deletePicture'])->name('profile.picture.delete');
-    Route::put('/profile/password',   [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password.update');
-    Route::delete('/profile',         [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/picture',   [\App\Http\Controllers\ProfileController::class, 'uploadPicture'])->middleware('throttle:5,1')->name('profile.picture.upload');
+    Route::delete('/profile/picture', [\App\Http\Controllers\ProfileController::class, 'deletePicture'])->middleware('throttle:10,1')->name('profile.picture.delete');
+    Route::put('/profile/password',   [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password.update');
+    Route::delete('/profile',         [\App\Http\Controllers\ProfileController::class, 'destroy'])->middleware('throttle:3,1')->name('profile.destroy');
 });

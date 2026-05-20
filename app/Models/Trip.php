@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Trip extends Model
 {
@@ -51,16 +52,22 @@ class Trip extends Model
     ];
 
     protected $casts = [
-        'cost_breakdown' => 'array',
-        'daily_itinerary' => 'array',
-        'activities' => 'array',
-        'cities_to_visit' => 'array',
-        'validation_data' => 'array',
-        'weather_data' => 'array',
-        'safety_data' => 'array',
+        'cost_breakdown'    => 'array',
+        'daily_itinerary'   => 'array',
+        'activities'        => 'array',
+        'cities_to_visit'   => 'array',
+        'validation_data'   => 'array',
+        'weather_data'      => 'array',
+        'safety_data'       => 'array',
         'is_good_right_now' => 'boolean',
-        'start_date' => 'date',
-        'end_date' => 'date',
+        'start_date'        => 'date',
+        'end_date'          => 'date',
+        'estimated_cost'    => 'float',
+        'flight_cost'       => 'float',
+        'accommodation_cost'=> 'float',
+        'activities_cost'   => 'float',
+        'food_cost'         => 'float',
+        'transport_cost'    => 'float',
     ];
 
     public function user(): BelongsTo
@@ -68,30 +75,22 @@ class Trip extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function bookings()
+    public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
     }
 
     public function getDurationLabelAttribute(): string
     {
-        return [
-            'weekend'   => 'Long Weekend',
-            'week'      => 'One Week',
-            'two_weeks' => 'Two Weeks',
-            'month'     => 'One Month+',
-            'flexible'  => 'Flexible',
-        ][$this->duration] ?? $this->duration ?? '-';
+        $labels = config('trips.duration_labels', []);
+
+        return $labels[$this->duration] ?? $this->duration ?? '-';
     }
 
     public function getBudgetLabelAttribute(): string
     {
-        return [
-            'backpacker' => 'Backpacker',
-            'budget'     => 'Budget',
-            'mid'        => 'Mid-Range',
-            'premium'    => 'Premium',
-            'luxury'     => 'Luxury',
-        ][$this->budget] ?? $this->budget ?? '-';
+        $labels = config('trips.budget_labels', []);
+
+        return $labels[$this->budget] ?? $this->budget ?? '-';
     }
 }
