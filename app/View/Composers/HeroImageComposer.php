@@ -14,18 +14,10 @@ class HeroImageComposer
         $this->pexelsService = $pexelsService;
     }
 
-    /**
-     * Bind data to the view.
-     *
-     * @param  \Illuminate\View\View  $view
-     * @return void
-     */
-    public function compose(View $view)
+    public function compose(View $view): void
     {
-        // Get the current route name
         $routeName = request()->route() ? request()->route()->getName() : '';
-        
-        // Map route names to page identifiers
+
         $pageMap = [
             'discover' => 'discover',
             'plan-trip' => 'plan-trip',
@@ -37,8 +29,7 @@ class HeroImageComposer
         ];
 
         $page = $pageMap[$routeName] ?? 'home';
-        
-        // Only inject if not already set
+
         if (!$view->offsetExists('heroImage')) {
             $heroImage = $this->pexelsService->getHeroImage($page);
             $view->with('heroImage', $heroImage);

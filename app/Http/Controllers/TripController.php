@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Concerns\NormalisesAccommodation;
 use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -10,8 +9,6 @@ use Illuminate\Support\Facades\Auth;
 
 class TripController extends Controller
 {
-    use NormalisesAccommodation;
-
     public function index(): JsonResponse
     {
         $trips = Trip::where('user_id', Auth::id())
@@ -148,10 +145,6 @@ class TripController extends Controller
             'flight_info'        => 'nullable|string|max:500',
             'best_time_to_visit' => 'nullable|string|max:255',
         ]);
-
-        if (isset($data['accommodation'])) {
-            $data['accommodation'] = $this->normaliseAccommodation($data['accommodation']);
-        }
 
         if (isset($data['flight_cost']) || isset($data['accommodation_cost']) ||
             isset($data['activities_cost']) || isset($data['food_cost']) || isset($data['transport_cost'])) {

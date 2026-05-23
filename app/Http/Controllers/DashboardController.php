@@ -86,7 +86,6 @@ class DashboardController extends Controller
 
         usort($activities, fn ($a, $b) => $b['ts'] - $a['ts']);
 
-        $displayLimit = config('dashboard.activity.display_limit', 10);
         return response()->json(['activities' => array_slice($activities, 0, $displayLimit)]);
     }
 
@@ -94,8 +93,6 @@ class DashboardController extends Controller
     {
         $userId = Auth::id();
         $all    = Booking::where('user_id', $userId)->get();
-        $moneyDecimals = config('dashboard.money.decimals', 2);
-        $statusDisplay = config('dashboard.booking_status_display', []);
         $flightType = config('booking.types.flight');
         $accommodationType = config('booking.types.accommodation');
         $confirmedStatus = config('booking.statuses.confirmed');

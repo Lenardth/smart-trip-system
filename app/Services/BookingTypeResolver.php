@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-
 class BookingTypeResolver
 {
     public const TYPE_FLIGHT = 'flight';

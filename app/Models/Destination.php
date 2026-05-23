@@ -41,5 +41,4 @@ class Destination extends Model
         'is_editors_choice' => 'boolean',
         'is_active' => 'boolean',
     ];
-
 }

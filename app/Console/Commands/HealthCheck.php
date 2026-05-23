@@ -63,7 +63,7 @@ class HealthCheck extends Command
         $this->info('3. Cache Check');
         try {
             cache()->put('health-check', 'test', 1);
-            $value = cache()->get('health-check');
+            cache()->get('health-check');
             $this->line('   ? Cache read/write: OK');
         } catch (\Exception $e) {
             $this->error('   ? Cache check failed: ' . $e->getMessage());

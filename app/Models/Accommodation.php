@@ -41,4 +41,14 @@ class Accommodation extends Model
     {
         return $query->where('city', 'like', "%{$city}%");
     }
+
+    public function scopeByStyle($query, string $style)
+    {
+        return $query->where('style', $style);
+    }
+
+    public function scopeByBudget($query, string $budgetTier)
+    {
+        return $query->where('budget_tier', $budgetTier);
+    }
 }

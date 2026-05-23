@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Contracts\FlightPricingInterface;
 use App\Contracts\AccommodationPricingInterface;
-use App\Http\Concerns\NormalisesAccommodation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -13,8 +12,6 @@ use Illuminate\Support\Str;
 
 class AiSuggestionController extends Controller
 {
-    use NormalisesAccommodation;
-
     private const TOOL = [
         'type'     => 'function',
         'function' => [
@@ -137,7 +134,6 @@ class AiSuggestionController extends Controller
         }
 
         if (empty($accumulated)) {
-            $maxRetries = config('ai.max_retries', 3);
             throw new \RuntimeException(
                 'Could not generate non-duplicate destinations after ' . $maxRetries . ' attempts.'
             );
@@ -274,13 +270,11 @@ SYSTEM;
         $currency        = session('preferred_currency', 'USD');
         $dest            = $d['destination'] ?? '';
         $country         = $d['country']     ?? '';
-        $costs           = $this->validateCosts($dest, $d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0);
+        $costs           = $this->validateCosts($d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0);
         $months          = $d['best_months'] ?? [];
         $warmThreshold   = config('ai.temp_thresholds.warm', 25);
         $coolThreshold   = config('ai.temp_thresholds.cool', 10);
         $defaultMonths   = config('ai.default_best_months');
-        $maxActivities   = config('ai.prompt.max_activities', 6);
-
         if (empty($months) && is_array($d['weather_data'] ?? null)) {
             $avg    = (($d['weather_data']['avg_high'] ?? 20) + ($d['weather_data']['avg_low'] ?? 10)) / 2;
             $months = $avg > $warmThreshold
@@ -305,7 +299,12 @@ SYSTEM;
         ];
     }
 
-    private function validateCosts(string $destination, int $aiMin, int $aiMax): array
+    private function accommodationLabel(string $accommodation): string
+    {
+        return ucwords(str_replace('_', ' ', $accommodation));
+    }
+
+    private function validateCosts(int $aiMin, int $aiMax): array
     {
         // Absolute sanity bounds per budget tier (USD, per person, full trip)
         $absoluteMin = 100;

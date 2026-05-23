@@ -20,7 +20,7 @@ class DiscoverController extends Controller
         private GeoapifyInterface $geoapify,
     ) {}
 
-    public function index(Request $request)
+    public function index()
     {
         return view('discover.index', [
             'countries'      => $this->geoapify->getCountries(),
@@ -203,7 +203,6 @@ class DiscoverController extends Controller
             );
 
             $addedCount = 0;
-            $fetchLimit = config('api.limits.destination_api_fetch', 20);
             foreach ($places as $place) {
                 $sourceId = $place['id'] ?? null;
 
@@ -251,7 +250,7 @@ class DiscoverController extends Controller
                 $destination->save();
                 $addedCount++;
 
-                if ($addedCount >= $fetchLimit) {
+                if ($addedCount >= $destinationFetchLimit) {
                     break;
                 }
             }

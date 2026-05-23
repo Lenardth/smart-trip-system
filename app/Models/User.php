@@ -71,5 +71,4 @@ class User extends Authenticatable
     {
         return $this->agency_name ?: $this->name;
     }
-
 }
