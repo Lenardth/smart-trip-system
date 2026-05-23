@@ -4,7 +4,7 @@
 
 @section('content')
 <section class="hero hero-with-image hero-pattern" 
-         style="background-image: url('{{ $heroImage ?? 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80' }}');">
+         data-bg="{{ $heroImage ?? 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80' }}">
     <div class="hero-search-wrap">
         <div class="hero-search-intro">
             <h1 class="hero-search-title"><i class="fas fa-plane-departure"></i> Book Your Flight</h1>

@@ -138,6 +138,7 @@
         }
 
         refreshPrices();
+        document.dispatchEvent(new CustomEvent('currency:rates-loaded', { detail: { currency: _currency } }));
     }
 
     window.Currency = { convert, format, symbol, current, setCurrency, refresh: refreshPrices };

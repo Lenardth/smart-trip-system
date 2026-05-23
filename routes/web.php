@@ -34,8 +34,10 @@ Route::post('/ai/suggest', [AiSuggestionController::class, 'suggest'])
     ->name('ai.suggest');
 
 // ── Accommodations (public browse) ───────────────────────────────────────────
-Route::get('/accommodations',     [AccommodationController::class, 'index'])->name('accommodations.index');
-Route::get('/api/accommodations', [AccommodationController::class, 'list'])->name('api.accommodations.list');
+Route::get('/accommodations',          [AccommodationController::class, 'index'])->name('accommodations.index');
+Route::get('/api/accommodations',      [AccommodationController::class, 'list'])->name('api.accommodations.list');
+Route::get('/api/accommodation-news',  [AccommodationController::class, 'news'])->middleware('throttle:30,1')->name('api.accommodation.news');
+Route::get('/api/travel-warning',      [AccommodationController::class, 'travelWarning'])->middleware('throttle:30,1')->name('api.travel.warning');
 
 // ── Static / Footer pages ─────────────────────────────────────────────────────
 Route::get('/about',   fn () => view('about.index'))->name('about');

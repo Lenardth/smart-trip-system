@@ -40,7 +40,7 @@
 <div class="filter-bar">
     <div class="filter-tabs" id="filterTabs">
         <button class="ftab active" data-filter="all" data-action="filterBookings" data-params='{"args":["all"]}'><i class="fas fa-th-large"></i> All</button>
-        <button class="ftab" data-filter="flights" data-action="filterBookings" data-params='{"args":["flights"]}'><i class="fas fa-plane"></i> Flights</button>
+        <button class="ftab" data-filter="flight" data-action="filterBookings" data-params='{"args":["flight"]}'><i class="fas fa-plane"></i> Flights</button>
         <button class="ftab" data-filter="hotels" data-action="filterBookings" data-params='{"args":["hotels"]}'><i class="fas fa-hotel"></i> Hotels</button>
         <button class="ftab" data-filter="trips" data-action="filterBookings" data-params='{"args":["trips"]}'><i class="fas fa-route"></i> Trips</button>
         <button class="ftab" data-filter="confirmed" data-action="filterBookings" data-params='{"args":["confirmed"]}'><i class="fas fa-check-circle"></i> Confirmed</button>
@@ -68,7 +68,7 @@
             @php
                 $type       = $booking->type;
                 $typeIcon   = match ($type) {
-                    'flights' => 'fa-plane',
+                    'flight'  => 'fa-plane',
                     'trips'   => 'fa-route',
                     default   => 'fa-hotel',
                 };
@@ -146,7 +146,7 @@
                         <div class="detail-item"><label>Booking Date</label><span>{{ $booking->created_at->format('M j, Y H:i') }}</span></div>
                         <div class="detail-item"><label>Reference</label><span>{{ $booking->booking_reference }}</span></div>
                         <div class="detail-item"><label>Status</label><span>{{ ucfirst($booking->status) }}</span></div>
-                        @if($type === 'flights' && $booking->passenger_details)
+                        @if($type === 'flight' && $booking->passenger_details)
                             <div class="detail-item"><label>Flight</label><span>{{ $booking->passenger_details['flight_number'] ?? '—' }} — {{ $booking->passenger_details['airline'] ?? '—' }}</span></div>
                             <div class="detail-item"><label>Class</label><span>{{ ucfirst(strtolower($booking->passenger_details['travel_class'] ?? 'economy')) }}</span></div>
                         @endif
@@ -180,13 +180,3 @@
 
 @endsection
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.Currency) window.Currency.refresh();
-});
-document.addEventListener('currency:changed', function() {
-    if (window.Currency) window.Currency.refresh();
-});
-</script>
-@endpush

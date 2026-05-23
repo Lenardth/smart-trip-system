@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasSearchScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DestinationSearch extends Model
 {
+    use HasSearchScopes;
+
     protected $fillable = [
         'user_id',
         'query',
@@ -27,25 +30,6 @@ class DestinationSearch extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Scope for recent searches
-     */
-    public function scopeRecent($query, $limit = 20)
-    {
-        return $query->latest()->limit($limit);
-    }
-
-    /**
-     * Scope for searches by user
-     */
-    public function scopeByUser($query, $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-
-    /**
-     * Check if a similar search was already logged today
-     */
     public static function alreadyLoggedToday($userId, $query, $regionCode = null, $mood = null): bool
     {
         return self::where('user_id', $userId)

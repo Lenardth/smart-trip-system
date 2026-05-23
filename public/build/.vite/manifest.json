@@ -1,18 +1,18 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-CaL6pxKc.css",
+    "file": "assets/app-BDdi6DTJ.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BThbRCzK.js",
+    "file": "assets/app-BsPbxxvI.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "dynamicImports": [
       "resources/js/blade/landing/index.js",
       "resources/js/blade/dashboard/index.js",
-      "resources/js/blade/landing/index.js",
+      "resources/js/blade/discover/index.js",
       "resources/js/blade/plan-trip/index.js",
       "resources/js/blade/accommodations/index.js",
       "resources/js/blade/bookings/index.js",
@@ -41,15 +41,21 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/bookings/index.js": {
-    "file": "assets/index-yXugm7W6.js",
+    "file": "assets/index-DInHiKX3.js",
     "name": "index",
     "src": "resources/js/blade/bookings/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/dashboard/index.js": {
-    "file": "assets/index-C8MlfbRe.js",
+    "file": "assets/index-BFbPEbka.js",
     "name": "index",
     "src": "resources/js/blade/dashboard/index.js",
+    "isDynamicEntry": true
+  },
+  "resources/js/blade/discover/index.js": {
+    "file": "assets/index-CDavixOO.js",
+    "name": "index",
+    "src": "resources/js/blade/discover/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/flights/index.js": {
@@ -59,13 +65,13 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/landing/index.js": {
-    "file": "assets/index-DFlwqjMR.js",
+    "file": "assets/index-C5KYhQjG.js",
     "name": "index",
     "src": "resources/js/blade/landing/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/plan-trip/index.js": {
-    "file": "assets/index-KcKFb1Hk.js",
+    "file": "assets/index-CPGvRdVh.js",
     "name": "index",
     "src": "resources/js/blade/plan-trip/index.js",
     "isDynamicEntry": true

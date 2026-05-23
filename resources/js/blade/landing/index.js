@@ -48,6 +48,17 @@ function moodIconMap(mood) {
     return icons[mood] || '<i class="fas fa-map-marker-alt"></i>';
 }
 
+window.toggleQuickBuilder = function () {
+    const wrapper = document.getElementById('quickBuilderWrapper');
+    if (!wrapper) return;
+    const isOpen = wrapper.classList.toggle('open');
+    const btn = document.querySelector('[data-action="toggleQuickBuilder"]');
+    if (btn) btn.classList.toggle('active', isOpen);
+    if (isOpen) {
+        setTimeout(() => wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+};
+
 window.showStep = function (step) {
     [1, 2, 3].forEach(n => {
         const panel  = document.getElementById('qbPanel' + n);
@@ -191,6 +202,31 @@ async function fetchDestinations() {
 }
 
 window.initDestinations = fetchDestinations;
+
+function populateTestimonials() {
+    const grid = document.getElementById('testimonialsGrid');
+    if (!grid) return;
+    const testimonials = [
+        { text: "The AI suggestions were spot on — found a destination I'd never considered and it turned out to be my best trip ever.", name: "Sarah M.", initials: "SM", trip: "Bali, Indonesia" },
+        { text: "Planned our honeymoon in under 20 minutes. Having budget tracking and flight search in one place is genuinely useful.", name: "James & Priya", initials: "JP", trip: "Santorini, Greece" },
+        { text: "Travelled solo for the first time. The mood-based suggestions gave me exactly the kind of off-the-beaten-path trip I wanted.", name: "Marcus L.", initials: "ML", trip: "Kyoto, Japan" },
+        { text: "Used it for a group of 8. The filters made it easy to find somewhere that worked for everyone's travel style.", name: "Aisha K.", initials: "AK", trip: "Marrakech, Morocco" },
+        { text: "The visa and flight info in the AI suggestions saved me hours of research. Everything I needed was already there.", name: "Tom H.", initials: "TH", trip: "Cape Town, South Africa" },
+        { text: "Booked three trips through this. The AI cost estimates have been surprisingly accurate every single time.", name: "Yuki T.", initials: "YT", trip: "Reykjavik, Iceland" },
+    ];
+    grid.innerHTML = testimonials.map(t =>
+        '<div class="testimonial-card">' +
+            '<p>"' + t.text + '"</p>' +
+            '<div class="user-info">' +
+                '<div class="user-avatar">' + t.initials + '</div>' +
+                '<div>' +
+                    '<div class="user-name">' + t.name + '</div>' +
+                    '<div class="user-trip"><i class="fas fa-map-marker-alt" style="color:var(--gold);margin-right:4px;font-size:11px;"></i>' + t.trip + '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>'
+    ).join('');
+}
 
 window.filterByStyle = function (style, cardEl) {
     const styleMap = {
@@ -469,8 +505,9 @@ ready(function () {
         startAuto();
     }
 
-    
+
     fetchDestinations();
+    populateTestimonials();
 
     // Re-render destination cards when currency changes
     if (typeof window.Currency !== 'undefined') {

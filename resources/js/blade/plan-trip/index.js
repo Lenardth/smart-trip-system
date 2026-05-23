@@ -70,13 +70,26 @@ const REGION_TAX_RATES = {
     any: 12
 };
 
-const budgetLabels = {
-    backpacker: 'Backpacker (Under $500)',
-    budget: 'Budget-Friendly ($500–$1,500)',
-    mid: 'Mid-Range ($1,500–$4,000)',
-    premium: 'Premium ($4,000–$8,000)',
-    luxury: 'Luxury ($8,000+)'
-};
+const BUDGET_TIERS = [
+    { value: 'backpacker', label: 'Backpacker',       low: null, high: 500  },
+    { value: 'budget',     label: 'Budget-Friendly',  low: 500,  high: 1500 },
+    { value: 'mid',        label: 'Mid-Range',        low: 1500, high: 4000 },
+    { value: 'premium',    label: 'Premium',          low: 4000, high: 8000 },
+    { value: 'luxury',     label: 'Luxury',           low: 8000, high: null },
+];
+
+function getBudgetLabel(value) {
+    const fmt = typeof window.Currency !== 'undefined'
+        ? n => window.Currency.format(n)
+        : n => '$' + Number(n).toLocaleString();
+    const tier = BUDGET_TIERS.find(t => t.value === value);
+    if (!tier) return value || '—';
+    if (tier.low === null) return `${tier.label} (under ${fmt(tier.high)})`;
+    if (tier.high === null) return `${tier.label} (${fmt(tier.low)}+)`;
+    return `${tier.label} (${fmt(tier.low)} – ${fmt(tier.high)})`;
+}
+
+const budgetLabels = new Proxy({}, { get: (_, k) => getBudgetLabel(k) });
 
 const durLabels = {
     weekend: 'Long Weekend (3–4 days)',
@@ -355,7 +368,7 @@ function goStep(n) {
     [1, 2, 3, 4].forEach(i => {
         const step = document.getElementById('step' + i);
         const si = document.getElementById('si' + i);
-        if (step) step.style.display = 'none';
+        if (step) step.classList.add('hidden');
         if (si) si.classList.remove('active', 'done');
     });
     for (let i = 1; i < n; i++) {
@@ -365,7 +378,7 @@ function goStep(n) {
     const currentSi = document.getElementById('si' + n);
     if (currentSi) currentSi.classList.add('active');
     const currentStep = document.getElementById('step' + n);
-    if (currentStep) currentStep.style.display = 'block';
+    if (currentStep) currentStep.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -382,9 +395,9 @@ async function generateSuggestions() {
     selectedDest = null;
 
     const receiptBtn = document.getElementById('receiptBtn');
-    if (receiptBtn) receiptBtn.style.display = 'none';
+    if (receiptBtn) receiptBtn.classList.add('hidden');
     const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) saveBtn.style.display = 'none';
+    if (saveBtn) saveBtn.classList.add('hidden');
 
     goStep(4);
 
@@ -392,9 +405,9 @@ async function generateSuggestions() {
     const errorState = document.getElementById('errorState');
     const resultsState = document.getElementById('resultsState');
 
-    if (loadingState) loadingState.style.display = 'block';
-    if (errorState) errorState.style.display = 'none';
-    if (resultsState) resultsState.style.display = 'none';
+    if (loadingState) { loadingState.style.display = ''; loadingState.classList.remove('hidden'); }
+    if (errorState) errorState.classList.add('hidden');
+    if (resultsState) resultsState.classList.add('hidden');
 
     lastPayload = {
         mood: selectedMood,
@@ -423,20 +436,20 @@ async function generateSuggestions() {
         });
 
         const json = await res.json();
-        if (loadingState) loadingState.style.display = 'none';
+        if (loadingState) loadingState.classList.add('hidden');
 
         if (!json.success) {
             if (errorState) { errorState.textContent = json.message || 'Something went wrong.';
-                errorState.style.display = 'block'; }
+                errorState.classList.remove('hidden'); }
             return;
         }
 
         lastResults = json.data.map(dest => ({...dest, costBreakdown: calculateCostBreakdown(dest, lastPayload) }));
         renderResults(lastResults);
     } catch (err) {
-        if (loadingState) loadingState.style.display = 'none';
+        if (loadingState) loadingState.classList.add('hidden');
         if (errorState) { errorState.textContent = 'Network error: ' + err.message;
-            errorState.style.display = 'block'; }
+            errorState.classList.remove('hidden'); }
     }
 }
 
@@ -624,7 +637,7 @@ function renderResults(destinations) {
     });
 
     const resultsState = document.getElementById('resultsState');
-    if (resultsState) resultsState.style.display = 'block';
+    if (resultsState) resultsState.classList.remove('hidden');
 }
 
 function selectDestination(idx) {
@@ -634,11 +647,11 @@ function selectDestination(idx) {
     selectedDest = lastResults[idx];
 
     const receiptBtn = document.getElementById('receiptBtn');
-    if (receiptBtn) receiptBtn.style.display = 'inline-flex';
+    if (receiptBtn) receiptBtn.classList.remove('hidden');
 
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
-        saveBtn.style.display = 'inline-flex';
+        saveBtn.classList.remove('hidden');
         saveBtn.innerHTML = '<i class="fas fa-bookmark"></i> Save to Dashboard';
         saveBtn.disabled = false;
     }
@@ -1245,10 +1258,7 @@ window.surpriseMe = function() {
         adventurous: 'Adventurous', relaxed: 'Relaxed', cultural: 'Cultural',
         romantic: 'Romantic', foodie: 'Foodie', 'eco-travel': 'Eco-Travel'
     };
-    const budgetLabels = {
-        backpacker: 'Backpacker (under $500)', budget: 'Budget ($500-$1,500)',
-        mid: 'Mid-Range ($1,500-$4,000)', premium: 'Premium ($4,000-$8,000)'
-    };
+    // use module-level getBudgetLabel so currency is respected
     const durationLabels = {
         weekend: 'Long Weekend (3-4 days)', week: 'One Week', two_weeks: 'Two Weeks'
     };
@@ -1381,10 +1391,7 @@ const HERO_TAGLINES = [
     if (tagline) {
         tagline.textContent = HERO_TAGLINES[Math.floor(Math.random() * HERO_TAGLINES.length)];
     }
-
-    // Expose saveBtn click
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) saveBtn.addEventListener('click', saveTripToDashboard);
+    // saveBtn listener is already added in init() — do not add it again here
 })();
 
 // Patch generateSuggestions to use animated loading
@@ -1400,30 +1407,12 @@ window.generateSuggestions = async function() {
 
 // Update budget dropdown labels when currency changes
 function updateBudgetDropdowns() {
-    var budgetOptions = [
-        { value: 'backpacker', low: 0,    high: 500,  label: 'Backpacker' },
-        { value: 'budget',     low: 500,  high: 1500, label: 'Budget-Friendly' },
-        { value: 'mid',        low: 1500, high: 4000, label: 'Mid-Range' },
-        { value: 'premium',    low: 4000, high: 8000, label: 'Premium' },
-        { value: 'luxury',     low: 8000, high: null, label: 'Luxury' },
-    ];
-
     var selects = document.querySelectorAll('select#budget, select#budgetSelect');
     selects.forEach(function(sel) {
         var currentVal = sel.value;
-        budgetOptions.forEach(function(opt) {
-            var el = sel.querySelector('option[value="' + opt.value + '"]');
-            if (!el) return;
-            var fmtFn = typeof window.Currency !== 'undefined' ? window.Currency.format : function(n) { return '$' + n.toLocaleString(); };
-            var label;
-            if (opt.value === 'backpacker') {
-                label = opt.label + ' (under ' + fmtFn(opt.high) + ')';
-            } else if (opt.value === 'luxury') {
-                label = opt.label + ' (' + fmtFn(opt.low) + '+)';
-            } else {
-                label = opt.label + ' (' + fmtFn(opt.low) + ' – ' + fmtFn(opt.high) + ')';
-            }
-            el.textContent = label;
+        BUDGET_TIERS.forEach(function(tier) {
+            var el = sel.querySelector('option[value="' + tier.value + '"]');
+            if (el) el.textContent = getBudgetLabel(tier.value);
         });
         sel.value = currentVal;
     });

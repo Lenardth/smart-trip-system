@@ -35,12 +35,14 @@ class LandingController extends Controller
         }
 
         $cacheKey = 'pexels_dest_' . md5($city . $country);
+        $cacheTtl = config('api.cache.pexels_ttl', 86400);
+        $timeout  = config('api.timeouts.pexels', 6);
 
-        return Cache::remember($cacheKey, 86400, function () use ($city, $country, $apiKey) {
+        return Cache::remember($cacheKey, $cacheTtl, function () use ($city, $country, $apiKey, $timeout) {
             try {
-                $response = Http::timeout(6)
+                $response = Http::timeout($timeout)
                     ->withHeaders(['Authorization' => $apiKey])
-                    ->get('https://api.pexels.com/v1/search', [
+                    ->get(config('services.pexels.search_endpoint'), [
                         'query'       => "{$city} {$country} travel landmark",
                         'per_page'    => 5,
                         'orientation' => 'landscape',
@@ -63,7 +65,7 @@ class LandingController extends Controller
 
     private function imageFallback(string $city): string
     {
-        $base = config('services.image_fallback.base_url', 'https://placehold.co/800x600');
+        $base = config('api.image_fallback.base_url', 'https://placehold.co/800x600');
 
         return $base . '?' . urlencode($city . ' travel');
     }

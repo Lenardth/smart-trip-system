@@ -180,14 +180,19 @@
 }
 
 .sort-filter select {
+    display: none; /* replaced by custom select */
+}
+
+.sort-filter .custom-select-wrapper {
+    min-width: 180px;
+}
+
+.sort-filter .custom-select-trigger {
     padding: 7px 12px;
-    border: 1.5px solid var(--border);
     border-radius: 6px;
-    font-family: 'Georgia', serif;
+    font-size: 13px;
     background: #fff;
     color: var(--deep);
-    cursor: pointer;
-    font-size: 13px;
 }
 
 /* ── Flight result cards (JS-rendered) ───────────────────────────────────── */

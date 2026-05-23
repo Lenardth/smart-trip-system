@@ -251,6 +251,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.Currency) window.Currency.refresh();
+});
+document.addEventListener('currency:changed', function () {
+    if (window.Currency) window.Currency.refresh();
+});
+
 window.toggleDetail       = toggleDetail;
 window.toggleDetailDemo   = toggleDetailDemo;
 window.filterBookings     = filterBookings;

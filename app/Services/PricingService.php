@@ -12,6 +12,9 @@ use App\Contracts\PricingServiceInterface;
 
 class PricingService implements PricingServiceInterface
 {
+    public const SERVICE_FEE_RATE = 0.05;
+    public const AGENCY_COMMISSION = 0.10;
+
     public function calculate(float $subtotal, User $user, ?string $couponCode = null): array
     {
         $discount   = 0;

@@ -2,24 +2,22 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Vite;
-
 use App\Contracts\AccommodationPricingInterface;
+use App\Contracts\CurrencyServiceInterface;
 use App\Contracts\FlightPricingInterface;
 use App\Contracts\FlightSearchInterface;
 use App\Contracts\GeoapifyInterface;
 use App\Contracts\PricingServiceInterface;
-
-use App\Contracts\CurrencyServiceInterface;
-
 use App\Services\AccommodationPricingService;
 use App\Services\AviationstackService;
 use App\Services\CurrencyService;
 use App\Services\FlightPricingService;
 use App\Services\GeoapifyService;
 use App\Services\PricingService;
+use App\View\Composers\HeroImageComposer;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,18 +39,9 @@ class AppServiceProvider extends ServiceProvider
 
         Vite::useManifestFilename('.vite/manifest.json');
 
-        // Register view composers for hero images
         view()->composer(
-            [
-                'discover.index',
-                'plan-trip.index',
-                'flights.index',
-                'accommodations.index',
-                'bookings.index',
-                'dashboard.index',
-                'landing.index',
-            ],
-            \App\View\Composers\HeroImageComposer::class
+            config('views.hero_image_views'),
+            HeroImageComposer::class
         );
     }
 }

@@ -33,7 +33,7 @@
                 </div>
             </div>
 
-            @if($booking->type === 'flights' && $pd)
+            @if($booking->type === 'flight' && $pd)
             <div class="bshow-card">
                 <h3><i class="fas fa-plane"></i> Flight Details</h3>
                 <div class="bshow-flight-route">

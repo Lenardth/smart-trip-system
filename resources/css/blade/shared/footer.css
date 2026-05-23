@@ -160,6 +160,10 @@
     color: rgba(212, 196, 176, .7);
 }
 
+.footer-logout-form {
+    display: inline;
+}
+
 @media (max-width: 768px) {
     .site-footer .footer-inner {
         grid-template-columns: 1fr;

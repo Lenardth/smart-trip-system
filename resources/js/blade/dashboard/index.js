@@ -411,8 +411,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
 })();
 
 
-window.previewAvatar = function(input) {
-    if (!input.files || !input.files[0]) return;
+window.previewAvatar = function(inputEl) {
+    var input = (inputEl && inputEl.files) ? inputEl : document.querySelector('input[name="profile_picture"]');
+    if (!input || !input.files || !input.files[0]) return;
     var reader = new FileReader();
     reader.onload = function(e) {
         var preview = document.getElementById('avatarPreview');
@@ -427,3 +428,23 @@ window.previewAvatar = function(input) {
     };
     reader.readAsDataURL(input.files[0]);
 };
+
+(function initDeleteModal() {
+    var openBtn   = document.getElementById('openDeleteModal');
+    var modal     = document.getElementById('deleteAccountModal');
+    var closeBtn  = document.getElementById('closeDeleteModal');
+    var cancelBtn = document.getElementById('cancelDeleteModal');
+
+    function openModal()  { if (modal) modal.classList.add('open'); }
+    function closeModal() { if (modal) modal.classList.remove('open'); }
+
+    if (openBtn)   openBtn.addEventListener('click', openModal);
+    if (closeBtn)  closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (modal)     modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal && modal.classList.contains('open')) closeModal();
+    });
+})();

@@ -2,24 +2,12 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Third Party Services
-    |--------------------------------------------------------------------------
-    |
-    | This file is for storing the credentials for third party services such
-    | as Mailgun, Postmark, AWS and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
-    |
-    */
-
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
     'ses' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
+        'key'    => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
@@ -31,19 +19,31 @@ return [
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+            'channel'              => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
 
     'groq' => [
-        'api_key' => env('GROQ_API_KEY'),
-        'url' => env('GROQ_URL', 'https://api.groq.com/openai/v1/chat/completions'),
-        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+        'api_key'    => env('GROQ_API_KEY'),
+        'url'        => env('GROQ_URL', 'https://api.groq.com/openai/v1/chat/completions'),
+        'model'      => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
         'max_tokens' => env('GROQ_MAX_TOKENS', 2048),
     ],
 
-    'aviationstack' => [
-        'key' => env('AVIATIONSTACK_KEY'),
+    'aerodatabox' => [
+        'key'      => env('AERODATABOX_KEY'),
+        'host'     => env('AERODATABOX_HOST', 'aerodatabox.p.rapidapi.com'),
+        'base_url' => env('AERODATABOX_BASE_URL', 'https://aerodatabox.p.rapidapi.com'),
+    ],
+
+    'skyscanner' => [
+        'key'  => env('SKYSCANNER_RAPIDAPI_KEY'),
+        'host' => env('SKYSCANNER_HOST', 'sky-scrapper.p.rapidapi.com'),
+    ],
+
+    'booking' => [
+        'key'  => env('BOOKING_RAPIDAPI_KEY'),
+        'host' => env('BOOKING_HOST', 'booking-com.p.rapidapi.com'),
     ],
 
     'geoapify' => [
@@ -60,6 +60,8 @@ return [
 
     'pexels' => [
         'api_key' => env('PEXELS_API_KEY'),
+        'search_endpoint' => 'https://api.pexels.com/v1/search',
+        'timeout' => env('PEXELS_TIMEOUT', 6),
     ],
 
 ];

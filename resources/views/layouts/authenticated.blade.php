@@ -20,18 +20,6 @@ class="dashboard-page"
     }
 }
 </script>
-<script>
-(function () {
-    try {
-        var configEl = document.getElementById('dashboard-config');
-        if (configEl) {
-            window.__dashboardConfig = JSON.parse(configEl.textContent);
-        }
-    } catch (e) {
-        console.error('[config] Failed to parse dashboard config:', e);
-    }
-})();
-</script>
 @stack('scripts_body')
 @endpush
 

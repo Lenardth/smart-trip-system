@@ -4,7 +4,7 @@
 
 @section('content')
 <section class="hero hero-with-image hero-pattern" 
-         style="background-image: url('{{ $heroImage ?? 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80' }}');">
+         data-bg="{{ $heroImage ?? 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80' }}">
     <div class="hero-content">
         <h1 class="hero-title">Plan Your Perfect Journey with AI</h1>
         <p class="hero-subtitle">Personalized travel recommendations based on your mood, preferences, and budget. Discover destinations you'll love.</p>
@@ -171,13 +171,13 @@
                 <small class="text-muted fs-11 mt-4 d-block">Enter any number of days</small>
             </div>
             <div class="form-group">
-                <label><i class="fas fa-dollar-sign"></i> Budget Per Person</label>
+                <label><i class="fas fa-wallet"></i> Budget Per Person</label>
                 <select id="budgetSelect" name="budget">
-                    <option value="backpacker">Backpacker — Under $500</option>
-                    <option value="budget">Budget — $500–$1,500</option>
-                    <option value="mid">Mid-range — $1,500–$4,000</option>
-                    <option value="premium">Premium — $4,000–$8,000</option>
-                    <option value="luxury">Luxury — $8,000+</option>
+                    <option value="backpacker" data-usd-max="500">Backpacker</option>
+                    <option value="budget" data-usd-min="500" data-usd-max="1500">Budget</option>
+                    <option value="mid" data-usd-min="1500" data-usd-max="4000">Mid-range</option>
+                    <option value="premium" data-usd-min="4000" data-usd-max="8000">Premium</option>
+                    <option value="luxury" data-usd-min="8000">Luxury</option>
                 </select>
             </div>
         </div>
@@ -260,52 +260,52 @@
     <p class="section-subtitle">Discover handpicked destinations curated by our travel experts</p>
     <div class="slideshow-container">
         <div class="slides">
-            <div class="slide active">
+            <div class="slide active" data-bg="https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1600&q=80">
                 <div class="slide-content">
                     <h3>Amalfi Coast, Italy</h3>
-                    <p>Experience the breathtaking beauty of Italy's coastline with its colorful cliffside villages, delicious cuisine, and Mediterranean charm.</p>
+                    <p>Cliffside villages painted in terracotta and gold, fresh limoncello, and the kind of sea view you'll describe for years.</p>
                 </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-bg="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1600&q=80">
                 <div class="slide-content">
                     <h3>Bali, Indonesia</h3>
-                    <p>Find your inner peace in Bali's spiritual retreats, lush rice terraces, and pristine beaches. Perfect for relaxation and adventure.</p>
+                    <p>Rice terraces at dawn, temple incense in the air, and surf breaks that suit every level — from total beginner to seasoned rider.</p>
                 </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-bg="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1600&q=80">
                 <div class="slide-content">
                     <h3>Santorini, Greece</h3>
-                    <p>Marvel at the iconic white-washed buildings, stunning sunsets, and crystal-clear waters of this romantic Greek island paradise.</p>
+                    <p>Whitewashed walls, infinite blue domes, and a sunset over Oia that genuinely lives up to the hype.</p>
                 </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-bg="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1600&q=80">
                 <div class="slide-content">
                     <h3>Kyoto, Japan</h3>
-                    <p>Step back in time with ancient temples, traditional tea houses, and the magical beauty of cherry blossom season in Kyoto.</p>
+                    <p>Ancient temples buried in bamboo, slow tea ceremonies, and cherry blossom paths that stop you in your tracks.</p>
                 </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-bg="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80">
                 <div class="slide-content">
                     <h3>Swiss Alps</h3>
-                    <p>Embrace adventure in the majestic Swiss Alps with breathtaking mountain views, skiing, and luxury mountain resorts.</p>
+                    <p>Cable cars above the cloud line, chocolate-box villages below, and skiing or hiking depending on the season.</p>
                 </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-bg="https://images.unsplash.com/photo-1539020140153-e479b8c22e70?w=1600&q=80">
                 <div class="slide-content">
                     <h3>Marrakech, Morocco</h3>
-                    <p>Discover vibrant souks, stunning palaces, and rich cultural heritage in this enchanting North African city.</p>
+                    <p>Spice-lined alleyways, rooftop riads, and the constant hum of a medina that never really sleeps.</p>
                 </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-bg="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1600&q=80">
                 <div class="slide-content">
-                    <h3>Maldives Overwater Bungalows</h3>
-                    <p>Experience ultimate luxury in crystal-clear turquoise waters with private villas and world-class diving.</p>
+                    <h3>Maldives</h3>
+                    <p>Overwater bungalows, reef sharks gliding beneath the glass floor, and the kind of silence that resets everything.</p>
                 </div>
             </div>
-            <div class="slide">
+            <div class="slide" data-bg="https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?w=1600&q=80">
                 <div class="slide-content">
                     <h3>New York City, USA</h3>
-                    <p>Explore the city that never sleeps with iconic landmarks, Broadway shows, and diverse culinary experiences.</p>
+                    <p>Every neighbourhood a different world — the energy is relentless, the food is world-class, and there's always something on.</p>
                 </div>
             </div>
         </div>

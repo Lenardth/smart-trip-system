@@ -10,7 +10,7 @@ use App\Contracts\GeoapifyInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class DiscoverController extends Controller
@@ -42,36 +42,40 @@ class DiscoverController extends Controller
         $regionCode = !empty($validated['region']) ? strtoupper($validated['region']) : null;
         $mood       = $validated['mood'] ?? null;
 
+        // No filters — return featured destinations from DB only.
         if (!$rawQuery && !$regionCode && !$mood) {
             $destinations = Destination::active()
                 ->ordered()
-                ->limit(16)
+                ->limit(config('api.pagination.per_page', 48))
                 ->get()
                 ->map(fn($d) => $this->format($d->toArray()))
-                ->toArray();
+                ->pipe(fn($col) => $this->deduplicateByCountry($col->toArray()));
 
             return response()->json(['destinations' => $destinations, 'source' => 'featured']);
         }
 
-        $resolvedQuery = $this->resolveAlias($rawQuery);
-        $searchTerms   = array_unique(array_filter([$rawQuery, $resolvedQuery]));
-        $dbCount       = $this->dbQuery($searchTerms, $regionCode, $mood)->count();
+        $resolvedQuery  = $this->resolveAlias($rawQuery);
+        $searchTerms    = array_unique(array_filter([$rawQuery, $resolvedQuery]));
+        $effectiveQuery = $resolvedQuery ?: $rawQuery;
 
-        // Resolve country code from query if not already provided (e.g. user typed "Algeria")
-        $resolvedCountryCode = $regionCode;
-        if ($dbCount < 5) {
-            $resolvedCountryCode = $this->fetchAndStoreFromApi($resolvedQuery ?: $rawQuery, $regionCode, $mood);
-        }
+        // Always fetch from the external API for any search so new places are
+        // discovered and saved. Cache the resolved country code for 30 min per
+        // unique (query, region, mood) combination to avoid hammering Nominatim.
+        $cacheKey = 'discover_api_' . md5("{$effectiveQuery}|{$regionCode}|{$mood}");
+        $resolvedCountryCode = Cache::remember(
+            $cacheKey,
+            now()->addMinutes(30),
+            fn () => $this->fetchAndStoreFromApi($effectiveQuery, $regionCode, $mood)
+        );
 
-        // Build final effective region code (original or resolved from country name)
         $effectiveRegion = $resolvedCountryCode ?? $regionCode;
 
         $destinations = $this->dbQuery($searchTerms, $effectiveRegion, $mood)
             ->orderBy('display_order')
-            ->limit(24)
+            ->limit(config('api.pagination.per_page', 60))
             ->get()
             ->map(fn($d) => $this->format($d->toArray()))
-            ->toArray();
+            ->pipe(fn($col) => $this->deduplicateByCountry($col->toArray()));
 
         $this->logSearch($request, $rawQuery, $resolvedQuery, $effectiveRegion, $mood, count($destinations));
 
@@ -103,18 +107,6 @@ class DiscoverController extends Controller
     public function search(Request $request): JsonResponse
     {
         return $this->list($request);
-    }
-
-    /**
-     * Get recent destination searches for the authenticated user
-     */
-    public function recentSearches(): JsonResponse
-    {
-        $searches = DestinationSearch::byUser(Auth::id())
-            ->recent(20)
-            ->get(['id', 'query', 'resolved_query', 'region_code', 'mood', 'results_count', 'created_at']);
-
-        return response()->json(['searches' => $searches]);
     }
 
     private function resolveAlias(string $query): string
@@ -159,43 +151,59 @@ class DiscoverController extends Controller
 
     private function fetchAndStoreFromApi(string $query, ?string $countryCode, ?string $mood): ?string
     {
+        // Nominatim-friendly search terms for each mood when no text query is given.
+        // These are concrete, searchable keywords that return real geographical results.
+        static $moodQueries = [
+            'Beach'       => 'beach bay coast',
+            'Cultural'    => 'museum historic city',
+            'Nature'      => 'national park nature reserve',
+            'Adventurous' => 'mountain peak hiking',
+            'Romantic'    => 'viewpoint castle garden',
+            'Foodie'      => 'food market',
+            'Relaxed'     => 'resort spa garden',
+            'Eco-Travel'  => 'nature reserve wildlife',
+            'Photography' => 'viewpoint scenic landscape',
+        ];
+
         try {
             // Resolve whether the query is a country name → get its ISO code
             // so we can search for cities *within* that country
             $resolvedCountryCode = $countryCode;
             $cityQuery           = $query;
 
+            // Check whether the query is a known country name using the cached
+            // countries list. Nominatim's featuretype=country is unreliable — it
+            // misclassifies capital cities (Budapest, Singapore) as administrative
+            // country boundaries, so we avoid that HTTP round-trip entirely.
             if ($query && !$countryCode) {
-                $geo = Http::timeout(8)
-                    ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
-                    ->get('https://nominatim.openstreetmap.org/search', [
-                        'q'              => $query,
-                        'format'         => 'json',
-                        'limit'          => 1,
-                        'addressdetails' => 1,
-                        'featuretype'    => 'country',
-                    ]);
-
-                if ($geo->successful() && !empty($geo->json())) {
-                    $hit  = $geo->json()[0];
-                    $type = $hit['type'] ?? '';
-                    // If Nominatim says this is a country-level result, switch to city search
-                    if (in_array($type, ['country', 'administrative'], true) &&
-                        isset($hit['address']['country_code'])) {
-                        $resolvedCountryCode = strtoupper($hit['address']['country_code']);
-                        $cityQuery           = 'city';   // search for cities inside the country
-                    }
+                $countries = $this->geoapify->getCountries();
+                $matched   = collect($countries)->first(
+                    fn ($c) => strtolower($c['name']) === strtolower($query)
+                );
+                if ($matched) {
+                    $resolvedCountryCode = $matched['code'];
+                    $cityQuery           = 'city';
                 }
             }
 
+            // For mood-only searches (empty query), use a mood-specific keyword so
+            // Nominatim returns places that can actually be mood-filtered.
+            if (!$cityQuery) {
+                $cityQuery = ($mood && isset($moodQueries[$mood]))
+                    ? $moodQueries[$mood]
+                    : 'popular travel destination';
+            }
+
+            $destinationFetchLimit = config('api.limits.destination_api_fetch', 20);
             $places = $this->geoapify->searchDestinations(
-                $cityQuery ?: 'popular travel city',
+                $cityQuery,
                 $resolvedCountryCode,
                 $mood,
-                30
+                $destinationFetchLimit
             );
 
             $addedCount = 0;
+            $fetchLimit = config('api.limits.destination_api_fetch', 20);
             foreach ($places as $place) {
                 $sourceId = $place['id'] ?? null;
 
@@ -214,7 +222,9 @@ class DiscoverController extends Controller
                     continue;
                 }
 
-                $imageQuery = trim(($place['name'] ?? '') . ' ' . ($place['country'] ?? '') . ' travel');
+                // Use only the place name for Pexels so the query is always in
+                // English — raw country names from Nominatim can be in local script.
+                $imageQuery = trim(($place['name'] ?? 'travel destination') . ' travel');
                 $imageUrl   = $this->pexels->getRandomPhoto($imageQuery)
                     ?? $this->imageFallback($imageQuery);
 
@@ -234,13 +244,14 @@ class DiscoverController extends Controller
                 ]);
 
                 if (!$destination->display_order) {
-                    $destination->display_order = 100 + $addedCount;
+                    $displayOrderOffset = config('api.limits.destination_display_order_offset', 100);
+                    $destination->display_order = $displayOrderOffset + $addedCount;
                 }
 
                 $destination->save();
                 $addedCount++;
 
-                if ($addedCount >= 20) {
+                if ($addedCount >= $fetchLimit) {
                     break;
                 }
             }
@@ -271,7 +282,7 @@ class DiscoverController extends Controller
             'country_code' => $d['country_code'] ?? null,
             'region'       => $d['region'] ?? $country,
             'description'  => $d['description'] ?? '',
-            'image_url'    => $d['image_url'] ?: $this->imageFallback("{$name} {$country} travel"),
+            'image_url'    => $this->resolveImage($d['image_url'] ?? '', $name),
             'price_from'   => $d['price_from'] ?? 0,
             'tags'         => is_array($d['tags']) ? $d['tags'] : (json_decode($d['tags'] ?? '[]', true) ?? []),
             'lat'          => $d['lat'] ?? null,
@@ -315,9 +326,22 @@ class DiscoverController extends Controller
 
     private function imageFallback(string $query): string
     {
-        $base = config('services.image_fallback.base_url', 'https://placehold.co/800x600');
+        $seed = preg_replace('/[^a-z0-9]+/i', '-', strtolower(trim($query)));
+        return "https://picsum.photos/seed/{$seed}/800/560";
+    }
 
-        return $base . '?' . urlencode($query);
+    private function resolveImage(string $stored, string $name): string
+    {
+        $isBad = empty($stored)
+            || str_contains($stored, 'placehold.co')
+            || str_contains($stored, 'source.unsplash.com');
+
+        if ($isBad) {
+            $img = $this->pexels->getRandomPhoto("{$name} travel");
+            return $img ?? $this->imageFallback("{$name} travel");
+        }
+
+        return $stored;
     }
 
     private function logSearch(
@@ -334,7 +358,7 @@ class DiscoverController extends Controller
 
         try {
             // Check if a similar search was already logged today
-            $alreadyLogged = \App\Models\DestinationSearch::alreadyLoggedToday(
+            $alreadyLogged = DestinationSearch::alreadyLoggedToday(
                 Auth::id(),
                 $rawQuery,
                 $regionCode,
@@ -342,7 +366,7 @@ class DiscoverController extends Controller
             );
 
             if (!$alreadyLogged) {
-                \App\Models\DestinationSearch::create([
+                DestinationSearch::create([
                     'user_id'        => Auth::id(),
                     'query'          => $rawQuery,
                     'resolved_query' => $resolvedQuery !== $rawQuery ? $resolvedQuery : null,
@@ -356,6 +380,26 @@ class DiscoverController extends Controller
         } catch (\Throwable $e) {
             Log::warning('DestinationSearch log failed: ' . $e->getMessage());
         }
+    }
+
+    private function deduplicateByCountry(array $destinations, int $limit = 16): array
+    {
+        $seen   = [];
+        $result = [];
+
+        foreach ($destinations as $d) {
+            $key = strtolower(trim($d['country'] ?? $d['region'] ?? 'unknown'));
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $result[]   = $d;
+            if (count($result) >= $limit) {
+                break;
+            }
+        }
+
+        return $result;
     }
 
     private function extractHighlights(string $text, int $max = 4): array

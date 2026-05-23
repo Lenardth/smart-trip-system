@@ -12,7 +12,7 @@
 
 @section('content')
 <section class="hero hero-with-image hero-pattern" 
-         style="background-image: url('{{ $heroImage ?? 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80' }}');">
+         data-bg="{{ $heroImage ?? 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80' }}">
     <div class="hero-content">
         <h1 class="hero-title">
             <i class="fas fa-route"></i> Plan Your Trip
@@ -52,11 +52,11 @@
             </div>
             <div class="mood-pills" id="communityMoodPills">
                 <div class="mood-pills-skeleton" id="communityMoodsLoading">
-                    <span style="width:90px"></span>
-                    <span style="width:110px"></span>
-                    <span style="width:75px"></span>
-                    <span style="width:130px"></span>
-                    <span style="width:95px"></span>
+                    <span class="skel-w-90"></span>
+                    <span class="skel-w-110"></span>
+                    <span class="skel-w-75"></span>
+                    <span class="skel-w-130"></span>
+                    <span class="skel-w-95"></span>
                 </div>
             </div>
         </div>
@@ -104,7 +104,7 @@
         </div>
     </div>
 
-    <div class="planner-card" id="step2" style="display:none">
+    <div class="planner-card hidden" id="step2">
         <h3><i class="fas fa-suitcase"></i>Trip Details</h3>
         <div class="form-row">
             <div class="form-group">
@@ -134,11 +134,11 @@
             <div class="form-group">
                 <label>Budget Range</label>
                 <select id="budget">
-                    <option value="backpacker">Backpacker — under 500 USD</option>
-                    <option value="budget">Budget-Friendly — 500–1,500 USD</option>
-                    <option value="mid" selected>Mid-Range — 1,500–4,000 USD</option>
-                    <option value="premium">Premium — 4,000–8,000 USD</option>
-                    <option value="luxury">Luxury — 8,000+ USD</option>
+                    <option value="backpacker" data-usd-max="500">Backpacker</option>
+                    <option value="budget" data-usd-min="500" data-usd-max="1500">Budget-Friendly</option>
+                    <option value="mid" data-usd-min="1500" data-usd-max="4000" selected>Mid-Range</option>
+                    <option value="premium" data-usd-min="4000" data-usd-max="8000">Premium</option>
+                    <option value="luxury" data-usd-min="8000">Luxury</option>
                 </select>
             </div>
             <div class="form-group">
@@ -158,7 +158,7 @@
         </div>
     </div>
 
-    <div class="planner-card" id="step3" style="display:none">
+    <div class="planner-card hidden" id="step3">
         <h3><i class="fas fa-sliders-h"></i>Preferences</h3>
         <div class="form-row">
             <div class="form-group">
@@ -215,7 +215,7 @@
         </div>
     </div>
 
-    <div id="step4" style="display:none">
+    <div id="step4" class="hidden">
         <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
             <p id="loadingMsg">Finding your perfect destinations…</p>
@@ -232,8 +232,8 @@
         <div class="btn-row">
             <button class="secondary-button" id="step4BackBtn"><i class="fas fa-arrow-left"></i> Adjust Preferences</button>
             <button class="primary-button" id="step4RegenerateBtn"><i class="fas fa-sync-alt"></i> Regenerate</button>
-            <button class="pdf-button" id="receiptBtn" style="display:none"><i class="fas fa-receipt"></i> View &amp; Print Receipt</button>
-            <button class="primary-button" id="saveBtn" style="display:none"><i class="fas fa-bookmark"></i> Save to Dashboard</button>
+            <button class="pdf-button hidden" id="receiptBtn"><i class="fas fa-receipt"></i> View &amp; Print Receipt</button>
+            <button class="primary-button hidden" id="saveBtn"><i class="fas fa-bookmark"></i> Save to Dashboard</button>
         </div>
     </div>
 </div>

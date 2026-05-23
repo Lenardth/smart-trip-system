@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasSearchScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FlightSearch extends Model
 {
+    use HasSearchScopes;
+
     protected $fillable = [
         'user_id',
         'from_query',

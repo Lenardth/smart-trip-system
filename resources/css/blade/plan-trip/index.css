@@ -327,6 +327,12 @@
 .loading-state p {
     color: var(--text-muted);
     font-size: 16px;
+    transition: opacity .2s ease;
+}
+
+#loadingMsg {
+    min-height: 1.4em;
+    transition: opacity .2s ease;
 }
 
 .error-state {
@@ -662,10 +668,17 @@
 .mood-pills-skeleton span {
     display: inline-block;
     height: 32px;
+    width: var(--skel-w, 90px);
     border-radius: 999px;
     background: rgba(0, 0, 0, .07);
     animation: shimmer 1.4s infinite;
 }
+
+.mood-pills-skeleton .skel-w-75  { --skel-w: 75px; }
+.mood-pills-skeleton .skel-w-90  { --skel-w: 90px; }
+.mood-pills-skeleton .skel-w-95  { --skel-w: 95px; }
+.mood-pills-skeleton .skel-w-110 { --skel-w: 110px; }
+.mood-pills-skeleton .skel-w-130 { --skel-w: 130px; }
 
 @keyframes shimmer {
 
@@ -824,4 +837,82 @@
 
 .community-moods-top {
     margin-top: 24px;
+}
+
+/* Loading fun-fact strip */
+.loading-fun-fact {
+    margin-top: 20px;
+    padding: 12px 20px;
+    background: rgba(201, 169, 110, .1);
+    border: 1px solid rgba(201, 169, 110, .3);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--deep, #3b1f2b);
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+    transition: opacity .4s ease;
+}
+
+/* Surprise-me summary panel */
+.surprise-summary {
+    display: none;
+    background: rgba(201, 169, 110, .08);
+    border: 1px solid rgba(201, 169, 110, .35);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+}
+
+.surprise-summary-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold, #c9a96e);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.surprise-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.surprise-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--text, #2c1810);
+}
+
+.surprise-item i {
+    color: var(--gold, #c9a96e);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.surprise-item span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+}
+
+.surprise-item strong {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text-muted, #7a6a5a);
+    font-weight: 600;
+}
+
+.surprise-summary-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+    flex-wrap: wrap;
 }

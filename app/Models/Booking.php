@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasStatusScopes;
+use App\Models\Traits\HasUserScope;
+use App\Services\BookingTypeResolver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
@@ -10,7 +13,7 @@ use Illuminate\Support\Str;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory, HasStatusScopes, HasUserScope;
 
     protected $fillable = [
         'user_id',
@@ -56,67 +59,11 @@ class Booking extends Model
 
     public function getTypeAttribute(): string
     {
-        if ($this->trip_id) {
-            return 'trips';
-        }
-
-        if ($this->passenger_details && ($this->passenger_details['type'] ?? '') === 'accommodation') {
-            return 'hotels';
-        }
-
-        if ($this->passenger_details && isset($this->passenger_details['airline'])) {
-            return 'flights';
-        }
-
-        return 'unknown';
+        return BookingTypeResolver::resolve($this->passenger_details, $this->trip_id);
     }
 
     public function getTitleAttribute(): string
     {
-        $pd = $this->passenger_details;
-
-        if ($pd) {
-            $dep = $pd['departure_airport'] ?? null;
-            $arr = $pd['arrival_airport']   ?? null;
-            if ($dep && $arr) return "{$dep} → {$arr}";
-
-            $name = $pd['name'] ?? null;
-            if ($name) return $name;
-
-            $city = $pd['city'] ?? null;
-            if ($city) return "Stay in {$city}";
-        }
-
-        return 'Booking #' . $this->booking_reference;
-    }
-
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', 'confirmed');
-    }
-
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    public function scopeCancelled($query)
-    {
-        return $query->where('status', 'cancelled');
-    }
-
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', 'completed');
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->whereIn('status', ['confirmed', 'pending']);
-    }
-
-    public function scopeByUser($query, int $userId)
-    {
-        return $query->where('user_id', $userId);
+        return BookingTypeResolver::resolveTitle($this->passenger_details, $this->booking_reference);
     }
 }

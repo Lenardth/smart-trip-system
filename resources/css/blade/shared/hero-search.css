@@ -131,6 +131,27 @@
     border-radius: 8px;
 }
 
+.search-card .custom-select-trigger {
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--deep);
+}
+
+.search-card .sort-filter .custom-select-trigger {
+    padding: 7px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+.hero-search-wrap--wide .search-card .custom-select-trigger {
+    padding: 14px 16px;
+    font-size: 15px;
+    border-radius: 8px;
+}
+
 .hero-search-btn {
     padding: 14px 32px;
     background: var(--gold);

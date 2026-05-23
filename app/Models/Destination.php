@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasActiveScope;
+use App\Models\Traits\HasDisplayOrder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Destination extends Model
 {
-    use HasFactory;
+    use HasFactory, HasActiveScope, HasDisplayOrder;
 
     protected $fillable = [
         'name',
@@ -40,35 +42,4 @@ class Destination extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Scope for active destinations
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope for featured destinations
-     */
-    public function scopeFeatured($query)
-    {
-        return $query->where('is_featured', true);
-    }
-
-    /**
-     * Scope for editor's choice
-     */
-    public function scopeEditorsChoice($query)
-    {
-        return $query->where('is_editors_choice', true);
-    }
-
-    /**
-     * Scope for ordered display
-     */
-    public function scopeOrdered($query)
-    {
-        return $query->orderBy('display_order')->orderBy('name');
-    }
 }

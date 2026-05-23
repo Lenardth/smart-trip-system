@@ -1,3 +1,30 @@
+// Apply background images declared via data-bg attributes
+document.querySelectorAll('[data-bg]').forEach(el => {
+    el.style.backgroundImage = `url('${el.dataset.bg}')`;
+});
+
+// Handle broken nav avatar images without inline onerror
+// Handle card images with data-fallback without inline onerror
+document.addEventListener('error', (e) => {
+    if (e.target.matches('.nav-avatar-img')) {
+        e.target.classList.add('hidden');
+        e.target.nextElementSibling?.classList.remove('nav-avatar-init--hidden');
+    } else if (e.target.matches('.card-img-fallback') && e.target.dataset.fallback) {
+        e.target.src = e.target.dataset.fallback;
+        delete e.target.dataset.fallback;
+    }
+}, true);
+
+// Parse dashboard config JSON block (if present on page)
+(function () {
+    try {
+        const configEl = document.getElementById('dashboard-config');
+        if (configEl) window.__dashboardConfig = JSON.parse(configEl.textContent);
+    } catch (e) {
+        console.error('[config] Failed to parse dashboard config:', e);
+    }
+})();
+
 window.App = {
     init() {
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -48,6 +75,195 @@ window.logout = function() {
     document.body.appendChild(form);
     form.submit();
 };
+
+// ── Custom Select (replaces all native <select> with the Travel-Mood style) ──
+
+(function () {
+    const ICON_MAP = {
+        // Travel companion
+        solo: 'fas fa-user', couple: 'fas fa-heart',
+        family_young: 'fas fa-baby', family_teens: 'fas fa-child',
+        friends_small: 'fas fa-user-friends', friends_large: 'fas fa-users',
+        // Budget tiers
+        backpacker: 'fas fa-suitcase', budget: 'fas fa-wallet',
+        mid: 'fas fa-coins', premium: 'fas fa-star', luxury: 'fas fa-gem',
+        // Months
+        january: 'fas fa-snowflake', february: 'fas fa-heart',
+        march: 'fas fa-seedling', april: 'fas fa-cloud-rain',
+        may: 'fas fa-sun', june: 'fas fa-sun',
+        july: 'fas fa-umbrella-beach', august: 'fas fa-umbrella-beach',
+        september: 'fas fa-leaf', october: 'fas fa-leaf',
+        november: 'fas fa-cloud', december: 'fas fa-snowflake',
+        // Region
+        any: 'fas fa-globe', europe: 'fas fa-landmark',
+        southeast_asia: 'fas fa-map-marker-alt', east_asia: 'fas fa-torii-gate',
+        south_asia: 'fas fa-mountain', middle_east: 'fas fa-mosque',
+        africa: 'fas fa-sun', north_america: 'fas fa-flag',
+        latin_america: 'fas fa-water', oceania: 'fas fa-water',
+        central_america: 'fas fa-water', south_america: 'fas fa-water',
+        caribbean: 'fas fa-water',
+        // Accommodation style
+        hostel: 'fas fa-bed', budget_hotel: 'fas fa-hotel',
+        boutique: 'fas fa-building', resort: 'fas fa-umbrella-beach',
+        villa: 'fas fa-home', airbnb: 'fas fa-key',
+        glamping: 'fas fa-tree', bnb: 'fas fa-hotel', hotel: 'fas fa-hotel',
+        // Experience level
+        first_time: 'fas fa-seedling', occasional: 'fas fa-smile',
+        regular: 'fas fa-route', frequent: 'fas fa-award',
+        experienced: 'fas fa-award',
+        // Flight class
+        economy: 'fas fa-chair', premium_economy: 'fas fa-star',
+        business: 'fas fa-briefcase', first: 'fas fa-crown',
+        // Sort options
+        price: 'fas fa-tag', duration: 'fas fa-clock',
+        departure: 'fas fa-plane-departure', arrival: 'fas fa-plane-arrival',
+        newest: 'fas fa-sort-amount-down', oldest: 'fas fa-sort-amount-up',
+        'price-high': 'fas fa-sort-numeric-down-alt',
+        'price-low': 'fas fa-sort-numeric-down',
+    };
+
+    function iconFor(value) {
+        return ICON_MAP[(value || '').toLowerCase()] || null;
+    }
+
+    function buildTriggerContent(trigger, value, label) {
+        trigger.innerHTML = '';
+        const icon = iconFor(value);
+        if (icon) {
+            const span = document.createElement('span');
+            span.className = 'custom-select-icon';
+            span.innerHTML = `<i class="${icon}"></i>`;
+            trigger.appendChild(span);
+        }
+        const text = document.createElement('span');
+        text.className = 'custom-select-text';
+        text.textContent = label;
+        trigger.appendChild(text);
+        const arrow = document.createElement('i');
+        arrow.className = 'fas fa-chevron-down custom-select-arrow';
+        trigger.appendChild(arrow);
+    }
+
+    function wrapSelect(sel) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-select-wrapper';
+
+        const trigger = document.createElement('div');
+        trigger.className = 'custom-select-trigger';
+
+        const dropdown = document.createElement('div');
+        dropdown.className = 'custom-select-dropdown';
+
+        Array.from(sel.options).forEach(opt => {
+            const item = document.createElement('div');
+            item.className         = 'custom-select-option' + (opt.selected ? ' selected' : '');
+            item.dataset.value     = opt.value;
+            const baseLabel        = opt.textContent.trim();
+            item.dataset.baseLabel = baseLabel;
+            item.dataset.label     = baseLabel;
+            // Carry USD range for budget selects
+            if (opt.dataset.usdMin) item.dataset.usdMin = opt.dataset.usdMin;
+            if (opt.dataset.usdMax) item.dataset.usdMax = opt.dataset.usdMax;
+            const icon = iconFor(opt.value);
+            if (icon) {
+                item.innerHTML = `<i class="${icon}"></i>`;
+                item.appendChild(document.createTextNode(' ' + baseLabel));
+            } else {
+                item.textContent = baseLabel;
+            }
+            dropdown.appendChild(item);
+        });
+
+        const cur = sel.options[sel.selectedIndex];
+        buildTriggerContent(trigger, cur ? cur.value : '', cur ? cur.textContent.trim() : '');
+
+        sel.parentNode.insertBefore(wrapper, sel);
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(dropdown);
+        wrapper.appendChild(sel);
+        sel.style.display = 'none';
+        sel.dataset.customInit = '1';
+
+        trigger.addEventListener('click', e => {
+            e.stopPropagation();
+            document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+                if (w !== wrapper) w.classList.remove('open');
+            });
+            wrapper.classList.toggle('open');
+        });
+
+        dropdown.addEventListener('click', e => {
+            const item = e.target.closest('.custom-select-option');
+            if (!item) return;
+            dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            item.classList.add('selected');
+            buildTriggerContent(trigger, item.dataset.value, item.dataset.label);
+            sel.value = item.dataset.value;
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+            wrapper.classList.remove('open');
+        });
+    }
+
+    // ── Budget label formatting (converts USD tiers to user's currency) ───
+
+    function fmtBudgetAmount(usd) {
+        if (!window.Currency) return '$' + Math.round(usd).toLocaleString('en-US');
+        const converted = window.Currency.convert(parseFloat(usd));
+        return window.Currency.symbol() + Math.round(converted).toLocaleString('en-US');
+    }
+
+    function buildBudgetLabel(baseName, usdMin, usdMax) {
+        if (usdMin && usdMax) return `${baseName} — ${fmtBudgetAmount(usdMin)}–${fmtBudgetAmount(usdMax)}`;
+        if (usdMax)           return `${baseName} — Under ${fmtBudgetAmount(usdMax)}`;
+        if (usdMin)           return `${baseName} — ${fmtBudgetAmount(usdMin)}+`;
+        return baseName;
+    }
+
+    window.refreshBudgetLabels = function () {
+        document.querySelectorAll('.custom-select-option').forEach(item => {
+            if (!item.dataset.usdMax && !item.dataset.usdMin) return;
+            const label = buildBudgetLabel(item.dataset.baseLabel, item.dataset.usdMin, item.dataset.usdMax);
+            item.dataset.label = label;
+            const icon = item.querySelector('i');
+            item.innerHTML = '';
+            if (icon) {
+                item.appendChild(icon);
+                item.appendChild(document.createTextNode(' ' + label));
+            } else {
+                item.textContent = label;
+            }
+            if (item.classList.contains('selected')) {
+                const trig = item.closest('.custom-select-wrapper')?.querySelector('.custom-select-trigger');
+                if (trig) buildTriggerContent(trig, item.dataset.value, label);
+            }
+        });
+    };
+
+    document.addEventListener('currency:changed',      () => window.refreshBudgetLabels());
+    document.addEventListener('currency:rates-loaded', () => window.refreshBudgetLabels());
+
+    let closeListenerAdded = false;
+
+    window.initCustomSelects = function () {
+        document.querySelectorAll('select:not([data-custom-init])').forEach(sel => {
+            if (sel.closest('.custom-select-wrapper')) return;
+            wrapSelect(sel);
+        });
+        if (!closeListenerAdded) {
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-select-wrapper.open').forEach(w => w.classList.remove('open'));
+            });
+            closeListenerAdded = true;
+        }
+        if (window.Currency) window.refreshBudgetLabels();
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.initCustomSelects);
+    } else {
+        window.initCustomSelects();
+    }
+})();
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => App.init());

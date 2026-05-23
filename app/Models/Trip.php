@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TripLabelService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -82,15 +83,11 @@ class Trip extends Model
 
     public function getDurationLabelAttribute(): string
     {
-        $labels = config('trips.duration_labels', []);
-
-        return $labels[$this->duration] ?? $this->duration ?? '-';
+        return TripLabelService::getDurationLabel($this->duration);
     }
 
     public function getBudgetLabelAttribute(): string
     {
-        $labels = config('trips.budget_labels', []);
-
-        return $labels[$this->budget] ?? $this->budget ?? '-';
+        return TripLabelService::getBudgetLabel($this->budget);
     }
 }

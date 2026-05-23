@@ -27,11 +27,6 @@ class TripMood extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function scopePopular($query)
-    {
-        return $query->orderByDesc('use_count')->orderByDesc('created_at');
-    }
-
     public static function normalize(string $label): string
     {
         return mb_strtolower(trim(preg_replace('/\s+/', ' ', $label)));

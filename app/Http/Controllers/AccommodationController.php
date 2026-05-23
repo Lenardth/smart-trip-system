@@ -222,6 +222,93 @@ class AccommodationController extends Controller
         return $map[$style] ?? config('accommodation.default_budget_tier', 'mid');
     }
 
+    public function news(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['q' => 'required|string|max:120']);
+        $query     = trim($validated['q']);
+        $apiKey    = config('services.gnews.api_key');
+
+        if (!$apiKey) {
+            return response()->json(['articles' => []]);
+        }
+
+        try {
+            $response = Http::timeout(8)
+                ->get('https://gnews.io/api/v4/search', [
+                    'q'      => $query,
+                    'lang'   => 'en',
+                    'max'    => 6,
+                    'token'  => $apiKey,
+                ]);
+
+            if (!$response->successful()) {
+                return response()->json(['articles' => []]);
+            }
+
+            $articles = collect($response->json('articles', []))->map(fn ($a) => [
+                'title'       => $a['title']       ?? '',
+                'description' => $a['description'] ?? '',
+                'url'         => $a['url']          ?? '#',
+                'publishedAt' => $a['publishedAt']  ?? null,
+                'source'      => ['name' => $a['source']['name'] ?? ''],
+            ])->values()->all();
+
+            return response()->json(['articles' => $articles]);
+        } catch (\Throwable $e) {
+            Log::warning('GNews fetch failed', ['error' => $e->getMessage()]);
+            return response()->json(['articles' => []]);
+        }
+    }
+
+    public function travelWarning(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['q' => 'required|string|max:120']);
+        $city      = trim($validated['q']);
+        $apiKey    = config('services.gnews.api_key');
+
+        if (!$apiKey) {
+            return response()->json(['warnings' => []]);
+        }
+
+        try {
+            $response = Http::timeout(8)
+                ->get('https://gnews.io/api/v4/search', [
+                    'q'      => "{$city} travel safety warning",
+                    'lang'   => 'en',
+                    'max'    => 4,
+                    'token'  => $apiKey,
+                ]);
+
+            if (!$response->successful()) {
+                return response()->json(['warnings' => []]);
+            }
+
+            $safetyKeywords = ['warning', 'alert', 'unrest', 'protest', 'danger', 'safety', 'advisory', 'risk', 'attack', 'strike'];
+
+            $warnings = collect($response->json('articles', []))
+                ->filter(function ($a) use ($safetyKeywords) {
+                    $text = strtolower(($a['title'] ?? '') . ' ' . ($a['description'] ?? ''));
+                    foreach ($safetyKeywords as $kw) {
+                        if (str_contains($text, $kw)) return true;
+                    }
+                    return false;
+                })
+                ->map(fn ($a) => [
+                    'title'       => $a['title']       ?? '',
+                    'description' => $a['description'] ?? '',
+                    'url'         => $a['url']          ?? '#',
+                    'source'      => ['name' => $a['source']['name'] ?? ''],
+                ])
+                ->values()
+                ->all();
+
+            return response()->json(['warnings' => $warnings]);
+        } catch (\Throwable $e) {
+            Log::warning('GNews travel warning fetch failed', ['error' => $e->getMessage()]);
+            return response()->json(['warnings' => []]);
+        }
+    }
+
     private function logSearch(Request $request, string $q, ?string $style, ?string $budgetTier, int $count): void
     {
         try {

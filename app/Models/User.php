@@ -48,16 +48,6 @@ class User extends Authenticatable
         ];
     }
 
-    public function isAgency(): bool
-    {
-        return $this->user_type === 'agency';
-    }
-
-    public function isTraveler(): bool
-    {
-        return $this->user_type === 'user';
-    }
-
     public function trips(): HasMany
     {
         return $this->hasMany(Trip::class);
@@ -82,8 +72,4 @@ class User extends Authenticatable
         return $this->agency_name ?: $this->name;
     }
 
-    public function getAvatarAttribute(): ?string
-    {
-        return $this->profile_picture_url;
-    }
 }

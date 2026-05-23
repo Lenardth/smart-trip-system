@@ -15,17 +15,18 @@ class BookingController extends Controller
 
     public function index()
     {
+        $perPage = config('booking.pagination.index_per_page', 10);
         $bookings = Booking::with('trip')
             ->byUser(Auth::id())
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->paginate($perPage);
 
         $all = Booking::byUser(Auth::id())->get();
 
-        $flightCount = $all->where('type', 'flights')->count();
-        $hotelCount  = $all->where('type', 'hotels')->count();
-        $activeCount = $all->whereIn('status', ['confirmed', 'pending'])->count();
-        $totalSpent  = $all->whereNotIn('status', ['cancelled'])->sum('total_price');
+        $flightCount = $all->where('type', config('booking.types.flight'))->count();
+        $hotelCount  = $all->where('type', config('booking.types.accommodation'))->count();
+        $activeCount = $all->whereIn('status', [config('booking.statuses.confirmed'), config('booking.statuses.pending')])->count();
+        $totalSpent  = $all->whereNotIn('status', [config('booking.statuses.cancelled')])->sum('total_price');
 
         return view('bookings.index', compact('bookings', 'flightCount', 'hotelCount', 'activeCount', 'totalSpent'));
     }
@@ -51,7 +52,7 @@ class BookingController extends Controller
             return back()->with('error', 'Unauthorized.');
         }
 
-        if ($booking->status === 'cancelled') {
+        if ($booking->status === config('booking.statuses.cancelled')) {
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Booking already cancelled.'], 422);
             }
@@ -59,7 +60,7 @@ class BookingController extends Controller
             return back()->with('error', 'Booking already cancelled.');
         }
 
-        DB::transaction(fn () => $booking->update(['status' => 'cancelled']));
+        DB::transaction(fn () => $booking->update(['status' => config('booking.statuses.cancelled')]));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -84,7 +85,7 @@ class BookingController extends Controller
         return DB::transaction(function () use ($data) {
             $accommodation = \App\Models\Accommodation::findOrFail($data['accommodation_id']);
             $nights        = (int) \Carbon\Carbon::parse($data['check_in'])->diffInDays($data['check_out']);
-            $guests        = (int) ($data['guests'] ?? 1);
+            $guests        = (int) ($data['guests'] ?? config('booking.default_guests', 1));
             $subtotal      = ($accommodation->nightly_rate ?? 0) * $nights * $guests;
 
             $pricing = $this->pricing->calculate($subtotal, Auth::user(), $data['coupon_code'] ?? null);
@@ -97,9 +98,9 @@ class BookingController extends Controller
                 'total_price'       => $pricing['total'],
                 'coupon_code'       => $pricing['coupon']?->code,
                 'seats_booked'      => $guests,
-                'status'            => 'confirmed',
+                'status'            => config('booking.statuses.confirmed'),
                 'passenger_details' => [
-                    'type'             => 'accommodation',
+                    'type'             => config('booking.passenger_detail_types.accommodation'),
                     'accommodation_id' => $accommodation->id,
                     'name'             => $accommodation->name,
                     'city'             => $accommodation->city,
@@ -145,7 +146,7 @@ class BookingController extends Controller
         ]);
 
         return DB::transaction(function () use ($data) {
-            $adults    = (int) ($data['adults'] ?? 1);
+            $adults    = (int) ($data['adults'] ?? config('booking.default_adults', 1));
             $priceEach = max(0, (float) $data['price']);
             $subtotal  = $priceEach * $adults;
 
@@ -159,7 +160,7 @@ class BookingController extends Controller
                 'total_price'       => $pricing['total'],
                 'coupon_code'       => $pricing['coupon']?->code,
                 'seats_booked'      => $adults,
-                'status'            => 'confirmed',
+                'status'            => config('booking.statuses.confirmed'),
                 'passenger_details' => [
                     'airline'           => $data['airline'],
                     'flight_number'     => $data['flight_number'],
@@ -169,7 +170,7 @@ class BookingController extends Controller
                     'arrival_time'      => $data['arrival_time'] ?? null,
                     'departure_date'    => $data['departure_date'],
                     'duration'          => $data['duration'] ?? null,
-                    'travel_class'      => $data['travel_class'] ?? 'ECONOMY',
+                    'travel_class'      => $data['travel_class'] ?? config('booking.default_travel_class'),
                     'adults'            => $adults,
                     'price_per_person'  => $priceEach,
                 ],

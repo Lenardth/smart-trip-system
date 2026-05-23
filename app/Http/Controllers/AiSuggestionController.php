@@ -15,8 +15,6 @@ class AiSuggestionController extends Controller
 {
     use NormalisesAccommodation;
 
-    private const MAX_TRIES = 3;
-
     private const TOOL = [
         'type'     => 'function',
         'function' => [
@@ -82,8 +80,7 @@ class AiSuggestionController extends Controller
             'excluded_countries.*'    => 'string|max:100',
         ]);
 
-        $validated['accommodation'] = $this->normaliseAccommodation($validated['accommodation'] ?? null);
-        $validated['currency']      = session('preferred_currency', 'USD');
+        $validated['currency'] = session('preferred_currency', 'USD');
 
         try {
             $apiKey = config('services.groq.api_key');
@@ -109,12 +106,13 @@ class AiSuggestionController extends Controller
 
     private function callGroqWithRetry(array $p, string $apiKey): array
     {
+        $maxRetries    = config('ai.max_retries', 3);
         $norm          = fn($s) => strtolower(trim(preg_replace('/\s+/', ' ', $s)));
         $exclDests     = array_map($norm, $p['excluded_destinations'] ?? []);
         $exclCountries = array_map($norm, $p['excluded_countries'] ?? []);
         $accumulated   = [];
 
-        for ($try = 1; $try <= self::MAX_TRIES; $try++) {
+        for ($try = 1; $try <= $maxRetries; $try++) {
             $batch = $this->callGroq(array_merge($p, [
                 'excluded_destinations' => $exclDests,
                 'excluded_countries'    => $exclCountries,
@@ -139,8 +137,9 @@ class AiSuggestionController extends Controller
         }
 
         if (empty($accumulated)) {
+            $maxRetries = config('ai.max_retries', 3);
             throw new \RuntimeException(
-                'Could not generate non-duplicate destinations after ' . self::MAX_TRIES . ' attempts.'
+                'Could not generate non-duplicate destinations after ' . $maxRetries . ' attempts.'
             );
         }
 
@@ -164,9 +163,11 @@ class AiSuggestionController extends Controller
         ];
 
         $apiUrl   = config('services.groq.url', 'https://api.groq.com/openai/v1/chat/completions');
+        $timeout  = config('api.timeouts.groq', 60);
+        $connect  = config('api.connect_timeouts.groq', 15);
         $response = Http::withHeaders(['Authorization' => "Bearer {$apiKey}"])
-            ->timeout(60)
-            ->connectTimeout(15)
+            ->timeout($timeout)
+            ->connectTimeout($connect)
             ->post($apiUrl, $payload);
 
         if ($response->status() === 401) {
@@ -270,17 +271,21 @@ SYSTEM;
 
     private function normalise(array $d): array
     {
-        $currency = session('preferred_currency', 'USD');
-        $dest     = $d['destination'] ?? '';
-        $country  = $d['country']     ?? '';
-        $costs    = $this->validateCosts($dest, $d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0);
-        $months   = $d['best_months'] ?? [];
+        $currency        = session('preferred_currency', 'USD');
+        $dest            = $d['destination'] ?? '';
+        $country         = $d['country']     ?? '';
+        $costs           = $this->validateCosts($dest, $d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0);
+        $months          = $d['best_months'] ?? [];
+        $warmThreshold   = config('ai.temp_thresholds.warm', 25);
+        $coolThreshold   = config('ai.temp_thresholds.cool', 10);
+        $defaultMonths   = config('ai.default_best_months');
+        $maxActivities   = config('ai.prompt.max_activities', 6);
 
         if (empty($months) && is_array($d['weather_data'] ?? null)) {
             $avg    = (($d['weather_data']['avg_high'] ?? 20) + ($d['weather_data']['avg_low'] ?? 10)) / 2;
-            $months = $avg > 25
-                ? ['November', 'December', 'January', 'February']
-                : ($avg < 10 ? ['June', 'July', 'August', 'September'] : ['April', 'May', 'September', 'October']);
+            $months = $avg > $warmThreshold
+                ? $defaultMonths['warm']
+                : ($avg < $coolThreshold ? $defaultMonths['cool'] : $defaultMonths['spring']);
         }
 
         return [
@@ -302,28 +307,17 @@ SYSTEM;
 
     private function validateCosts(string $destination, int $aiMin, int $aiMax): array
     {
-        try {
-            $accomNightly = $this->accommodationPricing->getPrice($destination, 'hotel', 'mid')['price'];
-            $flightData   = $this->flightPricing->getPrice('JFK', 'LHR', '8h 0m');
-            $ourMin       = (int) round(($flightData['price'] * 2) + ($accomNightly * 7) + (75 * 7));
-            $ourMax       = (int) round($ourMin * 1.5);
-            $aiAvg        = ($aiMin + $aiMax) / 2;
-            $ourAvg       = ($ourMin + $ourMax) / 2;
+        // Absolute sanity bounds per budget tier (USD, per person, full trip)
+        $absoluteMin = 100;
+        $absoluteMax = 30000;
 
-            if ($aiAvg <= 0 || $ourAvg <= 0 || abs($aiAvg - $ourAvg) / $ourAvg > 0.5) {
-                return ['min' => $ourMin, 'max' => $ourMax];
-            }
+        $min = max($absoluteMin, $aiMin);
+        $max = min($absoluteMax, $aiMax > 0 ? $aiMax : $aiMin + 500);
 
-            $min = (int) round($aiMin * 0.6 + $ourMin * 0.4);
-            $max = (int) round($aiMax * 0.6 + $ourMax * 0.4);
-
-            if ($max - $min < 200) {
-                $max = $min + 500;
-            }
-
-            return ['min' => $min, 'max' => $max];
-        } catch (\Throwable $e) {
-            return ['min' => $aiMin, 'max' => $aiMax];
+        if ($max <= $min) {
+            $max = $min + 500;
         }
+
+        return ['min' => $min, 'max' => $max];
     }
 }

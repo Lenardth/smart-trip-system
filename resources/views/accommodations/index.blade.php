@@ -13,7 +13,7 @@
 @section('content')
 {{-- Enhanced Hero Section with Search --}}
 <section class="hero hero-with-image hero-pattern" 
-         style="background-image: url('{{ $heroImage ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=80' }}');">
+         data-bg="{{ $heroImage ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=80' }}">
     <div class="hero-search-wrap hero-search-wrap--wide">
         <div class="hero-search-intro">
             <h1 class="hero-search-title"><i class="fas fa-hotel"></i> Find Your Perfect Stay</h1>

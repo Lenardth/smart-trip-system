@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasActiveScope;
 use Illuminate\Database\Eloquent\Model;
 
 class Accommodation extends Model
 {
+    use HasActiveScope;
+
     protected $fillable = [
         'geoapify_id',
         'name',
@@ -33,21 +36,6 @@ class Accommodation extends Model
         'lng'          => 'float',
         'is_active'    => 'boolean',
     ];
-
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    public function scopeByStyle($query, string $style)
-    {
-        return $query->where('style', $style);
-    }
-
-    public function scopeByBudget($query, string $tier)
-    {
-        return $query->where('budget_tier', $tier);
-    }
 
     public function scopeByCity($query, string $city)
     {

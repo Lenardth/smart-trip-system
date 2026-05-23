@@ -141,7 +141,7 @@ class GeoapifyService implements GeoapifyInterface
     {
         $limit = min(max($limit, 1), 50);
 
-        // Map mood to OSM tourism/amenity types for better results
+        // OSM class/type keywords that map well to each mood for Nominatim searches.
         $moodTypeMap = [
             'Cultural'    => ['museum', 'artwork', 'gallery', 'theatre', 'historic', 'monument', 'castle', 'ruins'],
             'Adventurous' => ['peak', 'camp_site', 'viewpoint', 'waterfall', 'national_park', 'nature_reserve'],
@@ -151,42 +151,57 @@ class GeoapifyService implements GeoapifyInterface
             'Eco-Travel'  => ['nature_reserve', 'national_park', 'forest', 'wetland', 'protected_area'],
             'Beach'       => ['beach', 'bay', 'coast', 'island', 'lagoon'],
             'Nature'      => ['peak', 'forest', 'waterfall', 'lake', 'river', 'national_park', 'nature_reserve'],
+            'Photography' => ['viewpoint', 'peak', 'waterfall', 'scenic', 'monument'],
         ];
 
         $results = [];
 
-        // Strategy 1: Search for cities matching the query
-        $cityResults = $this->nominatimSearch($query, $countryCode, ['city', 'town', 'village', 'administrative'], $limit);
-        $results = array_merge($results, $cityResults);
-
-        // Strategy 2: If mood given, search for mood-specific attractions
-        if ($mood && isset($moodTypeMap[$mood])) {
-            $attractionQuery = $query ?: $mood . ' destination';
-            $attractionResults = $this->nominatimSearch($attractionQuery, $countryCode, ['tourism', 'natural', 'leisure', 'amenity'], min($limit, 15));
-            $results = array_merge($results, $attractionResults);
+        // Strategy 1: Search for cities/places matching the query (skipped for empty query).
+        if (!empty($query)) {
+            $cityResults = $this->nominatimSearch($query, $countryCode, ['city', 'town', 'village', 'administrative'], $limit);
+            $results = array_merge($results, $cityResults);
         }
 
-        // Strategy 3: If no results yet, broaden the search
-        if (empty($results) && $query) {
+        // Strategy 2: Mood-specific feature search.
+        // For mood-only (empty query) we search each mood keyword individually so
+        // Nominatim can match actual geographic features rather than a phrase.
+        if ($mood && isset($moodTypeMap[$mood])) {
+            $moodKeywords = $moodTypeMap[$mood];
+            $featureTypes = ['tourism', 'natural', 'leisure', 'amenity', 'place'];
+
+            if (empty($query)) {
+                // Mood-only: run a targeted search per keyword (top 3) to maximise matches.
+                foreach (array_slice($moodKeywords, 0, 3) as $keyword) {
+                    $kwResults = $this->nominatimSearch($keyword, $countryCode, $featureTypes, (int) ceil($limit / 3));
+                    $results   = array_merge($results, $kwResults);
+                }
+            } else {
+                // Text + mood: search attractions matching the text query.
+                $attractionResults = $this->nominatimSearch($query, $countryCode, $featureTypes, min($limit, 15));
+                $results = array_merge($results, $attractionResults);
+            }
+        }
+
+        // Strategy 3: Broad fallback if still empty and we have a text query.
+        if (empty($results) && !empty($query)) {
             $broadResults = $this->nominatimSearch($query, $countryCode, [], $limit);
             $results = array_merge($results, $broadResults);
         }
 
-        // Deduplicate by name+country
-        $seen = [];
+        // Deduplicate by name+country.
+        $seen   = [];
         $unique = [];
         foreach ($results as $place) {
             $key = strtolower(($place['name'] ?? '') . '|' . ($place['country'] ?? ''));
             if (!isset($seen[$key]) && !empty($place['name']) && $place['name'] !== 'Unknown place') {
                 $seen[$key] = true;
-                $unique[] = $place;
+                $unique[]   = $place;
             }
         }
 
-        // Filter by mood if specified
+        // Apply mood filter; keep all results if the filter would empty the list.
         if ($mood && !empty($unique)) {
             $moodFiltered = $this->filterPlacesByMood($unique, $mood);
-            // Only use mood filter if it returns results, otherwise keep all
             if (!empty($moodFiltered)) {
                 $unique = $moodFiltered;
             }

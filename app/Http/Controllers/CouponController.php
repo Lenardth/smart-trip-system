@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Coupon;
-use App\Services\PricingService;
+use App\Contracts\PricingServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CouponController extends Controller
 {
-    public function __construct(private PricingService $pricing) {}
+    public function __construct(private PricingServiceInterface $pricing) {}
 
-    public function check(Request $request): JsonResponse
+    public function validate(Request $request): JsonResponse
     {
         $request->validate([
             'code'     => 'required|string|max:32',

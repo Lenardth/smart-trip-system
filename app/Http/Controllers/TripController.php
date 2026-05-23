@@ -66,8 +66,6 @@ class TripController extends Controller
             'safety_data'        => 'nullable|array',
         ]);
 
-        $data['accommodation'] = $this->normaliseAccommodation($data['accommodation'] ?? null);
-
         $exists = Trip::where('user_id', Auth::id())
             ->where('destination', $data['destination'])
             ->where('budget',      $data['budget']   ?? null)
@@ -170,10 +168,4 @@ class TripController extends Controller
         return response()->json(['success' => true, 'trip' => $trip->fresh()]);
     }
 
-    public function show(int $id): JsonResponse
-    {
-        $trip = Trip::where('user_id', Auth::id())->findOrFail($id);
-
-        return response()->json(['trip' => $trip]);
-    }
 }
