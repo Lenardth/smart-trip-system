@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\FlightSearchInterface;
-use App\Contracts\FlightPricingInterface;
 use App\Models\FlightSearch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,25 +12,12 @@ use Illuminate\Support\Facades\Log;
 class FlightController extends Controller
 {
     public function __construct(
-        private readonly FlightSearchInterface $aviationstack,
-        private readonly FlightPricingInterface $flightPricing
+        private readonly FlightSearchInterface $aviationstack
     ) {}
 
     public function index()
     {
-        $deals = array_map(function (array $deal) {
-            $deal['from_city'] = $this->resolveCityLabel($deal['from']);
-            $deal['to_city']   = $this->resolveCityLabel($deal['to']);
-            return $deal;
-        }, $this->flightPricing->getPopularRouteDeals());
-
-        $popularRoutes = array_map(function (array $route) {
-            $route['from_city'] = $this->resolveCityLabel($route['from']);
-            $route['to_city']   = $this->resolveCityLabel($route['to']);
-            return $route;
-        }, $this->flightPricing->getPopularRoutes());
-
-        return view('flights.index', compact('deals', 'popularRoutes'));
+        return view('flights.index');
     }
 
     public function search(Request $request): JsonResponse

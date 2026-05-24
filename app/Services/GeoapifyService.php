@@ -484,9 +484,7 @@ class GeoapifyService implements GeoapifyInterface
 
     private function imageUrlForPlace(array $item): string
     {
-        $term = $item['display_name'] ?? $item['type'] ?? 'travel destination';
-        $term = preg_replace('/[^a-z0-9\s]/i', ' ', $term);
-        return 'https://source.unsplash.com/800x600/?' . urlencode($term);
+        return '';
     }
 
     private function mapElement(array $el, string $city): array

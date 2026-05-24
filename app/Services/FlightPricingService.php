@@ -48,22 +48,6 @@ class FlightPricingService implements FlightPricingInterface
         return $result;
     }
 
-    public function getPopularRouteDeals(): array
-    {
-        return array_map(function (array $route) {
-            $pricing = $this->getPrice($route['from'], $route['to'], $route['duration']);
-            return array_merge($route, ['price' => $pricing['price']]);
-        }, config('flights.popular_deals'));
-    }
-
-    public function getPopularRoutes(): array
-    {
-        return array_map(function (array $route) {
-            $pricing = $this->getPrice($route['from'], $route['to'], $route['duration']);
-            return array_merge($route, ['price' => $pricing['price']]);
-        }, config('flights.popular_routes'));
-    }
-
     private function fetchFromApi(string $from, string $to, string $travelClass): ?int
     {
         // Placeholder — implement Skyscanner endpoint when key is provided.

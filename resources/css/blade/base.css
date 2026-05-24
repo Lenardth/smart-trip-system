@@ -2472,10 +2472,8 @@ body {
     .wishlist-grid,
     .stories-grid,
     .travelers-grid,
-    .routes-grid,
     .how-it-works-grid,
     .smart-features-grid,
-    .testimonial-grid,
     .explore-categories,
     .tile-grid {
         grid-template-columns: 1fr !important;

@@ -257,73 +257,15 @@
 
 <section class="slideshow-section">
     <h2 class="section-title">Featured Destinations</h2>
-    <p class="section-subtitle">Discover handpicked destinations curated by our travel experts</p>
+    <p class="section-subtitle">Discover destinations loaded from live travel data</p>
     <div class="slideshow-container">
-        <div class="slides">
-            <div class="slide active" data-bg="https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>Amalfi Coast, Italy</h3>
-                    <p>Cliffside villages painted in terracotta and gold, fresh limoncello, and the kind of sea view you'll describe for years.</p>
-                </div>
-            </div>
-            <div class="slide" data-bg="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>Bali, Indonesia</h3>
-                    <p>Rice terraces at dawn, temple incense in the air, and surf breaks that suit every level — from total beginner to seasoned rider.</p>
-                </div>
-            </div>
-            <div class="slide" data-bg="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>Santorini, Greece</h3>
-                    <p>Whitewashed walls, infinite blue domes, and a sunset over Oia that genuinely lives up to the hype.</p>
-                </div>
-            </div>
-            <div class="slide" data-bg="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>Kyoto, Japan</h3>
-                    <p>Ancient temples buried in bamboo, slow tea ceremonies, and cherry blossom paths that stop you in your tracks.</p>
-                </div>
-            </div>
-            <div class="slide" data-bg="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>Swiss Alps</h3>
-                    <p>Cable cars above the cloud line, chocolate-box villages below, and skiing or hiking depending on the season.</p>
-                </div>
-            </div>
-            <div class="slide" data-bg="https://images.unsplash.com/photo-1539020140153-e479b8c22e70?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>Marrakech, Morocco</h3>
-                    <p>Spice-lined alleyways, rooftop riads, and the constant hum of a medina that never really sleeps.</p>
-                </div>
-            </div>
-            <div class="slide" data-bg="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>Maldives</h3>
-                    <p>Overwater bungalows, reef sharks gliding beneath the glass floor, and the kind of silence that resets everything.</p>
-                </div>
-            </div>
-            <div class="slide" data-bg="https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?w=1600&q=80">
-                <div class="slide-content">
-                    <h3>New York City, USA</h3>
-                    <p>Every neighbourhood a different world — the energy is relentless, the food is world-class, and there's always something on.</p>
-                </div>
-            </div>
-        </div>
-        <div class="slide-number">1 / 8</div>
+        <div class="slides" id="featuredSlides"></div>
+        <div class="slide-number">0 / 0</div>
         <div class="slide-controls">
             <button class="slide-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
             <button class="slide-btn next-btn"><i class="fas fa-chevron-right"></i></button>
         </div>
-        <div class="slide-indicators">
-            <span class="indicator active" data-slide="0"></span>
-            <span class="indicator" data-slide="1"></span>
-            <span class="indicator" data-slide="2"></span>
-            <span class="indicator" data-slide="3"></span>
-            <span class="indicator" data-slide="4"></span>
-            <span class="indicator" data-slide="5"></span>
-            <span class="indicator" data-slide="6"></span>
-            <span class="indicator" data-slide="7"></span>
-        </div>
+        <div class="slide-indicators"></div>
     </div>
 </section>
 
@@ -507,14 +449,6 @@
         </div>
     </div>
 </div>
-
-<section class="testimonials">
-    <div class="testimonial-container">
-        <h2 class="section-title">What Travelers Say</h2>
-        <p class="section-subtitle">Join thousands of satisfied travelers who discovered their perfect trips</p>
-        <div class="testimonial-grid" id="testimonialsGrid"></div>
-    </div>
-</section>
 
 <div class="newsletter">
     <h2 class="section-title">Get Travel Inspiration</h2>

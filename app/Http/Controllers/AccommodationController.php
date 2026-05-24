@@ -159,7 +159,7 @@ class AccommodationController extends Controller
             try {
                 $response = Http::timeout(5)
                     ->withHeaders(['Authorization' => $key])
-                    ->get('https://api.pexels.com/v1/search', [
+                    ->get(config('services.pexels.search_endpoint'), [
                         'query'       => "{$city} hotel",
                         'per_page'    => 5,
                         'orientation' => 'landscape',
@@ -190,7 +190,7 @@ class AccommodationController extends Controller
             Log::warning('Wikipedia image fetch failed', ['error' => $e->getMessage()]);
         }
 
-        return config('services.image_fallback.base_url', 'https://placehold.co/800x600') . '?' . urlencode("{$city} hotel");
+        return config('api.image_fallback.base_url') . '?' . urlencode("{$city} hotel");
     }
 
     private function defaultAmenities(string $style): array

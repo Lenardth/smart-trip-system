@@ -107,34 +107,4 @@ return [
     */
     'middle_east_airports' => ['DXB', 'AUH', 'DOH', 'RUH', 'JED'],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Popular route deals shown on the flights landing page
-    |--------------------------------------------------------------------------
-    */
-    'popular_deals' => [
-        ['from' => 'JNB', 'to' => 'CPT', 'duration' => '2h 00m', 'airline' => 'FlySafair',    'tag' => 'Domestic Deal',    'icon' => 'fa-plane'],
-        ['from' => 'DXB', 'to' => 'BKK', 'duration' => '6h 30m', 'airline' => 'Emirates',     'tag' => 'Popular Route',    'icon' => 'fa-star'],
-        ['from' => 'LHR', 'to' => 'LIS', 'duration' => '2h 30m', 'airline' => 'TAP Air',      'tag' => 'Hot Deal',         'icon' => 'fa-fire'],
-        ['from' => 'JFK', 'to' => 'CUN', 'duration' => '4h 15m', 'airline' => 'JetBlue',      'tag' => 'Beach Escape',     'icon' => 'fa-umbrella-beach'],
-        ['from' => 'SIN', 'to' => 'DPS', 'duration' => '2h 30m', 'airline' => 'Scoot',        'tag' => 'Weekend Getaway',  'icon' => 'fa-leaf'],
-        ['from' => 'CDG', 'to' => 'BCN', 'duration' => '1h 55m', 'airline' => 'Vueling',      'tag' => 'Flash Sale',       'icon' => 'fa-bolt'],
-        ['from' => 'SYD', 'to' => 'MEL', 'duration' => '1h 25m', 'airline' => 'Jetstar',      'tag' => 'Domestic Deal',    'icon' => 'fa-plane'],
-        ['from' => 'NBO', 'to' => 'ZNZ', 'duration' => '1h 45m', 'airline' => 'Kenya Airways','tag' => 'Island Escape',    'icon' => 'fa-sun'],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Popular routes shown on the flights landing page
-    |--------------------------------------------------------------------------
-    */
-    'popular_routes' => [
-        ['from' => 'JFK', 'to' => 'LHR', 'duration' => '7h 30m',  'direct' => true],
-        ['from' => 'CDG', 'to' => 'NRT', 'duration' => '12h 45m', 'direct' => false],
-        ['from' => 'DXB', 'to' => 'JFK', 'duration' => '14h 20m', 'direct' => true],
-        ['from' => 'LAX', 'to' => 'SYD', 'duration' => '15h 10m', 'direct' => true],
-        ['from' => 'SIN', 'to' => 'DPS', 'duration' => '2h 30m',  'direct' => true],
-        ['from' => 'LHR', 'to' => 'DXB', 'duration' => '7h 00m',  'direct' => true],
-    ],
-
 ];

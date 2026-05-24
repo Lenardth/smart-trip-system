@@ -20,13 +20,7 @@
 
     @stack('modals')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-    
-    <!-- Country Lock Module -->
-    <script src="{{ asset('js/country-lock.js') }}"></script>
-    
-    <!-- Location & Airport Detector (Privacy-Protected) -->
-    <script src="{{ asset('js/location-detector.js') }}"></script>
-    
+
     @stack('scripts')
 
 </body>

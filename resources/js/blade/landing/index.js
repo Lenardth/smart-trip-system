@@ -158,15 +158,112 @@ function renderGrid(destinations) {
     grid.innerHTML     = destinations.map(d => buildCard(d)).join('');
 }
 
-function getStaticLandingDestinations() {
-    return [
-        { id: 1, name: 'Lisbon', country: 'Portugal', region: 'europe', mood: 'cultural', category: 'general', price_from: 89, description: 'Historic neighborhoods, river views, and Atlantic breezes.', badge: 'Editor pick', image_url: 'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800&q=80' },
-        { id: 2, name: 'Kyoto', country: 'Japan', region: 'east_asia', mood: 'cultural', category: 'historical', price_from: 120, description: 'Temples, gardens, and timeless traditions.', badge: null, image_url: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80' },
-        { id: 3, name: 'Cape Town', country: 'South Africa', region: 'africa', mood: 'adventurous', category: 'mountain', price_from: 95, description: 'Coastline, mountains, and vibrant culture.', badge: 'Adventure', image_url: 'https://images.unsplash.com/photo-1580060839134-75a5dca7b532?w=800&q=80' },
-        { id: 4, name: 'Barcelona', country: 'Spain', region: 'europe', mood: 'foodie', category: 'food_culture', price_from: 102, description: 'Architecture, markets, and Mediterranean flavor.', badge: null, image_url: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80' },
-        { id: 5, name: 'Reykjavik', country: 'Iceland', region: 'europe', mood: 'nature', category: 'general', price_from: 140, description: 'Northern lights, hot springs, and dramatic landscapes.', badge: 'Nature', image_url: 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80' },
-        { id: 6, name: 'Mexico City', country: 'Mexico', region: 'north_america', mood: 'foodie', category: 'food_culture', price_from: 78, description: 'World-class cuisine and buzzing neighborhoods.', badge: null, image_url: 'https://images.unsplash.com/photo-1518659526055-ea5caba8c9ae?w=800&q=80' },
-    ];
+function renderFeaturedSlides(destinations) {
+    const slidesWrap = document.getElementById('featuredSlides');
+    const indicatorsWrap = document.querySelector('.slide-indicators');
+    const slideNumber = document.querySelector('.slide-number');
+
+    if (!slidesWrap || !indicatorsWrap) return;
+
+    const featured = (destinations || []).filter(d => d.image_url).slice(0, 8);
+
+    if (!featured.length) {
+        slidesWrap.innerHTML = '';
+        indicatorsWrap.innerHTML = '';
+        if (slideNumber) slideNumber.textContent = '0 / 0';
+        return;
+    }
+
+    slidesWrap.innerHTML = featured.map((d, index) => {
+        const description = d.description
+            ? (d.description.length > 150 ? d.description.substring(0, 150) + '...' : d.description)
+            : '';
+
+        return '<div class="slide' + (index === 0 ? ' active' : '') + '" data-bg="' + d.image_url + '" style="background-image:url(\'' + d.image_url + '\')">' +
+            '<div class="slide-content">' +
+                '<h3>' + d.name + (d.country ? ', ' + d.country : '') + '</h3>' +
+                '<p>' + description + '</p>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+
+    indicatorsWrap.innerHTML = featured.map((_, index) =>
+        '<span class="indicator' + (index === 0 ? ' active' : '') + '" data-slide="' + index + '"></span>'
+    ).join('');
+
+    initSlideshow();
+}
+
+function initSlideshow() {
+    const nextBtn = document.querySelector('.next-btn');
+    const prevBtn = document.querySelector('.prev-btn');
+    const slideshowContainer = document.querySelector('.slideshow-container');
+    const slides = document.querySelectorAll('.slide');
+    const indicators = document.querySelectorAll('.indicator');
+    const slideNumber = document.querySelector('.slide-number');
+    const totalSlides = slides.length;
+
+    if (totalSlides === 0 || !nextBtn || !prevBtn) return;
+
+    let currentSlide = 0;
+    let nextSlideIndex = 0;
+    let isTransitioning = false;
+    let slideInterval;
+
+    function updateSlide(immediate) {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        slides.forEach(s => s.classList.remove('active', 'exiting'));
+        if (!immediate && slides[currentSlide]) slides[currentSlide].classList.add('exiting');
+        indicators.forEach(ind => ind.classList.remove('active'));
+        setTimeout(() => {
+            if (slides[currentSlide]) slides[currentSlide].classList.remove('exiting');
+            slides[nextSlideIndex].classList.add('active');
+            if (indicators[nextSlideIndex]) indicators[nextSlideIndex].classList.add('active');
+            if (slideNumber) slideNumber.textContent = (nextSlideIndex + 1) + ' / ' + totalSlides;
+            currentSlide = nextSlideIndex;
+            setTimeout(() => { isTransitioning = false; }, 1200);
+        }, immediate ? 0 : 300);
+    }
+
+    function nextSlide() {
+        if (isTransitioning) return;
+        nextSlideIndex = (currentSlide + 1) % totalSlides;
+        updateSlide(false);
+    }
+
+    function prevSlide() {
+        if (isTransitioning) return;
+        nextSlideIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+        updateSlide(false);
+    }
+
+    function startAuto() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, 6000);
+    }
+
+    nextBtn.onclick = () => { nextSlide(); startAuto(); };
+    prevBtn.onclick = () => { prevSlide(); startAuto(); };
+
+    indicators.forEach(ind => {
+        ind.onclick = function () {
+            const idx = parseInt(this.getAttribute('data-slide'));
+            if (!isTransitioning && idx !== currentSlide) {
+                nextSlideIndex = idx;
+                updateSlide(false);
+            }
+            startAuto();
+        };
+    });
+
+    if (slideshowContainer) {
+        slideshowContainer.onmouseenter = () => clearInterval(slideInterval);
+        slideshowContainer.onmouseleave = startAuto;
+    }
+
+    updateSlide(true);
+    startAuto();
 }
 
 async function fetchDestinations() {
@@ -187,46 +284,24 @@ async function fetchDestinations() {
         const data = await res.json();
         const all  = Array.isArray(data) ? data : (data.data || data.destinations || []);
         if (!all.length) {
-            window._allDestinations = getStaticLandingDestinations();
-            renderGrid(window._allDestinations.slice(0, 8));
+            window._allDestinations = [];
+            renderGrid([]);
+            renderFeaturedSlides([]);
             if (loading) loading.style.display = 'none';
             return;
         }
         window._allDestinations = all;
         renderGrid(all.slice(0, 8));
+        renderFeaturedSlides(all);
     } catch (err) {
-        window._allDestinations = getStaticLandingDestinations();
-        renderGrid(window._allDestinations.slice(0, 8));
+        window._allDestinations = [];
+        renderGrid([]);
+        renderFeaturedSlides([]);
         if (loading) loading.style.display = 'none';
     }
 }
 
 window.initDestinations = fetchDestinations;
-
-function populateTestimonials() {
-    const grid = document.getElementById('testimonialsGrid');
-    if (!grid) return;
-    const testimonials = [
-        { text: "The AI suggestions were spot on — found a destination I'd never considered and it turned out to be my best trip ever.", name: "Sarah M.", initials: "SM", trip: "Bali, Indonesia" },
-        { text: "Planned our honeymoon in under 20 minutes. Having budget tracking and flight search in one place is genuinely useful.", name: "James & Priya", initials: "JP", trip: "Santorini, Greece" },
-        { text: "Travelled solo for the first time. The mood-based suggestions gave me exactly the kind of off-the-beaten-path trip I wanted.", name: "Marcus L.", initials: "ML", trip: "Kyoto, Japan" },
-        { text: "Used it for a group of 8. The filters made it easy to find somewhere that worked for everyone's travel style.", name: "Aisha K.", initials: "AK", trip: "Marrakech, Morocco" },
-        { text: "The visa and flight info in the AI suggestions saved me hours of research. Everything I needed was already there.", name: "Tom H.", initials: "TH", trip: "Cape Town, South Africa" },
-        { text: "Booked three trips through this. The AI cost estimates have been surprisingly accurate every single time.", name: "Yuki T.", initials: "YT", trip: "Reykjavik, Iceland" },
-    ];
-    grid.innerHTML = testimonials.map(t =>
-        '<div class="testimonial-card">' +
-            '<p>"' + t.text + '"</p>' +
-            '<div class="user-info">' +
-                '<div class="user-avatar">' + t.initials + '</div>' +
-                '<div>' +
-                    '<div class="user-name">' + t.name + '</div>' +
-                    '<div class="user-trip"><i class="fas fa-map-marker-alt" style="color:var(--gold);margin-right:4px;font-size:11px;"></i>' + t.trip + '</div>' +
-                '</div>' +
-            '</div>' +
-        '</div>'
-    ).join('');
-}
 
 window.filterByStyle = function (style, cardEl) {
     const styleMap = {
@@ -431,84 +506,7 @@ ready(function () {
         if (backBtn) window.showStep(parseInt(backBtn.getAttribute('data-back')));
     });
 
-    
-    const nextBtn            = document.querySelector('.next-btn');
-    const prevBtn            = document.querySelector('.prev-btn');
-    const slideshowContainer = document.querySelector('.slideshow-container');
-    const slides             = document.querySelectorAll('.slide');
-    const indicators         = document.querySelectorAll('.indicator');
-    const slideNumber        = document.querySelector('.slide-number');
-    const totalSlides        = slides.length;
-
-    if (totalSlides > 0 && nextBtn && prevBtn) {
-        let currentSlide    = 0;
-        let nextSlideIndex  = 0;
-        let isTransitioning = false;
-        let slideInterval;
-
-        function updateSlide(immediate) {
-            if (isTransitioning) return;
-            isTransitioning = true;
-            slides.forEach(s => s.classList.remove('active', 'exiting'));
-            if (!immediate && slides[currentSlide]) slides[currentSlide].classList.add('exiting');
-            indicators.forEach(ind => ind.classList.remove('active'));
-            setTimeout(() => {
-                if (slides[currentSlide]) slides[currentSlide].classList.remove('exiting');
-                slides[nextSlideIndex].classList.add('active');
-                if (indicators[nextSlideIndex]) indicators[nextSlideIndex].classList.add('active');
-                if (slideNumber) slideNumber.textContent = (nextSlideIndex + 1) + ' / ' + totalSlides;
-                currentSlide = nextSlideIndex;
-                setTimeout(() => { isTransitioning = false; }, 1200);
-            }, immediate ? 0 : 300);
-        }
-
-        function nextSlide() {
-            if (isTransitioning) return;
-            nextSlideIndex = (currentSlide + 1) % totalSlides;
-            updateSlide(false);
-        }
-        function prevSlide() {
-            if (isTransitioning) return;
-            nextSlideIndex = (currentSlide - 1 + totalSlides) % totalSlides;
-            updateSlide(false);
-        }
-        function startAuto() {
-            clearInterval(slideInterval);
-            slideInterval = setInterval(nextSlide, 6000);
-        }
-
-        nextBtn.addEventListener('click', () => { nextSlide(); startAuto(); });
-        prevBtn.addEventListener('click', () => { prevSlide(); startAuto(); });
-
-        indicators.forEach(ind => {
-            ind.addEventListener('click', function () {
-                const idx = parseInt(this.getAttribute('data-slide'));
-                if (!isTransitioning && idx !== currentSlide) {
-                    nextSlideIndex = idx;
-                    updateSlide(false);
-                }
-                startAuto();
-            });
-        });
-
-        if (slideshowContainer) {
-            slideshowContainer.addEventListener('mouseenter', () => clearInterval(slideInterval));
-            slideshowContainer.addEventListener('mouseleave', startAuto);
-        }
-
-        document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft')  { prevSlide(); startAuto(); }
-            if (e.key === 'ArrowRight') { nextSlide(); startAuto(); }
-        });
-
-        updateSlide(true);
-        startAuto();
-    }
-
-
     fetchDestinations();
-    populateTestimonials();
-
     // Re-render destination cards when currency changes
     if (typeof window.Currency !== 'undefined') {
         window.Currency.onCurrencyChange(function() {
