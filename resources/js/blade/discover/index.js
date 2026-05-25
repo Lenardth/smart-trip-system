@@ -220,6 +220,11 @@
         });
     });
 
+    document.querySelectorAll('.mood-icon-wrap[data-mood-bg]').forEach(function (icon) {
+        icon.style.setProperty('--mood-bg', icon.dataset.moodBg || '');
+        icon.style.setProperty('--mood-color', icon.dataset.moodColor || '');
+    });
+
     if (clearBtn) {
         clearBtn.addEventListener('click', function () {
             if (searchInput)  searchInput.value  = '';

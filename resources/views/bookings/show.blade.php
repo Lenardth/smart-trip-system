@@ -94,8 +94,7 @@
                 @if(in_array($booking->status, ['confirmed', 'pending']))
                 <form method="POST" action="{{ route('bookings.cancel', $booking) }}">
                     @csrf
-                    <button type="submit" class="primary-button"
-                            onclick="return confirm('Cancel this booking?')">
+                    <button type="submit" class="primary-button" data-confirm-submit="Cancel this booking?">
                         <i class="fas fa-times"></i> Cancel Booking
                     </button>
                 </form>

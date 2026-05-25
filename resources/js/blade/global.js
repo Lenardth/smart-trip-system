@@ -76,6 +76,132 @@ window.logout = function() {
     form.submit();
 };
 
+window.PlanTripContext = window.PlanTripContext || (() => {
+    const STORAGE_KEY = 'smartTrip.planTripContext';
+    const MAX_AGE_MS = 30 * 60 * 1000;
+
+    function getValue(id) {
+        const el = document.getElementById(id);
+        return el ? String(el.value || '').trim() : '';
+    }
+
+    function setIfFilled(params, key, value) {
+        const clean = String(value || '').trim();
+        if (clean && clean !== 'any') params.set(key, clean);
+    }
+
+    function monthFromDate(value) {
+        if (!value) return '';
+        const date = new Date(value + 'T00:00:00');
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleString('en-US', { month: 'long' });
+    }
+
+    function durationFromDates(startValue, endValue) {
+        if (!startValue || !endValue) return '';
+        const start = new Date(startValue + 'T00:00:00');
+        const end = new Date(endValue + 'T00:00:00');
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return '';
+        const days = Math.round((end - start) / 86400000) + 1;
+        return days > 0 ? String(days) : '';
+    }
+
+    function currentContext() {
+        const params = new URLSearchParams(window.location.search);
+        const context = new URLSearchParams();
+        const path = window.location.pathname.replace(/\/$/, '') || '/';
+
+        for (const key of ['destination', 'mood', 'budget', 'duration', 'companion', 'month', 'region', 'accommodation', 'origin', 'experience']) {
+            setIfFilled(context, key, params.get(key) || '');
+        }
+
+        if (path === '/') {
+            setIfFilled(context, 'mood', getValue('moodSelect'));
+            setIfFilled(context, 'budget', getValue('budgetSelect'));
+            setIfFilled(context, 'duration', getValue('durationSelect'));
+            setIfFilled(context, 'companion', getValue('companionSelect'));
+            setIfFilled(context, 'month', getValue('monthSelect'));
+            setIfFilled(context, 'region', getValue('regionSelect'));
+            setIfFilled(context, 'accommodation', getValue('accommodationSelect'));
+            setIfFilled(context, 'origin', getValue('originInput'));
+            setIfFilled(context, 'experience', getValue('experienceSelect'));
+        } else if (path === '/flights') {
+            setIfFilled(context, 'origin', getValue('from'));
+            setIfFilled(context, 'destination', getValue('to'));
+            setIfFilled(context, 'month', monthFromDate(getValue('departure_date')));
+            setIfFilled(context, 'duration', durationFromDates(getValue('departure_date'), getValue('return_date')));
+        } else if (path === '/accommodations') {
+            setIfFilled(context, 'destination', getValue('searchInput'));
+            setIfFilled(context, 'accommodation', getValue('styleSelect'));
+            setIfFilled(context, 'budget', getValue('budgetSelect'));
+        } else if (path === '/discover') {
+            setIfFilled(context, 'destination', getValue('discoverSearchInput'));
+            setIfFilled(context, 'region', getValue('discoverRegionFilter'));
+            setIfFilled(context, 'mood', getValue('discoverMoodFilter'));
+        }
+
+        context.set('prefill', '1');
+        return context;
+    }
+
+    function save(params) {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+            at: Date.now(),
+            data: Object.fromEntries(params.entries()),
+        }));
+    }
+
+    function load() {
+        try {
+            const raw = sessionStorage.getItem(STORAGE_KEY);
+            if (!raw) return {};
+            const saved = JSON.parse(raw);
+            if (!saved.at || Date.now() - saved.at > MAX_AGE_MS) {
+                sessionStorage.removeItem(STORAGE_KEY);
+                return {};
+            }
+            return saved.data || {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function clear() {
+        sessionStorage.removeItem(STORAGE_KEY);
+    }
+
+    function buildUrl(url) {
+        const target = new URL(url || '/plan-trip', window.location.origin);
+        if (target.pathname.replace(/\/$/, '') !== '/plan-trip') return target.toString();
+
+        const context = currentContext();
+        target.searchParams.forEach((value, key) => setIfFilled(context, key, value));
+        save(context);
+
+        return target.pathname + (context.toString() ? '?' + context.toString() : '');
+    }
+
+    return { buildUrl, load, clear };
+})();
+
+document.addEventListener('click', function(e) {
+    const planLink = e.target.closest('a[href*="/plan-trip"], [data-action="navigate"][data-url*="/plan-trip"]');
+    if (!planLink || window.location.pathname.replace(/\/$/, '') === '/plan-trip') return;
+
+    const href = planLink.getAttribute('href') || planLink.dataset.url || '/plan-trip';
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    window.location.href = window.PlanTripContext.buildUrl(href);
+}, true);
+
+document.addEventListener('submit', function(e) {
+    const button = e.submitter;
+    const message = button?.dataset?.confirmSubmit;
+    if (message && !window.confirm(message)) {
+        e.preventDefault();
+    }
+});
+
 // ── Custom Select (replaces all native <select> with the Travel-Mood style) ──
 
 (function () {
@@ -202,6 +328,14 @@ window.logout = function() {
             sel.dispatchEvent(new Event('change', { bubbles: true }));
             wrapper.classList.remove('open');
         });
+
+        sel.addEventListener('change', () => {
+            const item = dropdown.querySelector(`.custom-select-option[data-value="${CSS.escape(sel.value)}"]`);
+            if (!item) return;
+            dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            item.classList.add('selected');
+            buildTriggerContent(trigger, item.dataset.value, item.dataset.label);
+        });
     }
 
     // ── Budget label formatting (converts USD tiers to user's currency) ───
@@ -213,9 +347,9 @@ window.logout = function() {
     }
 
     function buildBudgetLabel(baseName, usdMin, usdMax) {
-        if (usdMin && usdMax) return `${baseName} — ${fmtBudgetAmount(usdMin)}–${fmtBudgetAmount(usdMax)}`;
-        if (usdMax)           return `${baseName} — Under ${fmtBudgetAmount(usdMax)}`;
-        if (usdMin)           return `${baseName} — ${fmtBudgetAmount(usdMin)}+`;
+        if (usdMin && usdMax) return `${baseName} (${fmtBudgetAmount(usdMin)} to ${fmtBudgetAmount(usdMax)})`;
+        if (usdMax)           return `${baseName} (under ${fmtBudgetAmount(usdMax)})`;
+        if (usdMin)           return `${baseName} (${fmtBudgetAmount(usdMin)}+)`;
         return baseName;
     }
 

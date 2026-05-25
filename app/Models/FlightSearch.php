@@ -12,6 +12,9 @@ class FlightSearch extends Model
 
     protected $fillable = [
         'user_id',
+        'search_hash',
+        'request_payload',
+        'response_payload',
         'from_query',
         'to_query',
         'from_code',
@@ -21,14 +24,18 @@ class FlightSearch extends Model
         'adults',
         'travel_class',
         'results_count',
+        'cache_hit',
         'ip_address',
     ];
 
     protected $casts = [
+        'request_payload' => 'array',
+        'response_payload' => 'array',
         'departure_date' => 'date',
         'return_date'    => 'date',
         'adults'         => 'integer',
         'results_count'  => 'integer',
+        'cache_hit'      => 'boolean',
     ];
 
     public function user(): BelongsTo

@@ -48,12 +48,12 @@
             <div class="form-group">
                 <label><i class="fas fa-users"></i> Travelling With</label>
                 <select id="companionSelect" name="companion">
-                    <option value="solo">Solo — Just me</option>
-                    <option value="couple">Couple — Partner & I</option>
-                    <option value="family_young">Family — Young children (under 12)</option>
-                    <option value="family_teens">Family — Teenagers</option>
-                    <option value="friends_small">Friends — Small group (2–4)</option>
-                    <option value="friends_large">Friends — Large group (5+)</option>
+                    <option value="solo">Solo (just me)</option>
+                    <option value="couple">Couple (partner and I)</option>
+                    <option value="family_young">Family with young children under 12</option>
+                    <option value="family_teens">Family with teenagers</option>
+                    <option value="friends_small">Friends small group, 2 to 4</option>
+                    <option value="friends_large">Friends large group (5+)</option>
                     <option value="business">Business Travel</option>
                 </select>
             </div>
@@ -62,66 +62,66 @@
                 <div class="custom-select-wrapper" id="moodSelectWrapper">
                     <div class="custom-select-trigger" id="moodSelectTrigger">
                         <span class="custom-select-icon"><i class="fas fa-hiking"></i></span>
-                        <span class="custom-select-text">Adventurous — Thrills & outdoors</span>
+                        <span class="custom-select-text">Adventurous, thrills and outdoors</span>
                         <i class="fas fa-chevron-down custom-select-arrow"></i>
                     </div>
                     <div class="custom-select-dropdown" id="moodDropdown">
                         <div class="custom-select-group">Popular Moods</div>
-                        <div class="custom-select-option selected" data-value="adventurous"><i class="fas fa-hiking"></i> Adventurous — Thrills &amp; outdoors</div>
-                        <div class="custom-select-option" data-value="relaxed"><i class="fas fa-umbrella-beach"></i> Relaxed — Rest &amp; recharge</div>
-                        <div class="custom-select-option" data-value="romantic"><i class="fas fa-heart"></i> Romantic — Intimate &amp; scenic</div>
-                        <div class="custom-select-option" data-value="cultural"><i class="fas fa-landmark"></i> Cultural — History &amp; arts</div>
-                        <div class="custom-select-option" data-value="foodie"><i class="fas fa-utensils"></i> Foodie — Cuisine &amp; markets</div>
-                        <div class="custom-select-option" data-value="nature"><i class="fas fa-tree"></i> Nature — Wildlife &amp; eco-tourism</div>
+                        <div class="custom-select-option selected" data-value="adventurous"><i class="fas fa-hiking"></i> Adventurous, thrills and outdoors</div>
+                        <div class="custom-select-option" data-value="relaxed"><i class="fas fa-umbrella-beach"></i> Relaxed, rest and recharge</div>
+                        <div class="custom-select-option" data-value="romantic"><i class="fas fa-heart"></i> Romantic, intimate and scenic</div>
+                        <div class="custom-select-option" data-value="cultural"><i class="fas fa-landmark"></i> Cultural, history and arts</div>
+                        <div class="custom-select-option" data-value="foodie"><i class="fas fa-utensils"></i> Foodie, cuisine and markets</div>
+                        <div class="custom-select-option" data-value="nature"><i class="fas fa-tree"></i> Nature, wildlife and eco tourism</div>
 
                         <div class="custom-select-group">Mindset &amp; Wellness</div>
-                        <div class="custom-select-option" data-value="wellness"><i class="fas fa-spa"></i> Wellness — Spa &amp; mindfulness</div>
-                        <div class="custom-select-option" data-value="spiritual"><i class="fas fa-place-of-worship"></i> Spiritual — Temples &amp; retreats</div>
-                        <div class="custom-select-option" data-value="digital_detox"><i class="fas fa-power-off"></i> Digital Detox — Unplug &amp; reconnect</div>
-                        <div class="custom-select-option" data-value="slow_travel"><i class="fas fa-feather"></i> Slow Travel — Immerse, don't rush</div>
-                        <div class="custom-select-option" data-value="healing"><i class="fas fa-hand-holding-heart"></i> Healing — Recovery &amp; self-care</div>
-                        <div class="custom-select-option" data-value="solo_discovery"><i class="fas fa-user"></i> Solo Discovery — Find yourself</div>
+                        <div class="custom-select-option" data-value="wellness"><i class="fas fa-spa"></i> Wellness, spa and mindfulness</div>
+                        <div class="custom-select-option" data-value="spiritual"><i class="fas fa-place-of-worship"></i> Spiritual, temples and retreats</div>
+                        <div class="custom-select-option" data-value="digital_detox"><i class="fas fa-power-off"></i> Digital Detox, unplug and reconnect</div>
+                        <div class="custom-select-option" data-value="slow_travel"><i class="fas fa-feather"></i> Slow Travel, immerse and do not rush</div>
+                        <div class="custom-select-option" data-value="healing"><i class="fas fa-hand-holding-heart"></i> Healing, recovery and self care</div>
+                        <div class="custom-select-option" data-value="solo_discovery"><i class="fas fa-user"></i> Solo Discovery, find yourself</div>
 
                         <div class="custom-select-group">Social &amp; Entertainment</div>
-                        <div class="custom-select-option" data-value="nightlife"><i class="fas fa-music"></i> Nightlife — Music &amp; entertainment</div>
-                        <div class="custom-select-option" data-value="festival"><i class="fas fa-star"></i> Festival Chaser — Events &amp; carnivals</div>
-                        <div class="custom-select-option" data-value="sports"><i class="fas fa-futbol"></i> Sports Fan — Matches &amp; stadiums</div>
-                        <div class="custom-select-option" data-value="party"><i class="fas fa-glass-cheers"></i> Party Mode — Celebrate &amp; socialise</div>
-                        <div class="custom-select-option" data-value="lgbtq"><i class="fas fa-rainbow"></i> LGBTQ+ Friendly — Inclusive destinations</div>
-                        <div class="custom-select-option" data-value="social"><i class="fas fa-users"></i> Social Butterfly — Meet new people</div>
+                        <div class="custom-select-option" data-value="nightlife"><i class="fas fa-music"></i> Nightlife, music and entertainment</div>
+                        <div class="custom-select-option" data-value="festival"><i class="fas fa-star"></i> Festival Chaser, events and carnivals</div>
+                        <div class="custom-select-option" data-value="sports"><i class="fas fa-futbol"></i> Sports Fan, matches and stadiums</div>
+                        <div class="custom-select-option" data-value="party"><i class="fas fa-glass-cheers"></i> Party Mode, celebrate and socialise</div>
+                        <div class="custom-select-option" data-value="lgbtq"><i class="fas fa-rainbow"></i> LGBTQ+ Friendly, inclusive destinations</div>
+                        <div class="custom-select-option" data-value="social"><i class="fas fa-users"></i> Social Butterfly, meet new people</div>
 
                         <div class="custom-select-group">Exploration Styles</div>
-                        <div class="custom-select-option" data-value="road_trip"><i class="fas fa-car"></i> Road Trip — Open roads &amp; freedom</div>
-                        <div class="custom-select-option" data-value="backpacking"><i class="fas fa-suitcase"></i> Backpacking — Rough it &amp; explore</div>
-                        <div class="custom-select-option" data-value="island_hopping"><i class="fas fa-water"></i> Island Hopping — Sea &amp; archipelagos</div>
-                        <div class="custom-select-option" data-value="city_break"><i class="fas fa-city"></i> City Break — Urban buzz &amp; skylines</div>
-                        <div class="custom-select-option" data-value="off_beaten"><i class="fas fa-map"></i> Off the Beaten Path — Hidden gems</div>
-                        <div class="custom-select-option" data-value="luxury_escape"><i class="fas fa-gem"></i> Luxury Escape — Five-star everything</div>
-                        <div class="custom-select-option" data-value="safari"><i class="fas fa-paw"></i> Safari &amp; Wildlife — Raw nature up close</div>
-                        <div class="custom-select-option" data-value="cruise"><i class="fas fa-ship"></i> Cruise — Sea views &amp; port hopping</div>
+                        <div class="custom-select-option" data-value="road_trip"><i class="fas fa-car"></i> Road Trip, open roads and freedom</div>
+                        <div class="custom-select-option" data-value="backpacking"><i class="fas fa-suitcase"></i> Backpacking, rough it and explore</div>
+                        <div class="custom-select-option" data-value="island_hopping"><i class="fas fa-water"></i> Island Hopping, sea and archipelagos</div>
+                        <div class="custom-select-option" data-value="city_break"><i class="fas fa-city"></i> City Break, urban buzz and skylines</div>
+                        <div class="custom-select-option" data-value="off_beaten"><i class="fas fa-map"></i> Off the Beaten Path, hidden gems</div>
+                        <div class="custom-select-option" data-value="luxury_escape"><i class="fas fa-gem"></i> Luxury Escape, five star everything</div>
+                        <div class="custom-select-option" data-value="safari"><i class="fas fa-paw"></i> Safari and Wildlife, raw nature up close</div>
+                        <div class="custom-select-option" data-value="cruise"><i class="fas fa-ship"></i> Cruise, sea views and port hopping</div>
 
                         <div class="custom-select-group">Seasonal &amp; Weather</div>
-                        <div class="custom-select-option" data-value="sun_seeker"><i class="fas fa-sun"></i> Sun Seeker — Heat &amp; beaches</div>
-                        <div class="custom-select-option" data-value="snow_lover"><i class="fas fa-snowflake"></i> Snow Lover — Skiing &amp; winter wonderlands</div>
-                        <div class="custom-select-option" data-value="autumn_vibes"><i class="fas fa-leaf"></i> Autumn Vibes — Foliage &amp; cosy escapes</div>
-                        <div class="custom-select-option" data-value="monsoon_magic"><i class="fas fa-cloud-rain"></i> Monsoon Magic — Lush greens &amp; rain</div>
-                        <div class="custom-select-option" data-value="northern_lights"><i class="fas fa-moon"></i> Aurora Chaser — Northern lights</div>
+                        <div class="custom-select-option" data-value="sun_seeker"><i class="fas fa-sun"></i> Sun Seeker, heat and beaches</div>
+                        <div class="custom-select-option" data-value="snow_lover"><i class="fas fa-snowflake"></i> Snow Lover, skiing and winter wonderlands</div>
+                        <div class="custom-select-option" data-value="autumn_vibes"><i class="fas fa-leaf"></i> Autumn Vibes, foliage and cosy escapes</div>
+                        <div class="custom-select-option" data-value="monsoon_magic"><i class="fas fa-cloud-rain"></i> Monsoon Magic, lush greens and rain</div>
+                        <div class="custom-select-option" data-value="northern_lights"><i class="fas fa-moon"></i> Aurora Chaser, northern lights</div>
 
                         <div class="custom-select-group">Learning &amp; Growth</div>
-                        <div class="custom-select-option" data-value="language"><i class="fas fa-language"></i> Language Immersion — Learn while travelling</div>
-                        <div class="custom-select-option" data-value="photography"><i class="fas fa-camera"></i> Photography Trip — Capture stunning moments</div>
-                        <div class="custom-select-option" data-value="volunteer"><i class="fas fa-hands-helping"></i> Volunteer Travel — Give back while exploring</div>
-                        <div class="custom-select-option" data-value="study_abroad"><i class="fas fa-graduation-cap"></i> Study Abroad — Education &amp; experience</div>
-                        <div class="custom-select-option" data-value="cooking_class"><i class="fas fa-utensils"></i> Culinary School — Cook like a local</div>
-                        <div class="custom-select-option" data-value="art_retreat"><i class="fas fa-paint-brush"></i> Art Retreat — Paint, sculpt &amp; create</div>
+                        <div class="custom-select-option" data-value="language"><i class="fas fa-language"></i> Language Immersion, learn while travelling</div>
+                        <div class="custom-select-option" data-value="photography"><i class="fas fa-camera"></i> Photography Trip, capture stunning moments</div>
+                        <div class="custom-select-option" data-value="volunteer"><i class="fas fa-hands-helping"></i> Volunteer Travel, give back while exploring</div>
+                        <div class="custom-select-option" data-value="study_abroad"><i class="fas fa-graduation-cap"></i> Study Abroad, education and experience</div>
+                        <div class="custom-select-option" data-value="cooking_class"><i class="fas fa-utensils"></i> Culinary School, cook like a local</div>
+                        <div class="custom-select-option" data-value="art_retreat"><i class="fas fa-paint-brush"></i> Art Retreat, paint, sculpt and create</div>
 
                         <div class="custom-select-group">Family &amp; Groups</div>
-                        <div class="custom-select-option" data-value="family_fun"><i class="fas fa-child"></i> Family Fun — Kids activities &amp; theme parks</div>
-                        <div class="custom-select-option" data-value="multigenerational"><i class="fas fa-users"></i> Multi-Generational — Everyone included</div>
-                        <div class="custom-select-option" data-value="honeymoon"><i class="fas fa-ring"></i> Honeymoon — Perfect romantic start</div>
-                        <div class="custom-select-option" data-value="girls_trip"><i class="fas fa-female"></i> Girls Trip — Friendship &amp; fun</div>
-                        <div class="custom-select-option" data-value="boys_trip"><i class="fas fa-male"></i> Boys Trip — Adventure &amp; bonding</div>
-                        <div class="custom-select-option" data-value="group_adventure"><i class="fas fa-mountain"></i> Group Adventure — Shared thrills</div>
+                        <div class="custom-select-option" data-value="family_fun"><i class="fas fa-child"></i> Family Fun, kids activities and theme parks</div>
+                        <div class="custom-select-option" data-value="multigenerational"><i class="fas fa-users"></i> Multi Generational, everyone included</div>
+                        <div class="custom-select-option" data-value="honeymoon"><i class="fas fa-ring"></i> Honeymoon, perfect romantic start</div>
+                        <div class="custom-select-option" data-value="girls_trip"><i class="fas fa-female"></i> Girls Trip, friendship and fun</div>
+                        <div class="custom-select-option" data-value="boys_trip"><i class="fas fa-male"></i> Boys Trip, adventure and bonding</div>
+                        <div class="custom-select-option" data-value="group_adventure"><i class="fas fa-mountain"></i> Group Adventure, shared thrills</div>
                     </div>
                     <input type="hidden" id="moodSelect" name="mood" value="adventurous">
                 </div>
@@ -129,9 +129,9 @@
             <div class="form-group">
                 <label><i class="fas fa-star"></i> Experience Level</label>
                 <select id="experienceSelect" name="experience">
-                    <option value="first_time">First-time traveller</option>
-                    <option value="occasional">Occasional traveller (1–2 trips/year)</option>
-                    <option value="regular">Regular traveller (3–5 trips/year)</option>
+                    <option value="first_time">First time traveller</option>
+                    <option value="occasional">Occasional traveller (1 to 2 trips/year)</option>
+                    <option value="regular">Regular traveller (3 to 5 trips/year)</option>
                     <option value="frequent">Frequent traveller (6+ trips/year)</option>
                 </select>
             </div>
@@ -175,7 +175,7 @@
                 <select id="budgetSelect" name="budget">
                     <option value="backpacker" data-usd-max="500">Backpacker</option>
                     <option value="budget" data-usd-min="500" data-usd-max="1500">Budget</option>
-                    <option value="mid" data-usd-min="1500" data-usd-max="4000">Mid-range</option>
+                    <option value="mid" data-usd-min="1500" data-usd-max="4000">Mid range</option>
                     <option value="premium" data-usd-min="4000" data-usd-max="8000">Premium</option>
                     <option value="luxury" data-usd-min="8000">Luxury</option>
                 </select>
@@ -196,7 +196,7 @@
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Preferred Region</label>
                 <select id="regionSelect" name="region">
-                    <option value="any">Anywhere — Surprise me!</option>
+                    <option value="any">Anywhere (surprise me!)</option>
                     <option value="europe">Europe</option>
                     <option value="southeast_asia">Southeast Asia</option>
                     <option value="east_asia">East Asia</option>
@@ -215,10 +215,10 @@
                     <option value="any">No preference</option>
                     <option value="hostel">Hostel / Budget guesthouse</option>
                     <option value="bnb">B&amp;B / Boutique hotel</option>
-                    <option value="hotel">3–4 star hotel</option>
-                    <option value="resort">5-star resort</option>
+                    <option value="hotel">3 to 4 star hotel</option>
+                    <option value="resort">5 star resort</option>
                     <option value="villa">Private villa / Airbnb</option>
-                    <option value="glamping">Glamping / Eco-lodge</option>
+                    <option value="glamping">Glamping / Eco lodge</option>
                 </select>
             </div>
             <div class="form-group">
@@ -328,22 +328,22 @@
     <h2 class="section-title">Explore By Travel Style</h2>
     <p class="section-subtitle">Find destinations that match your preferred travel experience</p>
     <div class="explore-categories">
-        <div class="category-card active-style" data-style="adventure" data-action="filterByStyle">
+        <div class="category-card is-active-style" data-trip-kind="adventure">
             <div class="category-icon"><i class="fas fa-hiking"></i></div>
             <h3>Adventure Travel</h3>
             <p>Hiking, trekking, and extreme sports destinations</p>
         </div>
-        <div class="category-card" data-style="beach" data-action="filterByStyle">
+        <div class="category-card" data-trip-kind="beach">
             <div class="category-icon"><i class="fas fa-umbrella-beach"></i></div>
             <h3>Beach &amp; Relaxation</h3>
             <p>Perfect spots for sunbathing and unwinding</p>
         </div>
-        <div class="category-card" data-style="cultural" data-action="filterByStyle">
+        <div class="category-card" data-trip-kind="cultural">
             <div class="category-icon"><i class="fas fa-landmark"></i></div>
             <h3>Cultural Immersion</h3>
             <p>Historical sites and cultural experiences</p>
         </div>
-        <div class="category-card" data-style="food" data-action="filterByStyle">
+        <div class="category-card" data-trip-kind="food">
             <div class="category-icon"><i class="fas fa-utensils"></i></div>
             <h3>Culinary Tours</h3>
             <p>Foodie paradises and cooking experiences</p>

@@ -4,6 +4,39 @@
     padding: 0 20px;
 }
 
+.accommodations-hero .hero-form-grid--stay {
+    grid-template-columns: minmax(280px, 2fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(160px, .75fr);
+    align-items: stretch;
+}
+
+.accommodations-hero .hero-form-grid--stay .form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.accommodations-hero .hero-form-grid--stay .form-group label {
+    min-height: 22px;
+    margin-bottom: 8px;
+}
+
+.accommodations-hero .hero-form-grid--stay .form-group--search label {
+    visibility: hidden;
+}
+
+.accommodations-hero .hero-form-grid--stay .form-input,
+.accommodations-hero .hero-form-grid--stay .hero-search-btn {
+    box-sizing: border-box;
+    height: 54px;
+    min-height: 54px;
+    width: 100%;
+}
+
+.accommodations-hero .hero-form-grid--stay .hero-search-btn {
+    margin-top: 0;
+    padding: 0 24px;
+}
+
 .filters {
     display: flex;
     gap: 12px;
@@ -480,6 +513,14 @@
 }
 
 @media (max-width: 900px) {
+    .accommodations-hero .hero-form-grid--stay {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .accommodations-hero .hero-form-grid--stay .form-group--search {
+        grid-column: 1 / -1;
+    }
+
     .location-panel {
         grid-template-columns: 1fr;
     }
@@ -492,6 +533,14 @@
 }
 
 @media (max-width: 600px) {
+    .accommodations-hero .hero-form-grid--stay {
+        grid-template-columns: 1fr;
+    }
+
+    .accommodations-hero .hero-form-grid--stay .form-group--search {
+        grid-column: auto;
+    }
+
     .filters {
         flex-direction: column;
     }
@@ -944,14 +993,14 @@
     background: var(--gold);
     color: var(--deep);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     text-decoration: none;
     transition: background .2s, box-shadow .2s;
     white-space: nowrap;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
     box-shadow: 0 2px 6px rgba(0,0,0,.12);
 }
 
@@ -1113,14 +1162,14 @@
     gap: 6px;
     padding: 7px 14px;
     border: 1.5px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-full);
     background: var(--card-bg);
     color: var(--text-muted);
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
     transition: border-color .2s, color .2s, background .2s;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
     flex-shrink: 0;
 }
 
@@ -1156,7 +1205,7 @@
     background: var(--cream);
     cursor: pointer;
     transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
     text-align: left;
 }
 

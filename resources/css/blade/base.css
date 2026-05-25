@@ -352,6 +352,10 @@ body {
     filter: brightness(0) invert(1);
 }
 
+.dash-logo-img-large {
+    height: 180px;
+}
+
 .dash-logo-text {
     font-size: 18px;
     font-weight: 700;
@@ -521,7 +525,7 @@ body {
 }
 
 .logo {
-    height: 105px;
+    height: 150px;
     width: auto;
     min-width: 60px;
     object-fit: contain;
@@ -534,7 +538,7 @@ body {
 }
 
 .logo-text {
-    font-size: 26px;
+    font-size: 36px;
     font-weight: 700;
     color: #fff;
     letter-spacing: .5px;
@@ -592,17 +596,17 @@ body {
 .nav-bar-desktop {
     display: flex;
     justify-content: center;
-    background: linear-gradient(135deg, var(--deep), var(--deep-alt));
+    background: linear-gradient(135deg, var(--gold) 0%, var(--primary-light) 100%);
     padding: 8px 20px;
     flex-wrap: wrap;
-    border-bottom: 1px solid rgba(201, 169, 110, .15);
+    border-bottom: 1px solid rgba(59, 31, 43, .16);
     gap: 4px;
 }
 
 .nav-bar-desktop a,
 .nav-bar-desktop button {
     text-decoration: none;
-    color: var(--text-sub);
+    color: var(--deep);
     font-size: 14px;
     font-weight: 600;
     padding: 8px 16px;
@@ -617,8 +621,8 @@ body {
 
 .nav-bar-desktop a:hover,
 .nav-bar-desktop a.active {
-    background: rgba(201, 169, 110, .15);
-    color: var(--gold);
+    background: rgba(59, 31, 43, .14);
+    color: var(--deep);
 }
 
 .nav-hamburger {
@@ -650,10 +654,11 @@ body {
     align-items: center;
     justify-content: flex-start;
     gap: 4px 6px;
-    background: linear-gradient(135deg, var(--deep) 0%, var(--deep-alt) 100%);
+    background: linear-gradient(135deg, var(--gold) 0%, var(--primary-light) 100%);
     padding: 8px 20px;
     flex-wrap: wrap;
-    border-bottom: 1px solid rgba(201, 169, 110, .15);
+    border-bottom: 1px solid rgba(59, 31, 43, .16);
+    box-shadow: 0 4px 18px rgba(59, 31, 43, .10);
 }
 
 .nav-group {
@@ -666,7 +671,7 @@ body {
 .nav-group-account {
     padding-left: 12px;
     margin-left: 8px;
-    border-left: 1px solid rgba(201, 169, 110, .2);
+    border-left: 1px solid rgba(59, 31, 43, .2);
 }
 
 .nav-group-utils {
@@ -679,10 +684,21 @@ body {
     margin-left: 0;
 }
 
+.nav-group-utils .currency-btn {
+    background: rgba(59, 31, 43, .12);
+    border-color: rgba(59, 31, 43, .32);
+    color: var(--deep);
+}
+
+.nav-group-utils .currency-btn:hover {
+    background: rgba(59, 31, 43, .2);
+    border-color: rgba(59, 31, 43, .48);
+}
+
 .nav-container a,
 .nav-container button {
     text-decoration: none;
-    color: var(--text-sub);
+    color: var(--deep);
     font-size: 14px;
     font-weight: 600;
     padding: 8px 16px;
@@ -700,8 +716,8 @@ body {
 .nav-container a:hover,
 .nav-container a.active,
 .nav-container button:hover {
-    background: rgba(201, 169, 110, .15);
-    color: var(--gold);
+    background: rgba(59, 31, 43, .14);
+    color: var(--deep);
 }
 
 .nav-container form {
@@ -800,7 +816,7 @@ body {
 }
 
 .mob-logo {
-    height: 85px;
+    height: 122px;
     width: auto;
     filter: brightness(0) invert(1);
 }
@@ -1028,7 +1044,7 @@ body {
     color: #fff;
     border: none;
     padding: 13px 32px;
-    border-radius: 12px;
+    border-radius: var(--radius-full);
     cursor: pointer;
     font-weight: 600;
     font-size: 15px;
@@ -1058,7 +1074,7 @@ body {
     color: var(--deep);
     border: 2px solid var(--deep);
     padding: 11px 26px;
-    border-radius: 12px;
+    border-radius: var(--radius-full);
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;

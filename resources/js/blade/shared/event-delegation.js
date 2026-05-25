@@ -66,7 +66,10 @@ export function initEventDelegation() {
 function handleAction(action, params, element, event) {
     // Navigation actions
     if (action === 'navigate') {
-        const url = params.url || element.dataset.url;
+        let url = params.url || element.dataset.url;
+        if (url && window.PlanTripContext && String(url).includes('/plan-trip')) {
+            url = window.PlanTripContext.buildUrl(url);
+        }
         if (url) window.location.href = url;
         return;
     }

@@ -22,25 +22,50 @@ class LandingController extends Controller
 
     public function destinations(): JsonResponse
     {
-        if (Destination::active()->count() < config('api.pagination.per_page', 16)) {
+        $limit = config('api.pagination.per_page', 16);
+
+        if (Destination::active()->count() < $limit) {
             $this->fetchAndStoreFeaturedDestinations();
         }
 
-        $destinations = Destination::active()
-            ->ordered()
-            ->limit(config('api.pagination.per_page', 16))
-            ->get()
-            ->map(fn (Destination $destination) => $this->format($destination))
-            ->values()
-            ->all();
+        $destinations = $this->uniqueCountryDestinations($limit);
+
+        if (count($destinations) < $limit) {
+            $this->fetchAndStoreFeaturedDestinations($limit * 3);
+            $destinations = $this->uniqueCountryDestinations($limit);
+        }
 
         return response()->json(['destinations' => $destinations]);
     }
 
-    private function fetchAndStoreFeaturedDestinations(): void
+    private function uniqueCountryDestinations(int $limit): array
+    {
+        $seenCountries = [];
+
+        return Destination::active()
+            ->ordered()
+            ->limit($limit * 4)
+            ->get()
+            ->filter(function (Destination $destination) use (&$seenCountries) {
+                $countryKey = strtolower(trim($destination->country_code ?: $destination->country ?: $destination->region ?: $destination->name));
+
+                if (isset($seenCountries[$countryKey])) {
+                    return false;
+                }
+
+                $seenCountries[$countryKey] = true;
+                return true;
+            })
+            ->take($limit)
+            ->map(fn (Destination $destination) => $this->format($destination))
+            ->values()
+            ->all();
+    }
+
+    private function fetchAndStoreFeaturedDestinations(?int $limit = null): void
     {
         try {
-            $limit = config('api.pagination.per_page', 16);
+            $limit ??= config('api.pagination.per_page', 16);
             $places = $this->geoapify->searchDestinations('travel destination', null, null, $limit);
 
             foreach ($places as $index => $place) {

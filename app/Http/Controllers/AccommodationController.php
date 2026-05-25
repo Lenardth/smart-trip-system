@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Accommodation;
 use App\Models\AccommodationSearch;
+use App\Models\ApiResponse;
 use App\Contracts\GeoapifyInterface;
 use App\Contracts\AccommodationPricingInterface;
 use Illuminate\Http\JsonResponse;
@@ -42,6 +43,26 @@ class AccommodationController extends Controller
             $budgetTier = null;
         }
 
+        $requestPayload = [
+            'query'       => $q,
+            'style'       => $style,
+            'budget_tier' => $budgetTier,
+        ];
+        $searchHash = $this->searchHash($requestPayload);
+
+        $cached = AccommodationSearch::where('search_hash', $searchHash)
+            ->whereNotNull('response_payload')
+            ->where('created_at', '>=', now()->subDay())
+            ->latest()
+            ->first();
+
+        if ($cached) {
+            $results = $cached->response_payload['accommodations'] ?? [];
+            $this->logSearch($request, $q, $style, $budgetTier, $results, $searchHash, true, $requestPayload);
+
+            return response()->json(['accommodations' => $results, 'cached' => true]);
+        }
+
         if (!$q || strlen($q) < 2) {
             $results = Accommodation::active()
                 ->when($style,      fn($q) => $q->byStyle($style))
@@ -51,7 +72,9 @@ class AccommodationController extends Controller
                 ->map(fn($a) => $this->format($a->toArray()))
                 ->toArray();
 
-            return response()->json(['accommodations' => $results]);
+            $this->logSearch($request, $q, $style, $budgetTier, $results, $searchHash, false, $requestPayload);
+
+            return response()->json(['accommodations' => $results, 'cached' => false]);
         }
 
         $city = trim($q);
@@ -68,9 +91,9 @@ class AccommodationController extends Controller
             ->map(fn($a) => $this->format($a->toArray()))
             ->toArray();
 
-        $this->logSearch($request, $q, $style, $budgetTier, count($results));
+        $this->logSearch($request, $q, $style, $budgetTier, $results, $searchHash, false, $requestPayload);
 
-        return response()->json(['accommodations' => $results]);
+        return response()->json(['accommodations' => $results, 'cached' => false]);
     }
 
     public function searches(): JsonResponse
@@ -156,38 +179,52 @@ class AccommodationController extends Controller
         $key = config('services.pexels.api_key');
 
         if ($key) {
-            try {
-                $response = Http::timeout(5)
-                    ->withHeaders(['Authorization' => $key])
-                    ->get(config('services.pexels.search_endpoint'), [
-                        'query'       => "{$city} hotel",
-                        'per_page'    => 5,
-                        'orientation' => 'landscape',
-                    ]);
+            $pexels = ApiResponse::remember('pexels', 'accommodation_image', [
+                'city' => $city,
+            ], now()->addDay(), function () use ($key, $city) {
+                try {
+                    $response = Http::timeout(5)
+                        ->withHeaders(['Authorization' => $key])
+                        ->get(config('services.pexels.search_endpoint'), [
+                            'query'       => "{$city} hotel",
+                            'per_page'    => 5,
+                            'orientation' => 'landscape',
+                        ]);
 
-                if ($response->successful()) {
-                    $photos = $response->json()['photos'] ?? [];
-                    if (!empty($photos)) {
-                        $photo = $photos[array_rand($photos)];
-                        return $photo['src']['large'] ?? $photo['src']['original'];
-                    }
+                    return $response->successful() ? $response->json() : null;
+                } catch (\Throwable $e) {
+                    Log::warning('Pexels image fetch failed', ['error' => $e->getMessage()]);
+                    return null;
                 }
-            } catch (\Throwable $e) {
-                Log::warning('Pexels image fetch failed', ['error' => $e->getMessage()]);
+            });
+
+            $photos = $pexels['photos'] ?? [];
+            if (!empty($photos)) {
+                $photo = $photos[array_rand($photos)];
+                return $photo['src']['large'] ?? $photo['src']['original'];
             }
         }
 
-        try {
-            $response = Http::timeout(5)
-                ->get('https://en.wikipedia.org/api/rest_v1/page/summary/' . urlencode($city));
+        $wiki = ApiResponse::remember('wikipedia', 'accommodation_city_summary', [
+            'city' => $city,
+        ], now()->addDays(30), function () use ($city) {
+            try {
+                $response = Http::timeout(5)
+                    ->get('https://en.wikipedia.org/api/rest_v1/page/summary/' . urlencode($city));
 
-            if ($response->successful()) {
-                $data = $response->json();
-                if (!empty($data['originalimage']['source'])) return $data['originalimage']['source'];
-                if (!empty($data['thumbnail']['source']))     return $data['thumbnail']['source'];
+                return $response->successful() ? $response->json() : null;
+            } catch (\Throwable $e) {
+                Log::warning('Wikipedia image fetch failed', ['error' => $e->getMessage()]);
+                return null;
             }
-        } catch (\Throwable $e) {
-            Log::warning('Wikipedia image fetch failed', ['error' => $e->getMessage()]);
+        });
+
+        if (!empty($wiki['originalimage']['source'])) {
+            return $wiki['originalimage']['source'];
+        }
+
+        if (!empty($wiki['thumbnail']['source'])) {
+            return $wiki['thumbnail']['source'];
         }
 
         return config('api.image_fallback.base_url') . '?' . urlencode("{$city} hotel");
@@ -226,38 +263,124 @@ class AccommodationController extends Controller
     {
         $validated = $request->validate(['q' => 'required|string|max:120']);
         $query     = trim($validated['q']);
-        $apiKey    = config('services.gnews.api_key');
-
-        if (!$apiKey) {
-            return response()->json(['articles' => []]);
-        }
 
         try {
-            $response = Http::timeout(8)
-                ->get('https://gnews.io/api/v4/search', [
-                    'q'      => $query,
-                    'lang'   => 'en',
-                    'max'    => 6,
-                    'token'  => $apiKey,
-                ]);
+            $articles = $this->fetchNewsArticles($query);
 
-            if (!$response->successful()) {
-                return response()->json(['articles' => []]);
+            if (empty($articles)) {
+                $articles = $this->fallbackNewsArticles($query);
             }
 
-            $articles = collect($response->json('articles', []))->map(fn ($a) => [
-                'title'       => $a['title']       ?? '',
-                'description' => $a['description'] ?? '',
-                'url'         => $a['url']          ?? '#',
-                'publishedAt' => $a['publishedAt']  ?? null,
-                'source'      => ['name' => $a['source']['name'] ?? ''],
-            ])->values()->all();
-
-            return response()->json(['articles' => $articles]);
+            return response()->json([
+                'articles' => $articles,
+                'query'    => $query,
+            ]);
         } catch (\Throwable $e) {
             Log::warning('GNews fetch failed', ['error' => $e->getMessage()]);
-            return response()->json(['articles' => []]);
+
+            return response()->json([
+                'articles' => $this->fallbackNewsArticles($query),
+                'query'    => $query,
+            ]);
         }
+    }
+
+    private function fetchNewsArticles(string $query): array
+    {
+        $providers = [
+            'gnews' => config('services.gnews.api_key'),
+            'newsapi' => config('services.newsapi.key'),
+        ];
+
+        foreach ($providers as $provider => $apiKey) {
+            if (!$apiKey) {
+                continue;
+            }
+
+            $payload = ApiResponse::remember($provider, 'accommodation_news', [
+                'query' => $query,
+                'lang'  => 'en',
+                'max'   => 6,
+            ], now()->addHours(6), function () use ($provider, $query, $apiKey) {
+                return $provider === 'newsapi'
+                    ? $this->requestNewsApiArticles($query, $apiKey)
+                    : $this->requestGNewsArticles($query, $apiKey);
+            });
+
+            $articles = $this->normalizeNewsArticles($payload['articles'] ?? []);
+
+            if (!empty($articles)) {
+                return $articles;
+            }
+        }
+
+        return [];
+    }
+
+    private function requestGNewsArticles(string $query, string $apiKey): array
+    {
+        $response = Http::timeout(8)
+            ->get('https://gnews.io/api/v4/search', [
+                'q'     => $query,
+                'lang'  => 'en',
+                'max'   => 6,
+                'token' => $apiKey,
+            ]);
+
+        return $response->successful() ? $response->json() : ['articles' => []];
+    }
+
+    private function requestNewsApiArticles(string $query, string $apiKey): array
+    {
+        $response = Http::timeout(8)
+            ->get('https://newsapi.org/v2/everything', [
+                'q'        => $query,
+                'language' => 'en',
+                'pageSize' => 6,
+                'sortBy'   => 'publishedAt',
+                'apiKey'   => $apiKey,
+            ]);
+
+        return $response->successful() ? $response->json() : ['articles' => []];
+    }
+
+    private function normalizeNewsArticles(array $articles): array
+    {
+        return collect($articles)
+            ->map(fn ($a) => [
+                'title'       => trim((string) ($a['title'] ?? '')),
+                'description' => trim((string) ($a['description'] ?? '')),
+                'url'         => $a['url'] ?? '#',
+                'publishedAt' => $a['publishedAt'] ?? null,
+                'source'      => ['name' => $a['source']['name'] ?? 'Travel News'],
+            ])
+            ->filter(fn ($a) => $a['title'] !== '')
+            ->values()
+            ->take(6)
+            ->all();
+    }
+
+    private function fallbackNewsArticles(string $query): array
+    {
+        $topic = preg_replace('/\s+/', ' ', trim($query)) ?: 'travel';
+        $publishedAt = now()->toIso8601String();
+
+        return [
+            [
+                'title'       => "Travel updates for {$topic}",
+                'description' => 'Live news could not be reached right now. Open the source link to check current local travel headlines before booking.',
+                'url'         => 'https://news.google.com/search?q=' . urlencode($topic),
+                'publishedAt' => $publishedAt,
+                'source'      => ['name' => 'Google News'],
+            ],
+            [
+                'title'       => "Visitor information for {$topic}",
+                'description' => 'Check transport, accommodation, local events, and safety notices close to your travel dates.',
+                'url'         => 'https://www.google.com/search?q=' . urlencode($topic . ' official tourism'),
+                'publishedAt' => $publishedAt,
+                'source'      => ['name' => 'Smart Trip'],
+            ],
+        ];
     }
 
     public function travelWarning(Request $request): JsonResponse
@@ -271,21 +394,25 @@ class AccommodationController extends Controller
         }
 
         try {
-            $response = Http::timeout(8)
-                ->get('https://gnews.io/api/v4/search', [
-                    'q'      => "{$city} travel safety warning",
-                    'lang'   => 'en',
-                    'max'    => 4,
-                    'token'  => $apiKey,
-                ]);
+            $payload = ApiResponse::remember('gnews', 'travel_warning', [
+                'city' => $city,
+                'lang' => 'en',
+                'max' => 4,
+            ], now()->addHours(6), function () use ($city, $apiKey) {
+                $response = Http::timeout(8)
+                    ->get('https://gnews.io/api/v4/search', [
+                        'q'      => "{$city} travel safety warning",
+                        'lang'   => 'en',
+                        'max'    => 4,
+                        'token'  => $apiKey,
+                    ]);
 
-            if (!$response->successful()) {
-                return response()->json(['warnings' => []]);
-            }
+                return $response->successful() ? $response->json() : ['articles' => []];
+            });
 
             $safetyKeywords = ['warning', 'alert', 'unrest', 'protest', 'danger', 'safety', 'advisory', 'risk', 'attack', 'strike'];
 
-            $warnings = collect($response->json('articles', []))
+            $warnings = collect($payload['articles'] ?? [])
                 ->filter(function ($a) use ($safetyKeywords) {
                     $text = strtolower(($a['title'] ?? '') . ' ' . ($a['description'] ?? ''));
                     foreach ($safetyKeywords as $kw) {
@@ -309,24 +436,37 @@ class AccommodationController extends Controller
         }
     }
 
-    private function logSearch(Request $request, string $q, ?string $style, ?string $budgetTier, int $count): void
+    private function searchHash(array $payload): string
+    {
+        ksort($payload);
+
+        return hash('sha256', json_encode($payload));
+    }
+
+    private function logSearch(
+        Request $request,
+        string $q,
+        ?string $style,
+        ?string $budgetTier,
+        array $results,
+        string $searchHash,
+        bool $cacheHit,
+        array $requestPayload
+    ): void
     {
         try {
-            $alreadyLogged = AccommodationSearch::where('user_id', Auth::id())
-                ->where('query', $q)
-                ->whereDate('created_at', now()->toDateString())
-                ->exists();
-
-            if (!$alreadyLogged) {
-                AccommodationSearch::create([
-                    'user_id'       => Auth::id(),
-                    'query'         => $q,
-                    'style'         => $style,
-                    'budget_tier'   => $budgetTier,
-                    'results_count' => $count,
-                    'ip_address'    => $request->ip(),
-                ]);
-            }
+            AccommodationSearch::create([
+                'user_id'          => Auth::id(),
+                'search_hash'      => $searchHash,
+                'request_payload'  => $requestPayload,
+                'response_payload' => ['accommodations' => $results],
+                'query'            => $q ?: 'all',
+                'style'            => $style,
+                'budget_tier'      => $budgetTier,
+                'results_count'    => count($results),
+                'cache_hit'        => $cacheHit,
+                'ip_address'       => $request->ip(),
+            ]);
         } catch (\Throwable $e) {
             Log::warning('AccommodationSearch log failed: ' . $e->getMessage());
         }

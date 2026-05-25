@@ -33,7 +33,7 @@ window.__dashboardConfig = window.__dashboardConfig || {
     var BUDGET_LABELS = {
         backpacker: 'Backpacker',
         budget: 'Budget',
-        mid: 'Mid-Range',
+        mid: 'Mid Range',
         premium: 'Premium',
         luxury: 'Luxury'
     };
@@ -184,11 +184,9 @@ window.__dashboardConfig = window.__dashboardConfig || {
                     '<div class="activity-item clickable" data-action="navigate" data-url="' +
                     (a.url || '#') +
                     '">' +
-                    '<div class="activity-icon" style="background:' +
-                    (a.color || 'var(--gold)') +
-                    '22;color:' +
-                    (a.color || 'var(--gold)') +
-                    ';">' +
+                    '<div class="activity-icon" data-activity-color="' +
+                    escapeHtml(a.color || '#c9a96e') +
+                    '">' +
                     '<i class="fas ' +
                     (a.icon || 'fa-circle') +
                     '"></i>' +
@@ -206,6 +204,12 @@ window.__dashboardConfig = window.__dashboardConfig || {
                 );
             })
             .join('');
+
+        section.querySelectorAll('.activity-icon[data-activity-color]').forEach(function(icon) {
+            const color = icon.dataset.activityColor || '#c9a96e';
+            icon.style.background = color + '22';
+            icon.style.color = color;
+        });
     }
 
     function renderTrips(trips) {

@@ -11,7 +11,7 @@
                 <img src="{{ asset('storage/'.Auth::user()->profile_picture) }}"
                      alt="{{ Auth::user()->name }}"
                      class="nav-avatar-img"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                     data-error-action="hide-show-next">
                 <span class="nav-avatar-init nav-avatar-init--hidden">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>
             @else
                 <span class="nav-avatar-init">{{ strtoupper(substr(Auth::user()->name,0,1)) }}</span>

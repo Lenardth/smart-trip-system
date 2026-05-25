@@ -92,7 +92,7 @@
         const btn = document.createElement('button');
         btn.type      = 'button';
         btn.className = 'currency-btn';
-        btn.innerHTML = '<i class="fas fa-coins"></i> <span data-currency-label>' + _currency + '</span> <i class="fas fa-chevron-down" style="font-size:10px;"></i>';
+        btn.innerHTML = '<i class="fas fa-coins"></i> <span data-currency-label>' + _currency + '</span> <i class="fas fa-chevron-down currency-chevron"></i>';
 
         const dropdown = document.createElement('div');
         dropdown.className = 'currency-dropdown';

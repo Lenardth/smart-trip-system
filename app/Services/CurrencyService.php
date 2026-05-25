@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\CurrencyServiceInterface;
+use App\Models\ApiResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,20 +14,28 @@ class CurrencyService implements CurrencyServiceInterface
     {
         $ttl = config('currencies.cache_ttl');
 
-        return Cache::remember("exchange_rates_{$base}", $ttl, function () use ($base) {
-            try {
-                $url      = config('currencies.api_url') . "/{$base}";
-                $response = Http::timeout(10)->get($url);
+        return Cache::remember("exchange_rates_{$base}", $ttl, function () use ($base, $ttl) {
+            $stored = ApiResponse::remember('currency', 'rates', ['base' => $base], now()->addSeconds($ttl), function () use ($base) {
+                try {
+                    $url      = config('currencies.api_url') . "/{$base}";
+                    $response = Http::timeout(10)->get($url);
 
-                if ($response->successful() && ($response->json()['result'] ?? '') === 'success') {
-                    return [
-                        'base'       => $base,
-                        'rates'      => $response->json()['rates'] ?? [],
-                        'updated_at' => $response->json()['time_last_update_utc'] ?? now()->toISOString(),
-                    ];
+                    if ($response->successful() && ($response->json()['result'] ?? '') === 'success') {
+                        return [
+                            'base'       => $base,
+                            'rates'      => $response->json()['rates'] ?? [],
+                            'updated_at' => $response->json()['time_last_update_utc'] ?? now()->toISOString(),
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('CurrencyService: failed to fetch rates', ['error' => $e->getMessage()]);
                 }
-            } catch (\Throwable $e) {
-                Log::warning('CurrencyService: failed to fetch rates', ['error' => $e->getMessage()]);
+
+                return null;
+            });
+
+            if ($stored) {
+                return $stored;
             }
 
             return [

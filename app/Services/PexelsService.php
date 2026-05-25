@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ApiResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -25,29 +26,35 @@ class PexelsService
         $cacheKey = 'pexels_' . md5("{$query}_{$perPage}_{$orientation}");
 
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($query, $perPage, $orientation) {
-            try {
-                $timeout  = config('services.pexels.timeout', 6);
-                $response = Http::timeout($timeout)
-                    ->withHeaders(['Authorization' => $this->apiKey])
-                    ->get("{$this->baseUrl}/search", [
-                        'query'       => $query,
-                        'per_page'    => $perPage,
-                        'orientation' => $orientation,
+            return ApiResponse::remember('pexels', 'search', [
+                'query'       => $query,
+                'per_page'    => $perPage,
+                'orientation' => $orientation,
+            ], now()->addDay(), function () use ($query, $perPage, $orientation) {
+                try {
+                    $timeout  = config('services.pexels.timeout', 6);
+                    $response = Http::timeout($timeout)
+                        ->withHeaders(['Authorization' => $this->apiKey])
+                        ->get("{$this->baseUrl}/search", [
+                            'query'       => $query,
+                            'per_page'    => $perPage,
+                            'orientation' => $orientation,
+                        ]);
+
+                    if ($response->successful()) {
+                        return $response->json();
+                    }
+
+                    Log::warning('Pexels search failed', [
+                        'query'  => $query,
+                        'status' => $response->status(),
                     ]);
-
-                if ($response->successful()) {
-                    return $response->json();
+                    return null;
+                } catch (\Exception $e) {
+                    Log::warning('Pexels exception', ['query' => $query, 'error' => $e->getMessage()]);
+                    return null;
                 }
-
-                Log::warning('Pexels search failed', [
-                    'query'  => $query,
-                    'status' => $response->status(),
-                ]);
-                return null;
-            } catch (\Exception $e) {
-                Log::warning('Pexels exception', ['query' => $query, 'error' => $e->getMessage()]);
-                return null;
-            }
+            });
         });
     }
 

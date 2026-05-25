@@ -12,17 +12,24 @@ class DestinationSearch extends Model
 
     protected $fillable = [
         'user_id',
+        'search_hash',
+        'request_payload',
+        'response_payload',
         'query',
         'resolved_query',
         'region_code',
         'mood',
         'results_count',
+        'cache_hit',
         'ip_address',
         'source',
     ];
 
     protected $casts = [
-        'results_count' => 'integer',
+        'request_payload'  => 'array',
+        'response_payload' => 'array',
+        'results_count'    => 'integer',
+        'cache_hit'        => 'boolean',
     ];
 
     public function user(): BelongsTo

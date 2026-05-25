@@ -251,6 +251,45 @@
     font-size: 18px;
 }
 
+.review-dialog {
+    text-align: left;
+    padding: 10px 0;
+}
+
+.review-dialog-text {
+    margin: 0 0 12px;
+    color: #6b5b4f;
+}
+
+.review-stars {
+    display: flex;
+    gap: 6px;
+    font-size: 28px;
+    margin-bottom: 16px;
+    justify-content: center;
+}
+
+.review-star {
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: color .15s;
+}
+
+.review-star.selected {
+    color: var(--gold);
+}
+
+.review-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #e2d5c7;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
 .stats-strip {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

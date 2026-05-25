@@ -5,7 +5,7 @@
         </button>
 
         <a href="{{ route('dashboard') }}" class="dash-logo-link">
-            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="dash-logo-img">
+            <img src="{{ asset('img/logo.png') }}" alt="Smart Booking" class="dash-logo-img {{ request()->routeIs('dashboard') ? 'dash-logo-img-dashboard' : 'dash-logo-img-large' }}">
         </a>
     </div>
 

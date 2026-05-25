@@ -1,11 +1,44 @@
 {
+  "_typeof-B5XbjTb1.js": {
+    "file": "assets/typeof-B5XbjTb1.js",
+    "name": "typeof"
+  },
+  "node_modules/canvg/lib/index.es.js": {
+    "file": "assets/index.es-D9eYDsBr.js",
+    "name": "index.es",
+    "src": "node_modules/canvg/lib/index.es.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_typeof-B5XbjTb1.js"
+    ]
+  },
+  "node_modules/dompurify/dist/purify.es.mjs": {
+    "file": "assets/purify.es-BHEQZ2W4.js",
+    "name": "purify.es",
+    "src": "node_modules/dompurify/dist/purify.es.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/html2canvas/dist/html2canvas.js": {
+    "file": "assets/html2canvas-DlM-n_bP.js",
+    "name": "html2canvas",
+    "src": "node_modules/html2canvas/dist/html2canvas.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
   "resources/css/app.css": {
-    "file": "assets/app-DgmPq-qa.css",
+    "file": "assets/app-CoLFCcps.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-KsTraC2I.js",
+    "file": "assets/app-BbB6wBnR.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -18,62 +51,70 @@
       "resources/js/blade/bookings/index.js",
       "resources/js/blade/flights/index.js",
       "resources/js/blade/auth/login.js",
-      "resources/js/blade/auth/register.js",
-      "resources/js/blade/auth/login.js"
+      "resources/js/blade/auth/register.js"
     ]
   },
   "resources/js/blade/accommodations/index.js": {
-    "file": "assets/index-BbkVL8_G.js",
-    "name": "index",
+    "file": "assets/accommodations-DfsIASom.js",
+    "name": "accommodations",
     "src": "resources/js/blade/accommodations/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/auth/login.js": {
-    "file": "assets/login-oiJ-P-V3.js",
+    "file": "assets/login-DSMb_Awx.js",
     "name": "login",
     "src": "resources/js/blade/auth/login.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/auth/register.js": {
-    "file": "assets/register-CVfyBz9V.js",
+    "file": "assets/register-7175vT4o.js",
     "name": "register",
     "src": "resources/js/blade/auth/register.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/bookings/index.js": {
-    "file": "assets/index-DInHiKX3.js",
-    "name": "index",
+    "file": "assets/bookings-DsV68R6X.js",
+    "name": "bookings",
     "src": "resources/js/blade/bookings/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/dashboard/index.js": {
-    "file": "assets/index-BFbPEbka.js",
-    "name": "index",
+    "file": "assets/dashboard-tbzzKZu2.js",
+    "name": "dashboard",
     "src": "resources/js/blade/dashboard/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/discover/index.js": {
-    "file": "assets/index-CDavixOO.js",
-    "name": "index",
+    "file": "assets/discover-CgpuwFTY.js",
+    "name": "discover",
     "src": "resources/js/blade/discover/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/flights/index.js": {
-    "file": "assets/index-BSduklfI.js",
-    "name": "index",
+    "file": "assets/flights-Co-jWqy9.js",
+    "name": "flights",
     "src": "resources/js/blade/flights/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/landing/index.js": {
-    "file": "assets/index-CQEFUu53.js",
-    "name": "index",
+    "file": "assets/landing-CL6v-nyB.js",
+    "name": "landing",
     "src": "resources/js/blade/landing/index.js",
     "isDynamicEntry": true
   },
   "resources/js/blade/plan-trip/index.js": {
-    "file": "assets/index-CPGvRdVh.js",
-    "name": "index",
+    "file": "assets/plan-trip-CnImnpub.js",
+    "name": "plan-trip",
     "src": "resources/js/blade/plan-trip/index.js",
-    "isDynamicEntry": true
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_typeof-B5XbjTb1.js"
+    ],
+    "dynamicImports": [
+      "node_modules/html2canvas/dist/html2canvas.js",
+      "node_modules/dompurify/dist/purify.es.mjs",
+      "node_modules/canvg/lib/index.es.js"
+    ]
   }
 }

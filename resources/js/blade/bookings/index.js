@@ -10,18 +10,6 @@ function toggleDetail(id) {
     }
 }
 
-function toggleDetailDemo(id) {
-    const row = document.getElementById('detail-' + id);
-    if (!row) return;
-    row.classList.toggle('open');
-    const btn = row.previousElementSibling.querySelector('[onclick*="toggleDetailDemo"]');
-    if (btn) {
-        const icon = btn.querySelector('i');
-        icon.classList.toggle('fa-chevron-down');
-        icon.classList.toggle('fa-chevron-up');
-    }
-}
-
 function filterBookings(filter) {
     document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
     document.querySelector('[data-filter="' + filter + '"]').classList.add('active');
@@ -60,77 +48,29 @@ function sortBookings() {
     cards.forEach(c => list.appendChild(c));
 }
 
-function downloadTicketDemo() {
-    Swal.fire({
-        title: 'Downloading Ticket',
-        text: 'Your e-ticket is being prepared…',
-        icon: 'success',
-        confirmButtonColor: '#c9a96e',
-        timer: 2000,
-        showConfirmButton: false
-    });
-}
-
-function cancelDemo() {
-    Swal.fire({
-        title: 'Cancel Booking?',
-        text: 'This action cannot be undone. Cancellation fees may apply.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#f44336',
-        cancelButtonColor: '#c9a96e',
-        confirmButtonText: 'Yes, cancel it',
-        cancelButtonText: 'Keep Booking'
-    }).then(r => {
-        if (r.isConfirmed) {
-            Swal.fire({ title: 'Booking Cancelled', icon: 'success', confirmButtonColor: '#c9a96e' });
-        }
-    });
-}
-
-function rebookDemo() {
-    window.location.href = '/flights';
-}
-
-function leaveReviewDemo() {
-    Swal.fire({
-        title: 'Leave a Review',
-        html: `
-            <div style="text-align:left;padding:10px 0;">
-                <p style="margin-bottom:12px;color:#6b5b4f;">How was your Bali trip?</p>
-                <div style="display:flex;gap:6px;font-size:28px;margin-bottom:16px;justify-content:center;" id="starRating">
-                    <i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRating(1)"></i>
-                    <i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRating(2)"></i>
-                    <i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRating(3)"></i>
-                    <i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRating(4)"></i>
-                    <i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRating(5)"></i>
-                </div>
-                <textarea style="width:100%;min-height:100px;padding:10px;border:1px solid #e2d5c7;border-radius:8px;font-family:inherit;font-size:14px;" placeholder="Share your experience…"></textarea>
-            </div>`,
-        confirmButtonColor: '#c9a96e',
-        confirmButtonText: 'Submit Review',
-        showCancelButton: true
-    });
-}
-
 function leaveReview(id) {
     Swal.fire({
         title: 'Leave a Review',
         html:
-            '<div style="text-align:left;padding:10px 0;">' +
-                '<p style="margin-bottom:12px;color:#6b5b4f;">How was your trip?</p>' +
-                '<div style="display:flex;gap:6px;font-size:28px;margin-bottom:16px;justify-content:center;" id="starRatingReal">' +
-                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(1)"></i>' +
-                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(2)"></i>' +
-                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(3)"></i>' +
-                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(4)"></i>' +
-                    '<i class="fas fa-star" style="color:#e0e0e0;cursor:pointer;" onclick="setRatingReal(5)"></i>' +
+            '<div class="review-dialog">' +
+                '<p class="review-dialog-text">How was your trip?</p>' +
+                '<div class="review-stars" id="starRatingReal">' +
+                    '<i class="fas fa-star review-star" data-rating="1"></i>' +
+                    '<i class="fas fa-star review-star" data-rating="2"></i>' +
+                    '<i class="fas fa-star review-star" data-rating="3"></i>' +
+                    '<i class="fas fa-star review-star" data-rating="4"></i>' +
+                    '<i class="fas fa-star review-star" data-rating="5"></i>' +
                 '</div>' +
-                '<textarea id="reviewComment" style="width:100%;min-height:100px;padding:10px;border:1px solid #e2d5c7;border-radius:8px;font-family:inherit;font-size:14px;" placeholder="Share your experience…"></textarea>' +
+                '<textarea id="reviewComment" class="review-textarea" placeholder="Share your experience…"></textarea>' +
             '</div>',
         confirmButtonColor: '#c9a96e',
         confirmButtonText: 'Submit Review',
-        showCancelButton: true
+        showCancelButton: true,
+        didOpen: () => {
+            document.querySelectorAll('#starRatingReal .review-star').forEach(star => {
+                star.addEventListener('click', () => setRatingReal(Number(star.dataset.rating)));
+            });
+        }
     }).then(r => {
         if (!r.isConfirmed) return;
         
@@ -147,19 +87,13 @@ function leaveReview(id) {
 
 function setRatingReal(n) {
     document.querySelectorAll('#starRatingReal i').forEach((s, i) => {
-        s.style.color = i < n ? '#c9a96e' : '#e0e0e0';
+        s.classList.toggle('selected', i < n);
     });
 }
 
 function rebookBooking(id) {
     
     window.location.href = '/flights';
-}
-
-function setRating(n) {
-    document.querySelectorAll('#starRating i').forEach((s, i) => {
-        s.style.color = i < n ? '#c9a96e' : '#e0e0e0';
-    });
 }
 
 function downloadTicket(id) {
@@ -259,14 +193,9 @@ document.addEventListener('currency:changed', function () {
 });
 
 window.toggleDetail       = toggleDetail;
-window.toggleDetailDemo   = toggleDetailDemo;
 window.filterBookings     = filterBookings;
 window.searchBookings     = searchBookings;
 window.sortBookings       = sortBookings;
-window.downloadTicketDemo = downloadTicketDemo;
-window.cancelDemo         = cancelDemo;
-window.rebookDemo         = rebookDemo;
-window.leaveReviewDemo    = leaveReviewDemo;
 window.setRating          = setRating;
 window.downloadTicket     = downloadTicket;
 window.cancelBooking      = cancelBooking;

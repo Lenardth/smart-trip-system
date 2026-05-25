@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\FlightPricingInterface;
-use App\Contracts\AccommodationPricingInterface;
+use App\Models\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -53,11 +52,6 @@ class AiSuggestionController extends Controller
         ],
     ];
 
-    public function __construct(
-        private FlightPricingInterface        $flightPricing,
-        private AccommodationPricingInterface $accommodationPricing
-    ) {}
-
     public function suggest(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -68,6 +62,7 @@ class AiSuggestionController extends Controller
             'month'                   => 'nullable|string|max:20',
             'region'                  => 'nullable|string|max:50',
             'accommodation'           => 'nullable|string|max:50',
+            'destination_interest'     => 'nullable|string|max:100',
             'origin'                  => 'nullable|string|max:100',
             'experience'              => 'nullable|string|max:50',
             'feeling_note'            => 'nullable|string|max:500',
@@ -78,6 +73,7 @@ class AiSuggestionController extends Controller
         ]);
 
         $validated['currency'] = session('preferred_currency', 'USD');
+        $validated['constraint_version'] = 'fixed_destination_v2';
 
         try {
             $apiKey = config('services.groq.api_key');
@@ -86,7 +82,9 @@ class AiSuggestionController extends Controller
                 throw new \RuntimeException('GROQ_API_KEY is not configured.');
             }
 
-            $result = $this->callGroqWithRetry($validated, $apiKey);
+            $result = ApiResponse::remember('groq', 'ai_suggestions', $validated, now()->addDay(), function () use ($validated, $apiKey) {
+                return $this->callGroqWithRetry($validated, $apiKey);
+            });
 
             return response()->json(['success' => true, 'data' => $result]);
         } catch (\Throwable $e) {
@@ -103,6 +101,10 @@ class AiSuggestionController extends Controller
 
     private function callGroqWithRetry(array $p, string $apiKey): array
     {
+        if (!empty($p['destination_interest'])) {
+            return $this->callGroqForFixedDestination($p, $apiKey);
+        }
+
         $maxRetries    = config('ai.max_retries', 3);
         $norm          = fn($s) => strtolower(trim(preg_replace('/\s+/', ' ', $s)));
         $exclDests     = array_map($norm, $p['excluded_destinations'] ?? []);
@@ -140,6 +142,31 @@ class AiSuggestionController extends Controller
         }
 
         return array_slice($accumulated, 0, 5);
+    }
+
+    private function callGroqForFixedDestination(array $p, string $apiKey): array
+    {
+        $destination = $this->normaliseText($p['destination_interest'] ?? '');
+        $batch = $this->callGroq($p, $apiKey);
+
+        $filtered = array_values(array_filter($batch, function ($item) use ($destination) {
+            return $this->sameDestination($item['destination'] ?? '', $destination);
+        }));
+
+        if (empty($filtered)) {
+            Log::warning('AI fixed destination response drifted', [
+                'destination_interest' => $p['destination_interest'] ?? null,
+                'returned_destinations' => array_column($batch, 'destination'),
+            ]);
+
+            $filtered = array_map(function ($item) use ($p) {
+                $item['destination'] = $p['destination_interest'];
+
+                return $item;
+            }, $batch);
+        }
+
+        return array_slice($filtered, 0, 5);
     }
 
     private function callGroq(array $p, string $apiKey): array
@@ -189,7 +216,7 @@ class AiSuggestionController extends Controller
             throw new \RuntimeException('Groq returned malformed tool arguments.');
         }
 
-        return array_values(array_map([$this, 'normalise'], $input['destinations']));
+        return array_values(array_map(fn ($destination) => $this->normalise($destination, $p), $input['destinations']));
     }
 
     private function buildPrompts(array $p): array
@@ -210,6 +237,8 @@ class AiSuggestionController extends Controller
 
         $companionLabels = config('trips.companion_prompt_labels', []);
         $companion = $companionLabels[$p['companion']] ?? $p['companion'];
+
+        $fixedDestination = trim((string) ($p['destination_interest'] ?? ''));
 
         $extras = [];
         if (!empty($p['month']))                                           $extras[] = "departure month: {$p['month']}";
@@ -240,6 +269,12 @@ class AiSuggestionController extends Controller
             $excludedStr .= "\nAll 5 picks must be from different countries not listed above.";
         }
 
+        $destinationRules = $fixedDestination !== ''
+            ? "\n\nSTRICT FIXED DESTINATION MODE:\n- The user clicked Plan Trip from a specific place: {$fixedDestination}.\n- Do not recommend any other city, country, island, region, or nearby alternative.\n- Return exactly 5 entries, but every entry's destination field must be exactly \"{$fixedDestination}\".\n- Make the 5 entries different trip angles for {$fixedDestination}: where to stay, activities, pacing, food, transport, timing, and local tips can vary.\n- Keep every price, visa note, flight note, activity, and travel tip specific to {$fixedDestination} and the selected budget, duration, companion, month, region, accommodation, origin, and experience."
+            : "\n\nPick 5 destinations from 5 different countries.";
+
+        $constraintRules = "\n\nSelection constraints:\n- Treat every selected form value as a hard constraint, not a loose inspiration.\n- Stay inside the selected budget tier and trip duration.\n- Match the selected companion type, month, region, accommodation style, origin, and experience level whenever they are provided.\n- Do not replace the user's selected place or preferences with a more general recommendation.";
+
         $system = <<<SYSTEM
 You are someone who has spent years travelling and now helps friends figure out where to go. Write like a well-travelled person texting a friend. Never use words like "vibrant", "nestled", "boasts", "tapestry", "gem", "paradise", or "breathtaking". Never start with "Whether you're". No bullet points in description.
 
@@ -256,21 +291,47 @@ For each destination:
 - best_months: 3-4 actual month names.
 - top_activities: 4-6 specific named activities.
 - is_good_right_now: true only if {$month} is genuinely good.
-
-Pick 5 destinations from 5 different countries.
+{$destinationRules}
+{$constraintRules}
 SYSTEM;
 
-        $user = "A {$companion} wants to travel. Mood: {$p['mood']}. Budget: {$budget}. Trip length: {$duration}.{$extrasStr}{$excludedStr}";
+        $destinationInstruction = $fixedDestination !== ''
+            ? " Chosen destination: {$fixedDestination}. Restrict the entire response to this exact destination."
+            : '';
+
+        $user = "A {$companion} wants to travel. Mood: {$p['mood']}. Budget: {$budget}. Trip length: {$duration}.{$destinationInstruction}{$extrasStr}{$excludedStr}";
 
         return [$system, $user];
     }
 
-    private function normalise(array $d): array
+    private function sameDestination(string $candidate, string $target): bool
+    {
+        $candidate = $this->normaliseText($candidate);
+        $target = $this->normaliseText($target);
+
+        if ($candidate === '' || $target === '') {
+            return false;
+        }
+
+        return $candidate === $target
+            || str_contains($candidate, $target)
+            || str_contains($target, $candidate);
+    }
+
+    private function normaliseText(string $value): string
+    {
+        $value = Str::ascii($value);
+        $value = strtolower(preg_replace('/[^a-z0-9\s]/', ' ', $value));
+
+        return trim(preg_replace('/\s+/', ' ', $value));
+    }
+
+    private function normalise(array $d, array $payload = []): array
     {
         $currency        = session('preferred_currency', 'USD');
         $dest            = $d['destination'] ?? '';
         $country         = $d['country']     ?? '';
-        $costs           = $this->validateCosts($d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0);
+        $costs           = $this->validateCosts($d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0, $payload);
         $months          = $d['best_months'] ?? [];
         $warmThreshold   = config('ai.temp_thresholds.warm', 25);
         $coolThreshold   = config('ai.temp_thresholds.cool', 10);
@@ -304,17 +365,28 @@ SYSTEM;
         return ucwords(str_replace('_', ' ', $accommodation));
     }
 
-    private function validateCosts(int $aiMin, int $aiMax): array
+    private function validateCosts(int $aiMin, int $aiMax, array $payload = []): array
     {
-        // Absolute sanity bounds per budget tier (USD, per person, full trip)
-        $absoluteMin = 100;
-        $absoluteMax = 30000;
+        $budget = $payload['budget'] ?? 'mid';
+        $bands = [
+            'backpacker' => ['min' => 150,  'max' => 500],
+            'budget'     => ['min' => 500,  'max' => 1500],
+            'mid'        => ['min' => 1500, 'max' => 4000],
+            'premium'    => ['min' => 4000, 'max' => 8000],
+            'luxury'     => ['min' => 8000, 'max' => 12000],
+        ];
 
-        $min = max($absoluteMin, $aiMin);
-        $max = min($absoluteMax, $aiMax > 0 ? $aiMax : $aiMin + 500);
+        $band = $bands[$budget] ?? $bands['mid'];
 
-        if ($max <= $min) {
-            $max = $min + 500;
+        $aiMin = $aiMin > 0 ? $aiMin : $band['min'];
+        $aiMax = $aiMax > 0 ? $aiMax : $band['max'];
+
+        $min = max($band['min'], min($aiMin, $band['max']));
+        $max = max($min + 100, min($aiMax, $band['max']));
+
+        if ($max > $band['max']) {
+            $max = $band['max'];
+            $min = min($min, max($band['min'], $max - 250));
         }
 
         return ['min' => $min, 'max' => $max];

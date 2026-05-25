@@ -12,7 +12,7 @@
 
 @section('content')
 {{-- Enhanced Hero Section with Search --}}
-<section class="hero hero-with-image hero-pattern" 
+<section class="hero hero-with-image hero-pattern accommodations-hero"
          data-bg="{{ $heroImage ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=80' }}">
     <div class="hero-search-wrap hero-search-wrap--wide">
         <div class="hero-search-intro">
@@ -46,14 +46,17 @@
                             <option value="any">Any budget</option>
                             <option value="backpacker">Backpacker</option>
                             <option value="budget">Budget</option>
-                            <option value="mid">Mid-range</option>
+                            <option value="mid">Mid range</option>
                             <option value="premium">Premium</option>
                             <option value="luxury">Luxury</option>
                         </select>
                     </div>
-                    <button id="reloadBtn" type="button" class="hero-search-btn">
-                        <i class="fas fa-search"></i> Search
-                    </button>
+                    <div class="form-group form-group--search">
+                        <label aria-hidden="true"><i class="fas fa-search"></i> Search</label>
+                        <button id="reloadBtn" type="button" class="hero-search-btn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

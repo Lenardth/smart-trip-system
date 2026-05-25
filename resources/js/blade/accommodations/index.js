@@ -133,7 +133,7 @@ function renderGrid(list) {
         var bookingUrl = a.booking_url || '#';
         var mapsUrl = 'https://maps.google.com/?q=' + encodeURIComponent((a.name || '') + ' ' + (a.city || ''));
         return '<div class="accom-card" data-lat="' + (a.lat||'') + '" data-lng="' + (a.lng||'') + '" data-id="' + esc(String(a.id||'')) + '">'
-            + '<div class="accom-image" style="background-image:url(\'' + esc(a.image_url||'') + '\')">'
+            + '<div class="accom-image" data-image-url="' + esc(a.image_url||'') + '">'
             + styleBadge + dealBadge
             + '<div class="accom-image-overlay"></div></div>'
             + '<div class="accom-body">'
@@ -152,10 +152,20 @@ function renderGrid(list) {
             + '<div class="accom-cta-wrap">'
             + '<a href="' + esc(bookingUrl) + '" target="_blank" rel="noopener" class="accom-book-btn">'
             + '<i class="fas fa-external-link-alt"></i> See Deals</a>'
-            + '<button class="accom-news-btn" onclick="jumpToNews(\'' + esc(a.city||'') + '\')">'
+            + '<button class="accom-news-btn" data-news-city="' + esc(a.city || '') + '">'
             + '<i class="fas fa-newspaper"></i></button>'
             + '</div></div></div></div>';
     }).join('');
+
+    accommodationsGrid.querySelectorAll('.accom-image[data-image-url]').forEach(function(el) {
+        el.style.backgroundImage = "url('" + el.dataset.imageUrl + "')";
+    });
+
+    accommodationsGrid.querySelectorAll('[data-news-city]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            window.jumpToNews(this.dataset.newsCity || '');
+        });
+    });
 }
 
 function initMap() {
@@ -342,7 +352,7 @@ function styleLabel(s) {
 
 function budgetLabel(b) {
     const map = {
-        backpacker: 'Backpacker', budget: 'Budget', mid: 'Mid-range',
+        backpacker: 'Backpacker', budget: 'Budget', mid: 'Mid range',
         premium: 'Premium', luxury: 'Luxury',
     };
     return map[b] || (b || '');
@@ -435,12 +445,18 @@ function renderRecommendationChips() {
     const shuffled = [...TRENDING_DESTINATIONS].sort(() => Math.random() - 0.5).slice(0, 8);
 
     container.innerHTML = shuffled.map(function(d) {
-        return '<button class="rec-chip" onclick="applyRecommendation(\'' + esc(d.city) + '\')">'
+        return '<button class="rec-chip" data-rec-city="' + esc(d.city) + '">'
             + '<span class="rec-chip-icon"><i class="fas ' + d.icon + '"></i></span>'
             + '<span class="rec-chip-city">' + esc(d.city) + '</span>'
             + '<span class="rec-chip-tag">' + esc(d.tag) + '</span>'
             + '</button>';
     }).join('');
+
+    container.querySelectorAll('[data-rec-city]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            window.applyRecommendation(this.dataset.recCity || '');
+        });
+    });
 }
 
 function renderFunFact() {

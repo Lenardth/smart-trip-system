@@ -29,8 +29,7 @@
             <div class="user-type-selector">
                 <label class="type-option">
                     <input type="radio" name="user_type" value="user" id="type_traveler"
-                           {{ old('user_type', 'user') === 'user' ? 'checked' : '' }}
-                           onchange="toggleAgencyFields()">
+                           {{ old('user_type', 'user') === 'user' ? 'checked' : '' }}>
                     <span class="type-card">
                         <span class="type-icon"><i class="fas fa-suitcase"></i></span>
                         <h4>Traveler</h4>
@@ -39,8 +38,7 @@
                 </label>
                 <label class="type-option">
                     <input type="radio" name="user_type" value="agency" id="type_agency"
-                           {{ old('user_type') === 'agency' ? 'checked' : '' }}
-                           onchange="toggleAgencyFields()">
+                           {{ old('user_type') === 'agency' ? 'checked' : '' }}>
                     <span class="type-card">
                         <span class="type-icon"><i class="fas fa-building"></i></span>
                         <h4>Agency</h4>

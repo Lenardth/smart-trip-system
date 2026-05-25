@@ -26,6 +26,10 @@
     border-color: var(--gold);
 }
 
+.currency-chevron {
+    font-size: 10px;
+}
+
 .currency-dropdown {
     display: none;
     position: absolute;

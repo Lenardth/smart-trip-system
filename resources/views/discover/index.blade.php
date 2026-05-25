@@ -44,7 +44,7 @@
                         <select id="discoverMoodFilter" name="mood" class="filter-select">
                             <option value="">All Moods</option>
                             @foreach($moodCategories as $cat)
-                                <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                                <option value="{{ $cat->name }}">{{ preg_replace('/\s*[—–-]\s*/u', ' ', $cat->name) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -111,7 +111,8 @@
                         id="moodBtn_{{ $loop->index }}">
                     <div class="card-content mood-card-content">
                         <div class="mood-icon-wrap"
-                             style="--mood-bg: {{ $mood->gradient }}; --mood-color: {{ $mood->color }}">
+                             data-mood-bg="{{ $mood->gradient }}"
+                             data-mood-color="{{ $mood->color }}">
                             <i class="fas fa-{{ $mood->icon }}"></i>
                         </div>
                         <h3 class="card-title">{{ $mood->name }}</h3>

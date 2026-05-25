@@ -1,7 +1,10 @@
+import { jsPDF as JsPdfModule } from 'jspdf';
+
 let selectedMood = '';
 let lastResults = [];
 let lastPayload = {};
 let selectedDest = null;
+let prefillApplied = false;
 
 // Get locked country and airport from global modules
 function getLockedData() {
@@ -72,8 +75,8 @@ const REGION_TAX_RATES = {
 
 const BUDGET_TIERS = [
     { value: 'backpacker', label: 'Backpacker',       low: null, high: 500  },
-    { value: 'budget',     label: 'Budget-Friendly',  low: 500,  high: 1500 },
-    { value: 'mid',        label: 'Mid-Range',        low: 1500, high: 4000 },
+    { value: 'budget',     label: 'Budget Friendly',  low: 500,  high: 1500 },
+    { value: 'mid',        label: 'Mid Range',        low: 1500, high: 4000 },
     { value: 'premium',    label: 'Premium',          low: 4000, high: 8000 },
     { value: 'luxury',     label: 'Luxury',           low: 8000, high: null },
 ];
@@ -83,18 +86,18 @@ function getBudgetLabel(value) {
         ? n => window.Currency.format(n)
         : n => '$' + Number(n).toLocaleString();
     const tier = BUDGET_TIERS.find(t => t.value === value);
-    if (!tier) return value || '—';
+    if (!tier) return value || 'Not set';
     if (tier.low === null) return `${tier.label} (under ${fmt(tier.high)})`;
     if (tier.high === null) return `${tier.label} (${fmt(tier.low)}+)`;
-    return `${tier.label} (${fmt(tier.low)} – ${fmt(tier.high)})`;
+    return `${tier.label} (${fmt(tier.low)} to ${fmt(tier.high)})`;
 }
 
 const budgetLabels = new Proxy({}, { get: (_, k) => getBudgetLabel(k) });
 
 const durLabels = {
-    weekend: 'Long Weekend (3–4 days)',
+    weekend: 'Long Weekend (3 to 4 days)',
     week: 'One Week (7 days)',
-    two_weeks: 'Two Weeks (10–14 days)',
+    two_weeks: 'Two Weeks (10 to 14 days)',
     month: 'One Month or more',
     flexible: 'Flexible / Open-ended'
 };
@@ -104,7 +107,7 @@ const compLabels = {
     couple: 'Couple',
     family_young: 'Family with Young Children',
     family_teens: 'Family with Teenagers',
-    friends_small: 'Small Group of Friends (2–4)',
+    friends_small: 'Small Group of Friends (2 to 4)',
     friends_large: 'Large Group of Friends (5+)',
     business: 'Business Traveller'
 };
@@ -130,7 +133,7 @@ const accommodationLabels = {
     resort: 'Resort',
     villa: 'Private Villa',
     airbnb: 'Apartment / Airbnb',
-    glamping: 'Glamping / Eco-Lodge',
+    glamping: 'Glamping / Eco Lodge',
     any: 'No preference'
 };
 
@@ -202,7 +205,7 @@ function setSelectedMood(value, label) {
 
     if (value) {
         const icon = pickIcon(label || value);
-        labelEl.innerHTML = `<i class="fas ${icon}" style="margin-right:4px;color:var(--gold);"></i>${escHtml(label)}`;
+        labelEl.innerHTML = `<i class="fas ${icon} selected-mood-icon"></i>${escHtml(label)}`;
         display.classList.add('visible');
     } else {
         display.classList.remove('visible');
@@ -216,6 +219,57 @@ function selectMood(el) {
     const mood = el.dataset.mood;
     const h4 = el.querySelector('h4');
     setSelectedMood(mood, h4 ? h4.textContent.trim() : mood);
+}
+
+function setFieldValue(id, value) {
+    const el = document.getElementById(id);
+    if (!el || value === undefined || value === null || value === '') return false;
+    el.value = value;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+}
+
+function applyPlanTripPrefill() {
+    if (prefillApplied) return;
+    prefillApplied = true;
+
+    const query = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+    const stored = window.PlanTripContext?.load?.() || {};
+    const data = { ...stored, ...query };
+    const hasPrefill = Object.keys(data).some(key => data[key] && key !== 'prefill');
+    if (!hasPrefill) return;
+
+    const mood = data.mood || data.category || '';
+    if (mood) {
+        const matchingMood = document.querySelector(`.mood-card[data-mood="${CSS.escape(mood)}"]`);
+        if (matchingMood) selectMood(matchingMood);
+        else setSelectedMood(mood, mood.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+    } else {
+        const defaultMood = document.querySelector('.mood-card[data-mood="relaxed"]');
+        if (defaultMood) selectMood(defaultMood);
+    }
+
+    setFieldValue('budget', data.budget);
+    setFieldValue('durationDays', data.duration);
+    setFieldValue('duration', data.duration);
+    setFieldValue('companion', data.companion);
+    setFieldValue('month', data.month);
+    setFieldValue('region', data.region);
+    setFieldValue('accommodation', data.accommodation);
+    setFieldValue('origin', data.origin || data.from);
+    setFieldValue('experience', data.experience);
+    setFieldValue('destinationInterest', data.destination || data.to || data.q);
+
+    if (data.destination && !document.getElementById('feelingNote')?.value.trim()) {
+        setFieldValue('feelingNote', `I want to plan around ${data.destination}.`);
+    }
+
+    window.PlanTripContext?.clear?.();
+    if (window.location.search) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    goStep(data.destination || data.origin || data.region || data.accommodation ? 3 : 2);
 }
 
 function selectCommunityMood(label, pillEl) {
@@ -241,7 +295,7 @@ async function loadCommunityMoods() {
         renderCommunityMoods();
     } catch (e) {
         const loading = document.getElementById('communityMoodsLoading');
-        if (loading) loading.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">Could not load community moods.</span>';
+        if (loading) loading.innerHTML = '<span class="community-moods-message">Could not load community moods.</span>';
     }
 }
 
@@ -253,7 +307,7 @@ function renderCommunityMoods() {
     if (!container) return;
 
     if (!communityMoods.length) {
-        container.innerHTML = '<span style="color:var(--text-muted);font-size:12px;opacity:.6;">No community moods yet — be the first!</span>';
+        container.innerHTML = '<span class="community-moods-message muted">No community moods yet — be the first!</span>';
         return;
     }
 
@@ -396,6 +450,10 @@ async function generateSuggestions() {
 
     const receiptBtn = document.getElementById('receiptBtn');
     if (receiptBtn) receiptBtn.classList.add('hidden');
+    const quickPrintBtn = document.getElementById('quickPrintBtn');
+    if (quickPrintBtn) quickPrintBtn.classList.add('hidden');
+    const quickPdfBtn = document.getElementById('quickPdfBtn');
+    if (quickPdfBtn) quickPdfBtn.classList.add('hidden');
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) saveBtn.classList.add('hidden');
 
@@ -418,6 +476,7 @@ async function generateSuggestions() {
         month: document.getElementById('month')?.value || null,
         region: document.getElementById('region')?.value || null,
         accommodation: document.getElementById('accommodation')?.value || null,
+        destination_interest: document.getElementById('destinationInterest')?.value.trim() || null,
         origin: document.getElementById('origin')?.value.trim() || null,
         experience: document.getElementById('experience')?.value || null,
         currency: typeof window.Currency !== 'undefined' ? window.Currency.active : 'USD',
@@ -463,19 +522,17 @@ function calculateCostBreakdown(destination, payload) {
         const avgTotal = Math.round((costMin + costMax) / 2);
         const nights = getNightsFromDuration(payload.duration);
         
-        // Break down the total into realistic components
+        // Break down the AI total without inflating it. AI prices are already full-trip estimates.
         const flights = Math.round(avgTotal * 0.42); // Flights typically 40-45% of total
         const accommodation_c = Math.round(avgTotal * 0.28); // Accommodation 25-30%
         const food = Math.round(avgTotal * 0.18); // Food 15-20%
         const activities = Math.round(avgTotal * 0.08); // Activities 5-10%
-        const transportation = Math.round(avgTotal * 0.04); // Local transport 3-5%
+        const transportation = Math.max(0, avgTotal - flights - accommodation_c - food - activities);
         
         const subtotal = flights + accommodation_c + activities + food + transportation;
-        const region = payload.region || 'any';
-        const taxRate = REGION_TAX_RATES[region] || 12;
-        const taxes = Math.round(subtotal * (taxRate / 100));
-        const serviceFee = Math.round(subtotal * 0.05);
-        const total = subtotal + taxes + serviceFee;
+        const taxes = 0;
+        const serviceFee = 0;
+        const total = avgTotal;
         
         return {
             breakdown: {
@@ -486,13 +543,13 @@ function calculateCostBreakdown(destination, payload) {
                 transportation: { amount: transportation, description: 'Local transportation', includes: ['Airport transfers', 'Public transport', 'Inter-city travel'] }
             },
             subtotal,
-            taxes: { amount: taxes, rate: taxRate, type: 'VAT/GST' },
-            serviceFee: { amount: serviceFee, description: 'Booking & service fee' },
+            taxes: { amount: taxes, rate: 0, type: 'Included in AI estimate' },
+            serviceFee: { amount: serviceFee, description: 'Included in AI estimate' },
             total,
             range: {
                 low: costMin, // Use AI-provided min
                 high: costMax, // Use AI-provided max
-                display: `${fmtCurrency(costMin)} – ${fmtCurrency(costMax)}`
+                display: `${fmtCurrency(costMin)} to ${fmtCurrency(costMax)}`
             },
             savings: {
                 earlyBird: Math.round(total * 0.10),
@@ -617,13 +674,13 @@ function renderResults(destinations) {
             <div class="select-badge"><i class="fas fa-check"></i></div>
             <div class="dest-card-header">
                 <h3>${esc(d.destination)}</h3>
-                <div class="country"><i class="fas fa-globe" style="margin-right:4px;"></i>${esc(d.country)}</div>
+                <div class="country"><i class="fas fa-globe country-icon"></i>${esc(d.country)}</div>
             </div>
             <p>${esc(d.description)}</p>
             <div class="dest-cost">
-                <i class="fas fa-wallet" style="color:var(--gold);margin-right:6px;"></i>
+                <i class="fas fa-wallet dest-cost-icon"></i>
                 <span data-price-usd="${d.costBreakdown.range.low}">${d.costBreakdown.range.display}</span>
-                <span style="font-size:12px;color:var(--text-muted);display:block;margin-top:4px;">per person · <em style="font-size:11px;">${d.estimated_cost || ''}</em></span>
+                <span class="dest-cost-note">per person · <em>${d.estimated_cost || ''}</em></span>
             </div>
             <div class="dest-meta">
                 <div class="dest-meta-row"><i class="fas fa-calendar-check"></i><span><strong>Best time:</strong> ${esc(d.best_time_to_visit)}</span></div>
@@ -638,9 +695,13 @@ function renderResults(destinations) {
 
     const resultsState = document.getElementById('resultsState');
     if (resultsState) resultsState.classList.remove('hidden');
+
+    if (destinations.length) {
+        selectDestination(0, false);
+    }
 }
 
-function selectDestination(idx) {
+function selectDestination(idx, shouldScroll = true) {
     document.querySelectorAll('.dest-card').forEach(c => c.classList.remove('selected'));
     const cards = document.querySelectorAll('.dest-card');
     if (cards[idx]) cards[idx].classList.add('selected');
@@ -649,6 +710,12 @@ function selectDestination(idx) {
     const receiptBtn = document.getElementById('receiptBtn');
     if (receiptBtn) receiptBtn.classList.remove('hidden');
 
+    const quickPrintBtn = document.getElementById('quickPrintBtn');
+    if (quickPrintBtn) quickPrintBtn.classList.remove('hidden');
+
+    const quickPdfBtn = document.getElementById('quickPdfBtn');
+    if (quickPdfBtn) quickPdfBtn.classList.remove('hidden');
+
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
         saveBtn.classList.remove('hidden');
@@ -656,7 +723,7 @@ function selectDestination(idx) {
         saveBtn.disabled = false;
     }
 
-    if (receiptBtn) receiptBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (shouldScroll && receiptBtn) receiptBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     // Load travel advisory for selected destination
     if (typeof window.renderTravelAdvisory === 'function') {
@@ -669,7 +736,10 @@ function selectDestination(idx) {
 }
 
 async function saveTripToDashboard() {
-    if (!selectedDest) return;
+    if (!selectedDest) {
+        showActionError('Select a destination before saving.');
+        return;
+    }
 
     const btn = document.getElementById('saveBtn');
     if (btn) { btn.disabled = true;
@@ -721,7 +791,12 @@ async function saveTripToDashboard() {
             },
             body: JSON.stringify(payload),
         });
-        const data = await res.json();
+        if (res.status === 401 || res.redirected) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const data = await res.json().catch(() => ({}));
 
         if (res.status === 409) {
             if (btn) { btn.disabled = false;
@@ -765,6 +840,14 @@ async function saveTripToDashboard() {
     }
 }
 
+function showActionError(message) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({ title: 'Almost there', text: message, icon: 'info', confirmButtonColor: '#c9a96e' });
+    } else {
+        alert(message);
+    }
+}
+
 function openReceipt() {
     if (!selectedDest) return;
     const receiptContent = document.getElementById('receiptContent');
@@ -801,8 +884,8 @@ function getFormattedDates() {
 function generateActivityTags(activities) {
     if (!activities) return '';
     return activities.split(',').map(a => a.trim()).map(a =>
-        `<span style="background:#f8f4f0;padding:6px 12px;border-radius:20px;font-size:12px;color:#3b1f2b;border:1px solid #c9a96e;display:inline-flex;align-items:center;gap:5px;">
-            <i class="fas fa-tag" style="color:#c9a96e;font-size:10px;"></i>${esc(a)}
+        `<span class="activity-tag">
+            <i class="fas fa-tag"></i>${esc(a)}
         </span>`
     ).join('');
 }
@@ -812,11 +895,11 @@ function buildReceiptHTML(d) {
     const cost = d.costBreakdown;
     const bk = cost.breakdown;
     const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
-    const bud = budgetLabels[lastPayload.budget] || lastPayload.budget || '—';
+    const bud = budgetLabels[lastPayload.budget] || lastPayload.budget || 'Not set';
     const dur = (lastPayload.duration && !isNaN(Number(lastPayload.duration)))
         ? `${lastPayload.duration} days`
-        : (durLabels[lastPayload.duration] || lastPayload.duration || '—');
-    const comp = compLabels[lastPayload.companion] || lastPayload.companion || '—';
+        : (durLabels[lastPayload.duration] || lastPayload.duration || 'Not set');
+    const comp = compLabels[lastPayload.companion] || lastPayload.companion || 'Not set';
 
     return `
     <div style="font-family:'Georgia',serif;color:#2c2c2c;">
@@ -957,12 +1040,25 @@ function printReceipt() {
     }
 }
 
+function printSelectedReceipt() {
+    if (!selectedDest) {
+        showActionError('Select a destination before printing.');
+        return;
+    }
+
+    openReceipt();
+    setTimeout(() => printReceipt(), 100);
+}
+
 async function downloadReceiptPdf() {
-    if (!selectedDest) return;
-    if (!window.jspdf) { printReceipt(); return; }
-    const { jsPDF } = window.jspdf;
+    if (!selectedDest) {
+        showActionError('Select a destination before saving a PDF.');
+        return;
+    }
+    const jsPDF = window.jspdf?.jsPDF || JsPdfModule;
+    if (!jsPDF) { printReceipt(); return; }
     const d = selectedDest;
-    const cost = d.costBreakdown;
+    const cost = d.costBreakdown || calculateCostBreakdown(d, lastPayload || {});
     const bk = cost.breakdown;
     const dates = getFormattedDates();
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -1021,7 +1117,7 @@ async function downloadReceiptPdf() {
     y += 20;
 
     const mood = (lastPayload.mood || '').charAt(0).toUpperCase() + (lastPayload.mood || '').slice(1);
-    const cards2 = [['Mood',mood],['Duration',((lastPayload.duration && !isNaN(Number(lastPayload.duration))) ? `${lastPayload.duration} days` : (durLabels[lastPayload.duration]||lastPayload.duration||'—'))+` (${bk.accommodation.nights}n)`],['Companion',compLabels[lastPayload.companion]||lastPayload.companion||'—'],['Budget',budgetLabels[lastPayload.budget]||lastPayload.budget||'—']];
+    const cards2 = [['Mood',mood],['Duration',((lastPayload.duration && !isNaN(Number(lastPayload.duration))) ? `${lastPayload.duration} days` : (durLabels[lastPayload.duration]||lastPayload.duration||'Not set'))+` (${bk.accommodation.nights}n)`],['Companion',compLabels[lastPayload.companion]||lastPayload.companion||'Not set'],['Budget',budgetLabels[lastPayload.budget]||lastPayload.budget||'Not set']];
     const cardW = cW / 4 - 2;
     y += 5;
     cards2.forEach(([label, val], i) => {
@@ -1075,7 +1171,7 @@ async function downloadReceiptPdf() {
     doc.text('TOTAL PER PERSON (ESTIMATED)', mg + 5, y + 8);
     doc.setFontSize(8); doc.setTextColor(212, 196, 176);
     // Create range display with correct currency for PDF
-    const rangeDisplay = `${fmtCurrencyForPDF(cost.range.low)} – ${fmtCurrencyForPDF(cost.range.high)}`;
+    const rangeDisplay = `${fmtCurrencyForPDF(cost.range.low)} to ${fmtCurrencyForPDF(cost.range.high)}`;
     doc.text(`Range: ${rangeDisplay}`, mg + 5, y + 14);
     doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...gold);
     doc.text(fmtCurrencyForPDF(cost.total), mg + cW - 3, y + 14, { align: 'right' });
@@ -1179,6 +1275,8 @@ function init() {
 
     // ── Receipt modal ─────────────────────────────────────────────────────────
     document.getElementById('receiptBtn')?.addEventListener('click', () => openReceipt());
+    document.getElementById('quickPrintBtn')?.addEventListener('click', () => printSelectedReceipt());
+    document.getElementById('quickPdfBtn')?.addEventListener('click', () => downloadReceiptPdf());
     document.getElementById('closeReceiptBtn')?.addEventListener('click', () => closeReceipt());
     document.getElementById('closeReceiptBtn2')?.addEventListener('click', () => closeReceipt());
     document.getElementById('printReceiptBtn')?.addEventListener('click', () => printReceipt());
@@ -1207,6 +1305,7 @@ function init() {
 
     // ── Load community moods ──────────────────────────────────────────────────
     loadCommunityMoods();
+    applyPlanTripPrefill();
 }
 
 if (document.readyState !== 'loading') init();
@@ -1248,10 +1347,22 @@ window.surpriseMe = function() {
     const companionEl = document.getElementById('companion');
     const regionEl    = document.getElementById('region');
 
-    if (budgetEl)    budgetEl.value    = chosenBudget;
-    if (durationEl)  durationEl.value  = chosenDuration;
-    if (companionEl) companionEl.value = chosenCompanion;
-    if (regionEl)    regionEl.value    = chosenRegion;
+    if (budgetEl) {
+        budgetEl.value = chosenBudget;
+        budgetEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (durationEl) {
+        durationEl.value = chosenDuration;
+        durationEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (companionEl) {
+        companionEl.value = chosenCompanion;
+        companionEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (regionEl) {
+        regionEl.value = chosenRegion;
+        regionEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
 
     // Build a readable summary of what was chosen
     const moodLabels = {
@@ -1260,7 +1371,7 @@ window.surpriseMe = function() {
     };
     // use module-level getBudgetLabel so currency is respected
     const durationLabels = {
-        weekend: 'Long Weekend (3-4 days)', week: 'One Week', two_weeks: 'Two Weeks'
+        weekend: 'Long Weekend (3 to 4 days)', week: 'One Week', two_weeks: 'Two Weeks'
     };
     const companionLabels = {
         solo: 'Solo', couple: 'Couple', friends_small: 'Small Group of Friends'
@@ -1290,9 +1401,12 @@ window.surpriseMe = function() {
         + '<div class="surprise-item"><i class="fas fa-globe"></i><span><strong>Region</strong>' + (regionLabels[chosenRegion] || chosenRegion) + '</span></div>'
         + '</div>'
         + '<div class="surprise-summary-actions">'
-        + '<button class="secondary-button" onclick="clearSurprise()"><i class="fas fa-redo"></i> Change</button>'
-        + '<button class="primary-button" onclick="acceptSurprise()"><i class="fas fa-magic"></i> Find My Destinations</button>'
+        + '<button class="secondary-button" id="surpriseChangeBtn"><i class="fas fa-redo"></i> Change</button>'
+        + '<button class="primary-button" id="surpriseAcceptBtn"><i class="fas fa-magic"></i> Find My Destinations</button>'
         + '</div>';
+
+    document.getElementById('surpriseChangeBtn')?.addEventListener('click', () => window.clearSurprise());
+    document.getElementById('surpriseAcceptBtn')?.addEventListener('click', () => window.acceptSurprise());
 
     summaryEl.style.display = 'block';
     summaryEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

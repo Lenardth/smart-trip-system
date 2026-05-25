@@ -81,7 +81,7 @@
 }
 
 .hero-form-grid--stay {
-    grid-template-columns: 2fr 1fr 1fr auto;
+    grid-template-columns: minmax(280px, 2fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(160px, .75fr);
     gap: 16px;
     align-items: end;
     margin-bottom: 0;
@@ -126,9 +126,15 @@
 
 .accommodations-hero .search-card .form-input,
 .accommodations-hero .search-card select.form-input {
-    padding: 14px 16px;
+    height: 52px;
+    padding: 0 16px;
     font-size: 15px;
     border-radius: 8px;
+}
+
+.accommodations-hero .hero-form-grid--stay .form-group,
+.accommodations-hero .hero-form-grid--stay .hero-search-btn {
+    min-width: 0;
 }
 
 .search-card .custom-select-trigger {
@@ -157,18 +163,27 @@
     background: var(--gold);
     color: var(--deep);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: background .2s, transform .15s;
     white-space: nowrap;
-    font-family: 'Georgia', serif;
+    font-family: inherit;
     height: 50px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+}
+
+.hero-form-grid--stay .hero-search-btn {
+    width: 100%;
+}
+
+.accommodations-hero .hero-form-grid--stay .hero-search-btn {
+    height: 52px;
+    padding: 0 24px;
 }
 
 .hero-search-btn:hover {

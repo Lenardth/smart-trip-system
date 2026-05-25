@@ -124,7 +124,7 @@
                     <option value="couple">Couple</option>
                     <option value="family_young">Family with Young Children</option>
                     <option value="family_teens">Family with Teenagers</option>
-                    <option value="friends_small">Small Group of Friends (2–4)</option>
+                    <option value="friends_small">Small Group of Friends (2 to 4)</option>
                     <option value="friends_large">Large Group of Friends (5+)</option>
                     <option value="business">Business Traveller</option>
                 </select>
@@ -135,8 +135,8 @@
                 <label>Budget Range</label>
                 <select id="budget">
                     <option value="backpacker" data-usd-max="500">Backpacker</option>
-                    <option value="budget" data-usd-min="500" data-usd-max="1500">Budget-Friendly</option>
-                    <option value="mid" data-usd-min="1500" data-usd-max="4000" selected>Mid-Range</option>
+                    <option value="budget" data-usd-min="500" data-usd-max="1500">Budget Friendly</option>
+                    <option value="mid" data-usd-min="1500" data-usd-max="4000" selected>Mid Range</option>
                     <option value="premium" data-usd-min="4000" data-usd-max="8000">Premium</option>
                     <option value="luxury" data-usd-min="8000">Luxury</option>
                 </select>
@@ -144,7 +144,7 @@
             <div class="form-group">
                 <label>Departure Month</label>
                 <select id="month">
-                    <option value="">— Any time —</option>
+                    <option value="">Any time</option>
                     <option>January</option><option>February</option><option>March</option>
                     <option>April</option><option>May</option><option>June</option>
                     <option>July</option><option>August</option><option>September</option>
@@ -164,7 +164,7 @@
             <div class="form-group">
                 <label>Preferred Region</label>
                 <select id="region">
-                    <option value="any">— No preference —</option>
+                    <option value="any">No preference</option>
                     <option value="europe">Europe</option>
                     <option value="southeast_asia">Southeast Asia</option>
                     <option value="east_asia">East Asia</option>
@@ -180,27 +180,33 @@
             <div class="form-group">
                 <label>Accommodation Style</label>
                 <select id="accommodation">
-                    <option value="any">— No preference —</option>
+                    <option value="any">No preference</option>
                     <option value="hostel">Hostel / Dorm</option>
                     <option value="budget_hotel">Budget Hotel</option>
                     <option value="boutique">Boutique Hotel</option>
                     <option value="resort">Resort</option>
                     <option value="villa">Private Villa</option>
                     <option value="airbnb">Apartment / Airbnb</option>
-                    <option value="glamping">Glamping / Eco-Lodge</option>
+                    <option value="glamping">Glamping / Eco Lodge</option>
                 </select>
             </div>
         </div>
         <div class="form-row">
             <div class="form-group">
+                <label>Destination in Mind</label>
+                <input type="text" id="destinationInterest" placeholder="e.g. Bali, Japan, Paris">
+            </div>
+            <div class="form-group">
                 <label>Flying From (City or Airport)</label>
                 <input type="text" id="origin" placeholder="e.g. London, Dubai, New York">
             </div>
+        </div>
+        <div class="form-row">
             <div class="form-group">
                 <label>Experience Level</label>
                 <select id="experience">
-                    <option value="">— Not specified —</option>
-                    <option value="first_time">First-time traveller</option>
+                    <option value="">Not specified</option>
+                    <option value="first_time">First time traveller</option>
                     <option value="occasional">Occasional traveller</option>
                     <option value="experienced">Experienced traveller</option>
                     <option value="frequent">Frequent / seasoned traveller</option>
@@ -233,6 +239,8 @@
             <button class="secondary-button" id="step4BackBtn"><i class="fas fa-arrow-left"></i> Adjust Preferences</button>
             <button class="primary-button" id="step4RegenerateBtn"><i class="fas fa-sync-alt"></i> Regenerate</button>
             <button class="pdf-button hidden" id="receiptBtn"><i class="fas fa-receipt"></i> View &amp; Print Receipt</button>
+            <button class="pdf-button hidden" id="quickPrintBtn"><i class="fas fa-print"></i> Print Receipt</button>
+            <button class="pdf-button hidden" id="quickPdfBtn"><i class="fas fa-file-pdf"></i> Save PDF</button>
             <button class="primary-button hidden" id="saveBtn"><i class="fas fa-bookmark"></i> Save to Dashboard</button>
         </div>
     </div>

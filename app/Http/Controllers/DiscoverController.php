@@ -41,21 +41,61 @@ class DiscoverController extends Controller
         $rawQuery   = trim((string) ($validated['q'] ?? $validated['search'] ?? ''));
         $regionCode = !empty($validated['region']) ? strtoupper($validated['region']) : null;
         $mood       = $validated['mood'] ?? null;
+        $requestPayload = [
+            'query'       => $rawQuery,
+            'region_code' => $regionCode,
+            'mood'        => $mood,
+        ];
+        $searchHash = $this->searchHash($requestPayload);
 
         // No filters — return featured destinations from DB only.
         if (!$rawQuery && !$regionCode && !$mood) {
-            $destinations = Destination::active()
-                ->ordered()
-                ->limit(config('api.pagination.per_page', 48))
-                ->get()
-                ->map(fn($d) => $this->format($d->toArray()))
-                ->pipe(fn($col) => $this->deduplicateByCountry($col->toArray()));
+            $destinations = $this->featuredDestinations();
+
+            if (empty($destinations)) {
+                $this->fetchAndStoreFromApi('popular travel destination', null, null);
+                $destinations = $this->featuredDestinations();
+            }
+
+            $this->logSearch($request, 'all', 'all', null, null, $destinations, $searchHash, false, $requestPayload);
 
             return response()->json(['destinations' => $destinations, 'source' => 'featured']);
         }
 
+        $cached = DestinationSearch::where('search_hash', $searchHash)
+            ->whereNotNull('response_payload')
+            ->where('created_at', '>=', now()->subDay())
+            ->latest()
+            ->first();
+
+        if ($cached) {
+            $destinations = $cached->response_payload['destinations'] ?? [];
+            $this->logSearch(
+                $request,
+                $rawQuery ?: 'all',
+                $cached->resolved_query ?: $rawQuery,
+                $regionCode,
+                $mood,
+                $destinations,
+                $searchHash,
+                true,
+                $requestPayload
+            );
+
+            return response()->json([
+                'destinations'   => $destinations,
+                'count'          => count($destinations),
+                'resolved_query' => $cached->resolved_query,
+                'source'         => 'database-cache',
+                'cached'         => true,
+            ]);
+        }
+
         $resolvedQuery  = $this->resolveAlias($rawQuery);
-        $searchTerms    = array_unique(array_filter([$rawQuery, $resolvedQuery]));
+        $queryCountryCode = $regionCode ?: $this->resolveCountryCodeFromQuery($resolvedQuery ?: $rawQuery);
+        $searchTerms    = $queryCountryCode
+            ? []
+            : array_unique(array_filter([$rawQuery, $resolvedQuery]));
         $effectiveQuery = $resolvedQuery ?: $rawQuery;
 
         // Always fetch from the external API for any search so new places are
@@ -68,23 +108,70 @@ class DiscoverController extends Controller
             fn () => $this->fetchAndStoreFromApi($effectiveQuery, $regionCode, $mood)
         );
 
-        $effectiveRegion = $resolvedCountryCode ?? $regionCode;
+        $effectiveRegion = $resolvedCountryCode ?? $queryCountryCode ?? $regionCode;
 
-        $destinations = $this->dbQuery($searchTerms, $effectiveRegion, $mood)
-            ->orderBy('display_order')
-            ->limit(config('api.pagination.per_page', 60))
-            ->get()
-            ->map(fn($d) => $this->format($d->toArray()))
-            ->pipe(fn($col) => $this->deduplicateByCountry($col->toArray()));
+        $destinations = $this->queryDestinations($searchTerms, $effectiveRegion, $mood);
 
-        $this->logSearch($request, $rawQuery, $resolvedQuery, $effectiveRegion, $mood, count($destinations));
+        if (empty($destinations)) {
+            $fallbackQuery = $effectiveRegion ? 'popular travel destination' : ($effectiveQuery ?: 'popular travel destination');
+            $this->fetchAndStoreFromApi($fallbackQuery, $effectiveRegion, $mood);
+            $destinations = $this->queryDestinations([], $effectiveRegion, $mood);
+        }
+
+        if (empty($destinations) && $mood) {
+            $destinations = $this->queryDestinations($searchTerms, $effectiveRegion, null);
+        }
+
+        if (empty($destinations)) {
+            $destinations = $this->featuredDestinations();
+        }
+
+        $this->logSearch(
+            $request,
+            $rawQuery ?: 'all',
+            $resolvedQuery,
+            $effectiveRegion,
+            $mood,
+            $destinations,
+            $searchHash,
+            false,
+            $requestPayload
+        );
 
         return response()->json([
             'destinations'   => $destinations,
             'count'          => count($destinations),
             'resolved_query' => $resolvedQuery !== $rawQuery ? $resolvedQuery : null,
             'source'         => 'database',
+            'cached'         => false,
         ]);
+    }
+
+    private function searchHash(array $payload): string
+    {
+        ksort($payload);
+
+        return hash('sha256', json_encode($payload));
+    }
+
+    private function featuredDestinations(): array
+    {
+        return Destination::active()
+            ->ordered()
+            ->limit(config('api.pagination.per_page', 48))
+            ->get()
+            ->map(fn($d) => $this->format($d->toArray()))
+            ->pipe(fn($col) => $this->deduplicateByCountry($col->toArray()));
+    }
+
+    private function queryDestinations(array $terms, ?string $regionCode, ?string $mood): array
+    {
+        return $this->dbQuery($terms, $regionCode, $mood)
+            ->orderBy('display_order')
+            ->limit(config('api.pagination.per_page', 60))
+            ->get()
+            ->map(fn($d) => $this->format($d->toArray()))
+            ->pipe(fn($col) => $this->deduplicateByCountry($col->toArray()));
     }
 
     public function show(Destination $destination)
@@ -129,6 +216,26 @@ class DiscoverController extends Controller
         }
 
         return $query;
+    }
+
+    private function resolveCountryCodeFromQuery(string $query): ?string
+    {
+        if (!$query) {
+            return null;
+        }
+
+        $needle = strtolower(trim($query));
+
+        try {
+            $matched = collect($this->geoapify->getCountries())->first(
+                fn ($country) => strtolower($country['name'] ?? '') === $needle
+            );
+
+            return $matched['code'] ?? null;
+        } catch (\Throwable $e) {
+            Log::warning('Country lookup failed', ['query' => $query, 'error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     private function dbQuery(array $terms, ?string $regionCode, ?string $mood)
@@ -176,12 +283,10 @@ class DiscoverController extends Controller
             // misclassifies capital cities (Budapest, Singapore) as administrative
             // country boundaries, so we avoid that HTTP round-trip entirely.
             if ($query && !$countryCode) {
-                $countries = $this->geoapify->getCountries();
-                $matched   = collect($countries)->first(
-                    fn ($c) => strtolower($c['name']) === strtolower($query)
-                );
-                if ($matched) {
-                    $resolvedCountryCode = $matched['code'];
+                $matchedCode = $this->resolveCountryCodeFromQuery($query);
+
+                if ($matchedCode) {
+                    $resolvedCountryCode = $matchedCode;
                     $cityQuery           = 'city';
                 }
             }
@@ -349,33 +454,26 @@ class DiscoverController extends Controller
         string  $resolvedQuery,
         ?string $regionCode,
         ?string $mood,
-        int     $count
+        array   $destinations,
+        string  $searchHash,
+        bool    $cacheHit,
+        array   $requestPayload
     ): void {
-        if (!$rawQuery) {
-            return;
-        }
-
         try {
-            // Check if a similar search was already logged today
-            $alreadyLogged = DestinationSearch::alreadyLoggedToday(
-                Auth::id(),
-                $rawQuery,
-                $regionCode,
-                $mood
-            );
-
-            if (!$alreadyLogged) {
-                DestinationSearch::create([
-                    'user_id'        => Auth::id(),
-                    'query'          => $rawQuery,
-                    'resolved_query' => $resolvedQuery !== $rawQuery ? $resolvedQuery : null,
-                    'region_code'    => $regionCode,
-                    'mood'           => $mood,
-                    'results_count'  => $count,
-                    'ip_address'     => $request->ip(),
-                    'source'         => 'web',
-                ]);
-            }
+            DestinationSearch::create([
+                'user_id'          => Auth::id(),
+                'search_hash'      => $searchHash,
+                'request_payload'  => $requestPayload,
+                'response_payload' => ['destinations' => $destinations],
+                'query'            => $rawQuery,
+                'resolved_query'   => $resolvedQuery !== $rawQuery ? $resolvedQuery : null,
+                'region_code'      => $regionCode,
+                'mood'             => $mood,
+                'results_count'    => count($destinations),
+                'cache_hit'        => $cacheHit,
+                'ip_address'       => $request->ip(),
+                'source'           => 'web',
+            ]);
         } catch (\Throwable $e) {
             Log::warning('DestinationSearch log failed: ' . $e->getMessage());
         }

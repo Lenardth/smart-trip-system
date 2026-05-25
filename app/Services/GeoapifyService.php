@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ApiResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +21,7 @@ class GeoapifyService implements GeoapifyInterface
 
     public function geocodeCity(string $city): ?array
     {
+        return ApiResponse::remember('nominatim', 'geocode_city', ['city' => $city], now()->addDays(30), function () use ($city) {
         $response = Http::timeout(10)
             ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
             ->get("{$this->nominatimUrl}/search", [
@@ -47,6 +49,7 @@ class GeoapifyService implements GeoapifyInterface
         }
 
         return ['lat' => $lat, 'lon' => $lon, 'radius' => $radius];
+        });
     }
 
     public function placesByCity(
@@ -54,6 +57,11 @@ class GeoapifyService implements GeoapifyInterface
         array $categories = [],
         int $limit = 100
     ): array {
+        return ApiResponse::remember('overpass', 'places_by_city', [
+            'city' => $city,
+            'categories' => $categories,
+            'limit' => $limit,
+        ], now()->addDays(7), function () use ($city, $categories, $limit) {
         $geo = $this->geocodeCity($city);
 
         if (! $geo) {
@@ -87,10 +95,17 @@ class GeoapifyService implements GeoapifyInterface
 
         Log::error('All Overpass mirrors failed', ['city' => $city]);
         return [];
+        });
     }
 
     public function searchPlaces(string $query, ?string $countryCode = null, ?string $mood = null, int $limit = 50): array
     {
+        return ApiResponse::remember('nominatim', 'search_places', [
+            'query' => $query,
+            'country_code' => $countryCode,
+            'mood' => $mood,
+            'limit' => $limit,
+        ], now()->addDays(7), function () use ($query, $countryCode, $mood, $limit) {
         $limit = min(max($limit, 1), 100);
         $params = [
             'q' => $query,
@@ -130,6 +145,7 @@ class GeoapifyService implements GeoapifyInterface
             Log::warning('Nominatim search exception', ['query' => $query, 'error' => $e->getMessage()]);
             return [];
         }
+        });
     }
 
     /**
@@ -139,6 +155,12 @@ class GeoapifyService implements GeoapifyInterface
      */
     public function searchDestinations(string $query, ?string $countryCode = null, ?string $mood = null, int $limit = 20): array
     {
+        return ApiResponse::remember('nominatim', 'search_destinations', [
+            'query' => $query,
+            'country_code' => $countryCode,
+            'mood' => $mood,
+            'limit' => $limit,
+        ], now()->addDays(7), function () use ($query, $countryCode, $mood, $limit) {
         $limit = min(max($limit, 1), 50);
 
         // OSM class/type keywords that map well to each mood for Nominatim searches.
@@ -208,6 +230,7 @@ class GeoapifyService implements GeoapifyInterface
         }
 
         return array_slice($unique, 0, $limit);
+        });
     }
 
     /**
@@ -332,6 +355,7 @@ class GeoapifyService implements GeoapifyInterface
     public function getCountries(): array
     {
         return Cache::remember('geoapify_countries', now()->addDay(), function () {
+            return ApiResponse::remember('restcountries', 'all_countries', [], now()->addDays(30), function () {
             try {
                 $response = Http::timeout(10)
                     ->get('https://restcountries.com/v3.1/all?fields=name,cca2');
@@ -353,11 +377,13 @@ class GeoapifyService implements GeoapifyInterface
                 Log::warning('RestCountries API exception', ['error' => $e->getMessage()]);
                 return [];
             }
+            });
         });
     }
 
     public function countryDetails(string $countryCode): array
     {
+        return ApiResponse::remember('restcountries', 'country_details', ['country_code' => strtoupper($countryCode)], now()->addDays(30), function () use ($countryCode) {
         try {
             $response = Http::timeout(10)
                 ->get("https://restcountries.com/v3.1/alpha/{$countryCode}");
@@ -382,6 +408,7 @@ class GeoapifyService implements GeoapifyInterface
             Log::warning('RestCountries country details failed', ['code' => $countryCode, 'error' => $e->getMessage()]);
             return [];
         }
+        });
     }
 
     public function searchWikipediaSummary(string $query): array
@@ -391,6 +418,7 @@ class GeoapifyService implements GeoapifyInterface
             return [];
         }
 
+        return ApiResponse::remember('wikipedia', 'summary', ['query' => $query], now()->addDays(30), function () use ($query) {
         try {
             $response = Http::timeout(10)
                 ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
@@ -405,6 +433,7 @@ class GeoapifyService implements GeoapifyInterface
             Log::warning('Wikipedia summary fetch failed', ['query' => $query, 'error' => $e->getMessage()]);
             return [];
         }
+        });
     }
 
     private function formatCurrencies(array $currencies): string

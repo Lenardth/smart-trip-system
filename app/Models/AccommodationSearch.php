@@ -12,15 +12,22 @@ class AccommodationSearch extends Model
 
     protected $fillable = [
         'user_id',
+        'search_hash',
+        'request_payload',
+        'response_payload',
         'query',
         'style',
         'budget_tier',
         'results_count',
+        'cache_hit',
         'ip_address',
     ];
 
     protected $casts = [
-        'results_count' => 'integer',
+        'request_payload'  => 'array',
+        'response_payload' => 'array',
+        'results_count'    => 'integer',
+        'cache_hit'        => 'boolean',
     ];
 
     public function user(): BelongsTo

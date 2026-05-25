@@ -6,7 +6,7 @@
 <h3 align="center">AI-Powered Travel Planning Web Application</h3>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Laravel-11-FF2D20?style=flat&logo=laravel&logoColor=white" alt="Laravel 11">
+  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=flat&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat&logo=php&logoColor=white" alt="PHP 8.2">
   <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat&logo=tailwindcss&logoColor=white" alt="Tailwind">
   <img src="https://img.shields.io/badge/Pusher-Real--Time-300D4F?style=flat&logo=pusher&logoColor=white" alt="Pusher">
@@ -18,7 +18,7 @@
 
 ## Overview
 
-**Smart Booking** is a full-stack travel planning application built from scratch using **Laravel 11**. Users describe how they want to feel on holiday — adventurous, relaxed, romantic, cultural — and the system generates a complete personalised day-by-day itinerary, matching them to destinations, activities, and a daily budget schedule automatically.
+**Smart Booking** is a full-stack travel planning application built from scratch using **Laravel 12**. Users describe how they want to feel on holiday — adventurous, relaxed, romantic, cultural — and the system generates a complete personalised day-by-day itinerary, matching them to destinations, activities, and a daily budget schedule automatically.
 
 The project demonstrates end-to-end application development: database design, back-end business logic, AI-powered recommendations, real-time communication, REST API design, role-based access control, multi-currency support, real embedded data from external APIs, and automated testing.
 
@@ -403,6 +403,182 @@ All APIs have generous free tiers suitable for development and testing.
 
 ---
 
+## Project Timeline
+
+A chronological record of how the project evolved from first commit to current state.
+
+---
+
+### Phase 1 — Project Bootstrap (1 Feb 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-02-01 | **First commit** — initial Laravel project scaffolded from scratch |
+| 2026-02-01 | GitHub Actions CI workflow added for build and integration tests |
+| 2026-02-01 | Composer platform locked to PHP 8.3 |
+| 2026-02-02 | CI pipeline stabilised — Vite assets build, all tests green |
+| 2026-02-02 | Node.js setup step added to workflow |
+
+---
+
+### Phase 2 — Core Features (3 – 10 Feb 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-02-03 | Initial application features scoped and started |
+| 2026-02-05 | Login page updated; core feature set expanded |
+| 2026-02-08 | Working features confirmed passing tests; PR #3 merged |
+| 2026-02-10 | **Flight booking feature** introduced |
+| 2026-02-10 | `.env` files removed from git tracking; `.gitignore` updated |
+| 2026-02-10 | Laravel CI/CD pipeline configured |
+
+---
+
+### Phase 3 — CI/CD Hardening (14 – 22 Feb 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-02-14 | Local changes saved before sync |
+| 2026-02-15 | CI/CD workflow refactored multiple times — caching, `.env` handling, PHPStan |
+| 2026-02-22 | Multi-platform CI/CD pipeline templates added |
+| 2026-02-22 | GitLab CI configuration explored |
+
+---
+
+### Phase 4 — PDF, README & AI Keys (23 Feb – 8 Mar 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-02-23 | **First full README** written describing the application |
+| 2026-02-27 | **PDF itinerary export** working |
+| 2026-03-04 | PDF rendering fixed and refined |
+| 2026-03-04 | README updated with installation steps and repo URL |
+| 2026-03-07 | `.env.example` introduced with all required keys |
+| 2026-03-07 | AI provider keys (`GROQ_API_KEY`) added to environment template |
+
+---
+
+### Phase 5 — Modular File Separation (8 – 21 Mar 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-03-08 | CSS and JS begin to be split into per-page files |
+| 2026-03-09 | `DestinationSeeder` and `CommunitySeeder` added |
+| 2026-03-11 | Vite configuration updated for modular assets |
+| 2026-03-15 | Full folder separation into `resources/css/blade/` and `resources/js/blade/` |
+| 2026-03-21 | Jenkinsfile added alongside GitHub Actions workflows |
+| 2026-03-21 | **MVC structure formalised** — folder structure locked in |
+| 2026-03-21 | PR #14 (FolderSeperation) and PR #15 (foldersresources) merged |
+
+---
+
+### Phase 6 — Chat System & Vercel Deployment (22 – 29 Mar 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-03-22 | **Real-time chat system** built (Pusher + Laravel Echo); PR #16 merged |
+| 2026-03-23 | Mobile navigation toggle added |
+| 2026-03-24 | `vercel.json` created; Vercel deployment attempts begin |
+| 2026-03-24 | Multiple `index.php` and `vercel.json` iterations to get serverless routing working |
+| 2026-03-25 | `last_login_at` and `last_login_ip` tracking added to users table |
+| 2026-03-25 | jsPDF `undefined` on load fixed |
+| 2026-03-26 | **Accommodations feature** started |
+| 2026-03-28 | Accommodation pages merged (PR #19, PR #21, PR #22) |
+
+---
+
+### Phase 7 — MVC Refactor & UI Overhaul (1 – 6 Apr 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-04-01 | Full MVC model adopted; controllers, services, and models reorganised |
+| 2026-04-05 | **Complete CRUD operations**, Hotel model, itinerary views added |
+| 2026-04-05 | AI prompt rewritten to produce human-sounding, undetectable output |
+| 2026-04-05 | **Auth pages redesigned** — split-panel login/register matching project design language |
+| 2026-04-05 | Navigation overhauled — gold drawer on mobile, white desktop header |
+| 2026-04-05 | Logo sizing, filter invert, and fallback avatar initial fixed across all pages |
+| 2026-04-05 | SweetAlert2 integrated globally |
+| 2026-04-06 | Profile picture display, avatar consistency, and mobile drawer cleanup |
+| 2026-04-06 | Accommodation seeding and `AccommodationSearch` table protection added |
+| 2026-04-06 | PR #23 (MVC), PR #24, PR #25 merged |
+
+---
+
+### Phase 8 — Testing & Media (8 – 9 Apr 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-04-08 | **Unit tests added** for `Trip`, `Booking`, `Coupon`, and `PricingService` |
+| 2026-04-08 | Idempotent migrations fixed to prevent duplicate column errors on Neon |
+| 2026-04-08 | Comments removed from all PHP files |
+| 2026-04-09 | **Camera capture and photo edit modal** added to dashboard |
+| 2026-04-09 | Unified viewer/editor — edit tools shown inline when viewing a photo |
+| 2026-04-09 | Dashboard stat counts rendered server-side, preventing JS race condition |
+| 2026-04-09 | `bookings/show` view, community profile pictures, and author avatars fixed |
+
+---
+
+### Phase 9 — Real Data & Multi-Currency (15 – 18 Apr 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-04-15 | Auth CSS imports fixed; news fallback added gracefully |
+| 2026-04-16 | **Complete system integration** and community features finalised |
+| 2026-04-17 | All inline JS/CSS extracted from Blade files into modular assets |
+| 2026-04-17 | Database management API (8 endpoints) added for remote migrations |
+| 2026-04-18 | **Multi-currency support** shipped — 28+ currencies with live exchange rates |
+| 2026-04-18 | **Silent country lock** — destination persists across plan-trip, flights, and accommodations |
+| 2026-04-18 | **GPS airport detection** — auto-fills departure city based on user location |
+| 2026-04-18 | **Destination insights** — live news, tourist sites, and activities per city |
+| 2026-04-18 | Server-side currency conversion and `PriceConverter` service introduced |
+
+---
+
+### Phase 10 — Supabase & PDF Currency Fix (24 Apr 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-04-24 | Vercel + Supabase deployment configured with auto-migration and seeding |
+| 2026-04-24 | **PDF receipt currency fix** — removed hardcoded `$` symbol, replaced with user-selected currency |
+
+---
+
+### Phase 11 — Cleanup & Feature Trim (13 – 14 May 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-05-13 | All Vercel-related files and references removed |
+| 2026-05-13 | **Trimmed to 6 core features**: Auth, Dashboard, AI Trip Planning, Flights, Accommodations, Bookings |
+| 2026-05-13 | Footer pages added; Pexels landing destinations; test and migration fixes |
+| 2026-05-14 | **Currency picker UI**, footer redesign, profile picture upload, account deletion shipped |
+| 2026-05-14 | Inline CSS/JS fully purged from Blade files |
+
+---
+
+### Phase 12 — Final Polish (18 – 23 May 2026)
+
+| Date | What happened |
+|---|---|
+| 2026-05-18 | Project trimmed — unused routes, seeders, and views removed |
+| 2026-05-20 | Codebase minimised and dead code cleaned out |
+| 2026-05-23 | **Final git clean** — repository at current production-ready state |
+
+---
+
+### Development Stats
+
+| Metric | Value |
+|---|---|
+| First commit | 2026-02-01 |
+| Latest commit | 2026-05-23 |
+| Duration | ~4 months |
+| Total commits | 230+ |
+| Pull requests merged | 26+ |
+| Languages | PHP, JavaScript, CSS, SQL |
+| Test files | 7 (auth + profile flows) |
+
+---
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
@@ -423,45 +599,8 @@ All APIs have generous free tiers suitable for development and testing.
 
 ---
 
-## Documentation
+## Developer Guide
 
-### Quick Links
-- **[CHANGELOG.md](CHANGELOG.md)** - Complete change history and feature list
-- **[docs/CLEANUP_SUMMARY.md](docs/CLEANUP_SUMMARY.md)** - Code cleanup and organization details
-
-### Implementation Details
-Detailed technical documentation is available in `docs/implementation/`:
-- **AI Pricing System** - Realistic pricing with geographic intelligence
-- **Trip Editing System** - Editable itineraries and pricing
-- **Multi-API Validation** - Hallucination prevention with 6 free APIs
-- **PDF Currency Fix** - Proper currency display in receipts
-- **Pricing Synchronization** - Consistent pricing across platform
-- **UI Improvements** - Hero sections, visibility, and logo updates
-
-### Project Structure
-```
-smart-booking/
-├── app/
-│   ├── Http/Controllers/     # Request handlers
-│   ├── Models/                # Database models
-│   ├── Services/              # Business logic
-│   └── View/Components/       # Blade components
-├── database/
-│   ├── migrations/            # Database schema
-│   └── seeders/               # Sample data
-├── resources/
-│   ├── js/blade/              # Page-specific JavaScript
-│   ├── views/                 # Blade templates
-│   └── css/                   # Stylesheets
-├── routes/
-│   ├── web.php                # Web routes
-│   ├── api.php                # API routes
-│   └── setup.php              # Setup routes (non-production)
-├── docs/
-│   ├── implementation/        # Technical documentation
-│   └── CLEANUP_SUMMARY.md     # Code organization
-├── README.md                  # This file
-└── CHANGELOG.md               # Change history
-```
+See **[CLAUDE.md](CLAUDE.md)** for architecture details, service descriptions, route overview, environment variables, and contribution conventions.
 
 ---

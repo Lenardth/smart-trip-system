@@ -1,6 +1,6 @@
 <x-guest-layout>
     <h2 class="auth-title">Reset Password</h2>
-    <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px;text-align:center;">
+    <p class="auth-description">
         Enter your email and we'll send you a reset link.
     </p>
     <x-auth-session-status class="mb-4" :status="session('status')" />

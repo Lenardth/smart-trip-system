@@ -21,16 +21,16 @@
     color: var(--text-light);
     border: none;
     padding: 12px 30px;
-    border-radius: 4px;
+    border-radius: var(--radius-full);
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
     font-size: 15px;
     transition: background .3s ease;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    font-family: 'Georgia', serif;
-    letter-spacing: .5px;
+    font-family: inherit;
+    letter-spacing: .3px;
 }
 
 .pdf-button:hover {
@@ -263,6 +263,10 @@
     text-transform: uppercase;
 }
 
+.country-icon {
+    margin-right: 4px;
+}
+
 .dest-card p {
     color: var(--text-muted);
     font-size: 13px;
@@ -275,6 +279,39 @@
     font-weight: bold;
     color: var(--deep);
     margin: 10px 0 4px;
+}
+
+.dest-cost-icon {
+    color: var(--gold);
+    margin-right: 6px;
+}
+
+.dest-cost-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 4px;
+}
+
+.dest-cost-note em {
+    font-size: 11px;
+}
+
+.activity-tag {
+    background: #f8f4f0;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--deep);
+    border: 1px solid var(--gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.activity-tag i {
+    color: var(--gold);
+    font-size: 10px;
 }
 
 .dest-meta {
@@ -614,6 +651,15 @@
     color: var(--gold);
 }
 
+.community-moods-message {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.community-moods-message.muted {
+    opacity: .6;
+}
+
 .mood-pills {
     display: flex;
     flex-wrap: wrap;
@@ -818,6 +864,10 @@
 
 .selected-mood-display i {
     color: var(--gold);
+}
+
+.selected-mood-icon {
+    margin-right: 4px;
 }
 
 .selected-mood-display strong {

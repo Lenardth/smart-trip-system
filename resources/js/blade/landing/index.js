@@ -12,7 +12,7 @@ function getMoodText(m) {
     return { adventurous:'Adventurous 🏔️', relaxed:'Relaxed 🌴', cultural:'Cultural 🏛️', romantic:'Romantic 💖', foodie:'Foodie 🍽️', wellness:'Wellness 🧘', nightlife:'Nightlife 🎉', nature:'Nature 🌿' }[m] || m;
 }
 function getBudgetText(b) {
-    return { backpacker:'Backpacker 🎒', budget:'Budget 💰', mid:'Mid-range 💵', premium:'Premium 💳', luxury:'Luxury 💎' }[b] || b;
+    return { backpacker:'Backpacker 🎒', budget:'Budget 💰', mid:'Mid range 💵', premium:'Premium 💳', luxury:'Luxury 💎' }[b] || b;
 }
 function getDurationText(d) {
     return { weekend:'Long Weekend', week:'One Week', two_weeks:'Two Weeks', month:'One Month+', flexible:'Flexible' }[d] || d;
@@ -32,6 +32,23 @@ function formatLabel(str) {
     if (!str) return '';
     return str.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
 }
+
+function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
+    }[ch]));
+}
+
+function uniqueByCountry(destinations) {
+    const seen = new Set();
+    return (destinations || []).filter(d => {
+        const key = String(d.country_code || d.country || d.region || d.name || '').trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
 function moodIconMap(mood) {
     const icons = {
         adventurous:'<i class="fas fa-hiking"></i>', relaxed:'<i class="fas fa-umbrella-beach"></i>',
@@ -113,29 +130,34 @@ function buildCard(d) {
         : '';
     const badge       = d.badge ? '<span class="destination-badge">' + d.badge + '</span>' : '';
     const hiddenGem   = Number(d.is_hidden_gem) === 1
-        ? '<span class="destination-badge" style="background:rgba(138,43,226,0.85);"><i class="fas fa-gem"></i> Hidden Gem</span>' : '';
+        ? '<span class="destination-badge destination-badge-hidden"><i class="fas fa-gem"></i> Hidden Gem</span>' : '';
     const matchScore  = d.match_score
         ? '<div class="match-score"><i class="fas fa-star"></i> ' + d.match_score + '% match</div>' : '';
     const description = d.description
         ? (d.description.length > 110 ? d.description.substring(0, 110) + '…' : d.description) : '';
 
-    return '<div class="destination-card" data-category="' + d.category + '" data-mood="' + d.mood + '">' +
-        '<div class="destination-image" style="background-image:url(\'' + image + '\');background-size:cover;background-position:center;height:200px;position:relative;border-radius:6px 6px 0 0;overflow:hidden;">' +
-            '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.6));"></div>' +
-            '<div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;">' + badge + hiddenGem + '</div>' +
-            (matchScore ? '<div style="position:absolute;top:12px;right:12px;">' + matchScore + '</div>' : '') +
-            '<div style="position:absolute;bottom:12px;left:14px;right:14px;">' +
-                '<h3 style="color:#fff;margin:0;font-size:17px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.7);">' + d.name + '</h3>' +
-                '<p style="color:rgba(255,255,255,0.85);margin:3px 0 0;font-size:13px;"><i class="fas fa-map-marker-alt" style="margin-right:4px;"></i>' + d.country + ' &nbsp;·&nbsp; ' + formatRegion(d.region) + '</p>' +
+    const planUrl = '/plan-trip?destination=' + encodeURIComponent(d.name || '') +
+        '&mood=' + encodeURIComponent(d.mood || getVal('moodSelect')) +
+        '&budget=' + encodeURIComponent(getVal('budgetSelect') || 'mid') +
+        '&region=' + encodeURIComponent(d.region || getVal('regionSelect')) +
+        '&accommodation=' + encodeURIComponent(getVal('accommodationSelect') || 'any');
+
+    return '<div class="destination-card" data-category="' + esc(d.category) + '" data-mood="' + esc(d.mood) + '">' +
+        '<div class="destination-image destination-image-overlay" data-image-url="' + esc(image) + '">' +
+            '<div class="destination-card-badges">' + badge + hiddenGem + '</div>' +
+            (matchScore ? '<div class="destination-card-score">' + matchScore + '</div>' : '') +
+            '<div class="destination-card-title">' +
+                '<h3>' + esc(d.name) + '</h3>' +
+                '<p><i class="fas fa-map-marker-alt"></i>' + esc(d.country) + ' &nbsp;·&nbsp; ' + esc(formatRegion(d.region)) + '</p>' +
             '</div>' +
         '</div>' +
-        '<div class="destination-info" style="padding:16px;display:flex;flex-direction:column;flex:1;">' +
-            '<p style="color:var(--text-muted);font-size:13px;margin:0 0 12px;line-height:1.5;">' + description + '</p>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">' +
-                '<span style="font-size:12px;color:var(--text-muted);background:rgba(201,169,110,0.12);border:1px solid var(--border);border-radius:20px;padding:3px 10px;">' + moodIconMap(d.mood) + ' ' + formatLabel(d.mood) + '</span>' +
-                (price ? '<div style="font-size:15px;font-weight:700;color:var(--deep);">' + price + '</div>' : '') +
+        '<div class="destination-info">' +
+            '<p class="destination-description">' + esc(description) + '</p>' +
+            '<div class="destination-card-meta">' +
+                '<span class="destination-mood-pill">' + moodIconMap(d.mood) + ' ' + esc(formatLabel(d.mood)) + '</span>' +
+                (price ? '<div class="destination-price">' + price + '</div>' : '') +
             '</div>' +
-            '<a href="/plan-trip" class="primary-button" style="text-decoration:none;padding:9px;font-size:13px;margin-top:auto;">' +
+            '<a href="' + planUrl + '" class="primary-button destination-plan-link">' +
                 '<i class="fas fa-route"></i> Plan trip' +
             '</a>' +
         '</div>' +
@@ -156,6 +178,9 @@ function renderGrid(destinations) {
     if (empty) empty.style.display = 'none';
     grid.style.display = 'grid';
     grid.innerHTML     = destinations.map(d => buildCard(d)).join('');
+    grid.querySelectorAll('.destination-image[data-image-url]').forEach(el => {
+        el.style.backgroundImage = "url('" + el.dataset.imageUrl + "')";
+    });
 }
 
 function renderFeaturedSlides(destinations) {
@@ -179,13 +204,17 @@ function renderFeaturedSlides(destinations) {
             ? (d.description.length > 150 ? d.description.substring(0, 150) + '...' : d.description)
             : '';
 
-        return '<div class="slide' + (index === 0 ? ' active' : '') + '" data-bg="' + d.image_url + '" style="background-image:url(\'' + d.image_url + '\')">' +
+        return '<div class="slide' + (index === 0 ? ' active' : '') + '" data-bg="' + esc(d.image_url) + '">' +
             '<div class="slide-content">' +
-                '<h3>' + d.name + (d.country ? ', ' + d.country : '') + '</h3>' +
-                '<p>' + description + '</p>' +
+                '<h3>' + esc(d.name) + (d.country ? ', ' + esc(d.country) : '') + '</h3>' +
+                '<p>' + esc(description) + '</p>' +
             '</div>' +
         '</div>';
     }).join('');
+
+    slidesWrap.querySelectorAll('.slide[data-bg]').forEach(slide => {
+        slide.style.backgroundImage = "url('" + slide.dataset.bg + "')";
+    });
 
     indicatorsWrap.innerHTML = featured.map((_, index) =>
         '<span class="indicator' + (index === 0 ? ' active' : '') + '" data-slide="' + index + '"></span>'
@@ -282,7 +311,7 @@ async function fetchDestinations() {
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        const all  = Array.isArray(data) ? data : (data.data || data.destinations || []);
+        const all  = uniqueByCountry(Array.isArray(data) ? data : (data.data || data.destinations || []));
         if (!all.length) {
             window._allDestinations = [];
             renderGrid([]);
@@ -311,8 +340,8 @@ window.filterByStyle = function (style, cardEl) {
         food:      { moods: ['foodie'],           categories: ['food_culture'],                          label: 'Culinary Tours' },
     };
 
-    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active-style'));
-    if (cardEl) cardEl.classList.add('active-style');
+    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('is-active-style'));
+    if (cardEl) cardEl.classList.add('is-active-style');
 
     const mapping    = styleMap[style];
     const styleGrid  = document.getElementById('styleDestinationsGrid');
@@ -363,12 +392,12 @@ window.generateQuickPlan = async function (e) {
 
     const modal = document.createElement('div');
     modal.id = 'aiSuggestionModal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.82);display:flex;justify-content:center;align-items:center;z-index:9999;padding:20px;';
+    modal.className = 'ai-suggestion-modal';
     const box = document.createElement('div');
-    box.style.cssText = 'background:var(--card-bg);padding:40px;border-radius:10px;max-width:660px;width:100%;max-height:88vh;overflow-y:auto;position:relative;border:2px solid var(--gold);box-shadow:0 20px 60px rgba(59,31,43,0.35);';
-    box.innerHTML = '<h2 style="color:var(--deep);margin-top:0;font-weight:normal;"><i class="fas fa-compass" style="color:var(--gold);margin-right:10px;"></i>Finding Your Perfect Trip…</h2>' +
-        '<div style="text-align:center;padding:40px 0;"><i class="fas fa-globe-americas fa-3x fa-spin" style="color:var(--gold);opacity:0.7;"></i>' +
-        '<p style="color:var(--text-muted);margin-top:20px;">Our AI is crafting personalised recommendations just for you…</p></div>';
+    box.className = 'ai-suggestion-box';
+    box.innerHTML = '<h2 class="ai-modal-title"><i class="fas fa-compass"></i>Finding Your Perfect Trip…</h2>' +
+        '<div class="ai-modal-loading"><i class="fas fa-globe-americas fa-3x fa-spin"></i>' +
+        '<p>Our AI is crafting personalised recommendations just for you…</p></div>';
     modal.appendChild(box);
     document.body.appendChild(modal);
     modal.addEventListener('click', ev => { if (ev.target === modal) modal.remove(); });
@@ -392,42 +421,46 @@ window.generateQuickPlan = async function (e) {
         const cards = suggestions.map((s, i) => {
             const activities = Array.isArray(s.top_activities) ? s.top_activities.join(', ') : s.top_activities;
             const slug = (s.destination || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            return '<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">' +
-                '<div style="background:linear-gradient(135deg,var(--deep),var(--deep-alt));padding:18px 22px;">' +
-                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-                        '<span style="color:var(--gold);font-size:11px;letter-spacing:2px;text-transform:uppercase;">Option ' + (i+1) + ' ' + (flags[i]||'✈️') + '</span>' +
-                        (s.country ? '<span style="background:rgba(201,169,110,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:12px;">' + s.country + '</span>' : '') +
+            return '<div class="ai-suggestion-card">' +
+                '<div class="ai-suggestion-card-head">' +
+                    '<div class="ai-suggestion-card-meta">' +
+                        '<span class="ai-option-label">Option ' + (i+1) + ' ' + (flags[i]||'') + '</span>' +
+                        (s.country ? '<span class="ai-country-pill">' + esc(s.country) + '</span>' : '') +
                     '</div>' +
-                    '<h3 style="color:var(--text-light);margin:0 0 6px;font-size:19px;font-weight:normal;">' + s.destination + '</h3>' +
-                    '<p style="color:var(--text-sub);margin:0;font-size:13px;line-height:1.6;">' + s.description + '</p>' +
+                    '<h3>' + esc(s.destination) + '</h3>' +
+                    '<p>' + esc(s.description) + '</p>' +
                 '</div>' +
-                '<div style="padding:14px 22px;background:var(--card-bg);">' +
-                    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">' +
-                        '<div><p style="color:var(--gold);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 2px;">Est. Cost</p><p style="color:var(--deep);margin:0;font-size:13px;font-weight:bold;">' + s.estimated_cost + '</p></div>' +
-                        '<div><p style="color:var(--gold);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 2px;">Best Time</p><p style="color:var(--deep);margin:0;font-size:13px;">' + s.best_time_to_visit + '</p></div>' +
-                        '<div><p style="color:var(--gold);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 2px;">Visa</p><p style="color:var(--deep);margin:0;font-size:13px;">' + (s.visa_info || 'Check embassy') + '</p></div>' +
+                '<div class="ai-suggestion-card-body">' +
+                    '<div class="ai-facts">' +
+                        '<div><p>Est. Cost</p><strong>' + esc(s.estimated_cost) + '</strong></div>' +
+                        '<div><p>Best Time</p><span>' + esc(s.best_time_to_visit) + '</span></div>' +
+                        '<div><p>Visa</p><span>' + esc(s.visa_info || 'Check embassy') + '</span></div>' +
                     '</div>' +
-                    '<p style="color:var(--gold);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 4px;">Top Activities</p>' +
-                    '<p style="color:var(--text-muted);margin:0 0 10px;font-size:13px;">' + activities + '</p>' +
-                    (s.travel_tip ? '<div style="border-left:2px solid var(--gold);padding-left:10px;margin-bottom:12px;"><p style="color:var(--text-muted);margin:0;font-size:12px;font-style:italic;">💡 ' + s.travel_tip + '</p></div>' : '') +
-                    '<div style="display:flex;gap:8px;">' +
-                        '<a href="/flights?destination=' + encodeURIComponent(slug) + '&origin=' + encodeURIComponent(origin) + '&mood=' + mood + '&budget=' + budget + '" class="primary-button" style="flex:1;font-size:12px;padding:9px;background:var(--deep);color:var(--text-light);text-decoration:none;justify-content:center;"><i class="fas fa-plane"></i> Search Flights</a>' +
-                        '<a href="/plan-trip?destination=' + encodeURIComponent(s.destination) + '&mood=' + mood + '&budget=' + budget + '" class="primary-button" style="flex:1;font-size:12px;padding:9px;justify-content:center;text-decoration:none;"><i class="fas fa-map"></i> Plan Trip</a>' +
+                    '<p class="ai-section-label">Top Activities</p>' +
+                    '<p class="ai-activities">' + esc(activities) + '</p>' +
+                    (s.travel_tip ? '<div class="ai-travel-tip"><p>' + esc(s.travel_tip) + '</p></div>' : '') +
+                    '<div class="ai-action-row">' +
+                        '<a href="/flights?destination=' + encodeURIComponent(slug) + '&origin=' + encodeURIComponent(origin) + '&mood=' + mood + '&budget=' + budget + '" class="primary-button ai-flight-link"><i class="fas fa-plane"></i> Search Flights</a>' +
+                        '<a href="/plan-trip?destination=' + encodeURIComponent(s.destination) + '&mood=' + mood + '&budget=' + budget + '" class="primary-button ai-plan-link"><i class="fas fa-map"></i> Plan Trip</a>' +
                     '</div>' +
                 '</div>' +
             '</div>';
         }).join('');
 
-        box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">' +
-            '<h2 style="color:var(--deep);margin:0;font-weight:normal;"><i class="fas fa-globe" style="color:var(--gold);margin-right:10px;"></i>Your AI Travel Matches</h2>' +
-            '<button onclick="document.getElementById(\'aiSuggestionModal\').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-muted);line-height:1;">&times;</button>' +
+        box.innerHTML = '<div class="ai-modal-header">' +
+            '<h2 class="ai-modal-title"><i class="fas fa-globe"></i>Your AI Travel Matches</h2>' +
+            '<button class="ai-modal-close ai-icon-close">&times;</button>' +
             '</div>' + cards +
-            '<button class="primary-button" onclick="document.getElementById(\'aiSuggestionModal\').remove()" style="width:100%;background:var(--card-bg);color:var(--deep);border:1px solid var(--border);margin-top:4px;">Close</button>';
+            '<button class="primary-button ai-modal-close ai-close-button">Close</button>';
+        box.querySelectorAll('.ai-modal-close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', () => modal.remove());
+        });
 
     } catch (err) {
-        box.innerHTML = '<h2 style="color:var(--deep);margin-top:0;">Something went wrong</h2>' +
-            '<p style="color:var(--text-muted);">' + (err.message || 'Unable to fetch suggestions. Please try again.') + '</p>' +
-            '<button class="primary-button" onclick="document.getElementById(\'aiSuggestionModal\').remove()">Close</button>';
+        box.innerHTML = '<h2 class="ai-modal-title">Something went wrong</h2>' +
+            '<p class="ai-error-text">' + esc(err.message || 'Unable to fetch suggestions. Please try again.') + '</p>' +
+            '<button class="primary-button ai-modal-close">Close</button>';
+        box.querySelector('.ai-modal-close')?.addEventListener('click', () => modal.remove());
     } finally {
         if (btn) { btn.innerHTML = originalHTML; btn.disabled = false; }
     }
@@ -486,6 +519,7 @@ ready(function () {
         filterContainer.addEventListener('click', function (e) {
             const tag = e.target.closest('.filter-tag');
             if (!tag) return;
+            e.stopPropagation();
             window.applyDestinationFilter(tag.dataset.filter, tag);
         });
     }
@@ -494,16 +528,30 @@ ready(function () {
     const generateBtn = document.getElementById('generatePlanBtn');
     if (generateBtn) {
         generateBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
             window.generateQuickPlan(e);
         });
     }
+
+    document.querySelectorAll('.category-card[data-trip-kind]').forEach(card => {
+        card.addEventListener('click', function (e) {
+            e.stopPropagation();
+            window.filterByStyle(this.dataset.tripKind, this);
+        });
+    });
 
     
     document.addEventListener('click', function (e) {
         const nextBtn = e.target.closest('.qb-next-btn');
         const backBtn = e.target.closest('.qb-back-btn');
-        if (nextBtn) window.showStep(parseInt(nextBtn.getAttribute('data-next')));
-        if (backBtn) window.showStep(parseInt(backBtn.getAttribute('data-back')));
+        if (nextBtn) {
+            e.stopPropagation();
+            window.showStep(parseInt(nextBtn.getAttribute('data-next')));
+        }
+        if (backBtn) {
+            e.stopPropagation();
+            window.showStep(parseInt(backBtn.getAttribute('data-back')));
+        }
     });
 
     fetchDestinations();
@@ -523,11 +571,11 @@ function updateLandingBudgetDropdown() {
     var fmt = typeof window.Currency !== 'undefined' ? window.Currency.format : function(n) { return '$' + n.toLocaleString(); };
     var currentVal = sel.value;
     var opts = [
-        { value: 'backpacker', text: 'Backpacker — under ' + fmt(500) },
-        { value: 'budget',     text: 'Budget — ' + fmt(500) + ' – ' + fmt(1500) },
-        { value: 'mid',        text: 'Mid-range — ' + fmt(1500) + ' – ' + fmt(4000) },
-        { value: 'premium',    text: 'Premium — ' + fmt(4000) + ' – ' + fmt(8000) },
-        { value: 'luxury',     text: 'Luxury — ' + fmt(8000) + '+' },
+        { value: 'backpacker', text: 'Backpacker (under ' + fmt(500) + ')' },
+        { value: 'budget',     text: 'Budget (' + fmt(500) + ' to ' + fmt(1500) + ')' },
+        { value: 'mid',        text: 'Mid range (' + fmt(1500) + ' to ' + fmt(4000) + ')' },
+        { value: 'premium',    text: 'Premium (' + fmt(4000) + ' to ' + fmt(8000) + ')' },
+        { value: 'luxury',     text: 'Luxury (' + fmt(8000) + '+)' },
     ];
     opts.forEach(function(o) {
         var el = sel.querySelector('option[value="' + o.value + '"]');

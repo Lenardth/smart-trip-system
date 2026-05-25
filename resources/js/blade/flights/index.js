@@ -160,7 +160,7 @@ ready(function () {
 
         const cards = sorted.map(function(flight, index) {
             const usdPrice = flight.price || 0;
-            const priceNote = flight.price_note ? ' <span style="font-size:10px;opacity:.6;">est.</span>' : '';
+            const priceNote = flight.price_note ? ' <span class="price-note">est.</span>' : '';
             const price = usdPrice > 0
                 ? (typeof window.Currency !== 'undefined' ? window.Currency.format(usdPrice) : '$' + usdPrice.toLocaleString())
                 : 'Price TBD';
@@ -192,7 +192,7 @@ ready(function () {
                     '</div>' +
                     '<div class="flight-footer">' +
                         '<div class="baggage-info"><i class="fas fa-suitcase"></i> ' + (flight.baggage || '1 bag included') + '</div>' +
-                        '<button class="book-flight-btn" onclick="bookFlight(' + index + ')">' +
+                        '<button class="book-flight-btn" data-flight-index="' + index + '">' +
                             '<i class="fas fa-ticket-alt"></i> Book Now' +
                         '</button>' +
                     '</div>' +
@@ -201,6 +201,11 @@ ready(function () {
         }).join('');
 
         flightResults.innerHTML = '<div class="flights-list">' + cards + '</div>';
+        flightResults.querySelectorAll('[data-flight-index]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                window.bookFlight(parseInt(this.dataset.flightIndex, 10));
+            });
+        });
         if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -220,13 +225,13 @@ ready(function () {
         const price = flight.price ? fmt(flight.price) : 'Price TBD';
         Swal.fire({
             title: 'Confirm Booking',
-            html: '<div style="text-align:left;padding:8px 0;">' +
-                '<div style="background:#f8f4f0;border-radius:6px;padding:14px;margin-bottom:12px;">' +
-                '<strong style="color:#3b1f2b;">' + escapeHtml(flight.airline || 'Airline') + ' — ' + escapeHtml(flight.flight_number || '') + '</strong><br>' +
-                '<span style="font-size:13px;color:#6b5b4f;">' + escapeHtml(flight.departure_airport || '') + ' → ' + escapeHtml(flight.arrival_airport || '') + '</span>' +
+            html: '<div class="flight-confirm-dialog">' +
+                '<div class="flight-confirm-summary">' +
+                '<strong>' + escapeHtml(flight.airline || 'Airline') + ' — ' + escapeHtml(flight.flight_number || '') + '</strong><br>' +
+                '<span>' + escapeHtml(flight.departure_airport || '') + ' → ' + escapeHtml(flight.arrival_airport || '') + '</span>' +
                 '</div>' +
-                '<div style="font-size:24px;font-weight:700;color:#3b1f2b;text-align:center;">' + price +
-                '<span style="font-size:13px;font-weight:normal;color:#6b5b4f;"> per person</span></div></div>',
+                '<div class="flight-confirm-price">' + price +
+                '<span> per person</span></div></div>',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#c9a96e',

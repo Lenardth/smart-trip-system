@@ -25,7 +25,7 @@
                 @auth
                     <a href="{{ route('dashboard') }}">Dashboard</a>
                     <a href="{{ route('profile.edit') }}">Profile</a>
-                    <form method="POST" action="{{ route('logout') }}" style="display:inline">
+                    <form method="POST" action="{{ route('logout') }}" class="footer-logout-form">
                         @csrf
                         <button type="submit" class="footer-link-btn">Sign Out</button>
                     </form>

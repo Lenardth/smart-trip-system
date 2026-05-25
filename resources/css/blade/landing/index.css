@@ -66,12 +66,12 @@
 
 /* Landing page specific overrides removed - using design system hero */
 
-.category-card.active-style {
+.category-card.is-active-style {
     border-color: var(--deep) !important;
     background: rgba(201, 169, 110, 0.12) !important;
 }
 
-.category-card.active-style .category-icon i {
+.category-card.is-active-style .category-icon i {
     color: var(--deep);
 }
 
@@ -92,6 +92,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    padding: 16px;
 }
 
 #destinationsGrid .destination-card .destination-info a.primary-button,
@@ -403,6 +404,198 @@
     backdrop-filter: blur(5px);
 }
 
+.ai-suggestion-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .82);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.ai-suggestion-box {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 10px;
+    max-width: 660px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    position: relative;
+    border: 2px solid var(--gold);
+    box-shadow: 0 20px 60px rgba(59, 31, 43, .35);
+}
+
+.ai-modal-title {
+    color: var(--deep);
+    margin: 0;
+    font-weight: 400;
+}
+
+.ai-modal-title i {
+    color: var(--gold);
+    margin-right: 10px;
+}
+
+.ai-modal-loading {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.ai-modal-loading i {
+    color: var(--gold);
+    opacity: .7;
+}
+
+.ai-modal-loading p,
+.ai-error-text {
+    color: var(--text-muted);
+    margin-top: 20px;
+}
+
+.ai-suggestion-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.ai-suggestion-card-head {
+    background: linear-gradient(135deg, var(--deep), var(--deep-alt));
+    padding: 18px 22px;
+}
+
+.ai-suggestion-card-meta,
+.ai-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.ai-suggestion-card-meta {
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.ai-option-label,
+.ai-section-label {
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.ai-option-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+.ai-country-pill {
+    background: rgba(201, 169, 110, .2);
+    color: var(--gold);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.ai-suggestion-card-head h3 {
+    color: var(--text-light);
+    margin: 0 0 6px;
+    font-size: 19px;
+    font-weight: 400;
+}
+
+.ai-suggestion-card-head p {
+    color: var(--text-sub);
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.ai-suggestion-card-body {
+    padding: 14px 22px;
+    background: var(--card-bg);
+}
+
+.ai-facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.ai-facts p {
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 0 0 2px;
+}
+
+.ai-facts strong,
+.ai-facts span {
+    color: var(--deep);
+    margin: 0;
+    font-size: 13px;
+}
+
+.ai-activities {
+    color: var(--text-muted);
+    margin: 0 0 10px;
+    font-size: 13px;
+}
+
+.ai-travel-tip {
+    border-left: 2px solid var(--gold);
+    padding-left: 10px;
+    margin-bottom: 12px;
+}
+
+.ai-travel-tip p {
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.ai-action-row {
+    display: flex;
+    gap: 8px;
+}
+
+.ai-action-row .primary-button {
+    flex: 1;
+    font-size: 12px;
+    padding: 9px;
+    text-decoration: none;
+    justify-content: center;
+}
+
+.ai-flight-link {
+    background: var(--deep);
+    color: var(--text-light);
+}
+
+.ai-close-button {
+    width: 100%;
+    background: var(--card-bg);
+    color: var(--deep);
+    border: 1px solid var(--border);
+    margin-top: 4px;
+}
+
+.ai-icon-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
 .discover-section {
     max-width: 1200px;
     margin: 60px auto;
@@ -475,6 +668,105 @@
     background-size: cover;
     background-position: center;
     flex-shrink: 0;
+}
+
+.destination-image-overlay {
+    height: 200px;
+    position: relative;
+    border-radius: 6px 6px 0 0;
+    overflow: hidden;
+}
+
+.destination-image-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, .6));
+}
+
+.destination-card-badges {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    z-index: 1;
+}
+
+.destination-card-score {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+}
+
+.destination-card-title {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 12px;
+    z-index: 1;
+}
+
+.destination-card-title h3 {
+    color: #fff;
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .7);
+}
+
+.destination-card-title p {
+    color: rgba(255, 255, 255, .85);
+    margin: 3px 0 0;
+    font-size: 13px;
+}
+
+.destination-card-title i {
+    margin-right: 4px;
+}
+
+.destination-badge-hidden {
+    background: rgba(138, 43, 226, .85);
+}
+
+.destination-description {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.destination-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.destination-mood-pill {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: rgba(201, 169, 110, .12);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+}
+
+.destination-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--deep);
+}
+
+.destination-plan-link {
+    text-decoration: none;
+    padding: 9px;
+    font-size: 13px;
+    margin-top: auto;
 }
 
 .destination-content {
