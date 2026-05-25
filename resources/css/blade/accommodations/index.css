@@ -70,23 +70,26 @@
 }
 
 .filters button {
-    padding: 10px 22px;
+    min-height: var(--button-height);
+    padding: 10px 18px;
     background: var(--deep);
     color: var(--text-light);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--button-radius);
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: background .2s;
+    transition: background .2s, color .2s, box-shadow .2s, transform .15s;
 }
 
 .filters button:hover {
     background: var(--gold);
     color: var(--deep);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .ai-match {
@@ -989,11 +992,12 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-height: var(--button-height);
     padding: 10px 16px;
     background: var(--gold);
     color: var(--deep);
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--button-radius);
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
@@ -1012,10 +1016,10 @@
 }
 
 .accom-news-btn {
-    width: 38px;
-    height: 38px;
+    width: var(--button-height);
+    height: var(--button-height);
     border: 1.5px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--button-radius);
     background: var(--card-bg);
     color: var(--text-muted);
     cursor: pointer;
@@ -1160,15 +1164,16 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
+    min-height: 38px;
+    padding: 8px 14px;
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-full);
+    border-radius: var(--button-radius);
     background: var(--card-bg);
     color: var(--text-muted);
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
-    transition: border-color .2s, color .2s, background .2s;
+    transition: border-color .2s, color .2s, background .2s, box-shadow .2s, transform .15s;
     font-family: inherit;
     flex-shrink: 0;
 }
@@ -1177,6 +1182,8 @@
     border-color: var(--gold);
     color: var(--gold);
     background: var(--gold-dim);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .rec-shuffle-btn.spinning i {
@@ -1201,7 +1208,7 @@
     gap: 8px;
     padding: 8px 14px;
     border: 1.5px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--button-radius);
     background: var(--cream);
     cursor: pointer;
     transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
@@ -1212,7 +1219,7 @@
 .rec-chip:hover {
     border-color: var(--gold);
     background: var(--gold-dim);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59,31,43,.1);
 }
 

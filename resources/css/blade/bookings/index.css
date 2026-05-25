@@ -378,15 +378,16 @@
 }
 
 .ftab {
-    padding: 9px 18px;
-    border-radius: 8px;
+    min-height: 38px;
+    padding: 8px 16px;
+    border-radius: var(--button-radius);
     border: 1px solid var(--border);
     background: transparent;
     color: var(--text-muted);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.25s;
+    transition: background .2s, color .2s, border-color .2s, box-shadow .2s, transform .15s;
     display: flex;
     align-items: center;
     gap: 7px;
@@ -396,6 +397,8 @@
 .ftab:hover {
     border-color: var(--gold);
     color: var(--deep);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .ftab.active {
@@ -645,15 +648,16 @@
 }
 
 .action-btn {
-    padding: 7px 14px;
-    border-radius: 8px;
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: var(--button-radius);
     border: 1px solid var(--border);
     background: white;
     color: var(--deep);
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.25s;
+    transition: background .2s, color .2s, border-color .2s, box-shadow .2s, transform .15s;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -664,6 +668,8 @@
     background: var(--deep);
     color: var(--text-light);
     border-color: var(--deep);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .action-btn.primary {
@@ -806,8 +812,9 @@
     background: var(--gold);
     color: var(--deep);
     border: none;
-    padding: 13px 28px;
-    border-radius: 10px;
+    min-height: var(--button-height);
+    padding: var(--button-padding-y) var(--button-padding-x);
+    border-radius: var(--button-radius);
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
@@ -815,13 +822,13 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.3s;
+    transition: background .2s, color .2s, box-shadow .2s, transform .15s;
     box-shadow: 0 4px 12px rgba(201, 169, 110, 0.3);
 }
 
 .cta-btn:hover {
     background: var(--gold-hover);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(201, 169, 110, 0.4);
 }
 

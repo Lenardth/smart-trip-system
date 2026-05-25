@@ -121,12 +121,13 @@
 }
 
 .search-btn {
-    padding: 14px 32px;
-    border-radius: 12px;
+    min-height: var(--button-height);
+    padding: var(--button-padding-y) var(--button-padding-x);
+    border-radius: var(--button-radius);
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .15s ease;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
@@ -135,11 +136,11 @@
     background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
     color: var(--bg-white);
     box-shadow: 0 4px 16px rgba(201, 169, 110, 0.3);
-    height: 52px;
+    height: var(--button-height);
 }
 
 .search-btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 8px 24px rgba(201, 169, 110, 0.4);
 }
 
@@ -281,13 +282,13 @@
     padding: 8px 14px;
     font-size: 13px;
     font-weight: 600;
-    border-radius: var(--radius-md);
+    border-radius: var(--button-radius);
     border: 2px solid var(--border);
     color: var(--text-muted);
     background: transparent;
     cursor: pointer;
     text-decoration: none;
-    transition: all var(--transition-base);
+    transition: background .2s, color .2s, border-color .2s, box-shadow .2s, transform .15s;
     white-space: nowrap;
 }
 
@@ -295,6 +296,8 @@
     border-color: var(--primary);
     color: var(--primary);
     background: rgba(201, 169, 110, 0.06);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .tag-price {

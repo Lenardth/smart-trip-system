@@ -1,1 +1,0 @@
-document.addEventListener(`DOMContentLoaded`,function(){var e=document.getElementById(`togglePassword`),t=document.getElementById(`password`),n=document.getElementById(`toggleIcon`);!e||!t||e.addEventListener(`click`,function(){var e=t.type===`password`;t.type=e?`text`:`password`,n&&(n.className=e?`fas fa-eye-slash`:`fas fa-eye`)})});

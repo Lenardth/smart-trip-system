@@ -20,12 +20,13 @@
     background: var(--deep);
     color: var(--text-light);
     border: none;
-    padding: 12px 30px;
-    border-radius: var(--radius-full);
+    min-height: var(--button-height);
+    padding: var(--button-padding-y) var(--button-padding-x);
+    border-radius: var(--button-radius);
     cursor: pointer;
     font-weight: 600;
     font-size: 15px;
-    transition: background .3s ease;
+    transition: background .2s, color .2s, box-shadow .2s, transform .15s;
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -35,6 +36,8 @@
 
 .pdf-button:hover {
     background: var(--deep-alt);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .steps {
@@ -792,8 +795,9 @@
 }
 
 .btn-add-mood {
+    min-height: var(--button-height);
     padding: 10px 18px;
-    border-radius: 8px;
+    border-radius: var(--button-radius);
     border: none;
     background: var(--gold, #c9a96e);
     color: var(--deep, #3b1f2b);

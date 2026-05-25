@@ -230,11 +230,12 @@
 
 .auth-btn {
     width: 100%;
-    padding: 13px 30px;
+    min-height: var(--button-height);
+    padding: var(--button-padding-y) var(--button-padding-x);
     background: linear-gradient(135deg, var(--gold), var(--gold-hover));
-    color: #fff;
+    color: var(--deep);
     border: none;
-    border-radius: 12px;
+    border-radius: var(--button-radius);
     font-size: 15px;
     font-family: inherit;
     font-weight: 600;
@@ -249,7 +250,8 @@
 }
 
 .auth-btn:hover {
-    transform: translateY(-2px);
+    color: var(--deep);
+    transform: translateY(-1px);
     box-shadow: 0 8px 24px rgba(201, 169, 110, .4);
 }
 

@@ -510,11 +510,11 @@
 .action-btn {
     background: #fff;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--button-radius);
     padding: 18px 12px;
     text-align: center;
     cursor: pointer;
-    transition: border-color .2s, box-shadow .2s;
+    transition: border-color .2s, box-shadow .2s, transform .15s;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -540,6 +540,7 @@
 .action-btn:hover {
     border-color: var(--gold);
     box-shadow: 0 2px 12px rgba(201, 169, 110, .12);
+    transform: translateY(-1px);
 }
 
 .action-btn:hover i,
@@ -586,20 +587,25 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
+    min-height: 38px;
+    padding: 8px 14px;
     background: var(--gold);
     color: var(--deep);
     border: none;
-    border-radius: 7px;
+    border-radius: var(--button-radius);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
     text-decoration: none;
-    transition: background .2s;
+    transition: background .2s, box-shadow .2s, transform .15s;
 }
 
-.section-header .btn:hover { background: var(--gold-hover, #b8975a); }
+.section-header .btn:hover {
+    background: var(--gold-hover, #b8975a);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
 
 .section-link {
     font-size: 13px;
@@ -874,8 +880,9 @@
     background: transparent;
     border: 1px solid var(--danger, #f44336);
     color: var(--danger, #f44336);
+    min-height: var(--button-height);
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: var(--button-radius);
     font-size: 14px;
     font-weight: 600;
     font-family: inherit;
@@ -883,12 +890,14 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: background .2s, color .2s;
+    transition: background .2s, color .2s, box-shadow .2s, transform .15s;
 }
 
 .danger-button:hover {
     background: var(--danger, #f44336);
     color: #fff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Form feedback */

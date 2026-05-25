@@ -2,8 +2,9 @@
     background: rgba(255, 255, 255, 0.12);
     color: #fff;
     border: 2px solid rgba(255, 255, 255, 0.6);
-    padding: 13px 30px;
-    border-radius: 9999px;
+    min-height: var(--button-height);
+    padding: var(--button-padding-y) var(--button-padding-x);
+    border-radius: var(--button-radius);
     cursor: pointer;
     font-weight: 600;
     font-size: 15px;
@@ -12,7 +13,7 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    transition: all .3s ease;
+    transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .15s ease;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
@@ -20,7 +21,7 @@
 .hero-btn-flights:hover {
     background: rgba(255, 255, 255, 0.25);
     border-color: #fff;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
 }
 
@@ -1080,14 +1081,15 @@
 
 .newsletter-input button {
     background: linear-gradient(135deg, var(--gold), var(--gold-hover));
-    color: #fff;
+    color: var(--deep);
     border: none;
-    padding: 14px 28px;
-    border-radius: 12px;
+    min-height: var(--button-height);
+    padding: var(--button-padding-y) var(--button-padding-x);
+    border-radius: var(--button-radius);
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 15px;
-    transition: all .3s ease;
+    transition: background .2s, color .2s, box-shadow .2s, transform .15s;
     font-family: inherit;
     display: inline-flex;
     align-items: center;
@@ -1096,7 +1098,8 @@
 }
 
 .newsletter-input button:hover {
-    transform: translateY(-2px);
+    color: var(--deep);
+    transform: translateY(-1px);
     box-shadow: 0 8px 24px rgba(201, 169, 110, .4);
 }
 

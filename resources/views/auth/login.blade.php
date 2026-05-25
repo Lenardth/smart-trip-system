@@ -22,7 +22,7 @@
                 <input id="password" class="auth-input {{ $errors->has('password') ? 'is-invalid' : '' }}"
                        type="password" name="password"
                        required autocomplete="current-password" placeholder="••••••••">
-                <button type="button" class="toggle-password" id="togglePassword" tabindex="-1">
+                <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password" aria-pressed="false">
                     <i class="fas fa-eye" id="toggleIcon"></i>
                 </button>
             </div>
