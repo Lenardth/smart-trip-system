@@ -9,8 +9,6 @@ class AccommodationSeeder extends Seeder
 {
     public function run(): void
     {
-        if (Accommodation::count() > 0) return;
-
         $accommodations = [
             ['name' => 'The Grand Palace Hotel', 'city' => 'Paris', 'country' => 'France', 'style' => 'hotel', 'budget_tier' => 'premium', 'nightly_rate' => 320, 'rating' => 5],
             ['name' => 'Montmartre Boutique', 'city' => 'Paris', 'country' => 'France', 'style' => 'hotel', 'budget_tier' => 'mid', 'nightly_rate' => 145, 'rating' => 4],
@@ -45,8 +43,10 @@ class AccommodationSeeder extends Seeder
         ];
 
         foreach ($accommodations as $a) {
-            Accommodation::create(array_merge($a, [
-                'geoapify_id' => 'seed_' . strtolower(str_replace(' ', '_', $a['name'])),
+            $geoapifyId = 'seed_' . strtolower(str_replace(' ', '_', $a['name']));
+
+            Accommodation::updateOrCreate(['geoapify_id' => $geoapifyId], array_merge($a, [
+                'geoapify_id' => $geoapifyId,
                 'image_url'   => 'https://picsum.photos/seed/' . urlencode($a['name']) . '/400/280',
                 'is_active'   => true,
                 'amenities'   => null,

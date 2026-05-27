@@ -1,50 +1,22 @@
 <div class="sidebar" id="sidebar">
 
     <nav class="sidebar-menu">
-        @php
-            $dashboardTab = request()->routeIs('dashboard') ? request('tab', 'overview') : null;
-
-            $menuSections = [
-                [
-                    'label' => 'Travel',
-                    'items' => [
-                        ['href' => '/',                   'icon' => 'fa-home',           'label' => 'Home'],
-                        ['href' => route('dashboard'),    'icon' => 'fa-tachometer-alt', 'label' => 'Dashboard', 'dashboard_tab' => 'overview'],
-                        ['href' => '/discover',           'icon' => 'fa-compass',        'label' => 'Discover'],
-                        ['href' => '/plan-trip',          'icon' => 'fa-route',          'label' => 'Plan Trip'],
-                        ['href' => '/flights',            'icon' => 'fa-plane',          'label' => 'Flights'],
-                        ['href' => '/accommodations',     'icon' => 'fa-hotel',          'label' => 'Stays'],
-                        ['href' => '/bookings',           'icon' => 'fa-ticket-alt',     'label' => 'Bookings', 'badge' => 'bookingsCount'],
-                    ],
-                ],
-                [
-                    'label' => 'Account',
-                    'items' => [
-                        ['href' => route('dashboard', ['tab' => 'settings']), 'icon' => 'fa-cog', 'label' => 'Settings', 'dashboard_tab' => 'settings'],
-                    ],
-                ],
-            ];
-        @endphp
-
-        @foreach($menuSections as $section)
+        @foreach($sidebarSections ?? [] as $section)
             <p class="sidebar-section-label">{{ $section['label'] }}</p>
             @foreach($section['items'] as $item)
-                @php
-                    if (isset($item['dashboard_tab'])) {
-                        $isActive = $dashboardTab === $item['dashboard_tab'];
-                    } else {
-                        $path = parse_url($item['href'], PHP_URL_PATH) ?: '/';
-                        $isActive = ($activeMenu ?? request()->getPathInfo()) === $path;
-                    }
-                @endphp
-                <a href="{{ $item['href'] }}" class="menu-item {{ $isActive ? 'active' : '' }}">
+                <a
+                    href="{{ $item['href'] }}"
+                    @class([
+                        'menu-item',
+                        'active' => isset($item['dashboard_tab'])
+                            ? $dashboardTab === $item['dashboard_tab']
+                            : (($activeMenu ?? request()->getPathInfo()) === (parse_url($item['href'], PHP_URL_PATH) ?: '/')),
+                    ])
+                >
                     <i class="fas {{ $item['icon'] }}"></i>
                     <span>{{ $item['label'] }}</span>
                     @if(!empty($item['badge']) && $item['badge'] === 'bookingsCount')
-                        @php
-                            $badgeVal = \App\Models\Booking::where('user_id', Auth::id())->whereIn('status', ['confirmed', 'pending'])->count();
-                        @endphp
-                        <span class="menu-badge" id="bookingsCount">{{ $badgeVal ?: 0 }}</span>
+                        <span class="menu-badge" id="bookingsCount">{{ $activeBookingsCount ?? 0 }}</span>
                     @endif
                 </a>
             @endforeach

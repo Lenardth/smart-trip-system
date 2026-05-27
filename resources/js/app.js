@@ -2,6 +2,11 @@ import './blade/global';
 import './blade/shared/currency';
 import './blade/shared/event-delegation';
 import './bootstrap';
+import Swal from 'sweetalert2';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import 'sweetalert2/dist/sweetalert2.min.css';
+
+window.Swal = window.Swal || Swal;
 
 // Initialize event delegation system
 import { init as initEventDelegation } from './blade/shared/event-delegation';

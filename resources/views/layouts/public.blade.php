@@ -1,9 +1,5 @@
 @extends('layouts.base')
 
-@push('scripts')
-    @stack('scripts_body')
-@endpush
-
 @section('body')
     <div class="public-layout-wrap">
 

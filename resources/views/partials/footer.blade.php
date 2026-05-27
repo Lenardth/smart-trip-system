@@ -24,7 +24,7 @@
                 <h4>Account</h4>
                 @auth
                     <a href="{{ route('dashboard') }}">Dashboard</a>
-                    <a href="{{ route('profile.edit') }}">Profile</a>
+                    <a href="{{ route('dashboard', ['tab' => 'settings']) }}">Settings</a>
                     <form method="POST" action="{{ route('logout') }}" class="footer-logout-form">
                         @csrf
                         <button type="submit" class="footer-link-btn">Sign Out</button>

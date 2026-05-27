@@ -23,6 +23,12 @@ return [
         'flight'        => 'flight',
     ],
 
+    'type_icons' => [
+        'flight' => 'fa-plane',
+        'trips'  => 'fa-route',
+        'hotels' => 'fa-hotel',
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Passenger Details Type Mapping
@@ -48,9 +54,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'travel_classes' => [
-        'economy'      => 'ECONOMY',
-        'business'     => 'BUSINESS',
-        'first_class'  => 'FIRST',
+        'economy'         => 'ECONOMY',
+        'premium_economy' => 'PREMIUM_ECONOMY',
+        'business'        => 'BUSINESS',
+        'first_class'     => 'FIRST',
     ],
 
     'default_travel_class' => 'ECONOMY',

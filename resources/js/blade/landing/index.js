@@ -432,7 +432,7 @@ window.generateQuickPlan = async function (e) {
                 '</div>' +
                 '<div class="ai-suggestion-card-body">' +
                     '<div class="ai-facts">' +
-                        '<div><p>Est. Cost</p><strong>' + esc(s.estimated_cost) + '</strong></div>' +
+                        '<div><p>Est. Cost</p><strong>' + esc(formatSuggestionCost(s)) + '</strong></div>' +
                         '<div><p>Best Time</p><span>' + esc(s.best_time_to_visit) + '</span></div>' +
                         '<div><p>Visa</p><span>' + esc(s.visa_info || 'Check embassy') + '</span></div>' +
                     '</div>' +
@@ -466,6 +466,25 @@ window.generateQuickPlan = async function (e) {
     }
 };
 
+function formatSuggestionCost(suggestion) {
+    const min = Number(suggestion.cost_min_usd || 0);
+    const max = Number(suggestion.cost_max_usd || 0);
+
+    if (min > 0 && max > 0) {
+        return formatCurrency(min) + ' - ' + formatCurrency(max);
+    }
+
+    return suggestion.estimated_cost || 'Price TBD';
+}
+
+function formatCurrency(usd) {
+    if (typeof window.Currency !== 'undefined') {
+        return window.Currency.format(Number(usd));
+    }
+
+    return '$' + Number(usd).toLocaleString();
+}
+
 window.subscribeNewsletter = function () {
     const emailInput = document.querySelector('.newsletter-input input');
     if (!emailInput) return;
@@ -497,20 +516,62 @@ ready(function () {
     if (wrapper && trigger && dropdown && hidden) {
         const iconEl = trigger.querySelector('.custom-select-icon');
         const textEl = trigger.querySelector('.custom-select-text');
-        trigger.addEventListener('click', e => { e.stopPropagation(); wrapper.classList.toggle('open'); });
+        trigger.tabIndex = 0;
+        trigger.setAttribute('role', 'button');
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
+        dropdown.setAttribute('role', 'listbox');
+
+        const closeMood = () => {
+            wrapper.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        };
+        const openMood = () => {
+            document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+                if (w !== wrapper) {
+                    w.classList.remove('open');
+                    w.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+            wrapper.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+        };
+        const toggleMood = () => wrapper.classList.contains('open') ? closeMood() : openMood();
+
+        trigger.addEventListener('click', e => { e.stopPropagation(); toggleMood(); });
+        trigger.addEventListener('keydown', e => {
+            if (['Enter', ' ', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+                openMood();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeMood();
+            }
+        });
         dropdown.querySelectorAll('.custom-select-option').forEach(opt => {
+            opt.setAttribute('role', 'option');
+            opt.setAttribute('aria-selected', opt.classList.contains('selected') ? 'true' : 'false');
             opt.addEventListener('click', function (e) {
                 e.stopPropagation();
-                dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                dropdown.querySelectorAll('.custom-select-option').forEach(o => {
+                    o.classList.remove('selected');
+                    o.setAttribute('aria-selected', 'false');
+                });
                 this.classList.add('selected');
+                this.setAttribute('aria-selected', 'true');
                 const iconTag = this.querySelector('i');
                 iconEl.innerHTML = iconTag ? iconTag.outerHTML : '';
                 textEl.textContent = this.textContent.trim();
                 hidden.value = this.dataset.value;
-                wrapper.classList.remove('open');
+                hidden.dispatchEvent(new Event('change', { bubbles: true }));
+                closeMood();
             });
         });
-        document.addEventListener('click', () => wrapper.classList.remove('open'));
+        dropdown.addEventListener('click', e => e.stopPropagation());
+        document.addEventListener('click', closeMood);
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeMood();
+        });
     }
 
     
@@ -555,14 +616,7 @@ ready(function () {
     });
 
     fetchDestinations();
-    // Re-render destination cards when currency changes
-    if (typeof window.Currency !== 'undefined') {
-        window.Currency.onCurrencyChange(function() {
-            window.Currency.refreshAllPrices();
-            updateLandingBudgetDropdown();
-        });
-        updateLandingBudgetDropdown();
-    }
+    updateLandingBudgetDropdown();
 });
 
 function updateLandingBudgetDropdown() {
@@ -583,4 +637,9 @@ function updateLandingBudgetDropdown() {
     });
     sel.value = currentVal;
 }
-document.addEventListener('currency:changed', function() { if (window._allDestinations) { renderGrid(window._allDestinations.slice(0, 8)); } });
+document.addEventListener('currency:changed', function() {
+    updateLandingBudgetDropdown();
+    if (window._allDestinations) {
+        renderGrid(window._allDestinations.slice(0, 8));
+    }
+});

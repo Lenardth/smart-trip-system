@@ -6,18 +6,6 @@
 
 @section('content')
 
-@php
-    $user              = Auth::user();
-    $firstName         = explode(' ', $user->name)[0];
-    $isNew             = $user->created_at->diffInDays(now()) < 1;
-    $hour              = now()->hour;
-    $greeting          = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
-    $tripsCount        = \App\Models\Trip::where('user_id', Auth::id())->where('status','planned')->count();
-    $bookingsCount     = \App\Models\Booking::where('user_id', Auth::id())->whereIn('status',['confirmed','pending'])->count();
-    $staySearchesCount = \App\Models\AccommodationSearch::where('user_id', Auth::id())->count();
-    $activeTab         = request('tab', 'overview');
-@endphp
-
 {{-- Welcome banner --}}
 <div class="welcome-banner">
     <div class="welcome-avatar">

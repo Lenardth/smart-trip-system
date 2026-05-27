@@ -101,7 +101,3 @@
         @endguest
     </div>
 </nav>
-
-@push('scripts')
-<script src="{{ asset('js/public-navigation.js') }}"></script>
-@endpush

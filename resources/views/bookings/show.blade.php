@@ -6,10 +6,6 @@
 
 @section('content')
 
-@php
-    $pd = $booking->passenger_details ? (array) $booking->passenger_details : [];
-@endphp
-
 <div class="booking-show-wrap">
 
     <div class="booking-status-banner status-{{ $booking->status }}">
@@ -33,43 +29,43 @@
                 </div>
             </div>
 
-            @if($booking->type === 'flight' && $pd)
+            @if($booking->type === 'flight' && $booking->passenger_details)
             <div class="bshow-card">
                 <h3><i class="fas fa-plane"></i> Flight Details</h3>
                 <div class="bshow-flight-route">
                     <div class="bfr-point">
-                        <div class="bfr-time">{{ !empty($pd['departure_time']) ? \Carbon\Carbon::parse($pd['departure_time'])->format('H:i') : '--:--' }}</div>
-                        <div class="bfr-airport">{{ $pd['departure_airport'] ?? '—' }}</div>
-                        <div class="bfr-date">{{ !empty($pd['departure_date']) ? \Carbon\Carbon::parse($pd['departure_date'])->format('M j, Y') : '' }}</div>
+                        <div class="bfr-time">{{ !empty($booking->passenger_details['departure_time']) ? \Carbon\Carbon::parse($booking->passenger_details['departure_time'])->format('H:i') : '--:--' }}</div>
+                        <div class="bfr-airport">{{ $booking->passenger_details['departure_airport'] ?? '—' }}</div>
+                        <div class="bfr-date">{{ !empty($booking->passenger_details['departure_date']) ? \Carbon\Carbon::parse($booking->passenger_details['departure_date'])->format('M j, Y') : '' }}</div>
                     </div>
                     <div class="bfr-line">
                         <i class="fas fa-plane"></i>
-                        <span>{{ $pd['duration'] ?? '' }}</span>
+                        <span>{{ $booking->passenger_details['duration'] ?? '' }}</span>
                     </div>
                     <div class="bfr-point">
-                        <div class="bfr-time">{{ !empty($pd['arrival_time']) ? \Carbon\Carbon::parse($pd['arrival_time'])->format('H:i') : '--:--' }}</div>
-                        <div class="bfr-airport">{{ $pd['arrival_airport'] ?? '—' }}</div>
+                        <div class="bfr-time">{{ !empty($booking->passenger_details['arrival_time']) ? \Carbon\Carbon::parse($booking->passenger_details['arrival_time'])->format('H:i') : '--:--' }}</div>
+                        <div class="bfr-airport">{{ $booking->passenger_details['arrival_airport'] ?? '—' }}</div>
                     </div>
                 </div>
                 <div class="bshow-rows">
-                    <div class="bshow-row"><label>Airline</label><span>{{ $pd['airline'] ?? '—' }}</span></div>
-                    <div class="bshow-row"><label>Flight No.</label><span>{{ $pd['flight_number'] ?? '—' }}</span></div>
-                    <div class="bshow-row"><label>Class</label><span>{{ ucfirst(strtolower($pd['travel_class'] ?? 'economy')) }}</span></div>
+                    <div class="bshow-row"><label>Airline</label><span>{{ $booking->passenger_details['airline'] ?? '—' }}</span></div>
+                    <div class="bshow-row"><label>Flight No.</label><span>{{ $booking->passenger_details['flight_number'] ?? '—' }}</span></div>
+                    <div class="bshow-row"><label>Class</label><span>{{ str($booking->passenger_details['travel_class'] ?? 'economy')->replace('_', ' ')->title() }}</span></div>
                 </div>
             </div>
             @endif
 
-            @if($booking->type === 'hotels' && $pd)
+            @if($booking->type === 'hotels' && $booking->passenger_details)
             <div class="bshow-card">
                 <h3><i class="fas fa-hotel"></i> Stay Details</h3>
                 <div class="bshow-rows">
-                    <div class="bshow-row"><label>Property</label><span>{{ $pd['name'] ?? '—' }}</span></div>
-                    <div class="bshow-row"><label>Style</label><span>{{ ucfirst($pd['style'] ?? 'standard') }}</span></div>
-                    @if(!empty($pd['check_in']))
-                    <div class="bshow-row"><label>Check-in</label><span>{{ \Carbon\Carbon::parse($pd['check_in'])->format('D, M j, Y') }}</span></div>
+                    <div class="bshow-row"><label>Property</label><span>{{ $booking->passenger_details['name'] ?? '—' }}</span></div>
+                    <div class="bshow-row"><label>Style</label><span>{{ str($booking->passenger_details['style'] ?? 'standard')->replace('_', ' ')->title() }}</span></div>
+                    @if(!empty($booking->passenger_details['check_in']))
+                    <div class="bshow-row"><label>Check-in</label><span>{{ \Carbon\Carbon::parse($booking->passenger_details['check_in'])->format('D, M j, Y') }}</span></div>
                     @endif
-                    @if(!empty($pd['check_out']))
-                    <div class="bshow-row"><label>Check-out</label><span>{{ \Carbon\Carbon::parse($pd['check_out'])->format('D, M j, Y') }}</span></div>
+                    @if(!empty($booking->passenger_details['check_out']))
+                    <div class="bshow-row"><label>Check-out</label><span>{{ \Carbon\Carbon::parse($booking->passenger_details['check_out'])->format('D, M j, Y') }}</span></div>
                     @endif
                 </div>
             </div>

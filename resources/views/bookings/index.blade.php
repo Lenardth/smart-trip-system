@@ -2,10 +2,6 @@
 
 @section('content')
 
-@php
-    $allBookings = $bookings ?? collect();
-@endphp
-
 <div class="stats-strip">
     <div class="strip-card">
         <div class="strip-icon flights"><i class="fas fa-plane"></i></div>
@@ -64,26 +60,17 @@
 <div class="bookings-section" id="bookingsList">
     <div class="bookings-grid" id="bookingsGrid">
 
-        @forelse($allBookings as $booking)
-            @php
-                $type       = $booking->type;
-                $typeIcon   = match ($type) {
-                    'flight'  => 'fa-plane',
-                    'trips'   => 'fa-route',
-                    default   => 'fa-hotel',
-                };
-                $passengers = $booking->seats_booked ?? 1;
-            @endphp
+        @forelse($bookings ?? [] as $booking)
 
             <div class="booking-card status-{{ $booking->status }}"
-                 data-type="{{ $type }}"
+                 data-type="{{ $booking->type }}"
                  data-status="{{ $booking->status }}"
                  data-price="{{ $booking->total_price }}"
                  data-date="{{ $booking->created_at->format('Y-m-d') }}">
 
                 <div class="booking-inner">
-                    <div class="booking-type-icon {{ $type }}">
-                        <i class="fas {{ $typeIcon }}"></i>
+                    <div class="booking-type-icon {{ $booking->type }}">
+                        <i class="fas {{ config('booking.type_icons.' . $booking->type, 'fa-hotel') }}"></i>
                     </div>
                     <div class="booking-info">
                         <h3>{{ $booking->title }}</h3>
@@ -99,7 +86,7 @@
                             @endif
                             <span>
                                 <i class="fas fa-users"></i>
-                                {{ $passengers }} {{ Str::plural('Passenger', $passengers) }}
+                                {{ $booking->seats_booked ?? 1 }} {{ Str::plural('Passenger', $booking->seats_booked ?? 1) }}
                             </span>
                             @if(isset($booking->passenger_details['airline']))
                                 <span><i class="fas fa-plane-departure"></i> {{ $booking->passenger_details['airline'] }}</span>
@@ -142,11 +129,11 @@
 
                 <div class="booking-detail-row" id="detail-{{ $booking->id }}">
                     <div class="detail-grid">
-                        <div class="detail-item"><label>Booking Type</label><span>{{ ucfirst($type) }}</span></div>
+                        <div class="detail-item"><label>Booking Type</label><span>{{ ucfirst($booking->type) }}</span></div>
                         <div class="detail-item"><label>Booking Date</label><span>{{ $booking->created_at->format('M j, Y H:i') }}</span></div>
                         <div class="detail-item"><label>Reference</label><span>{{ $booking->booking_reference }}</span></div>
                         <div class="detail-item"><label>Status</label><span>{{ ucfirst($booking->status) }}</span></div>
-                        @if($type === 'flight' && $booking->passenger_details)
+                        @if($booking->type === 'flight' && $booking->passenger_details)
                             <div class="detail-item"><label>Flight</label><span>{{ $booking->passenger_details['flight_number'] ?? '—' }} — {{ $booking->passenger_details['airline'] ?? '—' }}</span></div>
                             <div class="detail-item"><label>Class</label><span>{{ ucfirst(strtolower($booking->passenger_details['travel_class'] ?? 'economy')) }}</span></div>
                         @endif
@@ -157,7 +144,7 @@
                         @if($booking->trip)
                             <div class="detail-item"><label>Trip</label><span>{{ $booking->trip->name }}</span></div>
                         @endif
-                        <div class="detail-item"><label>Passengers</label><span>{{ $passengers }}</span></div>
+                        <div class="detail-item"><label>Passengers</label><span>{{ $booking->seats_booked ?? 1 }}</span></div>
                         <div class="detail-item"><label>Total Paid</label><span data-price-usd="{{ $booking->total_price }}">${{ number_format($booking->total_price, 2) }}</span></div>
                     </div>
                 </div>
@@ -179,4 +166,3 @@
 </div>
 
 @endsection
-

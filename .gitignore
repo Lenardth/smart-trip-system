@@ -1,32 +1,38 @@
-
-# Environment files - NEVER COMMIT THESE
+# Environment
 .env
 .env.*
 !.env.example
-# Laravel
+
+# Laravel dependencies and generated assets
 /vendor
-*.log
-.DS_Store
-.env.backup
-.env.production
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
 /node_modules
 /public/hot
 /public/storage
 /storage/*.key
 /bootstrap/cache/*
-Homestead.json
-Homestead.yaml
+/storage/pail
+
+# Local databases and generated test state
+/database.sqlite
+/.phpunit.cache
+/.phpunit.result.cache
+/coverage
+
+# Logs and runtime files
+*.log
 npm-debug.log
 yarn-error.log
+
+# IDE helpers and editor state
+.phpactor.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+/auth.json
+Homestead.json
+Homestead.yaml
 _ide_helper.php
 .phpstorm.meta.php
 _ide_helper_models.php
@@ -34,25 +40,22 @@ _ide_helper_models.php
 /.php_cs
 .php_cs.cache
 docker-compose.override.yml
-# OS
+
+# OS files
+.DS_Store
 Thumbs.db
-# Tests
-/coverage
-*.xml
-*.cache
-# Logs
-# Backup files
+
+# Backups and temporary caches
 *.backup
 *.bak
-# Cache files
+*.cache
+
+# Framework runtime directories
 /storage/framework/cache/*
 !/storage/framework/cache/.gitignore
-# Session files
 /storage/framework/sessions/*
 !/storage/framework/sessions/.gitignore
-# View files
 /storage/framework/views/*
 !/storage/framework/views/.gitignore
-# Your existing entries
-# NOTE: public/build is intentionally committed — needed for deployment
-/storage/pail
+
+# NOTE: public/build is intentionally committed for deployment.

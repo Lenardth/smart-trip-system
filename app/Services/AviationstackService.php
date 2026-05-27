@@ -77,7 +77,7 @@ class AviationstackService implements FlightSearchInterface
         ?string $returnDate = null
     ): array {
         if (!$this->key) {
-            Log::error('AeroDataBox API key is not configured.');
+            Log::debug('AeroDataBox API key is not configured; using estimated flight fallback.');
             return [];
         }
 

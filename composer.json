@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "smart-booking/smart-trip-system",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "AI-assisted travel planning, flight search, accommodation discovery, and booking system.",
+    "keywords": ["laravel", "travel", "booking", "ai", "currency"],
     "license": "MIT",
     "require": {
         "php": "^8.2",

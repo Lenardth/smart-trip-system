@@ -4,16 +4,15 @@ namespace App\Providers;
 
 use App\Contracts\AccommodationPricingInterface;
 use App\Contracts\CurrencyServiceInterface;
-use App\Contracts\FlightPricingInterface;
 use App\Contracts\FlightSearchInterface;
 use App\Contracts\GeoapifyInterface;
 use App\Contracts\PricingServiceInterface;
 use App\Services\AccommodationPricingService;
 use App\Services\AviationstackService;
 use App\Services\CurrencyService;
-use App\Services\FlightPricingService;
 use App\Services\GeoapifyService;
 use App\Services\PricingService;
+use App\View\Composers\AuthenticatedNavigationComposer;
 use App\View\Composers\HeroImageComposer;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
@@ -25,7 +24,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(PricingServiceInterface::class,       PricingService::class);
         $this->app->bind(AccommodationPricingInterface::class, AccommodationPricingService::class);
-        $this->app->bind(FlightPricingInterface::class,        FlightPricingService::class);
         $this->app->bind(FlightSearchInterface::class,         AviationstackService::class);
         $this->app->bind(GeoapifyInterface::class,             GeoapifyService::class);
         $this->app->bind(CurrencyServiceInterface::class,      CurrencyService::class);
@@ -43,5 +41,7 @@ class AppServiceProvider extends ServiceProvider
             config('views.hero_image_views'),
             HeroImageComposer::class
         );
+
+        view()->composer('partials.dashboard-sidebar', AuthenticatedNavigationComposer::class);
     }
 }

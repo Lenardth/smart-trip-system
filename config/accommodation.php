@@ -79,20 +79,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Rating-based price multipliers
-    |--------------------------------------------------------------------------
-    | Thresholds are inclusive lower bounds (rating >= threshold).
-    */
-    'rating_multipliers' => [
-        ['threshold' => 90, 'multiplier' => 1.30],
-        ['threshold' => 80, 'multiplier' => 1.15],
-        ['threshold' => 70, 'multiplier' => 1.00],
-        ['threshold' => 60, 'multiplier' => 0.85],
-        ['threshold' => 0,  'multiplier' => 0.70],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Randomised price variance percentage (±N%)
     |--------------------------------------------------------------------------
     | Applied to estimated prices to make results feel realistic.
@@ -106,7 +92,6 @@ return [
     |--------------------------------------------------------------------------
     */
     'cache_ttl' => [
-        'api_price'       => 21600,   // 6 hours — live prices
         'estimated_price' => 3600,    // 1 hour  — estimates
     ],
 

@@ -1,30 +1,39 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccommodationController;
 use App\Http\Controllers\AiSuggestionController;
+use App\Http\Controllers\Api\TripMoodController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\FlightController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TripController;
+use Illuminate\Support\Facades\Route;
 
 // ── Landing ───────────────────────────────────────────────────────────────────
-Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('home');
-Route::get('/api/landing/destinations', [\App\Http\Controllers\LandingController::class, 'destinations'])
+Route::get('/', [LandingController::class, 'index'])->name('home');
+Route::get('/api/landing/destinations', [LandingController::class, 'destinations'])
     ->middleware('throttle:60,1')
     ->name('api.landing.destinations');
 
 // ── Discover ──────────────────────────────────────────────────────────────────
-Route::get('/discover', [\App\Http\Controllers\DiscoverController::class, 'index'])->name('discover');
-Route::get('/discover/place/{destination}', [\App\Http\Controllers\DiscoverController::class, 'show'])
+Route::get('/discover', [DiscoverController::class, 'index'])->name('discover');
+Route::get('/discover/place/{destination}', [DiscoverController::class, 'show'])
     ->name('discover.place.show');
+
 // Primary JSON endpoint — mirrors /api/accommodations
-Route::get('/api/discover', [\App\Http\Controllers\DiscoverController::class, 'list'])
+Route::get('/api/discover', [DiscoverController::class, 'list'])
     ->middleware('throttle:60,1')
     ->name('api.discover.list');
+
 // Legacy alias kept for backward compat
-Route::get('/api/discover/search', [\App\Http\Controllers\DiscoverController::class, 'search'])
+Route::get('/api/discover/search', [DiscoverController::class, 'search'])
     ->middleware('throttle:60,1')
     ->name('api.discover.search');
 
@@ -43,8 +52,8 @@ Route::get('/api/travel-warning',      [AccommodationController::class, 'travelW
 Route::get('/about',   fn () => view('about.index'))->name('about');
 Route::get('/privacy', fn () => view('privacy.index'))->name('privacy');
 Route::get('/terms',   fn () => view('terms.index'))->name('terms');
-Route::get('/contact',  [\App\Http\Controllers\ContactController::class, 'show'])->name('contact');
-Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'send'])->name('contact.send')->middleware('throttle:5,1');
+Route::get('/contact',  [ContactController::class, 'show'])->name('contact');
+Route::post('/contact', [ContactController::class, 'send'])->name('contact.send')->middleware('throttle:5,1');
 
 // ── Currency (public) ─────────────────────────────────────────────────────────
 Route::get('/api/currency/rates',    [CurrencyController::class, 'rates'])->name('api.currency.rates');
@@ -65,7 +74,6 @@ Route::middleware('guest')->group(function () {
 
 // ── Authenticated ─────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
-
     Route::post('/logout',        [AuthController::class, 'logout'])->name('logout');
     Route::get('/check-activity', [AuthController::class, 'checkActivity'])->name('check.activity');
 
@@ -76,15 +84,19 @@ Route::middleware('auth')->group(function () {
 
     // Plan Trip (AI)
     Route::get('/plan-trip', fn () => view('plan-trip.index'))->name('plan-trip');
-    Route::get('/api/trips',          [\App\Http\Controllers\TripController::class, 'index']);
-    Route::get('/api/trips/upcoming', [\App\Http\Controllers\TripController::class, 'upcoming']);
-    Route::post('/api/trips',         [\App\Http\Controllers\TripController::class, 'store'])->middleware('throttle:30,1');
-    Route::patch('/api/trips/{id}',   [\App\Http\Controllers\TripController::class, 'update']);
-    Route::delete('/api/trips/{id}',  [\App\Http\Controllers\TripController::class, 'destroy']);
+    Route::prefix('api/trips')->controller(TripController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/upcoming', 'upcoming');
+        Route::post('/', 'store')->middleware('throttle:30,1');
+        Route::patch('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+    });
 
-    Route::get('/api/trip-moods', [\App\Http\Controllers\Api\TripMoodController::class, 'index'])->middleware('throttle:60,1');
-    Route::post('/api/trip-moods', [\App\Http\Controllers\Api\TripMoodController::class, 'store'])->middleware('throttle:10,1');
-    Route::post('/api/trip-moods/{mood}/use', [\App\Http\Controllers\Api\TripMoodController::class, 'use'])->middleware('throttle:10,1');
+    Route::prefix('api/trip-moods')->controller(TripMoodController::class)->group(function () {
+        Route::get('/', 'index')->middleware('throttle:60,1');
+        Route::post('/', 'store')->middleware('throttle:10,1');
+        Route::post('/{mood}/use', 'use')->middleware('throttle:10,1');
+    });
 
     // Flights
     Route::get('/flights',           [FlightController::class, 'index'])->name('flights.index');
@@ -100,11 +112,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->middleware('throttle:10,1')->name('bookings.cancel');
     Route::post('/api/bookings/flight',        [BookingController::class, 'bookFlight'])->middleware('throttle:10,1');
     Route::post('/api/bookings/accommodation', [BookingController::class, 'storeAccommodation'])->middleware('throttle:10,1');
-    Route::post('/api/coupon/validate',        [\App\Http\Controllers\CouponController::class, 'validate'])->middleware('throttle:30,1');
+    Route::post('/api/coupon/validate',        [CouponController::class, 'validate'])->middleware('throttle:30,1');
 
     // Profile
-    Route::post('/profile/picture',   [\App\Http\Controllers\ProfileController::class, 'uploadPicture'])->middleware('throttle:5,1')->name('profile.picture.upload');
-    Route::delete('/profile/picture', [\App\Http\Controllers\ProfileController::class, 'deletePicture'])->middleware('throttle:10,1')->name('profile.picture.delete');
-    Route::put('/profile/password',   [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password.update');
-    Route::delete('/profile',         [\App\Http\Controllers\ProfileController::class, 'destroy'])->middleware('throttle:3,1')->name('profile.destroy');
+    Route::post('/profile/picture',   [ProfileController::class, 'uploadPicture'])->middleware('throttle:5,1')->name('profile.picture.upload');
+    Route::delete('/profile/picture', [ProfileController::class, 'deletePicture'])->middleware('throttle:10,1')->name('profile.picture.delete');
+    Route::put('/profile/password',   [ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password.update');
+    Route::delete('/profile',         [ProfileController::class, 'destroy'])->middleware('throttle:3,1')->name('profile.destroy');
 });

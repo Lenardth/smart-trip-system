@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,30 +13,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Trust specific proxies or configure based on environment
         $trustedProxies = env('TRUSTED_PROXIES', null);
-        
+        $forwardedHeaders = Request::HEADER_X_FORWARDED_FOR |
+            Request::HEADER_X_FORWARDED_HOST |
+            Request::HEADER_X_FORWARDED_PORT |
+            Request::HEADER_X_FORWARDED_PROTO |
+            Request::HEADER_X_FORWARDED_AWS_ELB;
+
         if ($trustedProxies === '*') {
-            // Only trust all proxies in development
-            $middleware->trustProxies(
-                at: '*',
-                headers: Request::HEADER_X_FORWARDED_FOR |
-                         Request::HEADER_X_FORWARDED_HOST |
-                         Request::HEADER_X_FORWARDED_PORT |
-                         Request::HEADER_X_FORWARDED_PROTO |
-                         Request::HEADER_X_FORWARDED_AWS_ELB
-            );
+            $middleware->trustProxies(at: '*', headers: $forwardedHeaders);
         } elseif ($trustedProxies) {
-            // Trust specific proxy IPs in production
             $middleware->trustProxies(
-                at: explode(',', $trustedProxies),
-                headers: Request::HEADER_X_FORWARDED_FOR |
-                         Request::HEADER_X_FORWARDED_HOST |
-                         Request::HEADER_X_FORWARDED_PORT |
-                         Request::HEADER_X_FORWARDED_PROTO |
-                         Request::HEADER_X_FORWARDED_AWS_ELB
+                at: array_map('trim', explode(',', $trustedProxies)),
+                headers: $forwardedHeaders
             );
         }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-    })->create();
+        //
+    })
+    ->create();

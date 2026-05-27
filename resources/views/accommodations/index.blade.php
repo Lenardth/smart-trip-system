@@ -2,14 +2,6 @@
 
 @section('title', 'Accommodations — Smart Booking')
 
-@push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-@endpush
-
-@push('scripts_body')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-@endpush
-
 @section('content')
 {{-- Enhanced Hero Section with Search --}}
 <section class="hero hero-with-image hero-pattern accommodations-hero"
@@ -108,7 +100,7 @@
                 <div class="classic-news-rule"></div>
                 <div class="classic-news-dateline">
                     <span id="newsDateline"></span>
-                    <a id="newsMoreLink" href="#" target="_blank" rel="noopener" class="classic-more-link">
+                    <a id="newsMoreLink" href="https://news.google.com" target="_blank" rel="noopener noreferrer" class="classic-more-link">
                         Full Coverage <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>

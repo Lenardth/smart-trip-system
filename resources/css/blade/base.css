@@ -470,6 +470,7 @@ body {
     align-items: center;
     gap: 10px;
     text-decoration: none;
+    min-width: 0;
 }
 
 .sidebar-brand {
@@ -552,6 +553,21 @@ body {
 
 .logo-text-gold {
     color: var(--gold);
+}
+
+.logo-nav {
+    width: 68px;
+    min-width: 68px;
+    height: 68px;
+}
+
+.logo-text-nav {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    font-size: 24px;
+    line-height: 1.15;
+    white-space: nowrap;
 }
 
 .user-display {
@@ -817,6 +833,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
 }
 
 .mob-logo {
@@ -835,6 +852,19 @@ body {
 
 .mob-brand-text span {
     color: var(--gold);
+}
+
+.mob-logo-size {
+    width: 54px;
+    height: 54px;
+}
+
+.mob-brand-text-size {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    line-height: 1.15;
+    white-space: nowrap;
 }
 
 .mob-drawer-close {
@@ -1174,9 +1204,17 @@ body {
 }
 
 .custom-select-trigger:hover,
+.custom-select-trigger:focus-visible,
 .custom-select-wrapper.open .custom-select-trigger {
     border-color: var(--gold);
     box-shadow: 0 0 0 3px rgba(201, 169, 110, .15);
+    outline: none;
+}
+
+.custom-select-wrapper.disabled .custom-select-trigger {
+    cursor: not-allowed;
+    opacity: .65;
+    box-shadow: none;
 }
 
 .custom-select-icon {
@@ -2313,8 +2351,21 @@ body {
         display: none;
     }
     .main-header {
-        padding: 8px 0 8px 16px;
+        padding: 8px 16px;
         justify-content: flex-start;
+    }
+    .header-brand {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .logo-nav {
+        width: 56px;
+        min-width: 56px;
+        height: 56px;
+    }
+    .logo-text-nav {
+        font-size: 20px;
+        gap: 5px;
     }
     .header-logo-img {
         height: 52px;

@@ -2,25 +2,14 @@
 
 @push('body-attrs')
 class="dashboard-page"
-@endpush
-
-@push('scripts')
-<script id="dashboard-config" type="application/json">
-{
-    "pusherKey": @json(config('broadcasting.connections.pusher.key')),
-    "pusherCluster": @json(config('broadcasting.connections.pusher.options.cluster', 'mt1')),
-    "userId": {{ Auth::id() ?? 'null' }},
-    "user": {
-        "id": {{ Auth::id() ?? 'null' }},
-        "name": @json(Auth::user()->name ?? ''),
-        "firstName": @json(Auth::check() ? explode(' ', Auth::user()->name ?? '')[0] : ''),
-        "avatar": @json(Auth::user()->profile_picture ? asset('storage/'.Auth::user()->profile_picture) : ''),
-        "type": @json(Auth::user()->user_type ?? ''),
-        "verified": {{ Auth::user()?->email_verified_at ? 'true' : 'false' }}
-    }
-}
-</script>
-@stack('scripts_body')
+data-pusher-key="{{ config('broadcasting.connections.pusher.key') }}"
+data-pusher-cluster="{{ config('broadcasting.connections.pusher.options.cluster', 'mt1') }}"
+data-user-id="{{ Auth::id() }}"
+data-user-name="{{ Auth::user()->name ?? '' }}"
+data-user-first-name="{{ Auth::check() ? explode(' ', Auth::user()->name ?? '')[0] : '' }}"
+data-user-avatar="{{ Auth::user()?->profile_picture ? asset('storage/'.Auth::user()->profile_picture) : '' }}"
+data-user-type="{{ Auth::user()->user_type ?? '' }}"
+data-user-verified="{{ Auth::user()?->email_verified_at ? 'true' : 'false' }}"
 @endpush
 
 @section('body')

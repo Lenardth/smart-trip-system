@@ -62,14 +62,10 @@ window.__dashboardConfig = window.__dashboardConfig || {
         consumePendingTripSave();
         initTripSavedListener();
 
-        if (typeof window.Currency !== 'undefined') {
-            window.Currency.onCurrencyChange(function () {
-                loadUpcomingTrips();
-                if (typeof window.Currency.refreshAllPrices === 'function') {
-                    window.Currency.refreshAllPrices();
-                }
-            });
-        }
+        document.addEventListener('currency:changed', function () {
+            loadUpcomingTrips();
+            window.Currency?.refresh?.();
+        });
     }
 
     if (document.readyState === 'loading') {

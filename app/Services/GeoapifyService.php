@@ -98,56 +98,6 @@ class GeoapifyService implements GeoapifyInterface
         });
     }
 
-    public function searchPlaces(string $query, ?string $countryCode = null, ?string $mood = null, int $limit = 50): array
-    {
-        return ApiResponse::remember('nominatim', 'search_places', [
-            'query' => $query,
-            'country_code' => $countryCode,
-            'mood' => $mood,
-            'limit' => $limit,
-        ], now()->addDays(7), function () use ($query, $countryCode, $mood, $limit) {
-        $limit = min(max($limit, 1), 100);
-        $params = [
-            'q' => $query,
-            'format' => 'json',
-            'addressdetails' => 1,
-            'limit' => $limit,
-            'extratags' => 1,
-            'namedetails' => 1,
-        ];
-
-        if ($countryCode) {
-            $params['countrycodes'] = strtolower($countryCode);
-        }
-
-        try {
-            $response = Http::timeout(12)
-                ->withHeaders(['User-Agent' => 'SmartTripPlanner/1.0'])
-                ->get("{$this->nominatimUrl}/search", $params);
-
-            if (! $response->successful() || empty($response->json())) {
-                Log::warning('Nominatim search failed', [
-                    'query' => $query,
-                    'country' => $countryCode,
-                    'status' => $response->status(),
-                ]);
-                return [];
-            }
-
-            $places = array_map(fn(array $item) => $this->mapNominatimPlace($item), $response->json());
-
-            if ($mood) {
-                $places = $this->filterPlacesByMood($places, $mood);
-            }
-
-            return array_slice($places, 0, $limit);
-        } catch (\Throwable $e) {
-            Log::warning('Nominatim search exception', ['query' => $query, 'error' => $e->getMessage()]);
-            return [];
-        }
-        });
-    }
-
     /**
      * Search for travel destinations (cities, tourist attractions, landmarks).
      * Returns clean destination data suitable for the Discover page.
@@ -446,33 +396,6 @@ class GeoapifyService implements GeoapifyInterface
         return implode(', ', array_values($languages));
     }
 
-    private function mapNominatimPlace(array $item): array
-    {
-        $address = $item['address'] ?? [];
-        $city = $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['hamlet'] ?? null;
-        $region = $address['state'] ?? $address['region'] ?? $address['county'] ?? null;
-        $country = $address['country'] ?? null;
-
-        $fqName = $item['namedetails']['name'] ?? $address['attraction'] ?? $address['building'] ?? $item['display_name'] ?? null;
-
-        return [
-            'id' => 'nominatim_' . ($item['osm_type'] ?? 'place') . '_' . ($item['osm_id'] ?? uniqid()),
-            'name' => $fqName ?: 'Unknown place',
-            'type' => $item['type'] ?? $item['class'] ?? 'place',
-            'category' => $item['class'] ?? $item['type'] ?? 'place',
-            'city' => $city,
-            'region' => $region,
-            'country' => $country,
-            'country_code' => isset($address['country_code']) ? strtoupper($address['country_code']) : null,
-            'address' => $item['display_name'] ?? null,
-            'description' => $item['type'] ? ucwords(str_replace('_', ' ', $item['type'])) : null,
-            'lat' => isset($item['lat']) ? (float) $item['lat'] : null,
-            'lon' => isset($item['lon']) ? (float) $item['lon'] : null,
-            'image_url' => $this->imageUrlForPlace($item),
-            'source' => 'openstreetmap',
-        ];
-    }
-
     private function filterPlacesByMood(array $places, string $mood): array
     {
         $mood = ucwords(strtolower($mood));
@@ -509,11 +432,6 @@ class GeoapifyService implements GeoapifyInterface
 
             return false;
         }));
-    }
-
-    private function imageUrlForPlace(array $item): string
-    {
-        return '';
     }
 
     private function mapElement(array $el, string $city): array

@@ -479,7 +479,7 @@ async function generateSuggestions() {
         destination_interest: document.getElementById('destinationInterest')?.value.trim() || null,
         origin: document.getElementById('origin')?.value.trim() || null,
         experience: document.getElementById('experience')?.value || null,
-        currency: typeof window.Currency !== 'undefined' ? window.Currency.active : 'USD',
+        currency: typeof window.Currency !== 'undefined' ? window.Currency.current() : 'USD',
     };
 
     try {
@@ -549,7 +549,7 @@ function calculateCostBreakdown(destination, payload) {
             range: {
                 low: costMin, // Use AI-provided min
                 high: costMax, // Use AI-provided max
-                display: `${fmtCurrency(costMin)} to ${fmtCurrency(costMax)}`
+                display: formatCostRange(costMin, costMax)
             },
             savings: {
                 earlyBird: Math.round(total * 0.10),
@@ -596,7 +596,7 @@ function calculateCostBreakdown(destination, payload) {
         range: {
             low: Math.round(total * 0.85),
             high: Math.round(total * 1.15),
-            display: `${fmtCurrency(Math.round(total * 0.85))} – ${fmtCurrency(Math.round(total * 1.15))}`
+            display: formatCostRange(Math.round(total * 0.85), Math.round(total * 1.15))
         },
         savings: {
             earlyBird: Math.round(total * 0.10),
@@ -613,6 +613,10 @@ function fmtCurrency(n) {
         return window.Currency.format(Number(n));
     }
     return '$' + fmt(Math.round(n));
+}
+
+function formatCostRange(minUsd, maxUsd) {
+    return `${fmtCurrency(minUsd)} - ${fmtCurrency(maxUsd)}`;
 }
 
 // PDF-specific currency formatter that respects user's currency
@@ -679,8 +683,8 @@ function renderResults(destinations) {
             <p>${esc(d.description)}</p>
             <div class="dest-cost">
                 <i class="fas fa-wallet dest-cost-icon"></i>
-                <span data-price-usd="${d.costBreakdown.range.low}">${d.costBreakdown.range.display}</span>
-                <span class="dest-cost-note">per person · <em>${d.estimated_cost || ''}</em></span>
+                <span>${d.costBreakdown.range.display}</span>
+                <span class="dest-cost-note">per person</span>
             </div>
             <div class="dest-meta">
                 <div class="dest-meta-row"><i class="fas fa-calendar-check"></i><span><strong>Best time:</strong> ${esc(d.best_time_to_visit)}</span></div>
@@ -1055,7 +1059,7 @@ async function downloadReceiptPdf() {
         showActionError('Select a destination before saving a PDF.');
         return;
     }
-    const jsPDF = window.jspdf?.jsPDF || JsPdfModule;
+    const jsPDF = JsPdfModule;
     if (!jsPDF) { printReceipt(); return; }
     const d = selectedDest;
     const cost = d.costBreakdown || calculateCostBreakdown(d, lastPayload || {});
@@ -1532,34 +1536,25 @@ function updateBudgetDropdowns() {
     });
 }
 
-// Run on load and on currency change — poll until Currency is ready
-(function() {
-    function tryRegister() {
-        if (typeof window.Currency === 'undefined') { setTimeout(tryRegister, 100); return; }
-        // Update immediately with current currency
-        updateBudgetDropdowns();
-        // Update whenever currency changes
-        window.Currency.onCurrencyChange(function() {
-            updateBudgetDropdowns();
-            // Re-render results if visible
-            if (lastResults && lastResults.length) {
-                lastResults = lastResults.map(function(dest) {
-                    return Object.assign({}, dest, { costBreakdown: calculateCostBreakdown(dest, lastPayload) });
-                });
-                renderResults(lastResults);
-            }
-        });
-        // Also update when rates are fetched (currency module fires refreshAllPrices after fetch)
-        var _origRefresh = window.Currency.refreshAllPrices;
-        if (_origRefresh) {
-            window.Currency.refreshAllPrices = function() {
-                _origRefresh();
-                updateBudgetDropdowns();
-            };
+if (document.readyState !== 'loading') {
+    updateBudgetDropdowns();
+} else {
+    document.addEventListener('DOMContentLoaded', updateBudgetDropdowns);
+}
+
+document.addEventListener('currency:changed', function() {
+    updateBudgetDropdowns();
+
+    if (lastResults.length) {
+        const previousSelection = selectedDest;
+        lastResults = lastResults.map(dest => ({ ...dest, costBreakdown: calculateCostBreakdown(dest, lastPayload) }));
+        renderResults(lastResults);
+
+        if (previousSelection) {
+            const selectedIndex = lastResults.findIndex(dest =>
+                dest.destination === previousSelection.destination && dest.country === previousSelection.country
+            );
+            if (selectedIndex >= 0) selectDestination(selectedIndex, false);
         }
     }
-    if (document.readyState !== 'loading') tryRegister();
-    else document.addEventListener('DOMContentLoaded', tryRegister);
-})();
-
-document.addEventListener('currency:changed', function() { if (window.Currency) window.Currency.refresh(); });
+});

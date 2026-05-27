@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Database\Seeders\DestinationSeeder;
-use Database\Seeders\MoodCategorySeeder;
 
 class DatabaseSeeder extends Seeder
 {

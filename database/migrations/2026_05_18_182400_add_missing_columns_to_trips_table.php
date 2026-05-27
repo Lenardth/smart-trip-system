@@ -9,12 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('trips', function (Blueprint $table) {
-            // Add description column
             if (!Schema::hasColumn('trips', 'description')) {
                 $table->text('description')->nullable()->after('estimated_cost');
             }
-            
-            // Add individual cost columns
+
             if (!Schema::hasColumn('trips', 'flight_cost')) {
                 $table->decimal('flight_cost', 10, 2)->nullable()->after('description');
             }
@@ -30,16 +28,14 @@ return new class extends Migration
             if (!Schema::hasColumn('trips', 'transport_cost')) {
                 $table->decimal('transport_cost', 10, 2)->nullable()->after('food_cost');
             }
-            
-            // Add activities and cities columns
+
             if (!Schema::hasColumn('trips', 'activities')) {
                 $table->json('activities')->nullable()->after('cost_breakdown');
             }
             if (!Schema::hasColumn('trips', 'cities_to_visit')) {
                 $table->json('cities_to_visit')->nullable()->after('activities');
             }
-            
-            // Add validation data columns
+
             if (!Schema::hasColumn('trips', 'validation_data')) {
                 $table->json('validation_data')->nullable()->after('is_good_right_now');
             }

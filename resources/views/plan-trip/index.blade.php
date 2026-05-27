@@ -2,14 +2,6 @@
 
 @section('title', 'Plan Trip — Smart Booking')
 
-@push('styles')
-    
-@endpush
-
-@push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-@endpush
-
 @section('content')
 <section class="hero hero-with-image hero-pattern" 
          data-bg="{{ $heroImage ?? 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80' }}">

@@ -8,11 +8,11 @@
         </div>
 
         <div class="footer-social-links">
-            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
-            <a href="#" aria-label="Laravel"><i class="fab fa-laravel"></i></a>
-            <a href="#" aria-label="Docs"><i class="fas fa-graduation-cap"></i></a>
-            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="{{ route('discover') }}" aria-label="Discover destinations"><i class="fas fa-compass"></i></a>
+            <a href="{{ route('plan-trip') }}" aria-label="Plan a trip"><i class="fas fa-route"></i></a>
+            <a href="{{ route('flights.index') }}" aria-label="Search flights"><i class="fas fa-plane"></i></a>
+            <a href="{{ route('accommodations.index') }}" aria-label="Find stays"><i class="fas fa-hotel"></i></a>
+            <a href="{{ route('contact') }}" aria-label="Contact Smart Booking"><i class="fas fa-envelope"></i></a>
         </div>
 
         <p class="footer-copyright">&copy; {{ date('Y') }} Smart Booking. All rights reserved.</p>

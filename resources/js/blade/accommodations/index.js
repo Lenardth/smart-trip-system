@@ -1,3 +1,6 @@
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
 let map = null;
 let markers = [];
 let lastCity = '';
@@ -491,23 +494,9 @@ window.applyRecommendation = function(city) {
 ready(function() {
     initRecommendations();
 
-    // Re-render accommodation prices when currency changes
-    if (typeof window.Currency !== 'undefined') {
-        window.Currency.onCurrencyChange(function() {
-            // Re-render the grid with current data
-            var grid = document.getElementById('accommodationsGrid');
-            if (grid && grid.querySelectorAll('[data-price-usd]').length > 0) {
-                grid.querySelectorAll('[data-price-usd]').forEach(function(el) {
-                    var usd = parseFloat(el.dataset.priceUsd);
-                    if (!isNaN(usd) && usd > 0) {
-                        el.childNodes[0] && el.childNodes[0].nodeType === 3
-                            ? (el.childNodes[0].textContent = window.Currency.format(usd))
-                            : null;
-                    }
-                });
-            }
-        });
-    }
+    document.addEventListener('currency:changed', function() {
+        window.Currency?.refresh?.();
+    });
 });
 
 document.addEventListener('currency:changed', function() { if (window.Currency) window.Currency.refresh(); });

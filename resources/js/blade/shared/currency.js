@@ -67,7 +67,9 @@
         localStorage.setItem(STORAGE_KEY, code);
 
         document.querySelectorAll('.currency-option').forEach(el => {
-            el.classList.toggle('active', el.dataset.code === code);
+            const active = el.dataset.code === code;
+            el.classList.toggle('active', active);
+            el.setAttribute('aria-selected', active ? 'true' : 'false');
         });
         document.querySelectorAll('[data-currency-label]').forEach(el => {
             el.textContent = code;
@@ -92,27 +94,54 @@
         const btn = document.createElement('button');
         btn.type      = 'button';
         btn.className = 'currency-btn';
+        btn.setAttribute('aria-haspopup', 'listbox');
+        btn.setAttribute('aria-expanded', 'false');
         btn.innerHTML = '<i class="fas fa-coins"></i> <span data-currency-label>' + _currency + '</span> <i class="fas fa-chevron-down currency-chevron"></i>';
 
         const dropdown = document.createElement('div');
         dropdown.className = 'currency-dropdown';
+        dropdown.setAttribute('role', 'listbox');
 
         Object.entries(currencies).forEach(([code, info]) => {
             const opt = document.createElement('button');
             opt.type             = 'button';
             opt.className        = 'currency-option' + (code === _currency ? ' active' : '');
             opt.dataset.code     = code;
+            opt.setAttribute('role', 'option');
+            opt.setAttribute('aria-selected', code === _currency ? 'true' : 'false');
             opt.innerHTML        = '<span class="currency-symbol">' + (info.symbol || code) + '</span><span class="currency-name">' + info.name + '</span><span class="currency-code">' + code + '</span>';
-            opt.addEventListener('click', () => { setCurrency(code); dropdown.classList.remove('open'); });
+            opt.addEventListener('click', () => {
+                setCurrency(code);
+                dropdown.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            });
             dropdown.appendChild(opt);
         });
 
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            dropdown.classList.toggle('open');
+            document.querySelectorAll('.currency-dropdown.open').forEach(openDropdown => {
+                if (openDropdown !== dropdown) {
+                    openDropdown.classList.remove('open');
+                    openDropdown.previousElementSibling?.setAttribute('aria-expanded', 'false');
+                }
+            });
+            const isOpen = dropdown.classList.toggle('open');
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         });
 
-        document.addEventListener('click', () => dropdown.classList.remove('open'));
+        dropdown.addEventListener('click', e => e.stopPropagation());
+
+        document.addEventListener('click', () => {
+            dropdown.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            dropdown.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        });
 
         wrapper.appendChild(btn);
         wrapper.appendChild(dropdown);

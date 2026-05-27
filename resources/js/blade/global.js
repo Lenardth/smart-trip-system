@@ -15,14 +15,24 @@ document.addEventListener('error', (e) => {
     }
 }, true);
 
-// Parse dashboard config JSON block (if present on page)
+// Read dashboard config from layout data attributes.
 (function () {
-    try {
-        const configEl = document.getElementById('dashboard-config');
-        if (configEl) window.__dashboardConfig = JSON.parse(configEl.textContent);
-    } catch (e) {
-        console.error('[config] Failed to parse dashboard config:', e);
-    }
+    const data = document.body?.dataset || {};
+    if (!data.userId && !data.pusherKey) return;
+
+    window.__dashboardConfig = {
+        pusherKey: data.pusherKey || '',
+        pusherCluster: data.pusherCluster || 'mt1',
+        userId: data.userId ? Number(data.userId) : null,
+        user: {
+            id: data.userId ? Number(data.userId) : null,
+            name: data.userName || '',
+            firstName: data.userFirstName || '',
+            avatar: data.userAvatar || '',
+            type: data.userType || '',
+            verified: data.userVerified === 'true',
+        },
+    };
 })();
 
 window.App = {
@@ -39,7 +49,11 @@ window.App = {
         document.querySelector('.app-toast')?.remove();
         const toast = document.createElement('div');
         toast.className = `app-toast app-toast--${type}`;
-        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
+        const icon = document.createElement('i');
+        icon.className = `fas ${icons[type] || icons.info}`;
+        const text = document.createElement('span');
+        text.textContent = String(message || '');
+        toast.append(icon, text);
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
@@ -202,6 +216,40 @@ document.addEventListener('submit', function(e) {
     }
 });
 
+function initPublicNavigation() {
+    const btn = document.getElementById('mobHamburger');
+    const drawer = document.getElementById('mobDrawer');
+    const overlay = document.getElementById('mobOverlay');
+    const closeBtn = document.getElementById('mobDrawerClose');
+
+    if (!btn || !drawer || !overlay || drawer.dataset.publicNavReady === '1') {
+        return;
+    }
+
+    drawer.dataset.publicNavReady = '1';
+
+    function openDrawer() {
+        drawer.classList.add('open');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        btn.classList.add('open');
+    }
+
+    function closeDrawer() {
+        drawer.classList.remove('open');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+        btn.classList.remove('open');
+    }
+
+    btn.addEventListener('click', openDrawer);
+    closeBtn?.addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', closeDrawer);
+    drawer.querySelectorAll('.mob-link').forEach(link => {
+        link.addEventListener('click', closeDrawer);
+    });
+}
+
 // ── Custom Select (replaces all native <select> with the Travel-Mood style) ──
 
 (function () {
@@ -252,6 +300,13 @@ document.addEventListener('submit', function(e) {
         return ICON_MAP[(value || '').toLowerCase()] || null;
     }
 
+    function escapeValue(value) {
+        if (window.CSS && typeof window.CSS.escape === 'function') {
+            return window.CSS.escape(value);
+        }
+        return String(value).replace(/["\\]/g, '\\$&');
+    }
+
     function buildTriggerContent(trigger, value, label) {
         trigger.innerHTML = '';
         const icon = iconFor(value);
@@ -276,9 +331,14 @@ document.addEventListener('submit', function(e) {
 
         const trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
+        trigger.tabIndex = sel.disabled ? -1 : 0;
+        trigger.setAttribute('role', 'button');
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
 
         const dropdown = document.createElement('div');
         dropdown.className = 'custom-select-dropdown';
+        dropdown.setAttribute('role', 'listbox');
 
         Array.from(sel.options).forEach(opt => {
             const item = document.createElement('div');
@@ -290,6 +350,8 @@ document.addEventListener('submit', function(e) {
             // Carry USD range for budget selects
             if (opt.dataset.usdMin) item.dataset.usdMin = opt.dataset.usdMin;
             if (opt.dataset.usdMax) item.dataset.usdMax = opt.dataset.usdMax;
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', opt.selected ? 'true' : 'false');
             const icon = iconFor(opt.value);
             if (icon) {
                 item.innerHTML = `<i class="${icon}"></i>`;
@@ -308,32 +370,91 @@ document.addEventListener('submit', function(e) {
         wrapper.appendChild(dropdown);
         wrapper.appendChild(sel);
         sel.style.display = 'none';
+        sel.tabIndex = -1;
+        sel.setAttribute('aria-hidden', 'true');
         sel.dataset.customInit = '1';
 
-        trigger.addEventListener('click', e => {
-            e.stopPropagation();
-            document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
-                if (w !== wrapper) w.classList.remove('open');
-            });
-            wrapper.classList.toggle('open');
-        });
+        if (sel.disabled) {
+            wrapper.classList.add('disabled');
+            trigger.setAttribute('aria-disabled', 'true');
+        }
 
-        dropdown.addEventListener('click', e => {
-            const item = e.target.closest('.custom-select-option');
+        function closeSelect() {
+            wrapper.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+
+        function openSelect() {
+            if (sel.disabled) return;
+            document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+                if (w !== wrapper) {
+                    w.classList.remove('open');
+                    w.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+            wrapper.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+            dropdown.querySelector('.selected')?.scrollIntoView({ block: 'nearest' });
+        }
+
+        function toggleSelect() {
+            if (wrapper.classList.contains('open')) {
+                closeSelect();
+            } else {
+                openSelect();
+            }
+        }
+
+        function selectItem(item) {
             if (!item) return;
-            dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            dropdown.querySelectorAll('.custom-select-option').forEach(o => {
+                o.classList.remove('selected');
+                o.setAttribute('aria-selected', 'false');
+            });
             item.classList.add('selected');
+            item.setAttribute('aria-selected', 'true');
             buildTriggerContent(trigger, item.dataset.value, item.dataset.label);
             sel.value = item.dataset.value;
             sel.dispatchEvent(new Event('change', { bubbles: true }));
-            wrapper.classList.remove('open');
+            closeSelect();
+        }
+
+        trigger.addEventListener('click', e => {
+            e.stopPropagation();
+            toggleSelect();
+        });
+
+        trigger.addEventListener('keydown', e => {
+            if (['Enter', ' ', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+                openSelect();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeSelect();
+            }
+        });
+
+        dropdown.addEventListener('click', e => {
+            e.stopPropagation();
+            const item = e.target.closest('.custom-select-option');
+            selectItem(item);
+        });
+
+        dropdown.addEventListener('keydown', e => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            selectItem(e.target.closest('.custom-select-option'));
         });
 
         sel.addEventListener('change', () => {
-            const item = dropdown.querySelector(`.custom-select-option[data-value="${CSS.escape(sel.value)}"]`);
+            const item = dropdown.querySelector(`.custom-select-option[data-value="${escapeValue(sel.value)}"]`);
             if (!item) return;
-            dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            dropdown.querySelectorAll('.custom-select-option').forEach(o => {
+                o.classList.remove('selected');
+                o.setAttribute('aria-selected', 'false');
+            });
             item.classList.add('selected');
+            item.setAttribute('aria-selected', 'true');
             buildTriggerContent(trigger, item.dataset.value, item.dataset.label);
         });
     }
@@ -385,7 +506,17 @@ document.addEventListener('submit', function(e) {
         });
         if (!closeListenerAdded) {
             document.addEventListener('click', () => {
-                document.querySelectorAll('.custom-select-wrapper.open').forEach(w => w.classList.remove('open'));
+                document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+                    w.classList.remove('open');
+                    w.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+                });
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key !== 'Escape') return;
+                document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+                    w.classList.remove('open');
+                    w.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+                });
             });
             closeListenerAdded = true;
         }
@@ -400,7 +531,11 @@ document.addEventListener('submit', function(e) {
 })();
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => App.init());
+    document.addEventListener('DOMContentLoaded', () => {
+        App.init();
+        initPublicNavigation();
+    });
 } else {
     App.init();
+    initPublicNavigation();
 }

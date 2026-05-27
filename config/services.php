@@ -36,26 +36,20 @@ return [
         'base_url' => env('AERODATABOX_BASE_URL', 'https://aerodatabox.p.rapidapi.com'),
     ],
 
-    'skyscanner' => [
-        'key'  => env('SKYSCANNER_RAPIDAPI_KEY'),
-        'host' => env('SKYSCANNER_HOST', 'sky-scrapper.p.rapidapi.com'),
-    ],
-
-    'booking' => [
-        'key'  => env('BOOKING_RAPIDAPI_KEY'),
-        'host' => env('BOOKING_HOST', 'booking-com.p.rapidapi.com'),
-    ],
-
     'geoapify' => [
         'key' => env('GEOAPIFY_KEY'),
     ],
 
     'gnews' => [
-        'api_key' => env('GNEWS_API_KEY'),
+        'api_key' => env('GNEWS_API_KEY', env('GNEWS_KEY')),
+        'search_endpoint' => env('GNEWS_SEARCH_ENDPOINT', 'https://gnews.io/api/v4/search'),
+        'timeout' => env('GNEWS_TIMEOUT', 8),
     ],
 
     'newsapi' => [
-        'key' => env('NEWSAPI_KEY'),
+        'key' => env('NEWSAPI_KEY', env('NEWS_API_KEY')),
+        'everything_endpoint' => env('NEWSAPI_EVERYTHING_ENDPOINT', 'https://newsapi.org/v2/everything'),
+        'timeout' => env('NEWSAPI_TIMEOUT', 8),
     ],
 
     'pexels' => [

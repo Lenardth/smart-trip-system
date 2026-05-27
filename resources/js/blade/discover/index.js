@@ -13,6 +13,7 @@
     const resultsInfo   = document.getElementById('discoverResultsInfo');
     const sectionHeader = document.getElementById('discoverSectionHeader');
     const moodSection   = document.getElementById('discoverMoodSection');
+    let suppressFilterChange = false;
 
     const TAG_ICONS = {
         'Cultural':    'landmark',
@@ -91,12 +92,34 @@
         const inlineClr = document.getElementById('resultsClearBtn');
         if (inlineClr) {
             inlineClr.addEventListener('click', function () {
-                if (searchInput)  searchInput.value  = '';
-                if (regionFilter) regionFilter.value = '';
-                if (moodFilter)   moodFilter.value   = '';
+                clearFilters();
                 doSearch('', '', '');
             });
         }
+    }
+
+    function syncSelect(select) {
+        if (!select) return;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function currentSearch() {
+        return {
+            q: searchInput ? searchInput.value.trim() : '',
+            region: regionFilter ? regionFilter.value : '',
+            mood: moodFilter ? moodFilter.value : '',
+        };
+    }
+
+    function clearFilters() {
+        if (searchInput)  searchInput.value  = '';
+        if (regionFilter) regionFilter.value = '';
+        if (moodFilter)   moodFilter.value   = '';
+        suppressFilterChange = true;
+        syncSelect(regionFilter);
+        syncSelect(moodFilter);
+        suppressFilterChange = false;
+        setActiveMood(null);
     }
 
     function renderCard(d) {
@@ -200,13 +223,20 @@
     if (form) {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-            doSearch(
-                searchInput  ? searchInput.value.trim() : '',
-                regionFilter ? regionFilter.value       : '',
-                moodFilter   ? moodFilter.value         : ''
-            );
+            const filters = currentSearch();
+            doSearch(filters.q, filters.region, filters.mood);
         });
     }
+
+    [regionFilter, moodFilter].forEach(function (filter) {
+        if (!filter) return;
+        filter.addEventListener('change', function () {
+            if (suppressFilterChange) return;
+            const filters = currentSearch();
+            setActiveMood(filters.mood);
+            doSearch(filters.q, filters.region, filters.mood);
+        });
+    });
 
     document.querySelectorAll('.mood-category-card').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -214,6 +244,10 @@
             if (moodFilter)   moodFilter.value   = mood;
             if (searchInput)  searchInput.value  = '';
             if (regionFilter) regionFilter.value = '';
+            suppressFilterChange = true;
+            syncSelect(moodFilter);
+            syncSelect(regionFilter);
+            suppressFilterChange = false;
             setActiveMood(mood);
             doSearch('', '', mood);
             if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -227,10 +261,7 @@
 
     if (clearBtn) {
         clearBtn.addEventListener('click', function () {
-            if (searchInput)  searchInput.value  = '';
-            if (regionFilter) regionFilter.value = '';
-            if (moodFilter)   moodFilter.value   = '';
-            setActiveMood(null);
+            clearFilters();
             doSearch('', '', '');
         });
     }
