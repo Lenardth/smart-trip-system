@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Contracts\PricingServiceInterface;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +15,7 @@ class CouponController extends Controller
     public function validate(Request $request): JsonResponse
     {
         $request->validate([
-            'code'     => 'required|string|max:32',
+            'code' => 'required|string|max:32',
             'subtotal' => 'required|numeric|min:0',
         ]);
 

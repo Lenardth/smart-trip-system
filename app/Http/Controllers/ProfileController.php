@@ -17,7 +17,7 @@ class ProfileController extends Controller
         $mimes = config('profile.upload.mimes', ['jpg', 'jpeg', 'png', 'webp']);
 
         $request->validate([
-            'profile_picture' => ['required', 'image', 'mimes:' . implode(',', $mimes), 'max:' . $maxFileSize],
+            'profile_picture' => ['required', 'image', 'mimes:'.implode(',', $mimes), 'max:'.$maxFileSize],
         ]);
 
         $this->profiles->uploadPicture($request->user(), $request->file('profile_picture'));
@@ -36,7 +36,7 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password'         => ['required', Password::defaults(), 'confirmed'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
         $this->profiles->updatePassword($request->user(), $validated['password']);

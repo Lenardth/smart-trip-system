@@ -3,19 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Services\LandingDestinationService;
-use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 
 class LandingController extends Controller
 {
     public function __construct(private readonly LandingDestinationService $landing) {}
 
-    public function index()
+    public function index(): View
     {
         return $this->landing->index();
-    }
-
-    public function destinations(): JsonResponse
-    {
-        return $this->landing->destinations();
     }
 }

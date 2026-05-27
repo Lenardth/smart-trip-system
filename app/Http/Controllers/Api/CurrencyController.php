@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Services\CurrencyPreferenceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,8 +38,8 @@ class CurrencyController extends Controller
     {
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
-            'from'   => ['required', 'string', 'size:3', Rule::in($this->supportedCurrencyCodes())],
-            'to'     => ['required', 'string', 'size:3', Rule::in($this->supportedCurrencyCodes())],
+            'from' => ['required', 'string', 'size:3', Rule::in($this->supportedCurrencyCodes())],
+            'to' => ['required', 'string', 'size:3', Rule::in($this->supportedCurrencyCodes())],
         ]);
 
         return response()->json($this->currencies->convert(
