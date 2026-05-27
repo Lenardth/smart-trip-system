@@ -80,6 +80,11 @@ class DiscoverService
             return response()->json(['destinations' => $destinations, 'source' => 'featured']);
         }
 
+        $resolvedQuery    = $this->resolveAlias($rawQuery);
+        $queryCountryCode = $regionCode
+            ?: $this->resolveCountryCodeFromQuery($resolvedQuery ?: $rawQuery)
+            ?: $this->resolveCountryCodeFromDatabase($resolvedQuery ?: $rawQuery);
+
         $cached = DestinationSearch::where('search_hash', $searchHash)
             ->whereNotNull('response_payload')
             ->where('created_at', '>=', now()->subDay())
@@ -87,7 +92,18 @@ class DiscoverService
             ->first();
 
         if ($cached) {
-            $destinations = $cached->response_payload['destinations'] ?? [];
+            $destinations = $this->filterFormattedDestinationsByCountry(
+                $cached->response_payload['destinations'] ?? [],
+                $queryCountryCode
+            );
+            $destinations = $this->limitForDisplay($destinations);
+
+            if ($queryCountryCode && empty($destinations)) {
+                $cached = null;
+            }
+        }
+
+        if ($cached) {
             $this->logSearch(
                 $request,
                 $rawQuery ?: 'all',
@@ -109,8 +125,6 @@ class DiscoverService
             ]);
         }
 
-        $resolvedQuery  = $this->resolveAlias($rawQuery);
-        $queryCountryCode = $regionCode ?: $this->resolveCountryCodeFromQuery($resolvedQuery ?: $rawQuery);
         $searchTerms    = $queryCountryCode
             ? []
             : array_unique(array_filter([$rawQuery, $resolvedQuery]));
@@ -163,8 +177,9 @@ class DiscoverService
             $destinations = $this->queryDestinations($searchTerms, $effectiveRegion, null);
         }
 
-        if (empty($destinations)) {
-            $destinations = $this->featuredDestinations();
+        if (empty($destinations) && $effectiveRegion) {
+            $this->ensureCountryFallbackDestination($effectiveRegion, $mood);
+            $destinations = $this->queryDestinations([], $effectiveRegion, $mood);
         }
 
         $this->logSearch(
@@ -207,12 +222,16 @@ class DiscoverService
 
     private function queryDestinations(array $terms, ?string $regionCode, ?string $mood): array
     {
-        return $this->dbQuery($terms, $regionCode, $mood)
+        $destinations = $this->dbQuery($terms, $regionCode, $mood)
             ->orderBy('display_order')
             ->limit(config('api.pagination.per_page', 60))
             ->get()
             ->map(fn($d) => $this->format($d->toArray()))
-            ->pipe(fn($col) => $this->deduplicateByCountry($col->toArray()));
+            ->toArray();
+
+        return $regionCode
+            ? $this->limitForDisplay($destinations)
+            : $this->deduplicateByCountry($destinations, $this->displayLimit());
     }
 
     public function show(Destination $destination)
@@ -279,6 +298,20 @@ class DiscoverService
         }
     }
 
+    private function resolveCountryCodeFromDatabase(string $query): ?string
+    {
+        if (!$query) {
+            return null;
+        }
+
+        $destination = Destination::active()
+            ->whereNotNull('country_code')
+            ->where('country', $query)
+            ->first();
+
+        return $destination ? strtoupper($destination->country_code) : null;
+    }
+
     private function dbQuery(array $terms, ?string $regionCode, ?string $mood)
     {
         $countryName = $regionCode ? $this->countryNameFromCode($regionCode) : null;
@@ -324,6 +357,61 @@ class DiscoverService
         }
 
         return config("discover.country_names.{$countryCode}");
+    }
+
+    private function filterFormattedDestinationsByCountry(array $destinations, ?string $countryCode): array
+    {
+        if (!$countryCode) {
+            return $destinations;
+        }
+
+        $countryCode = strtoupper($countryCode);
+        $countryName = $this->countryNameFromCode($countryCode);
+
+        return array_values(array_filter($destinations, function (array $destination) use ($countryCode, $countryName) {
+            if (strtoupper((string) ($destination['country_code'] ?? '')) === $countryCode) {
+                return true;
+            }
+
+            return $countryName
+                && strcasecmp((string) ($destination['country'] ?? ''), $countryName) === 0;
+        }));
+    }
+
+    private function ensureCountryFallbackDestination(string $countryCode, ?string $mood): void
+    {
+        $countryCode = strtoupper($countryCode);
+        $countryName = $this->countryNameFromCode($countryCode) ?: $countryCode;
+
+        $destination = Destination::firstOrNew([
+            'source'    => 'country-fallback',
+            'source_id' => $countryCode,
+        ]);
+
+        if ($destination->exists && $destination->is_active) {
+            return;
+        }
+
+        $imageQuery = "{$countryName} travel";
+
+        $destination->fill([
+            'name'         => $countryName,
+            'country'      => $countryName,
+            'country_code' => $countryCode,
+            'region'       => $countryName,
+            'description'  => "Explore {$countryName} and discover places to match your travel style.",
+            'image_url'    => $destination->image_url ?: ($this->pexels->getRandomPhoto($imageQuery) ?? $this->imageFallback($imageQuery)),
+            'price_from'   => 0,
+            'tags'         => array_values(array_unique(array_filter([$mood, 'Cultural', 'Nature']))),
+            'raw_data'     => ['fallback' => true, 'country_code' => $countryCode],
+            'is_active'    => true,
+        ]);
+
+        if (!$destination->display_order) {
+            $destination->display_order = config('api.limits.destination_display_order_offset', 100);
+        }
+
+        $destination->save();
     }
 
     private function fetchAndStoreFromApi(string $query, ?string $countryCode, ?string $mood): ?string
@@ -567,6 +655,16 @@ class DiscoverService
         }
 
         return $result;
+    }
+
+    private function limitForDisplay(array $destinations): array
+    {
+        return array_slice($destinations, 0, $this->displayLimit());
+    }
+
+    private function displayLimit(): int
+    {
+        return (int) config('api.pagination.per_page', 16);
     }
 
     private function extractHighlights(string $text, int $max = 4): array

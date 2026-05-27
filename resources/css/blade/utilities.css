@@ -1,45 +1,70 @@
 
 
-/* ── LAYOUT UTILITIES ────────────────────────────────────────────────────── */
+/*
+ * Styles .hidden.
+ */
 .hidden {
     display: none !important;
 }
 
+/*
+ * Styles .flex.
+ */
 .flex {
     display: flex;
 }
 
+/*
+ * Styles .flex-center.
+ */
 .flex-center {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+/*
+ * Styles .flex-gap-8.
+ */
 .flex-gap-8 {
     display: flex;
     gap: 8px;
 }
 
+/*
+ * Styles .flex-gap-8-center.
+ */
 .flex-gap-8-center {
     display: flex;
     gap: 8px;
     align-items: center;
 }
 
+/*
+ * Styles .full-size.
+ */
 .full-size {
     width: 100%;
     height: 100%;
 }
 
+/*
+ * Styles .no-padding.
+ */
 .no-padding {
     padding: 0;
 }
 
+/*
+ * Styles .full-height.
+ */
 .full-height {
     height: 100%;
 }
 
-/* ── IMAGE UTILITIES ─────────────────────────────────────────────────────── */
+/*
+ * Styles .avatar-img.
+ */
 .avatar-img {
     width: 100%;
     height: 100%;
@@ -47,6 +72,9 @@
     border-radius: 50%;
 }
 
+/*
+ * Styles .avatar-placeholder.
+ */
 .avatar-placeholder {
     width: 100%;
     height: 100%;
@@ -59,66 +87,108 @@
     border-radius: 50%;
 }
 
-/* ── TEXT UTILITIES ──────────────────────────────────────────────────────── */
+/*
+ * Styles .text-muted.
+ */
 .text-muted {
     color: var(--text-muted);
 }
 
+/*
+ * Styles .text-center.
+ */
 .text-center {
     text-align: center;
 }
 
+/*
+ * Styles .text-left.
+ */
 .text-left {
     text-align: left;
 }
 
+/*
+ * Styles .font-normal.
+ */
 .font-normal {
     font-weight: 400;
 }
 
+/*
+ * Styles .opacity-50.
+ */
 .opacity-50 {
     opacity: 0.5;
 }
 
-/* ── SPACING UTILITIES ───────────────────────────────────────────────────── */
+/*
+ * Styles .mb-0.
+ */
 .mb-0 {
     margin-bottom: 0;
 }
 
+/*
+ * Styles .mb-4.
+ */
 .mb-4 {
     margin-bottom: 4px;
 }
 
+/*
+ * Styles .mb-8.
+ */
 .mb-8 {
     margin-bottom: 8px;
 }
 
+/*
+ * Styles .mb-16.
+ */
 .mb-16 {
     margin-bottom: 16px;
 }
 
+/*
+ * Styles .mt-0.
+ */
 .mt-0 {
     margin-top: 0;
 }
 
+/*
+ * Styles .mt-4.
+ */
 .mt-4 {
     margin-top: 4px;
 }
 
+/*
+ * Styles .mt-8.
+ */
 .mt-8 {
     margin-top: 8px;
 }
 
+/*
+ * Styles .mx-auto.
+ */
 .mx-auto {
     margin-left: auto;
     margin-right: auto;
 }
 
-/* ── FORM UTILITIES ──────────────────────────────────────────────────────── */
+/*
+ * Styles .form-input-inline.
+ */
 .form-input-inline {
     display: inline;
 }
 
+/*
+ * Styles .form-input-number-sm.
+ */
 .form-input-number-sm {
     width: 80px;
     padding: 11px 10px;
@@ -130,78 +200,121 @@
     color: var(--deep);
 }
 
-/* ── INTERACTIVE UTILITIES ───────────────────────────────────────────────── */
+/*
+ * Styles .clickable.
+ */
 .clickable {
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
+/*
+ * Styles .clickable:hover.
+ */
 .clickable:hover {
     transform: translateY(-2px);
 }
 
+/*
+ * Styles .clickable:active.
+ */
 .clickable:active {
     transform: translateY(0);
 }
 
+/*
+ * Styles .activity-item.clickable.
+ */
 .activity-item.clickable {
     cursor: pointer;
 }
 
+/*
+ * Styles .activity-item.clickable:hover.
+ */
 .activity-item.clickable:hover {
     transform: translateY(-2px);
 }
 
-/* ── RESPONSIVE UTILITIES ────────────────────────────────────────────────── */
+/*
+ * Styles .max-w-600.
+ */
 .max-w-600 {
     max-width: 600px;
 }
 
-/* ── TYPOGRAPHY UTILITIES ────────────────────────────────────────────────── */
+/*
+ * Styles .fs-11.
+ */
 .fs-11 {
     font-size: 11.5px;
 }
 
+/*
+ * Styles .fs-13.
+ */
 .fs-13 {
     font-size: 13px;
 }
 
+/*
+ * Styles .fs-14.
+ */
 .fs-14 {
     font-size: 14px;
 }
 
+/*
+ * Styles .fs-15.
+ */
 .fs-15 {
     font-size: 15px;
 }
 
-/* ── DISPLAY UTILITIES ───────────────────────────────────────────────────── */
+/*
+ * Styles .d-block.
+ */
 .d-block {
     display: block;
 }
 
+/*
+ * Styles .d-inline-block.
+ */
 .d-inline-block {
     display: inline-block;
 }
 
-/* ── LOADING / EMPTY PLACEHOLDERS ───────────────────────────────────────── */
+/*
+ * Styles .loading-placeholder.
+ */
 .loading-placeholder {
     text-align: center;
     padding: 60px 20px;
     color: var(--text-muted);
 }
 
+/*
+ * Styles .loading-placeholder i.
+ */
 .loading-placeholder i {
     font-size: 32px;
     margin-bottom: var(--space-md);
     display: block;
 }
 
+/*
+ * Styles .empty-placeholder.
+ */
 .empty-placeholder {
     text-align: center;
     padding: 60px 20px;
     color: var(--text-muted);
 }
 
+/*
+ * Styles .empty-placeholder i.
+ */
 .empty-placeholder i {
     font-size: 48px;
     margin-bottom: var(--space-md);
@@ -209,11 +322,16 @@
     opacity: 0.5;
 }
 
-/* ── TRAVEL WARNING / ADVISORY ───────────────────────────────────────────── */
+/*
+ * Styles .travel-warning-banner.
+ */
 .travel-warning-banner {
     margin: 0 0 20px;
 }
 
+/*
+ * Styles .travel-advisory-container.
+ */
 .travel-advisory-container {
     margin: 0 0 24px;
 }

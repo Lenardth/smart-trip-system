@@ -1,9 +1,8 @@
-/* ============================================================
-   DASHBOARD — index.css
-   ============================================================ */
 
-/* ── 1. TRIP CARDS ──────────────────────────────────────── */
 
+/*
+ * Styles .trip-card.
+ */
 .trip-card {
     background: #fff;
     border: 1px solid var(--border);
@@ -14,11 +13,17 @@
     transition: box-shadow .2s, transform .2s;
 }
 
+/*
+ * Styles .trip-card:hover.
+ */
 .trip-card:hover {
     box-shadow: 0 4px 16px rgba(59, 31, 43, .08);
     transform: translateY(-2px);
 }
 
+/*
+ * Styles .trip-card-header.
+ */
 .trip-card-header {
     display: flex;
     align-items: center;
@@ -26,6 +31,9 @@
     margin-bottom: 8px;
 }
 
+/*
+ * Styles .trip-icon.
+ */
 .trip-icon {
     width: 40px;
     height: 40px;
@@ -41,6 +49,9 @@
 
 .trip-info { flex: 1; min-width: 0; }
 
+/*
+ * Styles .trip-info h4.
+ */
 .trip-info h4 {
     margin: 0 0 3px;
     font-size: 15px;
@@ -52,12 +63,18 @@
     text-overflow: ellipsis;
 }
 
+/*
+ * Styles .trip-info p.
+ */
 .trip-info p {
     margin: 0;
     font-size: 12px;
     color: var(--text-muted);
 }
 
+/*
+ * Styles .trip-cost.
+ */
 .trip-cost {
     font-size: 15px;
     font-weight: 700;
@@ -65,6 +82,9 @@
     flex-shrink: 0;
 }
 
+/*
+ * Styles .trip-meta.
+ */
 .trip-meta {
     display: flex;
     flex-wrap: wrap;
@@ -73,6 +93,9 @@
     color: var(--text-muted);
 }
 
+/*
+ * Styles .trip-meta span.
+ */
 .trip-meta span {
     display: flex;
     align-items: center;
@@ -81,6 +104,9 @@
 
 .trip-meta i { color: var(--gold); font-size: 11px; }
 
+/*
+ * Styles .trip-feeling.
+ */
 .trip-feeling {
     margin-top: 8px;
     display: inline-block;
@@ -94,6 +120,9 @@
 
 .trip-feeling i { color: var(--gold); margin-right: 4px; }
 
+/*
+ * Styles .trip-delete-btn.
+ */
 .trip-delete-btn {
     position: absolute;
     top: 10px;
@@ -111,8 +140,10 @@
 .trip-card:hover .trip-delete-btn { opacity: 1; }
 .trip-delete-btn:hover { color: var(--danger, #f44336); }
 
-/* ── 2. SIDEBAR ─────────────────────────────────────────── */
 
+/*
+ * Styles .sidebar.
+ */
 .sidebar {
     width: 260px;
     background: var(--sidebar-bg, #231019);
@@ -126,6 +157,9 @@
     flex-direction: column;
 }
 
+/*
+ * Styles .sidebar-header.
+ */
 .sidebar-header {
     padding: 10px 14px;
     border-bottom: 1px solid rgba(255, 255, 255, .08);
@@ -135,6 +169,9 @@
     flex-shrink: 0;
 }
 
+/*
+ * Styles .sidebar-brand.
+ */
 .sidebar-brand,
 .sidebar-header a {
     display: flex;
@@ -143,6 +180,9 @@
     text-decoration: none;
 }
 
+/*
+ * Styles .sidebar-logo-img.
+ */
 .sidebar-logo-img {
     height: 72px;
     width: auto;
@@ -150,6 +190,9 @@
     flex-shrink: 0;
 }
 
+/*
+ * Styles .sidebar-brand-text.
+ */
 .sidebar-brand-text {
     font-size: 17px;
     font-weight: 700;
@@ -161,12 +204,18 @@
 
 .sidebar-brand-text span { color: var(--gold); }
 
+/*
+ * Styles .sidebar-menu.
+ */
 .sidebar-menu {
     padding: 10px 0 6px;
     flex: 1;
     overflow-y: auto;
 }
 
+/*
+ * Styles .sidebar-section-label.
+ */
 .sidebar-section-label {
     margin: 14px 22px 5px;
     font-size: 10px;
@@ -178,6 +227,9 @@
 
 .sidebar-section-label:first-child { margin-top: 4px; }
 
+/*
+ * Styles .sidebar-utilities.
+ */
 .sidebar-utilities {
     padding: 6px 18px 14px;
     border-top: 1px solid rgba(255, 255, 255, .07);
@@ -188,17 +240,26 @@
 
 .currency-picker-sidebar { margin: 0; width: 100%; }
 
+/*
+ * Styles .currency-picker-sidebar .currency-btn.
+ */
 .currency-picker-sidebar .currency-btn {
     width: 100%;
     justify-content: center;
 }
 
+/*
+ * Styles .currency-picker-sidebar .currency-dropdown.
+ */
 .currency-picker-sidebar .currency-dropdown {
     left: 0;
     right: 0;
     width: 100%;
 }
 
+/*
+ * Styles .menu-item.
+ */
 .menu-item {
     display: flex;
     align-items: center;
@@ -219,6 +280,9 @@
     position: relative;
 }
 
+/*
+ * Styles .menu-item i.
+ */
 .menu-item i {
     width: 22px;
     text-align: center;
@@ -228,16 +292,25 @@
     flex-shrink: 0;
 }
 
+/*
+ * Styles .menu-item:hover.
+ */
 .menu-item:hover {
     background: rgba(255, 255, 255, .06);
     color: #fff;
 }
 
+/*
+ * Styles .menu-item.active.
+ */
 .menu-item.active {
     background: rgba(201, 169, 110, .14);
     color: var(--gold);
 }
 
+/*
+ * Styles .menu-item.active::before.
+ */
 .menu-item.active::before {
     content: '';
     position: absolute;
@@ -249,6 +322,9 @@
     border-radius: 0 2px 2px 0;
 }
 
+/*
+ * Styles .menu-badge.
+ */
 .menu-badge {
     background: var(--gold);
     color: var(--deep);
@@ -259,6 +335,9 @@
     margin-left: auto;
 }
 
+/*
+ * Styles .sidebar-footer.
+ */
 .sidebar-footer {
     padding: 16px 18px;
     border-top: 1px solid rgba(255, 255, 255, .08);
@@ -266,6 +345,9 @@
     flex-shrink: 0;
 }
 
+/*
+ * Styles .user-profile.
+ */
 .user-profile {
     display: flex;
     align-items: center;
@@ -273,6 +355,9 @@
     width: 100%;
 }
 
+/*
+ * Styles .user-avatar.
+ */
 .user-avatar {
     width: 44px;
     height: 44px;
@@ -289,6 +374,9 @@
 .user-avatar img,
 .user-avatar .avatar-img { width: 100%; height: 100%; object-fit: cover; }
 
+/*
+ * Styles .user-avatar .avatar-placeholder.
+ */
 .user-avatar .avatar-placeholder {
     width: 100%;
     height: 100%;
@@ -303,6 +391,9 @@
 
 .user-info { flex: 1; min-width: 0; }
 
+/*
+ * Styles .user-info h4.
+ */
 .user-info h4 {
     font-size: 14px;
     font-weight: 600;
@@ -314,12 +405,18 @@
     font-family: inherit;
 }
 
+/*
+ * Styles .user-type-label.
+ */
 .user-type-label {
     font-size: 11px;
     color: rgba(255, 255, 255, .5);
     text-transform: capitalize;
 }
 
+/*
+ * Styles .logout-btn.
+ */
 .logout-btn {
     margin-left: auto;
     background: rgba(255, 255, 255, .07);
@@ -337,6 +434,9 @@
     flex-shrink: 0;
 }
 
+/*
+ * Styles .logout-btn:hover.
+ */
 .logout-btn:hover {
     background: rgba(201, 169, 110, .2);
     border-color: #fff;
@@ -344,8 +444,10 @@
 
 .logout-btn i { font-size: 15px; }
 
-/* ── 3. MAIN LAYOUT ─────────────────────────────────────── */
 
+/*
+ * Styles .main-content.
+ */
 .main-content {
     flex: 1;
     background: var(--cream);
@@ -353,14 +455,19 @@
     padding: 28px 30px;
 }
 
+/*
+ * Styles .sidebar ~ .main-content.
+ */
 .sidebar ~ .main-content {
     margin-left: 260px;
     max-width: calc(100% - 260px);
     transition: margin .3s;
 }
 
-/* ── 4. WELCOME BANNER ──────────────────────────────────── */
 
+/*
+ * Styles .welcome-banner.
+ */
 .welcome-banner {
     display: flex;
     align-items: center;
@@ -373,6 +480,9 @@
     flex-wrap: wrap;
 }
 
+/*
+ * Styles .welcome-avatar.
+ */
 .welcome-avatar {
     width: 54px;
     height: 54px;
@@ -392,6 +502,9 @@
 
 .welcome-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 
+/*
+ * Styles .welcome-avatar-init.
+ */
 .welcome-avatar-init {
     font-size: 20px;
     font-weight: 700;
@@ -400,6 +513,9 @@
 
 .welcome-text { flex: 1; min-width: 0; }
 
+/*
+ * Styles .welcome-text h2.
+ */
 .welcome-text h2 {
     font-size: 19px;
     font-weight: 700;
@@ -408,12 +524,18 @@
     font-family: inherit;
 }
 
+/*
+ * Styles .welcome-text p.
+ */
 .welcome-text p {
     font-size: 13px;
     color: var(--text-sub);
     margin: 0;
 }
 
+/*
+ * Styles .welcome-cta.
+ */
 .welcome-cta {
     display: inline-flex;
     align-items: center;
@@ -433,8 +555,10 @@
 
 .welcome-cta:hover { background: var(--gold-hover, #b8975a); }
 
-/* ── 5. STATS GRID ──────────────────────────────────────── */
 
+/*
+ * Styles .stats-grid.
+ */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -442,6 +566,9 @@
     margin-bottom: 24px;
 }
 
+/*
+ * Styles .stat-card.
+ */
 .stat-card {
     background: #fff;
     border: 1px solid var(--border);
@@ -454,11 +581,17 @@
     cursor: pointer;
 }
 
+/*
+ * Styles .stat-card:hover.
+ */
 .stat-card:hover {
     border-top-color: var(--gold);
     box-shadow: 0 4px 18px rgba(59, 31, 43, .08);
 }
 
+/*
+ * Styles .stat-icon.
+ */
 .stat-icon {
     width: 50px;
     height: 50px;
@@ -476,6 +609,9 @@
 
 .stat-info { flex: 1; }
 
+/*
+ * Styles .stat-info h3.
+ */
 .stat-info h3 {
     font-size: 28px;
     font-weight: 700;
@@ -485,6 +621,9 @@
     line-height: 1.1;
 }
 
+/*
+ * Styles .stat-info p.
+ */
 .stat-info p {
     font-size: 13px;
     font-weight: 600;
@@ -492,14 +631,19 @@
     margin: 0 0 6px;
 }
 
+/*
+ * Styles .stat-change.
+ */
 .stat-change {
     font-size: 12px;
     color: var(--text-muted);
     font-weight: 500;
 }
 
-/* ── 6. ACTIONS GRID ────────────────────────────────────── */
 
+/*
+ * Styles .actions-grid.
+ */
 .actions-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -507,6 +651,9 @@
     margin-bottom: 28px;
 }
 
+/*
+ * Styles .action-btn.
+ */
 .action-btn {
     background: #fff;
     border: 1px solid var(--border);
@@ -524,12 +671,18 @@
     font-family: inherit;
 }
 
+/*
+ * Styles .action-btn i.
+ */
 .action-btn i {
     font-size: 22px;
     color: var(--text-muted);
     transition: color .2s;
 }
 
+/*
+ * Styles .action-btn span.
+ */
 .action-btn span {
     font-size: 13px;
     font-weight: 500;
@@ -537,6 +690,9 @@
     transition: color .2s;
 }
 
+/*
+ * Styles .action-btn:hover.
+ */
 .action-btn:hover {
     border-color: var(--gold);
     box-shadow: 0 2px 12px rgba(201, 169, 110, .12);
@@ -546,14 +702,19 @@
 .action-btn:hover i,
 .action-btn:hover span { color: var(--deep); }
 
-/* ── 7. DASHBOARD GRID ──────────────────────────────────── */
 
+/*
+ * Styles .dashboard-grid.
+ */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 24px;
 }
 
+/*
+ * Styles .dashboard-section.
+ */
 .dashboard-section {
     background: #fff;
     border: 1px solid var(--border);
@@ -561,6 +722,9 @@
     overflow: hidden;
 }
 
+/*
+ * Styles .section-header.
+ */
 .section-header {
     padding: 18px 24px;
     border-bottom: 1px solid var(--border);
@@ -570,6 +734,9 @@
     background: #fff;
 }
 
+/*
+ * Styles .section-header h2.
+ */
 .section-header h2 {
     font-size: 16px;
     font-weight: 700;
@@ -583,6 +750,9 @@
 
 .section-header h2 i { color: var(--gold); font-size: 15px; }
 
+/*
+ * Styles .section-header .btn.
+ */
 .section-header .btn {
     display: inline-flex;
     align-items: center;
@@ -601,12 +771,18 @@
     transition: background .2s, box-shadow .2s, transform .15s;
 }
 
+/*
+ * Styles .section-header .btn:hover.
+ */
 .section-header .btn:hover {
     background: var(--gold-hover, #b8975a);
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
 
+/*
+ * Styles .section-link.
+ */
 .section-link {
     font-size: 13px;
     font-weight: 500;
@@ -619,8 +795,10 @@
 
 .section-content { padding: 20px 24px; }
 
-/* ── 8. ACTIVITY ITEMS ──────────────────────────────────── */
 
+/*
+ * Styles .activity-item.
+ */
 .activity-item {
     display: flex;
     align-items: center;
@@ -638,6 +816,9 @@
 
 .activity-item:hover { background: rgba(201, 169, 110, .05); }
 
+/*
+ * Styles .activity-icon.
+ */
 .activity-icon {
     width: 36px;
     height: 36px;
@@ -651,6 +832,9 @@
 
 .activity-body { flex: 1; min-width: 0; }
 
+/*
+ * Styles .activity-title.
+ */
 .activity-title {
     font-size: 13px;
     font-weight: 600;
@@ -660,6 +844,9 @@
     text-overflow: ellipsis;
 }
 
+/*
+ * Styles .activity-sub.
+ */
 .activity-sub {
     font-size: 11px;
     color: var(--text-muted);
@@ -669,6 +856,9 @@
     text-overflow: ellipsis;
 }
 
+/*
+ * Styles .activity-time.
+ */
 .activity-time {
     font-size: 11px;
     color: var(--text-muted);
@@ -676,8 +866,10 @@
     flex-shrink: 0;
 }
 
-/* ── 9. PROFILE / SETTINGS CARDS ────────────────────────── */
 
+/*
+ * Styles .settings-grid.
+ */
 .settings-grid,
 .profile-account-grid {
     display: grid;
@@ -686,6 +878,9 @@
     align-items: start;
 }
 
+/*
+ * Styles .settings-card.
+ */
 .settings-card,
 .profile-card {
     background: #fff;
@@ -694,6 +889,9 @@
     overflow: hidden;
 }
 
+/*
+ * Styles .settings-card-header.
+ */
 .settings-card-header,
 .profile-card-header {
     display: flex;
@@ -704,6 +902,9 @@
     background: var(--card-bg);
 }
 
+/*
+ * Styles .settings-card-header i.
+ */
 .settings-card-header i,
 .profile-card-header i {
     color: var(--gold);
@@ -712,6 +913,9 @@
     text-align: center;
 }
 
+/*
+ * Styles .settings-card-header h3.
+ */
 .settings-card-header h3,
 .profile-card-header h3 {
     font-size: 15px;
@@ -721,16 +925,25 @@
     font-family: inherit;
 }
 
+/*
+ * Styles .settings-card-body.
+ */
 .settings-card-body,
 .profile-card-body {
     padding: 20px;
 }
 
+/*
+ * Styles .settings-card-danger.
+ */
 .settings-card-danger,
 .danger-card {
     border-color: rgba(244, 67, 54, .25);
 }
 
+/*
+ * Styles .settings-card-danger .settings-card-header.
+ */
 .settings-card-danger .settings-card-header,
 .danger-card .settings-card-header,
 .danger-card .profile-card-header {
@@ -738,32 +951,46 @@
     border-bottom-color: rgba(244, 67, 54, .15);
 }
 
+/*
+ * Styles .settings-card-danger .settings-card-header i.
+ */
 .settings-card-danger .settings-card-header i,
 .danger-card .settings-card-header i,
 .danger-card .profile-card-header i {
     color: var(--danger, #f44336);
 }
 
+/*
+ * Styles .settings-card-danger .settings-card-header h3.
+ */
 .settings-card-danger .settings-card-header h3,
 .danger-card .settings-card-header h3,
 .danger-card .profile-card-header h3 {
     color: var(--danger, #f44336);
 }
 
-/* Settings form */
 
+/*
+ * Styles .settings-form.
+ */
 .settings-form {
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
+/*
+ * Styles .settings-form .form-group.
+ */
 .settings-form .form-group {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
+/*
+ * Styles .settings-form label.
+ */
 .settings-form label {
     font-size: 13px;
     font-weight: 600;
@@ -771,6 +998,9 @@
     font-family: inherit;
 }
 
+/*
+ * Styles .settings-form input[type="password"].
+ */
 .settings-form input[type="password"],
 .settings-form input[type="text"],
 .settings-form input[type="email"] {
@@ -787,13 +1017,18 @@
     box-sizing: border-box;
 }
 
+/*
+ * Styles .settings-form input:focus.
+ */
 .settings-form input:focus {
     border-color: var(--gold);
     box-shadow: 0 0 0 3px rgba(201, 169, 110, .1);
 }
 
-/* Profile picture */
 
+/*
+ * Styles .profile-avatar-preview.
+ */
 .profile-avatar-preview {
     width: 90px;
     height: 90px;
@@ -813,6 +1048,9 @@
 
 .avatar-preview-img { width: 100%; height: 100%; object-fit: cover; }
 
+/*
+ * Styles .avatar-initial-large.
+ */
 .avatar-initial-large {
     font-size: 32px;
     font-weight: 700;
@@ -820,6 +1058,9 @@
     font-family: inherit;
 }
 
+/*
+ * Styles .file-upload-label.
+ */
 .file-upload-label {
     display: inline-flex;
     align-items: center;
@@ -843,8 +1084,10 @@
 
 .file-input-hidden { display: none; }
 
-/* Account info rows */
 
+/*
+ * Styles .account-info-row.
+ */
 .account-info-row {
     display: flex;
     justify-content: space-between;
@@ -855,20 +1098,28 @@
 
 .account-info-row:last-child { border-bottom: none; }
 
+/*
+ * Styles .account-info-label.
+ */
 .account-info-label {
     font-size: 13px;
     color: var(--text-muted);
     font-weight: 500;
 }
 
+/*
+ * Styles .account-info-value.
+ */
 .account-info-value {
     font-size: 13px;
     color: var(--deep);
     font-weight: 500;
 }
 
-/* Danger zone */
 
+/*
+ * Styles .danger-description.
+ */
 .danger-description {
     font-size: 13px;
     color: var(--text-muted);
@@ -876,6 +1127,9 @@
     margin-bottom: 16px;
 }
 
+/*
+ * Styles .danger-button.
+ */
 .danger-button {
     background: transparent;
     border: 1px solid var(--danger, #f44336);
@@ -893,6 +1147,9 @@
     transition: background .2s, color .2s, box-shadow .2s, transform .15s;
 }
 
+/*
+ * Styles .danger-button:hover.
+ */
 .danger-button:hover {
     background: var(--danger, #f44336);
     color: #fff;
@@ -900,8 +1157,10 @@
     box-shadow: var(--shadow-sm);
 }
 
-/* Form feedback */
 
+/*
+ * Styles .form-success.
+ */
 .form-success {
     display: flex;
     align-items: center;
@@ -915,6 +1174,9 @@
     font-weight: 500;
 }
 
+/*
+ * Styles .form-error.
+ */
 .form-error {
     display: flex;
     align-items: center;
@@ -927,8 +1189,10 @@
     font-size: 12px;
 }
 
-/* ── 10. MODALS ─────────────────────────────────────────── */
 
+/*
+ * Styles .modal-overlay.
+ */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -942,6 +1206,9 @@
 
 .modal-overlay.open { display: flex; }
 
+/*
+ * Styles .modal.
+ */
 .modal {
     background: #fff;
     border-radius: 12px;
@@ -951,6 +1218,9 @@
     overflow: hidden;
 }
 
+/*
+ * Styles .modal-header.
+ */
 .modal-header {
     display: flex;
     align-items: center;
@@ -959,6 +1229,9 @@
     border-bottom: 1px solid var(--border);
 }
 
+/*
+ * Styles .modal-header h2.
+ */
 .modal-header h2 {
     font-size: 17px;
     font-weight: 700;
@@ -973,6 +1246,9 @@
 .modal-header-danger h2 { color: var(--danger, #f44336); }
 .modal-header-danger h2 i { color: var(--danger, #f44336); }
 
+/*
+ * Styles .modal-close.
+ */
 .modal-close {
     background: none;
     border: none;
@@ -988,6 +1264,9 @@
 
 .modal-body { padding: 20px 24px; }
 
+/*
+ * Styles .modal-description.
+ */
 .modal-description {
     font-size: 14px;
     color: var(--text-muted);
@@ -995,6 +1274,9 @@
     margin-bottom: 18px;
 }
 
+/*
+ * Styles .modal-footer.
+ */
 .modal-footer {
     display: flex;
     gap: 10px;
@@ -1002,16 +1284,21 @@
     margin-top: 20px;
 }
 
-/* ── 11. MISC ────────────────────────────────────────────── */
 
 .clickable { cursor: pointer; }
 
+/*
+ * Styles .section-content .empty-state.
+ */
 .section-content .empty-state {
     text-align: center;
     padding: 30px 20px;
     color: var(--text-muted);
 }
 
+/*
+ * Styles .section-content .empty-state i.
+ */
 .section-content .empty-state i {
     font-size: 32px;
     opacity: .25;
@@ -1020,6 +1307,9 @@
     color: var(--deep);
 }
 
+/*
+ * Styles .section-content .empty-state h3.
+ */
 .section-content .empty-state h3 {
     font-size: 15px;
     font-weight: 600;
@@ -1028,11 +1318,17 @@
     font-family: inherit;
 }
 
+/*
+ * Styles .section-content .empty-state p.
+ */
 .section-content .empty-state p {
     font-size: 13px;
     margin: 0 0 14px;
 }
 
+/*
+ * Styles .section-content .empty-state .btn.
+ */
 .section-content .empty-state .btn {
     display: inline-flex;
     align-items: center;
@@ -1050,10 +1346,16 @@
     transition: background .2s;
 }
 
+/*
+ * Styles .section-content .empty-state .btn:hover.
+ */
 .section-content .empty-state .btn:hover {
     background: var(--gold-hover, #b8975a);
 }
 
+/*
+ * Styles .mobile-toggle.
+ */
 .mobile-toggle {
     display: none;
     position: fixed;
@@ -1076,7 +1378,6 @@
 
 .mobile-toggle:hover { transform: scale(1.08); }
 
-/* ── 12. RESPONSIVE ──────────────────────────────────────── */
 
 @media (max-width: 1200px) {
     .dashboard-grid { grid-template-columns: 1fr; }

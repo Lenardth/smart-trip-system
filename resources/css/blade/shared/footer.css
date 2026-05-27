@@ -1,5 +1,7 @@
-/* Site footer (public pages) */
 
+/*
+ * Styles .footer.
+ */
 .footer {
     background: var(--deep);
     color: var(--text-sub);
@@ -8,12 +10,18 @@
     padding: 40px 20px 28px;
 }
 
+/*
+ * Styles .footer-inner.
+ */
 .footer-inner {
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
 }
 
+/*
+ * Styles .footer-nav-links.
+ */
 .footer-nav-links {
     display: flex;
     justify-content: center;
@@ -22,6 +30,9 @@
     margin-bottom: 20px;
 }
 
+/*
+ * Styles .footer-nav-links a.
+ */
 .footer-nav-links a {
     color: var(--text-sub);
     text-decoration: none;
@@ -31,10 +42,16 @@
     transition: color .2s;
 }
 
+/*
+ * Styles .footer-nav-links a:hover.
+ */
 .footer-nav-links a:hover {
     color: var(--gold);
 }
 
+/*
+ * Styles .footer-social-links.
+ */
 .footer-social-links {
     display: flex;
     justify-content: center;
@@ -42,6 +59,9 @@
     margin-bottom: 20px;
 }
 
+/*
+ * Styles .footer-social-links a.
+ */
 .footer-social-links a {
     width: 40px;
     height: 40px;
@@ -57,12 +77,18 @@
     transition: background .2s, border-color .2s, color .2s;
 }
 
+/*
+ * Styles .footer-social-links a:hover.
+ */
 .footer-social-links a:hover {
     color: var(--gold);
     border-color: var(--gold);
     background: rgba(201, 169, 110, .12);
 }
 
+/*
+ * Styles .footer-copyright.
+ */
 .footer-copyright {
     margin: 0;
     font-size: 13px;
@@ -70,8 +96,10 @@
     letter-spacing: .2px;
 }
 
-/* Extended footer (dashboard / authenticated layouts, if used) */
 
+/*
+ * Styles .site-footer.
+ */
 .site-footer {
     background: var(--sidebar-bg);
     color: var(--text-sub);
@@ -80,6 +108,9 @@
     padding: 48px 24px 0;
 }
 
+/*
+ * Styles .site-footer .footer-inner.
+ */
 .site-footer .footer-inner {
     max-width: 1200px;
     margin: 0 auto;
@@ -90,12 +121,18 @@
     padding-bottom: 32px;
 }
 
+/*
+ * Styles .site-footer .footer-brand.
+ */
 .site-footer .footer-brand {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
+/*
+ * Styles .site-footer .footer-logo.
+ */
 .site-footer .footer-logo {
     height: 90px;
     width: auto;
@@ -104,6 +141,9 @@
     opacity: .95;
 }
 
+/*
+ * Styles .site-footer .footer-tagline.
+ */
 .site-footer .footer-tagline {
     font-size: 14px;
     line-height: 1.6;
@@ -112,12 +152,18 @@
     max-width: 260px;
 }
 
+/*
+ * Styles .site-footer .footer-links.
+ */
 .site-footer .footer-links {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
 }
 
+/*
+ * Styles .site-footer .footer-col h4.
+ */
 .site-footer .footer-col h4 {
     font-size: 13px;
     font-weight: 700;
@@ -127,6 +173,9 @@
     margin: 0 0 14px;
 }
 
+/*
+ * Styles .site-footer .footer-col a.
+ */
 .site-footer .footer-col a,
 .site-footer .footer-link-btn {
     display: block;
@@ -144,22 +193,34 @@
 }
 
 .site-footer .footer-col a:hover,
+/*
+ * Styles .site-footer .footer-link-btn:hover.
+ */
 .site-footer .footer-link-btn:hover {
     color: var(--text-light);
 }
 
+/*
+ * Styles .site-footer .footer-bottom.
+ */
 .site-footer .footer-bottom {
     border-top: 1px solid rgba(201, 169, 110, .2);
     padding: 18px 24px;
     text-align: center;
 }
 
+/*
+ * Styles .site-footer .footer-bottom p.
+ */
 .site-footer .footer-bottom p {
     margin: 0;
     font-size: 13px;
     color: rgba(212, 196, 176, .7);
 }
 
+/*
+ * Styles .footer-logout-form.
+ */
 .footer-logout-form {
     display: inline;
 }

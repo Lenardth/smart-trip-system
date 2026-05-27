@@ -1,16 +1,18 @@
-/* ============================================================================
-   DISCOVER PAGE STYLES
-   ============================================================================ */
 
 
-/* ── HERO SEARCH BAR ───────────────────────────────────────────────────── */
 
+/*
+ * Styles .hero-search-bar.
+ */
 .hero-search-bar {
     max-width: 1000px;
     margin: var(--space-2xl) auto 0;
     width: 100%;
 }
 
+/*
+ * Styles .hero-flag.
+ */
 .hero-flag {
     width: 40px;
     height: auto;
@@ -20,6 +22,9 @@
     margin-right: var(--space-sm);
 }
 
+/*
+ * Styles .discover-search-form.
+ */
 .discover-search-form {
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(20px);
@@ -31,11 +36,17 @@
     animation: slideDown 0.5s ease-out;
 }
 
+/*
+ * Styles .search-input-group.
+ */
 .search-input-group {
     position: relative;
     margin-bottom: var(--space-lg);
 }
 
+/*
+ * Styles .search-icon.
+ */
 .search-icon {
     position: absolute;
     left: 20px;
@@ -47,6 +58,9 @@
     z-index: 2;
 }
 
+/*
+ * Styles .search-input-group input.
+ */
 .search-input-group input {
     width: 100%;
     padding: 18px 24px 18px 56px;
@@ -59,6 +73,9 @@
     font-weight: 500;
 }
 
+/*
+ * Styles .search-input-group input:focus.
+ */
 .search-input-group input:focus {
     outline: none;
     border-color: var(--primary);
@@ -66,11 +83,17 @@
     background: var(--bg-white);
 }
 
+/*
+ * Styles .search-input-group input::placeholder.
+ */
 .search-input-group input::placeholder {
     color: var(--text-muted);
     font-weight: 400;
 }
 
+/*
+ * Styles .search-filters.
+ */
 .search-filters {
     display: grid;
     grid-template-columns: 1fr 1fr auto;
@@ -78,10 +101,16 @@
     align-items: end;
 }
 
+/*
+ * Styles .filter-wrapper.
+ */
 .filter-wrapper {
     position: relative;
 }
 
+/*
+ * Styles .filter-label.
+ */
 .filter-label {
     position: absolute;
     top: -8px;
@@ -96,10 +125,16 @@
     z-index: 1;
 }
 
+/*
+ * Styles .filter-select.
+ */
 .filter-select {
     display: none; /* replaced by custom select */
 }
 
+/*
+ * Styles .filter-wrapper .custom-select-trigger.
+ */
 .filter-wrapper .custom-select-trigger {
     padding: 14px 14px 14px 18px;
     border: 2px solid var(--border);
@@ -111,15 +146,24 @@
 }
 
 .filter-wrapper .custom-select-trigger:hover,
+/*
+ * Styles .filter-wrapper .custom-select-wrapper.open .custom-select-trigger.
+ */
 .filter-wrapper .custom-select-wrapper.open .custom-select-trigger {
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(201, 169, 110, .15);
 }
 
+/*
+ * Styles .filter-wrapper .custom-select-dropdown.
+ */
 .filter-wrapper .custom-select-dropdown {
     border-radius: 12px;
 }
 
+/*
+ * Styles .search-btn.
+ */
 .search-btn {
     min-height: var(--button-height);
     padding: var(--button-padding-y) var(--button-padding-x);
@@ -139,23 +183,34 @@
     height: var(--button-height);
 }
 
+/*
+ * Styles .search-btn:hover.
+ */
 .search-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 8px 24px rgba(201, 169, 110, 0.4);
 }
 
+/*
+ * Styles .search-btn:active.
+ */
 .search-btn:active {
     transform: translateY(0);
 }
 
+/*
+ * Styles .search-btn.loading.
+ */
 .search-btn.loading {
     pointer-events: none;
     opacity: 0.8;
 }
 
 
-/* ── HERO STAT PILLS ───────────────────────────────────────────────────── */
 
+/*
+ * Styles .hero-stat-pills.
+ */
 .hero-stat-pills {
     display: flex;
     flex-wrap: wrap;
@@ -165,6 +220,9 @@
     margin-bottom: var(--space-xl);
 }
 
+/*
+ * Styles .hero-stat-pill.
+ */
 .hero-stat-pill {
     display: inline-flex;
     align-items: center;
@@ -179,14 +237,19 @@
     color: #fff;
 }
 
+/*
+ * Styles .hero-stat-pill i.
+ */
 .hero-stat-pill i {
     font-size: 13px;
     color: var(--primary-light);
 }
 
 
-/* ── SEARCH RESULTS INFO ───────────────────────────────────────────────── */
 
+/*
+ * Styles .search-results-info.
+ */
 .search-results-info {
     background: linear-gradient(135deg, rgba(201, 169, 110, 0.08) 0%, rgba(212, 175, 122, 0.05) 100%);
     border-left: 4px solid var(--primary);
@@ -196,6 +259,9 @@
     box-shadow: 0 2px 12px rgba(59, 31, 43, 0.06);
 }
 
+/*
+ * Styles .search-results-info h2.
+ */
 .search-results-info h2 {
     font-size: 28px;
     color: var(--deep);
@@ -206,16 +272,25 @@
     font-weight: 600;
 }
 
+/*
+ * Styles .search-results-info h2 i.
+ */
 .search-results-info h2 i {
     color: var(--primary);
 }
 
+/*
+ * Styles .results-count.
+ */
 .results-count {
     font-size: 18px;
     color: var(--text-muted);
     font-weight: 400;
 }
 
+/*
+ * Styles .search-query.
+ */
 .search-query {
     font-size: 16px;
     color: var(--text-muted);
@@ -223,18 +298,26 @@
     line-height: 1.6;
 }
 
+/*
+ * Styles .search-query strong.
+ */
 .search-query strong {
     color: var(--primary);
     font-weight: 600;
 }
 
 
-/* ── DESTINATION CARD ──────────────────────────────────────────────────── */
 
+/*
+ * Styles .destination-card .card-image.
+ */
 .destination-card .card-image {
     height: 240px;
 }
 
+/*
+ * Styles .card-location-pill.
+ */
 .card-location-pill {
     position: absolute;
     bottom: var(--space-md);
@@ -251,11 +334,17 @@
     gap: 6px;
 }
 
+/*
+ * Styles .card-location-pill i.
+ */
 .card-location-pill i {
     font-size: 10px;
     color: var(--primary-light);
 }
 
+/*
+ * Styles .destination-card-footer.
+ */
 .destination-card-footer {
     display: flex;
     gap: var(--space-sm);
@@ -263,6 +352,9 @@
     padding-top: var(--space-md);
 }
 
+/*
+ * Styles .btn-card-action.
+ */
 .btn-card-action {
     flex: 1;
     justify-content: center;
@@ -275,6 +367,9 @@
     min-width: 0;
 }
 
+/*
+ * Styles .btn-outline-sm.
+ */
 .btn-outline-sm {
     display: inline-flex;
     align-items: center;
@@ -292,6 +387,9 @@
     white-space: nowrap;
 }
 
+/*
+ * Styles .btn-outline-sm:hover.
+ */
 .btn-outline-sm:hover {
     border-color: var(--primary);
     color: var(--primary);
@@ -300,6 +398,9 @@
     box-shadow: var(--shadow-sm);
 }
 
+/*
+ * Styles .tag-price.
+ */
 .tag-price {
     color: var(--primary);
     border-color: var(--gold-dim);
@@ -308,8 +409,10 @@
 }
 
 
-/* ── SEARCH RESULTS INFO ROW ───────────────────────────────────────────── */
 
+/*
+ * Styles .results-info-row.
+ */
 .results-info-row {
     display: flex;
     align-items: center;
@@ -318,21 +421,32 @@
     flex-wrap: wrap;
 }
 
+/*
+ * Styles .results-info-row h2.
+ */
 .results-info-row h2 {
     margin-bottom: var(--space-xs);
 }
 
+/*
+ * Styles .results-clear-btn.
+ */
 .results-clear-btn {
     flex-shrink: 0;
 }
 
 
-/* ── MOOD CATEGORIES ───────────────────────────────────────────────────── */
 
+/*
+ * Styles .mood-section.
+ */
 .mood-section {
     margin-top: var(--space-4xl);
 }
 
+/*
+ * Styles .mood-category-card.
+ */
 .mood-category-card {
     text-decoration: none;
     text-align: center;
@@ -341,10 +455,16 @@
     width: 100%;
 }
 
+/*
+ * Styles .mood-card-content.
+ */
 .mood-card-content {
     align-items: center;
 }
 
+/*
+ * Styles .mood-icon-wrap.
+ */
 .mood-icon-wrap {
     width: 72px;
     height: 72px;
@@ -360,23 +480,34 @@
     transition: transform var(--transition-base);
 }
 
+/*
+ * Styles .mood-category-card.mood-active.
+ */
 .mood-category-card.mood-active {
     border: 2px solid var(--primary);
     box-shadow: 0 0 0 4px var(--gold-dim), var(--shadow-lg);
 }
 
+/*
+ * Styles .mood-category-card.mood-active .mood-icon-wrap.
+ */
 .mood-category-card.mood-active .mood-icon-wrap {
     transform: scale(1.1);
 }
 
+/*
+ * Styles .mood-category-card:focus-visible.
+ */
 .mood-category-card:focus-visible {
     outline: 3px solid var(--primary);
     outline-offset: 2px;
 }
 
 
-/* ── DISCOVER CTA ──────────────────────────────────────────────────────── */
 
+/*
+ * Styles .discover-cta.
+ */
 .discover-cta {
     background: var(--gradient-deep);
     border-radius: var(--radius-2xl);
@@ -386,6 +517,9 @@
     color: var(--bg-white);
 }
 
+/*
+ * Styles .discover-cta-icon.
+ */
 .discover-cta-icon {
     font-size: 48px;
     margin-bottom: var(--space-lg);
@@ -393,6 +527,9 @@
     display: block;
 }
 
+/*
+ * Styles .discover-cta-title.
+ */
 .discover-cta-title {
     font-size: var(--font-3xl);
     font-weight: var(--font-bold);
@@ -400,6 +537,9 @@
     color: var(--bg-white);
 }
 
+/*
+ * Styles .discover-cta-text.
+ */
 .discover-cta-text {
     font-size: var(--font-md);
     margin: 0 0 var(--space-xl) 0;
@@ -411,12 +551,18 @@
     line-height: var(--leading-relaxed);
 }
 
+/*
+ * Styles .btn-cta-white.
+ */
 .btn-cta-white {
     background: var(--bg-white);
     color: var(--deep);
     font-weight: var(--font-bold);
 }
 
+/*
+ * Styles .btn-cta-white:hover.
+ */
 .btn-cta-white:hover {
     background: var(--cream);
     transform: translateY(-2px);
@@ -424,8 +570,10 @@
 }
 
 
-/* ── EMPTY STATE ───────────────────────────────────────────────────────── */
 
+/*
+ * Styles .empty-state.
+ */
 .empty-state {
     text-align: center;
     padding: var(--space-4xl) var(--space-lg);
@@ -434,6 +582,9 @@
     margin: var(--space-3xl) 0;
 }
 
+/*
+ * Styles .empty-state-icon.
+ */
 .empty-state-icon {
     display: block;
     font-size: 72px;
@@ -442,6 +593,9 @@
     opacity: 0.5;
 }
 
+/*
+ * Styles .empty-state-title.
+ */
 .empty-state-title {
     font-size: 24px;
     color: var(--deep);
@@ -449,6 +603,9 @@
     font-weight: 600;
 }
 
+/*
+ * Styles .empty-state-text.
+ */
 .empty-state-text {
     font-size: 16px;
     color: var(--text-muted);
@@ -460,13 +617,18 @@
 }
 
 
-/* ── GRID LOADING ──────────────────────────────────────────────────────── */
 
+/*
+ * Styles #discoverGrid.
+ */
 #discoverGrid,
 #discoverResultsInfo {
     scroll-margin-top: 90px;
 }
 
+/*
+ * Styles .discover-loading.
+ */
 .discover-loading {
     grid-column: 1 / -1;
     text-align: center;
@@ -474,6 +636,9 @@
     color: var(--text-muted);
 }
 
+/*
+ * Styles .discover-loading i.
+ */
 .discover-loading i {
     font-size: 40px;
     display: block;
@@ -481,11 +646,17 @@
     color: var(--primary);
 }
 
+/*
+ * Styles .discover-loading p.
+ */
 .discover-loading p {
     font-size: var(--font-md);
     margin: 0;
 }
 
+/*
+ * Styles .btn-spinner.
+ */
 .btn-spinner {
     display: inline-flex;
     align-items: center;
@@ -493,12 +664,17 @@
 }
 
 
-/* ── SHOW PAGE ─────────────────────────────────────────────────────────── */
 
+/*
+ * Styles .show-about-section.
+ */
 .show-about-section {
     margin-bottom: var(--space-4xl);
 }
 
+/*
+ * Styles .show-about-grid.
+ */
 .show-about-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -506,6 +682,9 @@
     align-items: start;
 }
 
+/*
+ * Styles .show-about-lead.
+ */
 .show-about-lead {
     font-size: var(--font-lg);
     color: var(--deep);
@@ -514,6 +693,9 @@
     margin: 0 0 var(--space-lg) 0;
 }
 
+/*
+ * Styles .show-about-body.
+ */
 .show-about-body {
     font-size: var(--font-base);
     color: var(--text);
@@ -521,12 +703,18 @@
     margin: 0;
 }
 
+/*
+ * Styles .show-highlights.
+ */
 .show-highlights {
     background: var(--bg-light);
     border-radius: var(--radius-xl);
     padding: var(--space-xl);
 }
 
+/*
+ * Styles .show-highlights-title.
+ */
 .show-highlights-title {
     font-size: var(--font-lg);
     font-weight: var(--font-semibold);
@@ -537,10 +725,16 @@
     gap: var(--space-sm);
 }
 
+/*
+ * Styles .show-highlights-title i.
+ */
 .show-highlights-title i {
     color: var(--primary);
 }
 
+/*
+ * Styles .show-highlights-list.
+ */
 .show-highlights-list {
     list-style: none;
     margin: 0;
@@ -550,6 +744,9 @@
     gap: var(--space-md);
 }
 
+/*
+ * Styles .show-highlight-item.
+ */
 .show-highlight-item {
     display: flex;
     align-items: flex-start;
@@ -559,6 +756,9 @@
     line-height: var(--leading-normal);
 }
 
+/*
+ * Styles .show-highlight-item i.
+ */
 .show-highlight-item i {
     color: var(--success);
     font-size: 14px;
@@ -567,18 +767,26 @@
 }
 
 
-/* ── SHOW PAGE DETAIL CARDS ────────────────────────────────────────────── */
 
+/*
+ * Styles .show-details-section.
+ */
 .show-details-section {
     margin-bottom: var(--space-4xl);
 }
 
+/*
+ * Styles .show-details-grid.
+ */
 .show-details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: var(--space-lg);
 }
 
+/*
+ * Styles .show-detail-card.
+ */
 .show-detail-card {
     background: var(--bg-white);
     border: 1px solid var(--border);
@@ -590,12 +798,18 @@
     transition: all var(--transition-base);
 }
 
+/*
+ * Styles .show-detail-card:hover.
+ */
 .show-detail-card:hover {
     border-color: var(--primary);
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 }
 
+/*
+ * Styles .show-detail-icon.
+ */
 .show-detail-icon {
     width: 42px;
     height: 42px;
@@ -609,11 +823,17 @@
     color: var(--primary);
 }
 
+/*
+ * Styles .show-detail-body.
+ */
 .show-detail-body {
     flex: 1;
     min-width: 0;
 }
 
+/*
+ * Styles .show-detail-label.
+ */
 .show-detail-label {
     font-size: var(--font-xs);
     font-weight: var(--font-semibold);
@@ -623,6 +843,9 @@
     margin: 0 0 4px 0;
 }
 
+/*
+ * Styles .show-detail-value.
+ */
 .show-detail-value {
     font-size: var(--font-base);
     font-weight: var(--font-semibold);
@@ -634,7 +857,6 @@
 }
 
 
-/* ── SEARCH BAR ANIMATIONS ─────────────────────────────────────────────── */
 
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-20px); }
@@ -642,7 +864,6 @@
 }
 
 
-/* ── RESPONSIVE ────────────────────────────────────────────────────────── */
 
 @media (max-width: 1024px) {
     .search-filters {

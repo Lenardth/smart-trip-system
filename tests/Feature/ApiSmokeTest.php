@@ -20,6 +20,19 @@ class ApiSmokeTest extends TestCase
     public function test_public_catalog_and_currency_apis_return_json(): void
     {
         $this->seedDestinations(20);
+        Destination::create([
+            'name' => 'Porto Test',
+            'country' => 'Portugal',
+            'country_code' => 'PT',
+            'region' => 'Test Region',
+            'description' => 'Porto Test description.',
+            'image_url' => 'https://example.com/porto-test.jpg',
+            'price_from' => 140,
+            'tags' => ['Cultural'],
+            'is_featured' => true,
+            'display_order' => 21,
+            'is_active' => true,
+        ]);
         $this->seedAccommodation();
 
         $this->getJson('/api/landing/destinations')
@@ -30,15 +43,25 @@ class ApiSmokeTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['destinations']);
 
-        $this->getJson('/api/discover?region=PT')
+        $countryResponse = $this->getJson('/api/discover?region=PT')
             ->assertOk()
-            ->assertJsonPath('destinations.0.country', 'Portugal')
+            ->assertJsonCount(2, 'destinations')
             ->assertJsonPath('source', 'database-local');
 
-        $this->getJson('/api/discover?q=Portugal')
+        $this->assertSame(
+            ['Portugal'],
+            collect($countryResponse->json('destinations'))->pluck('country')->unique()->values()->all()
+        );
+
+        $countryQueryResponse = $this->getJson('/api/discover?q=Portugal')
             ->assertOk()
-            ->assertJsonPath('destinations.0.country', 'Portugal')
+            ->assertJsonCount(2, 'destinations')
             ->assertJsonPath('source', 'database-local');
+
+        $this->assertSame(
+            ['Portugal'],
+            collect($countryQueryResponse->json('destinations'))->pluck('country')->unique()->values()->all()
+        );
 
         $this->getJson('/api/accommodations')
             ->assertOk()
@@ -85,6 +108,49 @@ class ApiSmokeTest extends TestCase
             ->assertSee('Cultural')
             ->assertSee('Adventurous')
             ->assertSee('Beach');
+    }
+
+    public function test_discover_country_search_returns_country_scoped_fallback_when_empty(): void
+    {
+        $response = $this->getJson('/api/discover?region=PT')
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('destinations.0.name', 'Portugal')
+            ->assertJsonPath('destinations.0.country', 'Portugal')
+            ->assertJsonPath('destinations.0.country_code', 'PT');
+
+        $this->assertSame(
+            ['Portugal'],
+            collect($response->json('destinations'))->pluck('country')->unique()->values()->all()
+        );
+    }
+
+    public function test_discover_country_search_is_limited_to_sixteen_tiles(): void
+    {
+        for ($i = 1; $i <= 20; $i++) {
+            Destination::create([
+                'name' => "Portugal Tile {$i}",
+                'country' => 'Portugal',
+                'country_code' => 'PT',
+                'region' => 'Portugal',
+                'description' => "Portugal Tile {$i} description.",
+                'image_url' => "https://example.com/portugal-tile-{$i}.jpg",
+                'price_from' => 100 + $i,
+                'tags' => ['Cultural'],
+                'display_order' => $i,
+                'is_active' => true,
+            ]);
+        }
+
+        $response = $this->getJson('/api/discover?region=PT')
+            ->assertOk()
+            ->assertJsonPath('count', 16)
+            ->assertJsonCount(16, 'destinations');
+
+        $this->assertSame(
+            ['Portugal'],
+            collect($response->json('destinations'))->pluck('country')->unique()->values()->all()
+        );
     }
 
     public function test_ai_suggestions_api_fails_gracefully_without_api_key(): void

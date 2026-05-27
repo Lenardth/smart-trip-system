@@ -1,11 +1,49 @@
+/*
+ * Loads shared authentication styles.
+ */
 @import './auth/shared-auth.css';
+
+/*
+ * Loads login and registration styles.
+ */
 @import './auth/login.css';
+
+/*
+ * Loads shared hero search styles.
+ */
 @import './shared/hero-search.css';
+
+/*
+ * Loads static page styles.
+ */
 @import './shared/static-pages.css';
 
+/*
+ * Loads landing page styles.
+ */
 @import './landing/index.css';
+
+/*
+ * Loads dashboard page styles.
+ */
 @import './dashboard/index.css';
+
+/*
+ * Loads flight search page styles.
+ */
 @import './flights/index.css';
+
+/*
+ * Loads accommodation page styles.
+ */
 @import './accommodations/index.css';
+
+/*
+ * Loads booking page styles.
+ */
 @import './bookings/index.css';
+
+/*
+ * Loads trip planning page styles.
+ */
 @import './plan-trip/index.css';

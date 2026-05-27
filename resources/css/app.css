@@ -1,6 +1,29 @@
+/*
+ * Loads the shared Blade stylesheet bundle.
+ */
 @import './blade/base.css';
+
+/*
+ * Loads page-level Blade stylesheet imports.
+ */
 @import './blade/index.css';
+
+/*
+ * Loads discover page styles.
+ */
 @import './blade/discover/index.css';
+
+/*
+ * Loads utility helper styles.
+ */
 @import './blade/utilities.css';
+
+/*
+ * Loads shared currency widget styles.
+ */
 @import './blade/shared/currency.css';
+
+/*
+ * Loads shared footer styles.
+ */
 @import './blade/shared/footer.css';

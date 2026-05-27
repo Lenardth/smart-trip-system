@@ -1,3 +1,6 @@
+/*
+ * Styles .auth-description.
+ */
 .auth-description {
     text-align: center;
     color: var(--text-muted);
@@ -5,6 +8,9 @@
     margin-bottom: 20px;
 }
 
+/*
+ * Styles .auth-subtitle.
+ */
 .auth-subtitle {
     text-align: center;
     color: var(--text-muted);
@@ -13,6 +19,9 @@
     line-height: 1.6;
 }
 
+/*
+ * Styles .info-box.
+ */
 .info-box {
     background: rgba(201, 169, 110, .1);
     border: 1px solid rgba(201, 169, 110, .35);
@@ -25,6 +34,9 @@
     line-height: 1.6;
 }
 
+/*
+ * Styles .info-box i.
+ */
 .info-box i {
     font-size: 22px;
     margin-bottom: 8px;
