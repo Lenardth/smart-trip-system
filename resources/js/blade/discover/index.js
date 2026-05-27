@@ -64,11 +64,13 @@
         if (!q && !region && !mood) {
             resultsInfo.classList.add('hidden');
             sectionHeader.classList.remove('hidden');
+            if (moodSection) moodSection.classList.remove('hidden');
             setActiveMood(null);
             return;
         }
 
         sectionHeader.classList.add('hidden');
+        if (moodSection) moodSection.classList.add('hidden');
         resultsInfo.classList.remove('hidden');
 
         const parts = [];
