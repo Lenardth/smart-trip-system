@@ -41,10 +41,10 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'last_login_at'     => 'datetime',
-            'premium_until'     => 'datetime',
-            'is_premium'        => 'boolean',
-            'password'          => 'hashed',
+            'last_login_at' => 'datetime',
+            'premium_until' => 'datetime',
+            'is_premium' => 'boolean',
+            'password' => 'hashed',
         ];
     }
 
@@ -58,10 +58,15 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    public function flightListings(): HasMany
+    {
+        return $this->hasMany(FlightListing::class, 'agency_id');
+    }
+
     public function getProfilePictureUrlAttribute(): ?string
     {
         if ($this->profile_picture) {
-            return asset('storage/' . $this->profile_picture);
+            return asset('storage/'.$this->profile_picture);
         }
 
         return null;

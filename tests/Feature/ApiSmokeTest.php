@@ -6,7 +6,7 @@ use App\Models\Accommodation;
 use App\Models\Booking;
 use App\Models\Coupon;
 use App\Models\Destination;
-use App\Models\Trip;
+use App\Models\FlightListing;
 use App\Models\TripMood;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -39,9 +39,19 @@ class ApiSmokeTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['destinations']);
 
+        $this->getJson('/api/landing/destinations?mood=Cultural&budget=backpacker&companion=solo')
+            ->assertOk()
+            ->assertJsonStructure(['destinations' => [['match_score']]])
+            ->assertJsonPath('destinations.0.match_score', fn ($score) => is_int($score) && $score > 0);
+
         $this->getJson('/api/discover')
             ->assertOk()
             ->assertJsonStructure(['destinations']);
+
+        $this->getJson('/api/discover?mood=Cultural&budget=backpacker&companion=solo')
+            ->assertOk()
+            ->assertJsonStructure(['destinations' => [['match_score']]])
+            ->assertJsonPath('destinations.0.match_score', fn ($score) => is_int($score) && $score > 0);
 
         $countryResponse = $this->getJson('/api/discover?region=PT')
             ->assertOk()
@@ -367,6 +377,69 @@ class ApiSmokeTest extends TestCase
             'travel_class' => 'ECONOMY',
         ])
             ->assertUnprocessable();
+    }
+
+    public function test_agency_flight_listing_booking_reserves_last_seat_safely(): void
+    {
+        $agency = User::factory()->create(['user_type' => 'agency', 'agency_name' => 'Sky Test Agency']);
+        $traveler = User::factory()->create();
+
+        $listing = FlightListing::create([
+            'agency_id' => $agency->id,
+            'airline' => 'Agency Air',
+            'flight_number' => 'AG101',
+            'departure_airport' => 'London Heathrow (LHR)',
+            'arrival_airport' => 'Dubai (DXB)',
+            'departure_iata' => 'LHR',
+            'arrival_iata' => 'DXB',
+            'departure_date' => now()->addDays(3)->format('Y-m-d'),
+            'departure_time' => '09:00',
+            'arrival_time' => '19:00',
+            'duration' => '7h 0m',
+            'travel_class' => 'ECONOMY',
+            'price' => 250,
+            'seats_total' => 1,
+            'seats_available' => 1,
+            'status' => 'published',
+        ]);
+
+        $this->actingAs($traveler);
+
+        $this->postJson('/flights/search', [
+            'from' => 'London',
+            'to' => 'Dubai',
+            'departure_date' => $listing->departure_date->format('Y-m-d'),
+            'adults' => 1,
+            'travel_class' => 'ECONOMY',
+        ])
+            ->assertOk()
+            ->assertJsonFragment(['flight_listing_id' => $listing->id]);
+
+        $payload = [
+            'flight_listing_id' => $listing->id,
+            'airline' => 'Agency Air',
+            'flight_number' => 'AG101',
+            'departure_airport' => 'London Heathrow (LHR)',
+            'arrival_airport' => 'Dubai (DXB)',
+            'departure_date' => $listing->departure_date->format('Y-m-d'),
+            'price' => 250,
+            'adults' => 1,
+            'travel_class' => 'ECONOMY',
+        ];
+
+        $this->postJson('/api/bookings/flight', $payload)
+            ->assertCreated()
+            ->assertJsonPath('success', true);
+
+        $this->assertSame(0, $listing->fresh()->seats_available);
+
+        $this->postJson('/api/bookings/flight', $payload)
+            ->assertStatus(409);
+
+        $this->actingAs($agency)
+            ->get('/agency/bookings')
+            ->assertOk()
+            ->assertSee('AG101');
     }
 
     public function test_accommodation_booking_and_cancel_api_work(): void

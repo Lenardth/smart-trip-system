@@ -270,6 +270,7 @@ ready(function () {
             body: JSON.stringify({
                 airline:           flight.airline           || '',
                 flight_number:     flight.flight_number     || '',
+                flight_listing_id:  flight.flight_listing_id || null,
                 departure_airport: flight.departure_airport || flight.departure_iata || '',
                 arrival_airport:   flight.arrival_airport   || flight.arrival_iata   || '',
                 departure_time:    flight.departure_time    || null,

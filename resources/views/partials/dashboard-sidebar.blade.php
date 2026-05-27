@@ -4,6 +4,7 @@
         @foreach($sidebarSections ?? [] as $section)
             <p class="sidebar-section-label">{{ $section['label'] }}</p>
             @foreach($section['items'] as $item)
+                @continue(!empty($item['user_type']) && $item['user_type'] !== (Auth::user()->user_type ?? null))
                 <a
                     href="{{ $item['href'] }}"
                     @class([

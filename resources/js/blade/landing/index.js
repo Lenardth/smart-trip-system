@@ -306,7 +306,14 @@ async function fetchDestinations() {
     if (empty)   empty.style.display   = 'none';
 
     try {
-        const res  = await fetch('/api/landing/destinations', {
+        const params = new URLSearchParams();
+        ['moodSelect', 'budgetSelect', 'companionSelect'].forEach(id => {
+            const value = getVal(id);
+            if (value) params.set(id.replace('Select', ''), value);
+        });
+
+        const url = '/api/landing/destinations' + (params.toString() ? '?' + params.toString() : '');
+        const res  = await fetch(url, {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -421,11 +428,14 @@ window.generateQuickPlan = async function (e) {
         const cards = suggestions.map((s, i) => {
             const activities = Array.isArray(s.top_activities) ? s.top_activities.join(', ') : s.top_activities;
             const slug = (s.destination || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const aiMatchScore = s.match_score
+                ? '<span class="match-score"><i class="fas fa-star"></i> ' + s.match_score + '% match</span>' : '';
             return '<div class="ai-suggestion-card">' +
                 '<div class="ai-suggestion-card-head">' +
                     '<div class="ai-suggestion-card-meta">' +
                         '<span class="ai-option-label">Option ' + (i+1) + ' ' + (flags[i]||'') + '</span>' +
                         (s.country ? '<span class="ai-country-pill">' + esc(s.country) + '</span>' : '') +
+                        aiMatchScore +
                     '</div>' +
                     '<h3>' + esc(s.destination) + '</h3>' +
                     '<p>' + esc(s.description) + '</p>' +
@@ -642,4 +652,10 @@ document.addEventListener('currency:changed', function() {
     if (window._allDestinations) {
         renderGrid(window._allDestinations.slice(0, 8));
     }
+});
+
+ready(function () {
+    ['moodSelect', 'budgetSelect', 'companionSelect'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', fetchDestinations);
+    });
 });

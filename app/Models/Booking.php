@@ -5,9 +5,9 @@ namespace App\Models;
 use App\Models\Traits\HasStatusScopes;
 use App\Models\Traits\HasUserScope;
 use App\Services\BookingTypeResolver;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
@@ -18,6 +18,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'trip_id',
+        'flight_listing_id',
         'booking_reference',
         'seats_booked',
         'total_price',
@@ -30,11 +31,11 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'total_price'       => 'decimal:2',
-        'subtotal'          => 'decimal:2',
-        'discount_amount'   => 'decimal:2',
-        'service_fee'       => 'decimal:2',
-        'seats_booked'      => 'integer',
+        'total_price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'service_fee' => 'decimal:2',
+        'seats_booked' => 'integer',
         'passenger_details' => AsArrayObject::class,
     ];
 
@@ -43,7 +44,7 @@ class Booking extends Model
         parent::boot();
 
         static::creating(function ($booking) {
-            $booking->booking_reference ??= 'SB-' . strtoupper(Str::random(8));
+            $booking->booking_reference ??= 'SB-'.strtoupper(Str::random(8));
         });
     }
 
@@ -55,6 +56,11 @@ class Booking extends Model
     public function trip(): BelongsTo
     {
         return $this->belongsTo(Trip::class);
+    }
+
+    public function flightListing(): BelongsTo
+    {
+        return $this->belongsTo(FlightListing::class);
     }
 
     public function getTypeAttribute(): string

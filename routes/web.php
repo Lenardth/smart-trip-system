@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccommodationController;
+use App\Http\Controllers\AgencyFlightController;
 use App\Http\Controllers\Api\AccommodationController as ApiAccommodationController;
 use App\Http\Controllers\Api\AiSuggestionController as ApiAiSuggestionController;
 use App\Http\Controllers\Api\BookingController as ApiBookingController;
@@ -119,6 +120,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/bookings/flight', [ApiBookingController::class, 'bookFlight'])->middleware('throttle:10,1');
     Route::post('/api/bookings/accommodation', [ApiBookingController::class, 'storeAccommodation'])->middleware('throttle:10,1');
     Route::post('/api/coupon/validate', [ApiCouponController::class, 'validate'])->middleware('throttle:30,1');
+
+    // Agency
+    Route::prefix('agency')->name('agency.')->group(function () {
+        Route::get('/flights', [AgencyFlightController::class, 'index'])->name('flights.index');
+        Route::post('/flights', [AgencyFlightController::class, 'store'])->middleware('throttle:20,1')->name('flights.store');
+        Route::post('/flights/{flight}/publish', [AgencyFlightController::class, 'publish'])->middleware('throttle:20,1')->name('flights.publish');
+        Route::post('/flights/{flight}/archive', [AgencyFlightController::class, 'archive'])->middleware('throttle:20,1')->name('flights.archive');
+        Route::get('/bookings', [AgencyFlightController::class, 'incomingBookings'])->name('bookings.index');
+    });
 
     // Profile
     Route::post('/profile/picture', [ProfileController::class, 'uploadPicture'])->middleware('throttle:5,1')->name('profile.picture.upload');

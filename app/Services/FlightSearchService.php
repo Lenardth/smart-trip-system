@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\FlightSearchInterface;
+use App\Models\FlightListing;
 use App\Models\FlightSearch;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,13 +19,13 @@ class FlightSearchService
         Log::info('Flight search request', $validated);
 
         $fromCode = $this->aviationstack->resolveIataCode($validated['from']);
-        $toCode   = $this->aviationstack->resolveIataCode($validated['to']);
+        $toCode = $this->aviationstack->resolveIataCode($validated['to']);
 
-        if (!$fromCode || !$toCode) {
+        if (! $fromCode || ! $toCode) {
             return [
                 'success' => false,
                 'status' => 422,
-                'message' => 'Could not find airport for "' . (!$fromCode ? $validated['from'] : $validated['to']) . '". Try using the city name (e.g., London, Dubai) or IATA code (e.g., LHR, DXB).',
+                'message' => 'Could not find airport for "'.(! $fromCode ? $validated['from'] : $validated['to']).'". Try using the city name (e.g., London, Dubai) or IATA code (e.g., LHR, DXB).',
                 'flights' => [],
             ];
         }
@@ -32,12 +33,12 @@ class FlightSearchService
         $adults = (int) ($validated['adults'] ?? 1);
         $travelClass = strtoupper($validated['travel_class'] ?? config('booking.default_travel_class'));
         $searchHash = $this->searchHash([
-            'from_code'      => $fromCode,
-            'to_code'        => $toCode,
+            'from_code' => $fromCode,
+            'to_code' => $toCode,
             'departure_date' => $validated['departure_date'],
-            'return_date'    => $validated['return_date'] ?? null,
-            'adults'         => $adults,
-            'travel_class'   => $travelClass,
+            'return_date' => $validated['return_date'] ?? null,
+            'adults' => $adults,
+            'travel_class' => $travelClass,
         ]);
 
         $cached = FlightSearch::where('search_hash', $searchHash)
@@ -47,17 +48,24 @@ class FlightSearchService
             ->first();
 
         if ($cached) {
-            $flights = $cached->response_payload['flights'] ?? [];
+            $flights = $this->withAgencyListings(
+                $cached->response_payload['flights'] ?? [],
+                $fromCode,
+                $toCode,
+                $validated['departure_date'],
+                $adults,
+                $travelClass
+            );
             $this->recordSearch($validated, $fromCode, $toCode, $flights, $searchHash, true, $ipAddress);
 
             return [
-                'success'   => true,
+                'success' => true,
                 'from_code' => $fromCode,
-                'to_code'   => $toCode,
-                'flights'   => $flights,
-                'count'     => count($flights),
-                'message'   => $cached->response_payload['message'] ?? null,
-                'cached'    => true,
+                'to_code' => $toCode,
+                'flights' => $flights,
+                'count' => count($flights),
+                'message' => $cached->response_payload['message'] ?? null,
+                'cached' => true,
             ];
         }
 
@@ -84,22 +92,69 @@ class FlightSearchService
             $message = 'Live direct flights were unavailable, so these are estimated bookable options based on your route.';
         }
 
+        $flights = $this->withAgencyListings($flights, $fromCode, $toCode, $validated['departure_date'], $adults, $travelClass);
+
         $this->recordSearch($validated, $fromCode, $toCode, $flights, $searchHash, false, $ipAddress, $message);
 
         return [
-            'success'   => true,
+            'success' => true,
             'from_code' => $fromCode,
-            'to_code'   => $toCode,
-            'flights'   => $flights,
-            'count'     => count($flights),
-            'message'   => $message,
-            'cached'    => false,
+            'to_code' => $toCode,
+            'flights' => $flights,
+            'count' => count($flights),
+            'message' => $message,
+            'cached' => false,
         ];
     }
 
     public function airports(string $keyword): array
     {
         return $this->aviationstack->searchAirports($keyword);
+    }
+
+    private function withAgencyListings(
+        array $flights,
+        string $fromCode,
+        string $toCode,
+        string $departureDate,
+        int $adults,
+        string $travelClass
+    ): array {
+        $listings = FlightListing::with('agency')
+            ->where('status', 'published')
+            ->where('departure_iata', $fromCode)
+            ->where('arrival_iata', $toCode)
+            ->whereDate('departure_date', $departureDate)
+            ->where('travel_class', $travelClass)
+            ->where('seats_available', '>=', $adults)
+            ->get()
+            ->map(fn (FlightListing $listing) => [
+                'flight_listing_id' => $listing->id,
+                'flight_number' => $listing->flight_number,
+                'airline' => $listing->airline,
+                'airline_code' => null,
+                'departure_iata' => $listing->departure_iata,
+                'departure_airport' => $listing->departure_airport,
+                'departure_time' => $listing->departure_time,
+                'departure_date' => $listing->departure_date->format('Y-m-d'),
+                'arrival_iata' => $listing->arrival_iata,
+                'arrival_airport' => $listing->arrival_airport,
+                'arrival_time' => $listing->arrival_time,
+                'duration' => $listing->duration,
+                'stops' => 0,
+                'baggage' => 'Agency listing',
+                'travel_class' => $listing->travel_class,
+                'adults' => $adults,
+                'price' => (float) $listing->price,
+                'currency' => 'USD',
+                'status' => 'published',
+                'source' => 'agency',
+                'agency_name' => $listing->agency?->display_name,
+                'seats_available' => $listing->seats_available,
+            ])
+            ->all();
+
+        return array_values([...$listings, ...$flights]);
     }
 
     private function searchHash(array $payload): string
@@ -145,26 +200,26 @@ class FlightSearchService
             $stops = $index === 0 ? 0 : 1;
 
             return [
-                'flight_number'     => $airline['code'] . (220 + ($index * 137)),
-                'airline'           => $airline['name'],
-                'airline_code'      => $airline['code'],
-                'departure_iata'    => $fromCode,
+                'flight_number' => $airline['code'].(220 + ($index * 137)),
+                'airline' => $airline['name'],
+                'airline_code' => $airline['code'],
+                'departure_iata' => $fromCode,
                 'departure_airport' => "{$fromLabel} ({$fromCode})",
-                'departure_time'    => $departure->format('H:i'),
-                'departure_date'    => $departure->format('Y-m-d'),
-                'arrival_iata'      => $toCode,
-                'arrival_airport'   => "{$toLabel} ({$toCode})",
-                'arrival_time'      => $arrival->format('H:i'),
-                'arrival_date'      => $arrival->format('Y-m-d'),
-                'duration'          => intdiv($durationMinutes + ($stops * 65), 60) . 'h ' . (($durationMinutes + ($stops * 65)) % 60) . 'm',
-                'stops'             => $stops,
-                'baggage'           => $travelClass === 'ECONOMY' ? '1 cabin bag included' : '1 checked bag included',
-                'travel_class'      => $travelClass,
-                'adults'            => $adults,
-                'price'             => (int) round($basePrice * (1 + ($index * 0.18))),
-                'price_note'        => 'Estimated fare',
-                'currency'          => 'USD',
-                'status'            => 'estimated',
+                'departure_time' => $departure->format('H:i'),
+                'departure_date' => $departure->format('Y-m-d'),
+                'arrival_iata' => $toCode,
+                'arrival_airport' => "{$toLabel} ({$toCode})",
+                'arrival_time' => $arrival->format('H:i'),
+                'arrival_date' => $arrival->format('Y-m-d'),
+                'duration' => intdiv($durationMinutes + ($stops * 65), 60).'h '.(($durationMinutes + ($stops * 65)) % 60).'m',
+                'stops' => $stops,
+                'baggage' => $travelClass === 'ECONOMY' ? '1 cabin bag included' : '1 checked bag included',
+                'travel_class' => $travelClass,
+                'adults' => $adults,
+                'price' => (int) round($basePrice * (1 + ($index * 0.18))),
+                'price_note' => 'Estimated fare',
+                'currency' => 'USD',
+                'status' => 'estimated',
             ];
         }, $airlines, array_keys($airlines));
     }
@@ -173,7 +228,7 @@ class FlightSearchService
     {
         $base = max(90, min(1800, (int) round(70 + ($distance * 0.11))));
         $multiplier = config(
-            'flights.class_multipliers.' . strtoupper($travelClass),
+            'flights.class_multipliers.'.strtoupper($travelClass),
             config('flights.class_multipliers.ECONOMY', 1)
         );
 
@@ -186,7 +241,7 @@ class FlightSearchService
         $from = $coords[$fromCode] ?? null;
         $to = $coords[$toCode] ?? null;
 
-        if (!$from || !$to) {
+        if (! $from || ! $to) {
             return 1200;
         }
 
@@ -213,27 +268,27 @@ class FlightSearchService
     ): void {
         try {
             FlightSearch::create([
-                'user_id'          => Auth::id(),
-                'search_hash'      => $searchHash,
-                'request_payload'  => $validated,
+                'user_id' => Auth::id(),
+                'search_hash' => $searchHash,
+                'request_payload' => $validated,
                 'response_payload' => [
                     'flights' => $flights,
                     'message' => $message,
                 ],
-                'from_query'     => $validated['from'],
-                'to_query'       => $validated['to'],
-                'from_code'      => $fromCode,
-                'to_code'        => $toCode,
+                'from_query' => $validated['from'],
+                'to_query' => $validated['to'],
+                'from_code' => $fromCode,
+                'to_code' => $toCode,
                 'departure_date' => $validated['departure_date'],
-                'return_date'    => $validated['return_date'] ?? null,
-                'adults'         => (int) ($validated['adults'] ?? 1),
-                'travel_class'   => strtoupper($validated['travel_class'] ?? config('booking.default_travel_class')),
-                'results_count'  => count($flights),
-                'cache_hit'      => $cacheHit,
-                'ip_address'     => $ipAddress,
+                'return_date' => $validated['return_date'] ?? null,
+                'adults' => (int) ($validated['adults'] ?? 1),
+                'travel_class' => strtoupper($validated['travel_class'] ?? config('booking.default_travel_class')),
+                'results_count' => count($flights),
+                'cache_hit' => $cacheHit,
+                'ip_address' => $ipAddress,
             ]);
         } catch (\Throwable $e) {
-            Log::warning('FlightSearch log failed: ' . $e->getMessage());
+            Log::warning('FlightSearch log failed: '.$e->getMessage());
         }
     }
 }

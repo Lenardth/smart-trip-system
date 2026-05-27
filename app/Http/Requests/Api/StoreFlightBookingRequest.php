@@ -15,6 +15,7 @@ class StoreFlightBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'flight_listing_id' => 'nullable|exists:flight_listings,id',
             'airline' => 'required|string|max:100',
             'flight_number' => 'required|string|max:20',
             'departure_airport' => 'nullable|string|max:100',

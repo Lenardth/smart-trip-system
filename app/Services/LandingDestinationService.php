@@ -5,13 +5,15 @@ namespace App\Services;
 use App\Contracts\GeoapifyInterface;
 use App\Models\Destination;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class LandingDestinationService
 {
     public function __construct(
         private readonly GeoapifyInterface $geoapify,
-        private readonly PexelsService $pexels
+        private readonly PexelsService $pexels,
+        private readonly DestinationMatchScoringService $scoring,
     ) {}
 
     public function index()
@@ -19,8 +21,13 @@ class LandingDestinationService
         return view('landing.index');
     }
 
-    public function destinations(): JsonResponse
+    public function destinations(Request $request): JsonResponse
     {
+        $preferences = $request->validate([
+            'mood' => 'nullable|string|max:100',
+            'budget' => 'nullable|string|max:50',
+            'companion' => 'nullable|string|max:50',
+        ]);
         $limit = config('api.pagination.per_page', 16);
 
         if (Destination::active()->count() < $limit) {
@@ -34,7 +41,9 @@ class LandingDestinationService
             $destinations = $this->uniqueCountryDestinations($limit);
         }
 
-        return response()->json(['destinations' => $destinations]);
+        return response()->json([
+            'destinations' => $this->scoring->rank($destinations, $preferences),
+        ]);
     }
 
     private function uniqueCountryDestinations(int $limit): array
@@ -53,6 +62,7 @@ class LandingDestinationService
                 }
 
                 $seenCountries[$countryKey] = true;
+
                 return true;
             })
             ->take($limit)
@@ -71,7 +81,7 @@ class LandingDestinationService
                 $sourceId = $place['id'] ?? null;
                 $name = $place['name'] ?? null;
 
-                if (!$sourceId || !$name || $name === 'Unknown place') {
+                if (! $sourceId || ! $name || $name === 'Unknown place') {
                     continue;
                 }
 
@@ -80,7 +90,7 @@ class LandingDestinationService
                     'source_id' => $sourceId,
                 ]);
 
-                $imageQuery = trim($name . ' ' . ($place['country'] ?? '') . ' travel');
+                $imageQuery = trim($name.' '.($place['country'] ?? '').' travel');
 
                 $destination->fill([
                     'name' => $name,
@@ -98,7 +108,7 @@ class LandingDestinationService
                     'is_active' => true,
                 ]);
 
-                if (!$destination->display_order) {
+                if (! $destination->display_order) {
                     $destination->display_order = $index;
                 }
 
@@ -129,7 +139,7 @@ class LandingDestinationService
             'is_featured' => $destination->is_featured,
             'is_editors_choice' => $destination->is_editors_choice,
             'detail_url' => route('discover.place.show', ['destination' => $destination->id]),
-            'plan_url' => route('plan-trip') . '?destination=' . urlencode($destination->name),
+            'plan_url' => route('plan-trip').'?destination='.urlencode($destination->name),
         ];
     }
 }

@@ -12,38 +12,38 @@ use Illuminate\Support\Str;
 class AiSuggestionService
 {
     private const TOOL = [
-        'type'     => 'function',
+        'type' => 'function',
         'function' => [
-            'name'        => 'suggest_destinations',
+            'name' => 'suggest_destinations',
             'description' => 'Return exactly 5 travel destination recommendations, each from a different country.',
-            'parameters'  => [
-                'type'       => 'object',
-                'required'   => ['destinations'],
+            'parameters' => [
+                'type' => 'object',
+                'required' => ['destinations'],
                 'properties' => [
                     'destinations' => [
-                        'type'  => 'array',
+                        'type' => 'array',
                         'items' => [
-                            'type'       => 'object',
-                            'required'   => [
+                            'type' => 'object',
+                            'required' => [
                                 'destination', 'country', 'region', 'description',
                                 'cost_min_usd', 'cost_max_usd',
                                 'best_months', 'is_good_right_now', 'top_activities',
                                 'travel_tip', 'visa_info', 'flight_info',
                             ],
                             'properties' => [
-                                'destination'       => ['type' => 'string'],
-                                'country'           => ['type' => 'string'],
-                                'region'            => ['type' => 'string'],
-                                'description'       => ['type' => 'string'],
-                                'cost_min_usd'      => ['type' => 'integer'],
-                                'cost_max_usd'      => ['type' => 'integer'],
-                                'cost_includes'     => ['type' => 'string'],
-                                'best_months'       => ['type' => 'array', 'items' => ['type' => 'string']],
+                                'destination' => ['type' => 'string'],
+                                'country' => ['type' => 'string'],
+                                'region' => ['type' => 'string'],
+                                'description' => ['type' => 'string'],
+                                'cost_min_usd' => ['type' => 'integer'],
+                                'cost_max_usd' => ['type' => 'integer'],
+                                'cost_includes' => ['type' => 'string'],
+                                'best_months' => ['type' => 'array', 'items' => ['type' => 'string']],
                                 'is_good_right_now' => ['type' => 'boolean'],
-                                'top_activities'    => ['type' => 'array', 'items' => ['type' => 'string']],
-                                'travel_tip'        => ['type' => 'string'],
-                                'visa_info'         => ['type' => 'string'],
-                                'flight_info'       => ['type' => 'string'],
+                                'top_activities' => ['type' => 'array', 'items' => ['type' => 'string']],
+                                'travel_tip' => ['type' => 'string'],
+                                'visa_info' => ['type' => 'string'],
+                                'flight_info' => ['type' => 'string'],
                             ],
                         ],
                     ],
@@ -52,24 +52,26 @@ class AiSuggestionService
         ],
     ];
 
+    public function __construct(private readonly DestinationMatchScoringService $scoring) {}
+
     public function suggest(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'mood'                    => 'required|string|max:100',
-            'budget'                  => 'required|string|max:50',
-            'duration'                => 'required|string|max:50',
-            'companion'               => 'required|string|max:50',
-            'month'                   => 'nullable|string|max:20',
-            'region'                  => 'nullable|string|max:50',
-            'accommodation'           => 'nullable|string|max:50',
-            'destination_interest'     => 'nullable|string|max:100',
-            'origin'                  => 'nullable|string|max:100',
-            'experience'              => 'nullable|string|max:50',
-            'feeling_note'            => 'nullable|string|max:500',
-            'excluded_destinations'   => 'nullable|array|max:200',
+            'mood' => 'required|string|max:100',
+            'budget' => 'required|string|max:50',
+            'duration' => 'required|string|max:50',
+            'companion' => 'required|string|max:50',
+            'month' => 'nullable|string|max:20',
+            'region' => 'nullable|string|max:50',
+            'accommodation' => 'nullable|string|max:50',
+            'destination_interest' => 'nullable|string|max:100',
+            'origin' => 'nullable|string|max:100',
+            'experience' => 'nullable|string|max:50',
+            'feeling_note' => 'nullable|string|max:500',
+            'excluded_destinations' => 'nullable|array|max:200',
             'excluded_destinations.*' => 'string|max:100',
-            'excluded_countries'      => 'nullable|array|max:200',
-            'excluded_countries.*'    => 'string|max:100',
+            'excluded_countries' => 'nullable|array|max:200',
+            'excluded_countries.*' => 'string|max:100',
         ]);
 
         $validated['currency'] = session('preferred_currency', 'USD');
@@ -107,20 +109,20 @@ class AiSuggestionService
 
     private function callGroqWithRetry(array $p, string $apiKey): array
     {
-        if (!empty($p['destination_interest'])) {
+        if (! empty($p['destination_interest'])) {
             return $this->callGroqForFixedDestination($p, $apiKey);
         }
 
-        $maxRetries    = config('ai.max_retries', 3);
-        $norm          = fn($s) => strtolower(trim(preg_replace('/\s+/', ' ', $s)));
-        $exclDests     = array_map($norm, $p['excluded_destinations'] ?? []);
+        $maxRetries = config('ai.max_retries', 3);
+        $norm = fn ($s) => strtolower(trim(preg_replace('/\s+/', ' ', $s)));
+        $exclDests = array_map($norm, $p['excluded_destinations'] ?? []);
         $exclCountries = array_map($norm, $p['excluded_countries'] ?? []);
-        $accumulated   = [];
+        $accumulated = [];
 
         for ($try = 1; $try <= $maxRetries; $try++) {
             $batch = $this->callGroq(array_merge($p, [
                 'excluded_destinations' => $exclDests,
-                'excluded_countries'    => $exclCountries,
+                'excluded_countries' => $exclCountries,
             ]), $apiKey);
 
             foreach ($batch as $dest) {
@@ -131,8 +133,8 @@ class AiSuggestionService
                     continue;
                 }
 
-                $accumulated[]   = $dest;
-                $exclDests[]     = $dNorm;
+                $accumulated[] = $dest;
+                $exclDests[] = $dNorm;
                 $exclCountries[] = $cNorm;
             }
 
@@ -143,7 +145,7 @@ class AiSuggestionService
 
         if (empty($accumulated)) {
             throw new \RuntimeException(
-                'Could not generate non-duplicate destinations after ' . $maxRetries . ' attempts.'
+                'Could not generate non-duplicate destinations after '.$maxRetries.' attempts.'
             );
         }
 
@@ -180,20 +182,20 @@ class AiSuggestionService
         [$system, $user] = $this->buildPrompts($p);
 
         $payload = [
-            'model'       => config('services.groq.model', 'llama-3.3-70b-versatile'),
-            'max_tokens'  => config('services.groq.max_tokens', 2048),
+            'model' => config('services.groq.model', 'llama-3.3-70b-versatile'),
+            'max_tokens' => config('services.groq.max_tokens', 2048),
             'temperature' => 1.1,
-            'tools'       => [self::TOOL],
+            'tools' => [self::TOOL],
             'tool_choice' => ['type' => 'function', 'function' => ['name' => 'suggest_destinations']],
-            'messages'    => [
+            'messages' => [
                 ['role' => 'system', 'content' => $system],
                 ['role' => 'user',   'content' => $user],
             ],
         ];
 
-        $apiUrl   = config('services.groq.url', 'https://api.groq.com/openai/v1/chat/completions');
-        $timeout  = config('api.timeouts.groq', 60);
-        $connect  = config('api.connect_timeouts.groq', 15);
+        $apiUrl = config('services.groq.url', 'https://api.groq.com/openai/v1/chat/completions');
+        $timeout = config('api.timeouts.groq', 60);
+        $connect = config('api.connect_timeouts.groq', 15);
         $response = Http::withHeaders(['Authorization' => "Bearer {$apiKey}"])
             ->timeout($timeout)
             ->connectTimeout($connect)
@@ -205,14 +207,14 @@ class AiSuggestionService
 
         if ($response->failed()) {
             throw new \RuntimeException(
-                "Groq API error {$response->status()}: " . Str::limit($response->body(), 300)
+                "Groq API error {$response->status()}: ".Str::limit($response->body(), 300)
             );
         }
 
-        $data     = $response->json();
+        $data = $response->json();
         $toolCall = $data['choices'][0]['message']['tool_calls'][0] ?? null;
 
-        if (!$toolCall) {
+        if (! $toolCall) {
             throw new \RuntimeException('Unexpected response from Groq.');
         }
 
@@ -222,18 +224,21 @@ class AiSuggestionService
             throw new \RuntimeException('Groq returned malformed tool arguments.');
         }
 
-        return array_values(array_map(fn ($destination) => $this->normalise($destination, $p), $input['destinations']));
+        return $this->scoring->rank(
+            array_values(array_map(fn ($destination) => $this->normalise($destination, $p), $input['destinations'])),
+            $this->preferences($p)
+        );
     }
 
     private function buildPrompts(array $p): array
     {
-        $month    = now()->format('F');
-        $year     = now()->year;
+        $month = now()->format('F');
+        $year = now()->year;
         $currency = $p['currency'] ?? 'USD';
 
         $durationLabels = config('trips.duration_prompt_labels', []);
         $duration = is_numeric($p['duration'])
-            ? (int) $p['duration'] . ' days'
+            ? (int) $p['duration'].' days'
             : ($durationLabels[$p['duration']] ?? $p['duration']);
 
         $budgetLabels = config('trips.budget_prompt_labels', []);
@@ -247,29 +252,41 @@ class AiSuggestionService
         $fixedDestination = trim((string) ($p['destination_interest'] ?? ''));
 
         $extras = [];
-        if (!empty($p['month']))                                           $extras[] = "departure month: {$p['month']}";
-        if (!empty($p['region'])        && $p['region']        !== 'any') $extras[] = "preferred region: {$p['region']}";
-        if (!empty($p['accommodation']) && $p['accommodation'] !== 'any') $extras[] = 'accommodation: ' . $this->accommodationLabel($p['accommodation']);
-        if (!empty($p['origin']))                                          $extras[] = "flying from: {$p['origin']}";
-        if (!empty($p['experience']))                                      $extras[] = "experience level: {$p['experience']}";
-        if (!empty($p['feeling_note']))                                    $extras[] = "what they said: \"{$p['feeling_note']}\"";
+        if (! empty($p['month'])) {
+            $extras[] = "departure month: {$p['month']}";
+        }
+        if (! empty($p['region']) && $p['region'] !== 'any') {
+            $extras[] = "preferred region: {$p['region']}";
+        }
+        if (! empty($p['accommodation']) && $p['accommodation'] !== 'any') {
+            $extras[] = 'accommodation: '.$this->accommodationLabel($p['accommodation']);
+        }
+        if (! empty($p['origin'])) {
+            $extras[] = "flying from: {$p['origin']}";
+        }
+        if (! empty($p['experience'])) {
+            $extras[] = "experience level: {$p['experience']}";
+        }
+        if (! empty($p['feeling_note'])) {
+            $extras[] = "what they said: \"{$p['feeling_note']}\"";
+        }
 
-        $extrasStr = $extras ? "\nAdditional context: " . implode(' | ', $extras) . '.' : '';
+        $extrasStr = $extras ? "\nAdditional context: ".implode(' | ', $extras).'.' : '';
 
-        $excludedStr   = '';
-        $exclDests     = array_filter($p['excluded_destinations'] ?? []);
-        $exclCountries = array_filter($p['excluded_countries']    ?? []);
+        $excludedStr = '';
+        $exclDests = array_filter($p['excluded_destinations'] ?? []);
+        $exclCountries = array_filter($p['excluded_countries'] ?? []);
 
-        if (!empty($exclDests) || !empty($exclCountries)) {
-            $sanitise    = fn($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d);
+        if (! empty($exclDests) || ! empty($exclCountries)) {
+            $sanitise = fn ($d) => preg_replace('/[^a-zA-Z0-9\s,.\-()\'\x{00C0}-\x{024F}]/u', '', $d);
             $excludedStr = "\n\nDo not repeat any of these:";
 
-            if (!empty($exclDests)) {
-                $excludedStr .= "\nDestinations: " . implode(', ', array_map($sanitise, $exclDests)) . '.';
+            if (! empty($exclDests)) {
+                $excludedStr .= "\nDestinations: ".implode(', ', array_map($sanitise, $exclDests)).'.';
             }
 
-            if (!empty($exclCountries)) {
-                $excludedStr .= "\nCountries: " . implode(', ', array_map($sanitise, $exclCountries)) . '.';
+            if (! empty($exclCountries)) {
+                $excludedStr .= "\nCountries: ".implode(', ', array_map($sanitise, $exclCountries)).'.';
             }
 
             $excludedStr .= "\nAll 5 picks must be from different countries not listed above.";
@@ -334,36 +351,52 @@ SYSTEM;
 
     private function normalise(array $d, array $payload = []): array
     {
-        $currency        = session('preferred_currency', 'USD');
-        $dest            = $d['destination'] ?? '';
-        $country         = $d['country']     ?? '';
-        $costs           = $this->validateCosts($d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0, $payload);
-        $months          = $d['best_months'] ?? [];
-        $warmThreshold   = config('ai.temp_thresholds.warm', 25);
-        $coolThreshold   = config('ai.temp_thresholds.cool', 10);
-        $defaultMonths   = config('ai.default_best_months');
+        $currency = session('preferred_currency', 'USD');
+        $dest = $d['destination'] ?? '';
+        $country = $d['country'] ?? '';
+        $costs = $this->validateCosts($d['cost_min_usd'] ?? 0, $d['cost_max_usd'] ?? 0, $payload);
+        $months = $d['best_months'] ?? [];
+        $warmThreshold = config('ai.temp_thresholds.warm', 25);
+        $coolThreshold = config('ai.temp_thresholds.cool', 10);
+        $defaultMonths = config('ai.default_best_months');
         if (empty($months) && is_array($d['weather_data'] ?? null)) {
-            $avg    = (($d['weather_data']['avg_high'] ?? 20) + ($d['weather_data']['avg_low'] ?? 10)) / 2;
+            $avg = (($d['weather_data']['avg_high'] ?? 20) + ($d['weather_data']['avg_low'] ?? 10)) / 2;
             $months = $avg > $warmThreshold
                 ? $defaultMonths['warm']
                 : ($avg < $coolThreshold ? $defaultMonths['cool'] : $defaultMonths['spring']);
         }
 
-        return [
-            'destination'        => $dest,
-            'country'            => $country,
-            'region'             => $d['region']      ?? '',
-            'description'        => $d['description'] ?? '',
-            'cost_min_usd'       => $costs['min'],
-            'cost_max_usd'       => $costs['max'],
-            'estimated_cost'     => number_format($costs['min']) . ' - ' . number_format($costs['max']) . ' ' . $currency,
+        $destination = [
+            'destination' => $dest,
+            'country' => $country,
+            'region' => $d['region'] ?? '',
+            'mood' => $payload['mood'] ?? null,
+            'budget' => $payload['budget'] ?? null,
+            'companion' => $payload['companion'] ?? null,
+            'description' => $d['description'] ?? '',
+            'cost_min_usd' => $costs['min'],
+            'cost_max_usd' => $costs['max'],
+            'estimated_cost' => number_format($costs['min']).' - '.number_format($costs['max']).' '.$currency,
             'best_time_to_visit' => implode(', ', $months),
-            'is_good_right_now'  => (bool) ($d['is_good_right_now'] ?? false),
-            'top_activities'     => implode(', ', (array) ($d['top_activities'] ?? [])),
-            'travel_tip'         => $d['travel_tip']  ?? '',
-            'visa_info'          => $d['visa_info']   ?? '',
-            'flight_info'        => $d['flight_info'] ?? '',
+            'is_good_right_now' => (bool) ($d['is_good_right_now'] ?? false),
+            'top_activities' => implode(', ', (array) ($d['top_activities'] ?? [])),
+            'travel_tip' => $d['travel_tip'] ?? '',
+            'visa_info' => $d['visa_info'] ?? '',
+            'flight_info' => $d['flight_info'] ?? '',
         ];
+
+        $destination['match_score'] = $this->scoring->score($destination, $this->preferences($payload));
+
+        return $destination;
+    }
+
+    private function preferences(array $payload): array
+    {
+        return array_filter([
+            'mood' => $payload['mood'] ?? null,
+            'budget' => $payload['budget'] ?? null,
+            'companion' => $payload['companion'] ?? null,
+        ], fn ($value) => filled($value));
     }
 
     private function accommodationLabel(string $accommodation): string
@@ -376,10 +409,10 @@ SYSTEM;
         $budget = $payload['budget'] ?? 'mid';
         $bands = [
             'backpacker' => ['min' => 150,  'max' => 500],
-            'budget'     => ['min' => 500,  'max' => 1500],
-            'mid'        => ['min' => 1500, 'max' => 4000],
-            'premium'    => ['min' => 4000, 'max' => 8000],
-            'luxury'     => ['min' => 8000, 'max' => 12000],
+            'budget' => ['min' => 500,  'max' => 1500],
+            'mid' => ['min' => 1500, 'max' => 4000],
+            'premium' => ['min' => 4000, 'max' => 8000],
+            'luxury' => ['min' => 8000, 'max' => 12000],
         ];
 
         $band = $bands[$budget] ?? $bands['mid'];
