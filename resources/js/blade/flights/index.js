@@ -39,6 +39,17 @@ function fmt(n) {
     return '$' + Number(n).toLocaleString();
 }
 
+function localDateAfterToday(days) {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 ready(function () {
     const form               = document.getElementById('flightSearchForm');
     const fromInput          = document.getElementById('from');
@@ -53,9 +64,18 @@ ready(function () {
     const sortBySelect       = document.getElementById('sortBy');
     const searchBtn          = document.querySelector('.search-btn');
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateAfterToday(0);
     if (departureDateInput) departureDateInput.min = today;
     if (returnDateInput)    returnDateInput.min    = today;
+
+    const travelContext = {
+        ...(window.TravelContext?.load?.() || {}),
+        ...Object.fromEntries(new URLSearchParams(window.location.search).entries()),
+    };
+    if (fromInput && !fromInput.value) fromInput.value = travelContext.origin || '';
+    if (toInput && !toInput.value) toInput.value = travelContext.destination || travelContext.q || '';
+    if (departureDateInput && !departureDateInput.value) departureDateInput.value = travelContext.departure_date || localDateAfterToday(2);
+    if (returnDateInput && !returnDateInput.value) returnDateInput.value = travelContext.return_date || localDateAfterToday(7);
 
     // Swap airports button
     const swapBtn = document.getElementById('swapBtn');
@@ -111,6 +131,12 @@ ready(function () {
             adults:         parseInt(passengersInput ? passengersInput.value : 1) || 1,
             travel_class:   classSelect ? classSelect.value.toUpperCase() : 'ECONOMY',
         };
+        window.TravelContext?.update?.({
+            origin: requestData.from,
+            destination: requestData.to,
+            departure_date: requestData.departure_date,
+            return_date: returnDateInput?.value || '',
+        });
         if (currentTripType === 'round-trip' && returnDateInput && returnDateInput.value) {
             requestData.return_date = returnDateInput.value;
         }

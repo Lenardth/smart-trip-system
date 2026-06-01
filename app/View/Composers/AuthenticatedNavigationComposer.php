@@ -35,9 +35,12 @@ final class AuthenticatedNavigationComposer
 
     private function sidebarSections(): array
     {
+        $userType = Auth::user()?->user_type;
+
         return collect(config('navigation.dashboard_sidebar', []))
-            ->map(function (array $section) {
+            ->map(function (array $section) use ($userType) {
                 $section['items'] = collect($section['items'] ?? [])
+                    ->filter(fn (array $item) => empty($item['user_type']) || $item['user_type'] === $userType)
                     ->map(fn (array $item) => [
                         ...$item,
                         'href' => isset($item['route'])
@@ -48,6 +51,8 @@ final class AuthenticatedNavigationComposer
 
                 return $section;
             })
+            ->filter(fn (array $section) => ! empty($section['items']))
+            ->values()
             ->all();
     }
 }

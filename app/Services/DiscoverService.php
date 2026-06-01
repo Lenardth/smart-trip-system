@@ -575,7 +575,7 @@ class DiscoverService
             'lng' => $d['lng'] ?? null,
             'is_featured' => (bool) ($d['is_featured'] ?? false),
             'detail_url' => route('discover.place.show', ['destination' => $d['id']]),
-            'plan_url' => route('plan-trip').'?destination='.urlencode($name),
+            'plan_url' => route('plan-trip').'?destination='.urlencode($name).'&country='.urlencode($country),
         ];
     }
 

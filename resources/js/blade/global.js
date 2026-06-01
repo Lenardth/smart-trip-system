@@ -90,9 +90,11 @@ window.logout = function() {
     form.submit();
 };
 
-window.PlanTripContext = window.PlanTripContext || (() => {
-    const STORAGE_KEY = 'smartTrip.planTripContext';
+window.TravelContext = window.TravelContext || (() => {
+    const STORAGE_KEY = 'smartTrip.travelContext';
     const MAX_AGE_MS = 30 * 60 * 1000;
+    const CONTEXT_KEYS = ['destination', 'country', 'mood', 'budget', 'duration', 'companion', 'month', 'region', 'accommodation', 'origin', 'experience', 'departure_date', 'return_date'];
+    const TRAVEL_PATHS = ['/discover', '/plan-trip', '/flights', '/accommodations'];
 
     function getValue(id) {
         const el = document.getElementById(id);
@@ -125,9 +127,12 @@ window.PlanTripContext = window.PlanTripContext || (() => {
         const context = new URLSearchParams();
         const path = window.location.pathname.replace(/\/$/, '') || '/';
 
-        for (const key of ['destination', 'mood', 'budget', 'duration', 'companion', 'month', 'region', 'accommodation', 'origin', 'experience']) {
+        Object.entries(load()).forEach(([key, value]) => setIfFilled(context, key, value));
+
+        for (const key of CONTEXT_KEYS) {
             setIfFilled(context, key, params.get(key) || '');
         }
+        setIfFilled(context, 'destination', params.get('q') || '');
 
         if (path === '/') {
             setIfFilled(context, 'mood', getValue('moodSelect'));
@@ -142,6 +147,8 @@ window.PlanTripContext = window.PlanTripContext || (() => {
         } else if (path === '/flights') {
             setIfFilled(context, 'origin', getValue('from'));
             setIfFilled(context, 'destination', getValue('to'));
+            setIfFilled(context, 'departure_date', getValue('departure_date'));
+            setIfFilled(context, 'return_date', getValue('return_date'));
             setIfFilled(context, 'month', monthFromDate(getValue('departure_date')));
             setIfFilled(context, 'duration', durationFromDates(getValue('departure_date'), getValue('return_date')));
         } else if (path === '/accommodations') {
@@ -159,9 +166,13 @@ window.PlanTripContext = window.PlanTripContext || (() => {
     }
 
     function save(params) {
+        const data = params instanceof URLSearchParams
+            ? Object.fromEntries(params.entries())
+            : params;
+
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
             at: Date.now(),
-            data: Object.fromEntries(params.entries()),
+            data,
         }));
     }
 
@@ -184,28 +195,80 @@ window.PlanTripContext = window.PlanTripContext || (() => {
         sessionStorage.removeItem(STORAGE_KEY);
     }
 
+    function clearOnReload() {
+        const navigation = performance.getEntriesByType?.('navigation')?.[0];
+        if (navigation?.type !== 'reload') return;
+
+        clear();
+
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('prefill') !== '1') return;
+
+        [...CONTEXT_KEYS, 'q', 'from', 'to', 'prefill'].forEach(key => {
+            url.searchParams.delete(key);
+        });
+
+        window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + url.hash);
+    }
+
+    function update(values) {
+        const context = new URLSearchParams();
+        Object.entries(load()).forEach(([key, value]) => setIfFilled(context, key, value));
+        Object.entries(values || {}).forEach(([key, value]) => {
+            const clean = String(value || '').trim();
+            if (clean && clean !== 'any') context.set(key, clean);
+            else context.delete(key);
+        });
+        context.set('prefill', '1');
+        save(context);
+
+        return Object.fromEntries(context.entries());
+    }
+
     function buildUrl(url) {
         const target = new URL(url || '/plan-trip', window.location.origin);
-        if (target.pathname.replace(/\/$/, '') !== '/plan-trip') return target.toString();
+        const path = target.pathname.replace(/\/$/, '') || '/';
+        if (target.origin !== window.location.origin || !TRAVEL_PATHS.includes(path)) return target.toString();
 
         const context = currentContext();
         target.searchParams.forEach((value, key) => setIfFilled(context, key, value));
         save(context);
 
-        return target.pathname + (context.toString() ? '?' + context.toString() : '');
+        const output = new URLSearchParams(target.searchParams);
+        const keysForPath = path === '/flights'
+            ? ['origin', 'destination', 'departure_date', 'return_date']
+            : path === '/accommodations'
+                ? ['destination', 'budget', 'accommodation']
+                : path === '/discover'
+                    ? ['destination', 'region', 'mood', 'budget', 'companion']
+                    : CONTEXT_KEYS;
+
+        keysForPath.forEach(key => setIfFilled(output, key, context.get(key) || ''));
+        output.set('prefill', '1');
+
+        return target.pathname + (output.toString() ? '?' + output.toString() : '');
     }
 
-    return { buildUrl, load, clear };
+    return { buildUrl, load, clear, clearOnReload, currentContext, save, update };
 })();
 
-document.addEventListener('click', function(e) {
-    const planLink = e.target.closest('a[href*="/plan-trip"], [data-action="navigate"][data-url*="/plan-trip"]');
-    if (!planLink || window.location.pathname.replace(/\/$/, '') === '/plan-trip') return;
+window.PlanTripContext = window.PlanTripContext || window.TravelContext;
+window.TravelContext.clearOnReload();
 
-    const href = planLink.getAttribute('href') || planLink.dataset.url || '/plan-trip';
+document.addEventListener('click', function(e) {
+    const travelLink = e.target.closest('a[href], [data-action="navigate"][data-url]');
+    if (!travelLink || travelLink.target === '_blank') return;
+
+    const href = travelLink.getAttribute('href') || travelLink.dataset.url || '';
+    if (!href || href.startsWith('#')) return;
+
+    const target = new URL(href, window.location.origin);
+    const path = target.pathname.replace(/\/$/, '') || '/';
+    if (target.origin !== window.location.origin || !['/discover', '/plan-trip', '/flights', '/accommodations'].includes(path)) return;
+
     e.preventDefault();
     e.stopImmediatePropagation();
-    window.location.href = window.PlanTripContext.buildUrl(href);
+    window.location.href = window.TravelContext.buildUrl(href);
 }, true);
 
 document.addEventListener('submit', function(e) {

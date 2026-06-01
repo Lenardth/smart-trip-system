@@ -177,6 +177,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Country → Primary Airport Code Map
+    |--------------------------------------------------------------------------
+    | Used when destination sync passes a country instead of a specific city.
+    */
+    'country_iata_map' => [
+        'australia'            => 'SYD',
+        'france'               => 'CDG',
+        'indonesia'            => 'DPS',
+        'italy'                => 'FCO',
+        'japan'                => 'NRT',
+        'portugal'             => 'LIS',
+        'singapore'            => 'SIN',
+        'south africa'         => 'JNB',
+        'spain'                => 'MAD',
+        'thailand'             => 'BKK',
+        'uae'                  => 'DXB',
+        'uk'                   => 'LHR',
+        'united arab emirates' => 'DXB',
+        'united kingdom'       => 'LHR',
+        'usa'                  => 'JFK',
+        'united states'        => 'JFK',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Fuzzy-match minimum similarity threshold (0–100)
     |--------------------------------------------------------------------------
     */

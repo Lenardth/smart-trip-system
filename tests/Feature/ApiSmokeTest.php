@@ -48,6 +48,11 @@ class ApiSmokeTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['destinations']);
 
+        $this->getJson('/api/discover/search?q=Portugal')
+            ->assertOk()
+            ->assertJsonStructure(['destinations'])
+            ->assertJsonPath('source', 'database-local');
+
         $this->getJson('/api/discover?mood=Cultural&budget=backpacker&companion=solo')
             ->assertOk()
             ->assertJsonStructure(['destinations' => [['match_score']]])
@@ -66,7 +71,7 @@ class ApiSmokeTest extends TestCase
         $countryQueryResponse = $this->getJson('/api/discover?q=Portugal')
             ->assertOk()
             ->assertJsonCount(2, 'destinations')
-            ->assertJsonPath('source', 'database-local');
+            ->assertJsonPath('source', 'database-cache');
 
         $this->assertSame(
             ['Portugal'],
@@ -76,6 +81,14 @@ class ApiSmokeTest extends TestCase
         $this->getJson('/api/accommodations')
             ->assertOk()
             ->assertJsonStructure(['accommodations', 'cached']);
+
+        $this->getJson('/api/accommodations?q=Portugal')
+            ->assertOk()
+            ->assertJsonPath('accommodations.0.country', 'Portugal');
+
+        $this->getJson('/api/accommodations?q=Portugal&style=hostel&budget=backpacker')
+            ->assertOk()
+            ->assertJsonPath('accommodations.0.country', 'Portugal');
 
         $this->getJson('/api/accommodation-news?q=Paris')
             ->assertOk()
@@ -278,13 +291,27 @@ class ApiSmokeTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['moods']);
 
-        $this->postJson('/api/trip-moods', ['label' => 'Focused'])
+        $createdMood = $this->postJson('/api/trip-moods', ['label' => 'Focused'])
             ->assertCreated()
             ->assertJsonStructure(['mood']);
+
+        $this->postJson('/api/trip-moods/'.$createdMood->json('mood.id').'/use')
+            ->assertOk()
+            ->assertJsonPath('use_count', 2);
 
         $this->getJson('/api/accommodation-searches')
             ->assertOk()
             ->assertJsonStructure(['searches']);
+    }
+
+    public function test_authenticated_apis_reject_guests(): void
+    {
+        $this->getJson('/api/user/statistics')->assertUnauthorized();
+        $this->getJson('/api/trips')->assertUnauthorized();
+        $this->getJson('/flights/airports?keyword=London')->assertUnauthorized();
+        $this->postJson('/api/bookings/flight', [])->assertUnauthorized();
+        $this->postJson('/api/bookings/accommodation', [])->assertUnauthorized();
+        $this->postJson('/api/coupon/validate', [])->assertUnauthorized();
     }
 
     public function test_trip_crud_api_works_for_authenticated_user(): void
@@ -349,6 +376,17 @@ class ApiSmokeTest extends TestCase
 
         $this->assertNotEmpty($flightSearch->json('flights'));
 
+        $this->postJson('/flights/search', [
+            'from' => 'London',
+            'to' => 'South Africa',
+            'departure_date' => now()->addDays(3)->format('Y-m-d'),
+            'adults' => 1,
+            'travel_class' => 'ECONOMY',
+        ])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('to_code', 'JNB');
+
         $this->postJson('/api/coupon/validate', [
             'code' => 'SAVE10',
             'subtotal' => 200,
@@ -377,6 +415,47 @@ class ApiSmokeTest extends TestCase
             'travel_class' => 'ECONOMY',
         ])
             ->assertUnprocessable();
+    }
+
+    public function test_flight_search_normalizes_live_aerodatabox_results(): void
+    {
+        config(['services.aerodatabox.key' => 'test-aerodatabox-key']);
+        $departureDate = now()->addDays(3)->format('Y-m-d');
+
+        Http::fake([
+            'aerodatabox.p.rapidapi.com/*' => Http::response([
+                'departures' => [[
+                    'number' => 'AD 101',
+                    'status' => 'Expected',
+                    'airline' => ['name' => 'AeroData Test', 'iata' => 'AD'],
+                    'departure' => [
+                        'airport' => ['iata' => 'LHR', 'name' => 'London Heathrow'],
+                        'scheduledTime' => ['local' => $departureDate.' 09:00+01:00'],
+                    ],
+                    'arrival' => [
+                        'airport' => ['iata' => 'DXB', 'name' => 'Dubai International'],
+                        'scheduledTime' => ['local' => $departureDate.' 19:00+04:00'],
+                    ],
+                ]],
+            ]),
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->postJson('/flights/search', [
+                'from' => 'London',
+                'to' => 'Dubai',
+                'departure_date' => $departureDate,
+                'adults' => 1,
+                'travel_class' => 'ECONOMY',
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('flights.0.flight_number', 'AD 101')
+            ->assertJsonPath('flights.0.departure_iata', 'LHR')
+            ->assertJsonPath('flights.0.arrival_iata', 'DXB')
+            ->assertJsonPath('flights.0.status', 'Expected');
+
+        Http::assertSentCount(2);
     }
 
     public function test_agency_flight_listing_booking_reserves_last_seat_safely(): void
@@ -433,8 +512,21 @@ class ApiSmokeTest extends TestCase
 
         $this->assertSame(0, $listing->fresh()->seats_available);
 
+        $booking = Booking::where('flight_listing_id', $listing->id)->firstOrFail();
+
+        $this->postJson("/bookings/{$booking->id}/cancel")
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertSame(1, $listing->fresh()->seats_available);
+
+        $this->postJson("/bookings/{$booking->id}/cancel")
+            ->assertUnprocessable();
+
+        $this->assertSame(1, $listing->fresh()->seats_available);
+
         $this->postJson('/api/bookings/flight', $payload)
-            ->assertStatus(409);
+            ->assertCreated();
 
         $this->actingAs($agency)
             ->get('/agency/bookings')
@@ -463,6 +555,67 @@ class ApiSmokeTest extends TestCase
         $this->postJson("/bookings/{$booking->id}/cancel")
             ->assertOk()
             ->assertJsonPath('success', true);
+    }
+
+    public function test_accommodation_booking_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $accommodation = $this->seedAccommodation();
+
+        $bookingResponse = $this->postJson('/api/bookings/accommodation', [
+            'accommodation_id' => $accommodation->id,
+            'check_in' => now()->addDays(5)->format('Y-m-d'),
+            'check_out' => now()->addDays(8)->format('Y-m-d'),
+            'guests' => 2,
+        ])->assertCreated();
+
+        $booking = Booking::where('booking_reference', $bookingResponse->json('booking_reference'))->firstOrFail();
+
+        $this->putJson("/api/bookings/accommodation/{$booking->id}", [
+            'check_in' => now()->addDays(6)->format('Y-m-d'),
+            'check_out' => now()->addDays(10)->format('Y-m-d'),
+            'guests' => 3,
+        ])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('total_price', 1512);
+
+        $booking->refresh();
+
+        $this->assertSame(3, $booking->seats_booked);
+        $this->assertSame(4, $booking->passenger_details['nights']);
+        $this->assertSame('1440.00', $booking->subtotal);
+        $this->assertDatabaseHas('revenue_records', [
+            'booking_id' => $booking->id,
+            'booking_subtotal' => 1440,
+            'service_fee' => 72,
+        ]);
+        $this->assertDatabaseCount('revenue_records', 1);
+    }
+
+    public function test_accommodation_booking_appears_on_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $accommodation = $this->seedAccommodation();
+
+        $this->postJson('/api/bookings/accommodation', [
+            'accommodation_id' => $accommodation->id,
+            'check_in' => now()->addDays(5)->format('Y-m-d'),
+            'check_out' => now()->addDays(8)->format('Y-m-d'),
+            'guests' => 2,
+        ])->assertCreated();
+
+        $this->getJson('/api/user/statistics')
+            ->assertOk()
+            ->assertJsonPath('bookings', 1)
+            ->assertJsonPath('hotels', 1);
+
+        $this->getJson('/api/user/recent-activity')
+            ->assertOk()
+            ->assertJsonPath('activities.0.type', 'booking')
+            ->assertJsonPath('activities.0.title', 'Booking: Lisbon Test Stay');
     }
 
     private function seedAccommodation(): Accommodation

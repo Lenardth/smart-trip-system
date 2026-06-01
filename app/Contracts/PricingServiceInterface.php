@@ -11,5 +11,7 @@ interface PricingServiceInterface
 
     public function recordRevenue(Booking $booking, array $pricing): void;
 
+    public function updateRevenue(Booking $booking, array $pricing): void;
+
     public function validateCoupon(string $code, float $subtotal, int $userId): array;
 }

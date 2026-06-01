@@ -1297,8 +1297,8 @@
  */
 .accom-footer {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
     margin-top: auto;
     padding-top: 10px;
@@ -1357,6 +1357,8 @@
     display: flex;
     gap: 6px;
     align-items: center;
+    min-width: 0;
+    width: 100%;
 }
 
 /*
@@ -1380,6 +1382,9 @@
     white-space: nowrap;
     font-family: inherit;
     box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
 }
 
 /*
@@ -1390,6 +1395,58 @@
     color: var(--deep);
     text-decoration: none;
     box-shadow: 0 4px 12px rgba(0,0,0,.18);
+}
+
+/*
+ * Styles .accom-deals-btn.
+ */
+.accom-deals-btn {
+    width: var(--button-height);
+    height: var(--button-height);
+    border: 1.5px solid var(--border);
+    border-radius: var(--button-radius);
+    background: var(--card-bg);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: border-color .2s, color .2s, background .2s;
+    flex: 0 0 var(--button-height);
+}
+
+.accom-deals-btn:hover {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--deep);
+}
+
+/*
+ * Styles the stay reservation fields inside the confirmation dialog.
+ */
+.stay-book-dialog {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.stay-book-dialog > span {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 4px 0 14px;
+}
+
+.stay-book-dialog label {
+    color: var(--deep);
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+.stay-book-dialog .swal2-input {
+    height: 42px;
+    margin: 5px 0 0;
+    width: auto;
 }
 
 /*

@@ -34,7 +34,7 @@ function searchBookings(value) {
 
 function sortBookings() {
     const val = document.getElementById('sortSelect').value;
-    const list = document.getElementById('demoBookings') || document.getElementById('bookingsList');
+    const list = document.getElementById('demoBookings') || document.getElementById('bookingsGrid');
     const cards = [...document.querySelectorAll('.booking-card')];
 
     cards.sort((a, b) => {
@@ -91,13 +91,8 @@ function setRatingReal(n) {
     });
 }
 
-function rebookBooking(id) {
-    
-    window.location.href = '/flights';
-}
-
-function downloadTicket(id) {
-    window.location.href = '/bookings/' + id + '/ticket';
+function rebookBooking(type) {
+    window.location.href = type === 'hotels' ? '/accommodations' : '/flights';
 }
 
 function cancelBooking(id) {
@@ -196,8 +191,6 @@ window.toggleDetail       = toggleDetail;
 window.filterBookings     = filterBookings;
 window.searchBookings     = searchBookings;
 window.sortBookings       = sortBookings;
-window.setRating          = setRating;
-window.downloadTicket     = downloadTicket;
 window.cancelBooking      = cancelBooking;
 window.leaveReview        = leaveReview;
 window.rebookBooking      = rebookBooking;

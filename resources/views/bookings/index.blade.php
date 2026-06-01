@@ -119,7 +119,7 @@
                                     <i class="fas fa-star"></i> Review
                                 </button>
                             @elseif($booking->status === 'cancelled')
-                                <button class="action-btn primary" data-action="rebookBooking" data-params='{"args":["{{ $booking->id }}"]}'>
+                                <button class="action-btn primary" data-action="rebookBooking" data-params='{"args":["{{ $booking->type }}"]}'>
                                     <i class="fas fa-redo"></i> Rebook
                                 </button>
                             @endif

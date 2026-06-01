@@ -36,6 +36,13 @@ class BookingController extends Controller
             return $this->cancelResponse($request, false, 'Booking already cancelled.', 422);
         }
 
+        if (! in_array($booking->status, [
+            config('booking.statuses.confirmed'),
+            config('booking.statuses.pending'),
+        ], true)) {
+            return $this->cancelResponse($request, false, 'Only active bookings can be cancelled.', 422);
+        }
+
         $this->bookings->cancel($booking);
 
         return $this->cancelResponse($request, true, 'Booking cancelled successfully.');

@@ -58,38 +58,48 @@ class AccommodationCatalogService
 
         if ($cached) {
             $results = $cached->response_payload['accommodations'] ?? [];
-            $this->logSearch($request, $q, $style, $budgetTier, $results, $searchHash, true, $requestPayload);
 
-            return response()->json(['accommodations' => $results, 'cached' => true]);
+            if (! empty($results)) {
+                $this->logSearch($request, $q, $style, $budgetTier, $results, $searchHash, true, $requestPayload);
+
+                return response()->json(['accommodations' => $results, 'cached' => true]);
+            }
         }
 
         if (!$q || strlen($q) < 2) {
-            $results = Accommodation::active()
-                ->when($style,      fn($q) => $q->byStyle($style))
-                ->when($budgetTier, fn($q) => $q->byBudget($budgetTier))
-                ->limit(20)
-                ->get()
-                ->map(fn($a) => $this->format($a->toArray()))
-                ->toArray();
+            $results = $this->formattedAccommodations(null, $style, $budgetTier);
+
+            if (empty($results)) {
+                $results = $this->formattedAccommodations();
+            }
 
             $this->logSearch($request, $q, $style, $budgetTier, $results, $searchHash, false, $requestPayload);
 
             return response()->json(['accommodations' => $results, 'cached' => false]);
         }
 
-        $city = trim($q);
+        $location = trim($q);
+        $isKnownCountry = Accommodation::active()
+            ->where('country', 'like', "%{$location}%")
+            ->exists();
 
-        if (Accommodation::active()->byCity($city)->count() < 5) {
-            $this->fetchAndStoreFromApi($city);
+        if (! $isKnownCountry && Accommodation::active()->byLocation($location)->count() < 5) {
+            $this->fetchAndStoreFromApi($location);
         }
 
-        $results = Accommodation::active()
-            ->byCity($city)
-            ->when($style,      fn($q) => $q->byStyle($style))
-            ->when($budgetTier, fn($q) => $q->byBudget($budgetTier))
-            ->get()
-            ->map(fn($a) => $this->format($a->toArray()))
-            ->toArray();
+        $results = $this->formattedAccommodations($location, $style, $budgetTier);
+
+        if (empty($results)) {
+            $results = $this->formattedAccommodations($location);
+        }
+
+        if (empty($results)) {
+            $results = $this->formattedAccommodations(null, $style, $budgetTier);
+        }
+
+        if (empty($results)) {
+            $results = $this->formattedAccommodations();
+        }
 
         $this->logSearch($request, $q, $style, $budgetTier, $results, $searchHash, false, $requestPayload);
 
@@ -147,6 +157,21 @@ class AccommodationCatalogService
         } catch (\Throwable $e) {
             Log::warning('Accommodation API fetch failed', ['error' => $e->getMessage(), 'city' => $city]);
         }
+    }
+
+    private function formattedAccommodations(
+        ?string $location = null,
+        ?string $style = null,
+        ?string $budgetTier = null
+    ): array {
+        return Accommodation::active()
+            ->when($location, fn($q) => $q->byLocation($location))
+            ->when($style, fn($q) => $q->byStyle($style))
+            ->when($budgetTier, fn($q) => $q->byBudget($budgetTier))
+            ->limit(20)
+            ->get()
+            ->map(fn($a) => $this->format($a->toArray()))
+            ->toArray();
     }
 
     private function format(array $a): array

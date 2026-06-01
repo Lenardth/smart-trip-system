@@ -31,7 +31,7 @@ return [
     ],
 
     'aerodatabox' => [
-        'key'      => env('AERODATABOX_KEY'),
+        'key'      => env('AERODATABOX_KEY', env('AVIATIONSTACK_KEY')),
         'host'     => env('AERODATABOX_HOST', 'aerodatabox.p.rapidapi.com'),
         'base_url' => env('AERODATABOX_BASE_URL', 'https://aerodatabox.p.rapidapi.com'),
     ],

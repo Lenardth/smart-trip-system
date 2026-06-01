@@ -27,3 +27,8 @@
  * Loads shared footer styles.
  */
 @import './blade/shared/footer.css';
+
+/*
+ * Keeps recurring public and authenticated UI patterns visually aligned.
+ */
+@import './blade/shared/consistency.css';

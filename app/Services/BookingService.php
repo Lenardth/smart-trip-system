@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\PricingServiceInterface;
 use App\Models\Accommodation;
 use App\Models\Booking;
+use App\Models\Coupon;
 use App\Models\FlightListing;
 use App\Models\User;
 use Carbon\Carbon;
@@ -35,7 +36,35 @@ class BookingService
 
     public function cancel(Booking $booking): void
     {
-        DB::transaction(fn () => $booking->update(['status' => config('booking.statuses.cancelled')]));
+        DB::transaction(function () use ($booking) {
+            $lockedBooking = Booking::whereKey($booking->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedBooking->status === config('booking.statuses.cancelled')) {
+                return;
+            }
+
+            abort_unless(in_array($lockedBooking->status, [
+                config('booking.statuses.confirmed'),
+                config('booking.statuses.pending'),
+            ], true), 422, 'Only active bookings can be cancelled.');
+
+            if ($lockedBooking->flight_listing_id) {
+                $listing = FlightListing::whereKey($lockedBooking->flight_listing_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($listing) {
+                    $listing->update([
+                        'seats_available' => min(
+                            $listing->seats_total,
+                            $listing->seats_available + $lockedBooking->seats_booked
+                        ),
+                    ]);
+                }
+            }
+
+            $lockedBooking->update(['status' => config('booking.statuses.cancelled')]);
+        });
     }
 
     public function accommodation(array $data, User $user): array
@@ -74,6 +103,40 @@ class BookingService
             $this->pricing->recordRevenue($booking, $pricing);
 
             return $this->bookingResponse($booking, $pricing, 'Accommodation booked successfully!');
+        });
+    }
+
+    public function updateAccommodation(Booking $booking, array $data, User $user): array
+    {
+        abort_unless($booking->type === config('booking.types.accommodation'), 422, 'Only hotel reservations can be updated.');
+        abort_if($booking->status === config('booking.statuses.cancelled'), 422, 'Cancelled hotel reservations cannot be updated.');
+
+        return DB::transaction(function () use ($booking, $data, $user) {
+            $details = $booking->passenger_details;
+            $accommodation = Accommodation::findOrFail($details['accommodation_id']);
+            $nights = (int) Carbon::parse($data['check_in'])->diffInDays($data['check_out']);
+            $guests = (int) ($data['guests'] ?? config('booking.default_guests', 1));
+            $subtotal = ($accommodation->nightly_rate ?? 0) * $nights * $guests;
+            $pricing = $this->updatedAccommodationPricing($booking, $subtotal, $user);
+
+            $details['check_in'] = $data['check_in'];
+            $details['check_out'] = $data['check_out'];
+            $details['nights'] = $nights;
+            $details['guests'] = $guests;
+            $details['nightly_rate'] = $accommodation->nightly_rate;
+
+            $booking->update([
+                'subtotal' => $pricing['subtotal'],
+                'discount_amount' => $pricing['discount'],
+                'service_fee' => $pricing['service_fee'],
+                'total_price' => $pricing['total'],
+                'seats_booked' => $guests,
+                'passenger_details' => $details,
+            ]);
+
+            $this->pricing->updateRevenue($booking, $pricing);
+
+            return $this->bookingResponse($booking, $pricing, 'Hotel reservation updated successfully!');
         });
     }
 
@@ -136,6 +199,29 @@ class BookingService
         $listing->decrement('seats_available', $adults);
 
         return $listing->fresh();
+    }
+
+    private function updatedAccommodationPricing(Booking $booking, float $subtotal, User $user): array
+    {
+        $pricing = $this->pricing->calculate($subtotal, $user);
+        $coupon = $booking->coupon_code ? Coupon::where('code', $booking->coupon_code)->first() : null;
+
+        if (! $coupon) {
+            return $pricing;
+        }
+
+        $discount = $coupon->calculateDiscount($subtotal);
+        $afterDiscount = max(0, $subtotal - $discount);
+        $serviceFee = $user->is_premium
+            ? 0
+            : round($afterDiscount * config('pricing.service_fee_rate', 0.05), 2);
+
+        return array_merge($pricing, [
+            'discount' => $discount,
+            'service_fee' => $serviceFee,
+            'total' => round($afterDiscount + $serviceFee, 2),
+            'coupon' => $coupon,
+        ]);
     }
 
     private function bookingResponse(Booking $booking, array $pricing, string $message): array

@@ -1,0 +1,191 @@
+/*
+ * Shared visual alignment for recurring surfaces and controls.
+ */
+.search-card,
+.planner-card,
+.accom-card,
+.flight-card,
+.location-map-wrap,
+.location-news-wrap {
+    border-radius: var(--radius-md);
+}
+
+.search-card,
+.planner-card,
+.accom-card,
+.flight-card {
+    background: var(--bg-white);
+    border-color: var(--border);
+    box-shadow: var(--shadow-md);
+}
+
+.search-card .form-input,
+.search-card .custom-select-trigger,
+.filters input,
+.filters select {
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+}
+
+.mood-card,
+.dest-card,
+.ai-match {
+    border-radius: var(--radius-md);
+}
+
+/*
+ * The dashboard shell is shared by dashboard, booking, and agency pages.
+ * Keep it stable even when page-level booking styles are loaded.
+ */
+.dashboard-page .sidebar {
+    width: var(--sidebar-w);
+    background: var(--sidebar-bg);
+    color: var(--text-light);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    transition: transform var(--transition-slow);
+    z-index: var(--z-sticky);
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+}
+
+.dashboard-page .sidebar-menu {
+    padding: 10px 0 6px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.dashboard-page .menu-item {
+    gap: 13px;
+    padding: 12px 18px;
+    color: rgba(255, 255, 255, .65);
+    font-size: 14px;
+    border: none;
+    border-radius: 10px;
+    margin: 2px 10px;
+    width: calc(100% - 20px);
+    transition: background var(--transition-base), color var(--transition-base);
+}
+
+.dashboard-page .menu-item:hover,
+.dashboard-page .menu-item.active {
+    border-left: none;
+    box-shadow: none;
+}
+
+.dashboard-page .menu-item:hover {
+    background: rgba(255, 255, 255, .06);
+    color: #fff;
+}
+
+.dashboard-page .menu-item.active {
+    background: rgba(201, 169, 110, .14);
+    color: var(--gold);
+}
+
+.dashboard-page .menu-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--gold);
+    border-radius: 0 2px 2px 0;
+}
+
+.dashboard-page .menu-item:hover i,
+.dashboard-page .menu-item.active i {
+    color: var(--gold);
+    transform: none;
+}
+
+.dashboard-page .sidebar-footer {
+    position: static;
+    width: auto;
+    padding: 16px 18px;
+    flex-shrink: 0;
+}
+
+.dashboard-page .user-avatar {
+    width: 44px;
+    height: 44px;
+    box-shadow: none;
+}
+
+.dashboard-page .logout-btn {
+    width: 38px;
+    height: 38px;
+    padding: 9px 10px;
+    border-color: rgba(201, 169, 110, .4);
+}
+
+.dashboard-page .main-content {
+    padding: 28px 30px;
+}
+
+.dashboard-page .sidebar ~ .main-content {
+    margin-left: var(--sidebar-w);
+    max-width: calc(100% - var(--sidebar-w));
+}
+
+/*
+ * Booking actions and dashboard quick actions use similar names but serve
+ * different layouts. Bind the tile treatment to its dashboard container.
+ */
+.dashboard-page .actions-grid > .action-btn {
+    min-height: auto;
+    padding: 18px 12px;
+    background: var(--bg-white);
+    color: var(--deep);
+    border: 1px solid var(--border);
+    border-radius: var(--button-radius);
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.dashboard-page .actions-grid > .action-btn i {
+    color: var(--text-muted);
+    font-size: 22px;
+}
+
+.dashboard-page .actions-grid > .action-btn span {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dashboard-page .actions-grid > .action-btn:hover {
+    color: var(--deep);
+    background: var(--bg-white);
+    border-color: var(--gold);
+    box-shadow: 0 2px 12px rgba(201, 169, 110, .12);
+}
+
+.dashboard-page .actions-grid > .action-btn:hover i,
+.dashboard-page .actions-grid > .action-btn:hover span {
+    color: var(--deep);
+}
+
+.dashboard-page .strip-card,
+.dashboard-page .filter-bar,
+.dashboard-page .booking-card,
+.dashboard-page .bshow-card,
+.dashboard-page .settings-card,
+.dashboard-page .dashboard-section,
+.dashboard-page .stat-card {
+    border-radius: var(--radius-md);
+}
+
+@media (max-width: 768px) {
+    .dashboard-page .main-content,
+    .dashboard-page .sidebar ~ .main-content {
+        margin-left: 0;
+        max-width: 100%;
+        padding: 18px 16px;
+    }
+}

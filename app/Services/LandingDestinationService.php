@@ -139,7 +139,7 @@ class LandingDestinationService
             'is_featured' => $destination->is_featured,
             'is_editors_choice' => $destination->is_editors_choice,
             'detail_url' => route('discover.place.show', ['destination' => $destination->id]),
-            'plan_url' => route('plan-trip').'?destination='.urlencode($destination->name),
+            'plan_url' => route('plan-trip').'?destination='.urlencode($destination->name).'&country='.urlencode($destination->country),
         ];
     }
 }

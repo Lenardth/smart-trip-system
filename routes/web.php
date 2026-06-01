@@ -118,7 +118,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->middleware('throttle:10,1')->name('bookings.cancel');
     Route::post('/api/bookings/flight', [ApiBookingController::class, 'bookFlight'])->middleware('throttle:10,1');
-    Route::post('/api/bookings/accommodation', [ApiBookingController::class, 'storeAccommodation'])->middleware('throttle:10,1');
+    Route::post('/api/bookings/accommodation', [ApiBookingController::class, 'storeAccommodation'])->middleware('throttle:30,1');
+    Route::put('/api/bookings/accommodation/{booking}', [ApiBookingController::class, 'updateAccommodation'])->middleware('throttle:30,1');
     Route::post('/api/coupon/validate', [ApiCouponController::class, 'validate'])->middleware('throttle:30,1');
 
     // Agency

@@ -5,6 +5,7 @@ let map = null;
 let markers = [];
 let lastCity = '';
 let newsAbort = null;
+let currentAccommodations = [];
 
 let searchInput, styleSelect, budgetSelect, reloadBtn;
 let accommodationsGrid, emptyState, aiMatchPanel, aiMatchSummary;
@@ -37,16 +38,34 @@ ready(() => {
     newsEmpty          = document.getElementById('newsEmpty');
     newsMoreLink       = document.getElementById('newsMoreLink');
 
+    const travelContext = {
+        ...(window.TravelContext?.load?.() || {}),
+        ...Object.fromEntries(new URLSearchParams(window.location.search).entries()),
+    };
+    if (searchInput) searchInput.value = travelContext.destination || travelContext.q || '';
+    if (styleSelect && travelContext.accommodation && styleSelect.querySelector(`option[value="${CSS.escape(travelContext.accommodation)}"]`)) {
+        styleSelect.value = travelContext.accommodation;
+    }
+    if (budgetSelect && travelContext.budget && budgetSelect.querySelector(`option[value="${CSS.escape(travelContext.budget)}"]`)) {
+        budgetSelect.value = travelContext.budget;
+    }
+
     if (reloadBtn) reloadBtn.addEventListener('click', doSearch);
     if (searchInput) searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') doSearch();
     });
 
-    loadAccommodations();
+    if (searchInput?.value.trim()) doSearch();
+    else loadAccommodations();
 });
 
 async function doSearch() {
     const city = searchInput.value.trim();
+    window.TravelContext?.update?.({
+        destination: city,
+        budget: budgetSelect?.value || '',
+        accommodation: styleSelect?.value || '',
+    });
     await loadAccommodations();
 
     if (city && city.length >= 2) {
@@ -112,13 +131,15 @@ async function loadAccommodations() {
 }
 
 function renderGrid(list) {
+    currentAccommodations = list;
+
     if (!list.length) {
         accommodationsGrid.innerHTML = '';
         emptyState.style.display = 'block';
         return;
     }
     emptyState.style.display = 'none';
-    accommodationsGrid.innerHTML = list.map(function(a) {
+    accommodationsGrid.innerHTML = list.map(function(a, index) {
         var rate       = Number(a.nightly_rate || 0);
         var rating     = Number(a.rating || 0).toFixed(1);
         var reviews    = Number(a.review_count || 0).toLocaleString();
@@ -153,8 +174,10 @@ function renderGrid(list) {
             + (rate > 0 ? '<div class="accom-price-main" data-price-usd="' + rate + '">' + priceFormatted + '<span class="accom-price-unit">/night</span></div>' : '')
             + '<div class="accom-budget-tag">' + esc(budgetLabel(a.budget_tier)) + '</div></div>'
             + '<div class="accom-cta-wrap">'
-            + '<a href="' + esc(bookingUrl) + '" target="_blank" rel="noopener" class="accom-book-btn">'
-            + '<i class="fas fa-external-link-alt"></i> See Deals</a>'
+            + '<button type="button" class="accom-book-btn" data-book-index="' + index + '">'
+            + '<i class="fas fa-calendar-check"></i> Book Stay</button>'
+            + '<a href="' + esc(bookingUrl) + '" target="_blank" rel="noopener" class="accom-deals-btn" aria-label="See external deals" title="See external deals">'
+            + '<i class="fas fa-external-link-alt"></i></a>'
             + '<button class="accom-news-btn" data-news-city="' + esc(a.city || '') + '">'
             + '<i class="fas fa-newspaper"></i></button>'
             + '</div></div></div></div>';
@@ -169,6 +192,129 @@ function renderGrid(list) {
             window.jumpToNews(this.dataset.newsCity || '');
         });
     });
+
+    accommodationsGrid.querySelectorAll('[data-book-index]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            bookStay(Number(this.dataset.bookIndex));
+        });
+    });
+}
+
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.content || '';
+}
+
+function dateAfterToday(days) {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+function bookStay(index) {
+    const stay = currentAccommodations[index];
+    if (!stay) return;
+
+    if (accommodationsGrid.dataset.authenticated !== 'true') {
+        window.location.href = '/login';
+        return;
+    }
+
+    const tomorrow = dateAfterToday(1);
+    const defaultCheckOut = dateAfterToday(3);
+
+    Swal.fire({
+        title: 'Book Your Stay',
+        html:
+            '<div class="stay-book-dialog">' +
+                '<strong>' + esc(stay.name) + '</strong>' +
+                '<span>' + esc(stay.city || '') + (stay.country ? ', ' + esc(stay.country) : '') + '</span>' +
+                '<label for="stayCheckIn">Check-in</label>' +
+                '<input id="stayCheckIn" class="swal2-input" type="date" min="' + tomorrow + '" value="' + tomorrow + '">' +
+                '<label for="stayCheckOut">Check-out</label>' +
+                '<input id="stayCheckOut" class="swal2-input" type="date" min="' + tomorrow + '" value="' + defaultCheckOut + '">' +
+                '<label for="stayGuests">Guests</label>' +
+                '<input id="stayGuests" class="swal2-input" type="number" min="1" max="20" value="1">' +
+            '</div>',
+        showCancelButton: true,
+        confirmButtonColor: '#c9a96e',
+        cancelButtonColor: '#6b5b4f',
+        confirmButtonText: '<i class="fas fa-calendar-check"></i> Confirm Booking',
+        showLoaderOnConfirm: true,
+        preConfirm: function() {
+            const checkIn = document.getElementById('stayCheckIn').value;
+            const checkOut = document.getElementById('stayCheckOut').value;
+            const guests = Number(document.getElementById('stayGuests').value);
+
+            if (!checkIn || !checkOut || checkOut <= checkIn) {
+                Swal.showValidationMessage('Check-out must be after check-in.');
+                return false;
+            }
+
+            if (!Number.isInteger(guests) || guests < 1 || guests > 20) {
+                Swal.showValidationMessage('Guests must be between 1 and 20.');
+                return false;
+            }
+
+            return submitStayBooking(stay, checkIn, checkOut, guests).catch(function(err) {
+                Swal.showValidationMessage(err.message);
+            });
+        },
+    }).then(function(result) {
+        if (!result.isConfirmed || !result.value?.success) return;
+
+        Swal.fire({
+            title: 'Stay Booked!',
+            html: '<p>Your reservation is saved to your dashboard.</p><p>Reference: <strong>' + esc(result.value.booking_reference) + '</strong></p>',
+            icon: 'success',
+            confirmButtonColor: '#c9a96e',
+            confirmButtonText: 'View Dashboard',
+            showCancelButton: true,
+            cancelButtonText: 'Stay Here',
+        }).then(function(next) {
+            if (next.isConfirmed) window.location.href = '/dashboard';
+        });
+    });
+}
+
+async function submitStayBooking(stay, checkIn, checkOut, guests) {
+    const res = await fetch('/api/bookings/accommodation', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': getCsrfToken(),
+        },
+        body: JSON.stringify({
+            accommodation_id: stay.id,
+            check_in: checkIn,
+            check_out: checkOut,
+            guests: guests,
+        }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 401) {
+        window.location.href = '/login';
+        throw new Error('Please log in to book a stay.');
+    }
+
+    if (res.status === 429) {
+        const retryAfter = Number(res.headers.get('Retry-After') || 60);
+        throw new Error(`You have tried too many bookings. Please wait ${retryAfter} seconds and try again.`);
+    }
+
+    if (!res.ok) {
+        const validationError = data.errors ? Object.values(data.errors).flat()[0] : null;
+        throw new Error(validationError || data.message || 'Could not book this stay.');
+    }
+
+    return data;
 }
 
 function initMap() {

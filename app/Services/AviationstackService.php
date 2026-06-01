@@ -37,6 +37,12 @@ class AviationstackService implements FlightSearchInterface
             return $map[$lower];
         }
 
+        $countryMap = config('airports.country_iata_map', []);
+
+        if (isset($countryMap[$lower])) {
+            return $countryMap[$lower];
+        }
+
         foreach ($map as $city => $iata) {
             if (str_contains($lower, $city) || str_contains($city, $lower)) {
                 return $iata;

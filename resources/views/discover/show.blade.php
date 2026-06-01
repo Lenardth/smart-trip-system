@@ -47,8 +47,14 @@
         </div>
 
         <div class="hero-actions">
-            <a href="{{ route('plan-trip') }}?destination={{ urlencode($destination->name) }}" class="btn btn-primary btn-lg">
+            <a href="{{ route('plan-trip') }}?destination={{ urlencode($destination->name) }}&country={{ urlencode($destination->country ?? '') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-route"></i> Plan a Trip Here
+            </a>
+            <a href="{{ route('flights.index') }}?destination={{ urlencode($destination->name) }}&country={{ urlencode($destination->country ?? '') }}" class="btn btn-secondary">
+                <i class="fas fa-plane"></i> Find Flights
+            </a>
+            <a href="{{ route('accommodations.index') }}?destination={{ urlencode($destination->name) }}&country={{ urlencode($destination->country ?? '') }}" class="btn btn-secondary">
+                <i class="fas fa-hotel"></i> Find Stays
             </a>
             <a href="{{ route('discover') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Discover
@@ -193,7 +199,7 @@
             <p class="discover-cta-text">
                 Start building your itinerary with personalised flight and accommodation recommendations.
             </p>
-            <a href="{{ route('plan-trip') }}?destination={{ urlencode($destination->name) }}" class="btn btn-lg btn-cta-white">
+            <a href="{{ route('plan-trip') }}?destination={{ urlencode($destination->name) }}&country={{ urlencode($destination->country ?? '') }}" class="btn btn-lg btn-cta-white">
                 <i class="fas fa-magic"></i> Plan My Trip
             </a>
         </div>

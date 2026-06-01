@@ -137,6 +137,7 @@ function buildCard(d) {
         ? (d.description.length > 110 ? d.description.substring(0, 110) + '…' : d.description) : '';
 
     const planUrl = '/plan-trip?destination=' + encodeURIComponent(d.name || '') +
+        '&country=' + encodeURIComponent(d.country || '') +
         '&mood=' + encodeURIComponent(d.mood || getVal('moodSelect')) +
         '&budget=' + encodeURIComponent(getVal('budgetSelect') || 'mid') +
         '&region=' + encodeURIComponent(d.region || getVal('regionSelect')) +
@@ -450,7 +451,7 @@ window.generateQuickPlan = async function (e) {
                     '<p class="ai-activities">' + esc(activities) + '</p>' +
                     (s.travel_tip ? '<div class="ai-travel-tip"><p>' + esc(s.travel_tip) + '</p></div>' : '') +
                     '<div class="ai-action-row">' +
-                        '<a href="/flights?destination=' + encodeURIComponent(slug) + '&origin=' + encodeURIComponent(origin) + '&mood=' + mood + '&budget=' + budget + '" class="primary-button ai-flight-link"><i class="fas fa-plane"></i> Search Flights</a>' +
+                        '<a href="/flights?destination=' + encodeURIComponent(s.destination) + '&country=' + encodeURIComponent(s.country || '') + '&origin=' + encodeURIComponent(origin) + '&mood=' + mood + '&budget=' + budget + '" class="primary-button ai-flight-link"><i class="fas fa-plane"></i> Search Flights</a>' +
                         '<a href="/plan-trip?destination=' + encodeURIComponent(s.destination) + '&mood=' + mood + '&budget=' + budget + '" class="primary-button ai-plan-link"><i class="fas fa-map"></i> Plan Trip</a>' +
                     '</div>' +
                 '</div>' +

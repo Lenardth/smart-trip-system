@@ -420,6 +420,13 @@ body {
 }
 
 /*
+ * Styles .dash-logo-img-dashboard.
+ */
+.dash-logo-img-dashboard {
+    height: 145px;
+}
+
+/*
  * Styles .dash-logo-text.
  */
 .dash-logo-text {
@@ -686,9 +693,9 @@ body {
  * Styles .logo-nav.
  */
 .logo-nav {
-    width: 68px;
-    min-width: 68px;
-    height: 68px;
+    width: 86px;
+    min-width: 86px;
+    height: 86px;
 }
 
 /*
@@ -3052,9 +3059,9 @@ body {
         min-width: 0;
     }
     .logo-nav {
-        width: 56px;
-        min-width: 56px;
-        height: 56px;
+        width: 68px;
+        min-width: 68px;
+        height: 68px;
     }
     .logo-text-nav {
         font-size: 20px;

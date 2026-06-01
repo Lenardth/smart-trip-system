@@ -169,6 +169,15 @@
     }
 
     async function doSearch(q, region, mood) {
+        const country = region
+            ? regionFilter?.options[regionFilter.selectedIndex]?.text || ''
+            : '';
+        window.TravelContext?.update?.({
+            destination: q || country,
+            country: country,
+            region: region,
+            mood: mood,
+        });
         setLoading(true);
         grid.innerHTML = '<div class="discover-loading"><i class="fas fa-spinner fa-spin"></i><p>Searching destinations…</p></div>';
         showGrid();
@@ -272,6 +281,19 @@
         if (window.Currency) window.Currency.refresh();
     });
 
-    doSearch('', '', '');
+    const travelContext = {
+        ...(window.TravelContext?.load?.() || {}),
+        ...Object.fromEntries(new URLSearchParams(window.location.search).entries()),
+    };
+    if (searchInput) searchInput.value = travelContext.destination || travelContext.q || '';
+    if (regionFilter && travelContext.region && regionFilter.querySelector(`option[value="${CSS.escape(travelContext.region)}"]`)) {
+        regionFilter.value = travelContext.region;
+    }
+    if (moodFilter && travelContext.mood && moodFilter.querySelector(`option[value="${CSS.escape(travelContext.mood)}"]`)) {
+        moodFilter.value = travelContext.mood;
+    }
+
+    const initialSearch = currentSearch();
+    doSearch(initialSearch.q, initialSearch.region, initialSearch.mood);
 
 })();

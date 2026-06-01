@@ -42,6 +42,15 @@ class Accommodation extends Model
         return $query->where('city', 'like', "%{$city}%");
     }
 
+    public function scopeByLocation($query, string $location)
+    {
+        return $query->where(function ($query) use ($location) {
+            $query->where('city', 'like', "%{$location}%")
+                ->orWhere('country', 'like', "%{$location}%")
+                ->orWhere('name', 'like', "%{$location}%");
+        });
+    }
+
     public function scopeByStyle($query, string $style)
     {
         return $query->where('style', $style);

@@ -264,7 +264,7 @@ function applyPlanTripPrefill() {
         setFieldValue('feelingNote', `I want to plan around ${data.destination}.`);
     }
 
-    window.PlanTripContext?.clear?.();
+    window.TravelContext?.update?.(data);
     if (window.location.search) {
         window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -710,6 +710,13 @@ function selectDestination(idx, shouldScroll = true) {
     const cards = document.querySelectorAll('.dest-card');
     if (cards[idx]) cards[idx].classList.add('selected');
     selectedDest = lastResults[idx];
+    window.TravelContext?.update?.({
+        destination: selectedDest.destination || '',
+        country: selectedDest.country || '',
+        origin: lastPayload.origin || '',
+        budget: lastPayload.budget || '',
+        accommodation: lastPayload.accommodation || '',
+    });
 
     const receiptBtn = document.getElementById('receiptBtn');
     if (receiptBtn) receiptBtn.classList.remove('hidden');

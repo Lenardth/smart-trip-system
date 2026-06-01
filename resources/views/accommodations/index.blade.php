@@ -135,7 +135,7 @@
     <div id="travelWarningBanner" class="travel-warning-banner hidden"></div>
     <div id="travelAdvisoryContainer" class="travel-advisory-container hidden"></div>
 
-    <section id="accommodationsGrid" class="grid"></section>
+    <section id="accommodationsGrid" class="grid" data-authenticated="{{ Auth::check() ? 'true' : 'false' }}"></section>
     <div id="emptyState" class="empty">No accommodations found.</div>
 
 </main>

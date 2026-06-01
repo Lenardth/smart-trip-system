@@ -55,20 +55,7 @@ class PricingService implements PricingServiceInterface
 
     public function recordRevenue(\App\Models\Booking $booking, array $pricing): void
     {
-        $agencyCommissionRate = config('pricing.agency_commission', 0.10);
-        $agencyCommission = round($pricing['subtotal'] * $agencyCommissionRate, 2);
-        $netRevenue       = $pricing['service_fee'] + $agencyCommission - $pricing['discount'];
-
-        RevenueRecord::create([
-            'booking_id'        => $booking->id,
-            'user_id'           => $booking->user_id,
-            'booking_subtotal'  => $pricing['subtotal'],
-            'discount_amount'   => $pricing['discount'],
-            'service_fee'       => $pricing['service_fee'],
-            'agency_commission' => $agencyCommission,
-            'net_revenue'       => max(0, $netRevenue),
-            'coupon_code'       => $pricing['coupon']?->code,
-        ]);
+        $this->storeRevenue($booking, $pricing);
 
         if ($pricing['coupon']) {
             CouponUse::create([
@@ -79,6 +66,31 @@ class PricingService implements PricingServiceInterface
             ]);
             $pricing['coupon']->increment('uses_total');
         }
+    }
+
+    public function updateRevenue(\App\Models\Booking $booking, array $pricing): void
+    {
+        $this->storeRevenue($booking, $pricing);
+
+        CouponUse::where('booking_id', $booking->id)
+            ->update(['discount_amount' => $pricing['discount']]);
+    }
+
+    private function storeRevenue(\App\Models\Booking $booking, array $pricing): void
+    {
+        $agencyCommissionRate = config('pricing.agency_commission', 0.10);
+        $agencyCommission = round($pricing['subtotal'] * $agencyCommissionRate, 2);
+        $netRevenue       = $pricing['service_fee'] + $agencyCommission - $pricing['discount'];
+
+        RevenueRecord::updateOrCreate(['booking_id' => $booking->id], [
+            'user_id'           => $booking->user_id,
+            'booking_subtotal'  => $pricing['subtotal'],
+            'discount_amount'   => $pricing['discount'],
+            'service_fee'       => $pricing['service_fee'],
+            'agency_commission' => $agencyCommission,
+            'net_revenue'       => max(0, $netRevenue),
+            'coupon_code'       => $pricing['coupon']?->code,
+        ]);
     }
 
     public function validateCoupon(string $code, float $subtotal, int $userId): array
