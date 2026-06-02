@@ -20,7 +20,7 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "node_modules/canvg/lib/index.es.js": {
-    "file": "assets/index.es-CIQh1KtR.js",
+    "file": "assets/index.es-Dt_YsdC3.js",
     "name": "index.es",
     "src": "node_modules/canvg/lib/index.es.js",
     "isDynamicEntry": true,
@@ -36,7 +36,7 @@
     "isDynamicEntry": true
   },
   "node_modules/html2canvas/dist/html2canvas.js": {
-    "file": "assets/html2canvas-B_ZWREP1.js",
+    "file": "assets/html2canvas-BZMGRv5v.js",
     "name": "html2canvas",
     "src": "node_modules/html2canvas/dist/html2canvas.js",
     "isDynamicEntry": true,
@@ -66,7 +66,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-XSSXL4R3.js",
+    "file": "assets/app-CPbGxaea.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -92,7 +92,7 @@
     ]
   },
   "resources/js/blade/accommodations/index.js": {
-    "file": "assets/accommodations-Qi6BK3sl.js",
+    "file": "assets/accommodations-Co3LvIK3.js",
     "name": "accommodations",
     "src": "resources/js/blade/accommodations/index.js",
     "isDynamicEntry": true,
@@ -139,7 +139,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/flights/index.js": {
-    "file": "assets/flights-CsAH3xWL.js",
+    "file": "assets/flights-CZnYx0A6.js",
     "name": "flights",
     "src": "resources/js/blade/flights/index.js",
     "isDynamicEntry": true
@@ -151,7 +151,7 @@
     "isDynamicEntry": true
   },
   "resources/js/blade/plan-trip/index.js": {
-    "file": "assets/plan-trip-ClZ4OJXz.js",
+    "file": "assets/plan-trip-CrjhPYzX.js",
     "name": "plan-trip",
     "src": "resources/js/blade/plan-trip/index.js",
     "isDynamicEntry": true,

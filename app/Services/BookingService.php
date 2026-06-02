@@ -146,6 +146,17 @@ class BookingService
             $adults = (int) ($data['adults'] ?? config('booking.default_adults', 1));
             $listing = $this->reserveFlightListingSeats($data['flight_listing_id'] ?? null, $adults);
             $priceEach = max(0, (float) ($listing?->price ?? $data['price']));
+            $flight = $listing ? [
+                'airline' => $listing->airline,
+                'flight_number' => $listing->flight_number,
+                'departure_airport' => $listing->departure_airport,
+                'arrival_airport' => $listing->arrival_airport,
+                'departure_time' => $listing->departure_time,
+                'arrival_time' => $listing->arrival_time,
+                'departure_date' => $listing->departure_date->format('Y-m-d'),
+                'duration' => $listing->duration,
+                'travel_class' => $listing->travel_class,
+            ] : $data;
             $subtotal = $priceEach * $adults;
             $pricing = $this->pricing->calculate($subtotal, $user, $data['coupon_code'] ?? null);
 
@@ -160,15 +171,15 @@ class BookingService
                 'seats_booked' => $adults,
                 'status' => config('booking.statuses.confirmed'),
                 'passenger_details' => [
-                    'airline' => $data['airline'],
-                    'flight_number' => $data['flight_number'],
-                    'departure_airport' => $data['departure_airport'] ?? null,
-                    'arrival_airport' => $data['arrival_airport'] ?? null,
-                    'departure_time' => $data['departure_time'] ?? null,
-                    'arrival_time' => $data['arrival_time'] ?? null,
-                    'departure_date' => $data['departure_date'],
-                    'duration' => $data['duration'] ?? null,
-                    'travel_class' => $data['travel_class'] ?? config('booking.default_travel_class'),
+                    'airline' => $flight['airline'],
+                    'flight_number' => $flight['flight_number'],
+                    'departure_airport' => $flight['departure_airport'] ?? null,
+                    'arrival_airport' => $flight['arrival_airport'] ?? null,
+                    'departure_time' => $flight['departure_time'] ?? null,
+                    'arrival_time' => $flight['arrival_time'] ?? null,
+                    'departure_date' => $flight['departure_date'],
+                    'duration' => $flight['duration'] ?? null,
+                    'travel_class' => $flight['travel_class'] ?? config('booking.default_travel_class'),
                     'adults' => $adults,
                     'price_per_person' => $priceEach,
                     'agency_id' => $listing?->agency_id,
@@ -192,11 +203,13 @@ class BookingService
             ->lockForUpdate()
             ->firstOrFail();
 
-        if ($listing->seats_available < $adults) {
+        $reserved = FlightListing::whereKey($listing->id)
+            ->where('seats_available', '>=', $adults)
+            ->decrement('seats_available', $adults);
+
+        if ($reserved !== 1) {
             abort(409, 'Not enough seats available for this flight.');
         }
-
-        $listing->decrement('seats_available', $adults);
 
         return $listing->fresh();
     }

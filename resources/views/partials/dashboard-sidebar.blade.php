@@ -47,7 +47,7 @@
             </div>
             <div class="user-info">
                 <h4>{{ Auth::user()->name ?? 'User' }}</h4>
-                <span class="user-type-label">{{ Auth::user()->user_type ?? 'traveler' }}</span>
+                <span class="user-type-label">{{ Auth::user()->role_label }}</span>
             </div>
             <button class="logout-btn" data-action="logout" title="Logout" aria-label="Logout">
                 <i class="fas fa-sign-out-alt"></i>

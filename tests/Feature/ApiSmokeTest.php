@@ -484,20 +484,29 @@ class ApiSmokeTest extends TestCase
 
         $this->actingAs($traveler);
 
-        $this->postJson('/flights/search', [
+        $searchPayload = [
             'from' => 'London',
             'to' => 'Dubai',
             'departure_date' => $listing->departure_date->format('Y-m-d'),
             'adults' => 1,
             'travel_class' => 'ECONOMY',
-        ])
+        ];
+
+        $this->postJson('/flights/search', $searchPayload)
             ->assertOk()
             ->assertJsonFragment(['flight_listing_id' => $listing->id]);
 
+        $cachedSearch = $this->postJson('/flights/search', $searchPayload)
+            ->assertOk()
+            ->assertJsonPath('cached', true);
+
+        $this->assertCount(1, collect($cachedSearch->json('flights'))
+            ->where('flight_listing_id', $listing->id));
+
         $payload = [
             'flight_listing_id' => $listing->id,
-            'airline' => 'Agency Air',
-            'flight_number' => 'AG101',
+            'airline' => 'Tampered Air',
+            'flight_number' => 'FAKE1',
             'departure_airport' => 'London Heathrow (LHR)',
             'arrival_airport' => 'Dubai (DXB)',
             'departure_date' => $listing->departure_date->format('Y-m-d'),
@@ -513,6 +522,14 @@ class ApiSmokeTest extends TestCase
         $this->assertSame(0, $listing->fresh()->seats_available);
 
         $booking = Booking::where('flight_listing_id', $listing->id)->firstOrFail();
+        $this->assertSame('Agency Air', $booking->passenger_details['airline']);
+        $this->assertSame('AG101', $booking->passenger_details['flight_number']);
+
+        $soldOutSearch = $this->postJson('/flights/search', $searchPayload)
+            ->assertOk();
+
+        $this->assertCount(0, collect($soldOutSearch->json('flights'))
+            ->where('flight_listing_id', $listing->id));
 
         $this->postJson("/bookings/{$booking->id}/cancel")
             ->assertOk()

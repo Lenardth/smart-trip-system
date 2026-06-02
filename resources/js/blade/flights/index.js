@@ -184,7 +184,8 @@ ready(function () {
 
         if (resultsCountSpan) resultsCountSpan.textContent = sorted.length;
 
-        const cards = sorted.map(function(flight, index) {
+        const cards = sorted.map(function(flight) {
+            const index = currentFlights.indexOf(flight);
             const usdPrice = flight.price || 0;
             const priceNote = flight.price_note ? ' <span class="price-note">est.</span>' : '';
             const price = usdPrice > 0
@@ -227,7 +228,7 @@ ready(function () {
         }).join('');
 
         flightResults.innerHTML = '<div class="flights-list">' + cards + '</div>';
-        flightResults.querySelectorAll('[data-flight-index]').forEach(function(btn) {
+        flightResults.querySelectorAll('.book-flight-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 window.bookFlight(parseInt(this.dataset.flightIndex, 10));
             });

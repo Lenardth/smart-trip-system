@@ -76,4 +76,9 @@ class User extends Authenticatable
     {
         return $this->agency_name ?: $this->name;
     }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return $this->user_type === 'agency' ? 'Agency' : 'Traveler';
+    }
 }

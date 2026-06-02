@@ -120,6 +120,13 @@ class FlightSearchService
         int $adults,
         string $travelClass
     ): array {
+        // Agency inventory is loaded fresh below so cached searches cannot
+        // retain sold-out listings or prepend duplicates.
+        $flights = array_values(array_filter(
+            $flights,
+            fn (array $flight) => empty($flight['flight_listing_id'])
+        ));
+
         $listings = FlightListing::with('agency')
             ->where('status', 'published')
             ->where('departure_iata', $fromCode)

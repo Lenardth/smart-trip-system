@@ -229,7 +229,7 @@
             </div>
             <div class="account-info-row">
                 <span class="account-info-label">Account Type</span>
-                <span class="account-info-value">{{ ucfirst($user->user_type ?? 'user') }}</span>
+                <span class="account-info-value">{{ $user->role_label }}</span>
             </div>
             <div class="account-info-row">
                 <span class="account-info-label">Member Since</span>
